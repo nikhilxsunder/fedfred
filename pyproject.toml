@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fedfred"
+version = "0.0.1"
+dependencies = [
+"requests"
+]
+requires-python = ">=3.8"
+authors = [
+  {name="Nikhil Sunder", email="nsunder724@gmail.com"}
+]
+maintainers = [
+  {name="Nikhil Sunder", email="nsunder724@gmail.com"}
+]
+description = "A simple python wrapper for interacting with the US Federal Reserve database: FRED"
+readme = "README.md"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: GNU Affero General Public License v3",
+    "Operating System :: OS Independent",
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Financial and Insurance Industry",
+    "Topic :: Office/Business :: Financial :: Investment"
+]
+license = {file = "LICENSE"}
+keywords = ["fred", "federal reserve", "api", "economics", "monetary"]
+
+[project.urls]
+Repository = "https://github.com/nikhilxsunder/fedfred"
+Issues = "https://github.com/nikhilxsunder/fedfred/issues"
+Documentation = "https://fred.stlouisfed.org/docs/api/fred/"
