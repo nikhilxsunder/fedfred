@@ -6,6 +6,10 @@
 [![PyPI version](https://img.shields.io/pypi/v/fedfred.svg)](https://pypi.org/project/fedfred/)
 [![Downloads](https://img.shields.io/pypi/dm/fedfred.svg)](https://pypi.org/project/fedfred/)
 
+### Latest Update
+
+- FRED Maps API class
+
 ### Installation
 
 You can install the package using pip:
@@ -24,12 +28,26 @@ Here is a simple example of how to use the package:
 from fedfred import FredAPI
 
 api_key = 'your_api_key'
-client = FredAPI(api_key)
+
+# Fred
+fred = FredAPI(api_key)
+
+# Fred Maps
+fred_maps = FredMapsAPI(api_key)
 
 # Get Series: GDP
-
 gdp = fred.get_series('GDP')
 print(gdp)
+
+# Get Series: Real GNP
+regional_data = fred_maps.get_regional_data(
+    series_group='GNPCA',
+    region_type='state',
+    date='2022-01-01',
+    season='not_seasonally_adjusted',
+    units='lin'
+)
+print(regional_data)
 ```
 
 ### Important Notes
@@ -51,8 +69,7 @@ print(gdp)
 ### Planned Updates
 
 - Output data to pandas or polars
-- FRED Maps API
-    - CartoPy outputs
+- CartoPy outputs
 - ALFRED
 
 ### Contributing

@@ -1,6 +1,7 @@
 """
 fedfred: A simple python wrapper for interacting with the US Federal Reserve database: FRED
 """
+
 import requests
 
 class FredAPI:
@@ -1321,4 +1322,178 @@ class FredAPI:
         if sort_order:
             data['sort_order'] = sort_order
         result = self.__fred_get_request(url_endpoint, data)
+        return result
+class FredMapsAPI:
+    """
+    The FredMapsAPI class contains methods for interacting with the FRED® Maps API and GeoFRED 
+    endpoints.
+    """
+    def __init__(self, api_key):
+        """
+        Initialize the FredMapsAPI class that provides functions which query FRED Maps data.
+        """
+        self.base_url = 'https://api.stlouisfed.org/geofred'
+        self.api_key = api_key
+    # Private Methods
+    def __fred_maps_get_request(self, url_endpoint, data=None):
+        params = {
+            **data,
+            'api_key': self.api_key
+        }
+        req = requests.get((self.base_url + url_endpoint), params=params, timeout=10)
+        req.raise_for_status()
+        return req.json()
+    # Public Methods
+    def get_shape_files(self, shape):
+        """
+        This request returns shape files from FRED in GeoJSON format.
+        Parameters:
+        shape (str, required): The type of shape you want to pull GeoJSON data for. 
+        Available Shape Types: 
+            'bea' (Bureau of Economic Anaylis Region) 
+            'msa' (Metropolitan Statistical Area)
+            'frb' (Federal Reserve Bank Districts)
+            'necta' (New England City and Town Area)
+            'state'
+            'country'
+            'county' (USA Counties)
+            'censusregion' (US Census Regions)
+            'censusdivision' (US Census Divisons)
+        Returns:
+        dict: A dictionary containing the GeoJSON data for the specified shape type.
+        Raises:
+        ValueError: If the API request fails or returns an error.
+        Example:
+        >>> fred_maps = FredMapsAPI(api_key='your_api_key')
+        >>> shape_data = fred_maps.get_shape_files('state')
+        >>> print(shape_data)
+        """
+        url_endpoint = '/shapes/file'
+        data = {
+            'shape': shape
+        }
+        result = self.__fred_maps_get_request(url_endpoint, data)
+        return result
+    def get_series_group(self, series_id, file_type='json'):
+        """
+        This request returns the meta information needed to make requests for FRED data. Minimum 
+        and maximum date are also supplied for the data range available.
+        Parameters:
+        series_id (str, required): The FRED series id you want to request maps meta information 
+        for. Not all series that are in FRED have geographical data.
+        filetype (str, optional): A key or file extension that indicates the type of file to send.
+        One of the following values: 'xml', 'json'
+        xml = Extensible Markup Language. The HTTP Content-Type is text/xml.
+        json = JavaScript Object Notation. The HTTP Content-Type is application/json.
+        Returns:
+        dict: A dictionary containing the meta information for the specified series ID.
+        Raises:
+        ValueError: If the API request fails or returns an error.
+        Example:
+        >>> fred_maps = FredMapsAPI(api_key='your_api_key')
+        >>> series_info = fred_maps.get_series_group_info('GNPCA')
+        >>> print(series_info)
+        """
+        url_endpoint = '/series/group'
+        data = {
+            'series_id': series_id,
+            'file_type': file_type
+        }
+        result = self.__fred_maps_get_request(url_endpoint, data)
+        return result
+    def get_series_data(self, series_id, date=None, start_date=None, file_type='json'):
+        """
+        This request returns a cross section of regional data for a specified release date. If no 
+        date is specified, the most recent data available are returned.
+        Parameters:
+        series_id (string, required): The FRED series_id you want to request maps data for. Not all 
+        series that are in FRED have geographical data.
+        date (string, optional): The date you want to request series group data from.
+        Format: YYYY-MM-DD
+        start_date (string, optional): The start date you want to request series group data from. 
+        This allows you to pull a range of data
+        Format: YYYY-MM-DD
+        file_type (string, optional): A key or file extension that indicates the type of file to 
+        send.
+        One of the following values: 'xml', 'json'
+        xml = Extensible Markup Language. The HTTP Content-Type is text/xml (xml is not available 
+        for county data).
+        json = JavaScript Object Notation. The HTTP Content-Type is application/json.
+        Returns:
+        dict: A dictionary containing the cross-section of regional data for the specified series 
+        and date.
+        Raises:
+        ValueError: If the API request fails or returns an error.
+        Example:
+        >>> fred_maps = FredMapsAPI(api_key='your_api_key')
+        >>> series_data_info = fred_maps.get_series_data_info('GNPCA', date='2022-01-01')
+        >>> print(series_data_info)
+        """
+        url_endpoint = '/series/data'
+        data = {
+            'series_id': series_id,
+            'file_type': file_type
+        }
+        if date:
+            data['date'] = date
+        if start_date:
+            data['start_date'] = start_date
+        result = self.__fred_maps_get_request(url_endpoint, data)
+        return result
+    def get_regional_data(self, series_group, region_type, date, season, units, start_date=None,
+                          transformation=None, frequency=None, aggregation_method=None,
+                          file_type='json'):
+        """
+        Retrieve regional data for a specified series group and date from the FRED Maps API.
+        Parameters:
+        series_group (str): The series group for which you want to request regional data.
+        region_type (str): The type of region for which you want to request data. Examples include 
+        'state', 'county', 'msa', etc.
+        date (str): The date for which you want to request regional data. Format: YYYY-MM-DD.
+        season (str): The seasonality of the data. Options include 'seasonally_adjusted' or 
+        'not_seasonally_adjusted'.
+        units (str): The units of the data. Examples include 'lin', 'chg', 'pch', etc.
+        start_date (str, optional): The start date for the range of data you want to request. 
+        Format: YYYY-MM-DD.
+        transformation (str, optional): The data transformation to apply. Examples include 'lin', 
+        'chg', 'pch', etc.
+        frequency (str, optional): The frequency of the data. Examples include 'd', 'w', 'm', 
+        'q', 'a'.
+        aggregation_method (str, optional): The aggregation method to use. Examples include 'avg', 
+        'sum', 'eop'.
+        file_type (str, optional): The format of the response. Options are 'json' or 'xml'. 
+        Default is 'json'.
+        Returns:
+        dict: A dictionary containing the regional data for the specified series group and date.
+        Raises:
+        ValueError: If the API request fails or returns an error.
+        Example:
+        >>> fred_maps = FredMapsAPI(api_key='your_api_key')
+        >>> regional_data = fred_maps.get_regional_data(
+        ...     series_group='GNPCA',
+        ...     region_type='state',
+        ...     date='2022-01-01',
+        ...     season='not_seasonally_adjusted',
+        ...     units='lin'
+        ... )
+        >>> print(regional_data)
+        """
+        url_endpoint = '/regional/data'
+        data = {
+            'series_group': series_group,
+            'region_type': region_type,
+            'date': date,
+            'season': season,
+            'units': units,
+            'file_type': file_type 
+        }
+        if start_date:
+            data['start_date'] = start_date
+        if transformation:
+            data['transformation'] = transformation
+        if frequency:
+            data['frequenecy'] = frequency
+        if aggregation_method:
+            data['aggregation_method'] = aggregation_method
+        result = self.__fred_maps_get_request(url_endpoint, data)
         return result
