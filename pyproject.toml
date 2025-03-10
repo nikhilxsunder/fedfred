@@ -4,31 +4,59 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fedfred"
-version = "0.0.7"
+version = "1.0.0"
+requires-python = ">=3.7"
 dependencies = [
-"requests"
+    "httpx",
+    "typed-diskcache",
+    "tenacity",
+    "pandas",
+    "pandas-stubs",
+    "polars",
+    "geopandas",
+    "types-geopandas",
 ]
-requires-python = ">=3.8"
 authors = [
-  {name="Nikhil Sunder", email="nsunder724@gmail.com"}
+    {name="Nikhil Sunder", email="nsunder724@gmail.com"}
 ]
 maintainers = [
-  {name="Nikhil Sunder", email="nsunder724@gmail.com"}
+    {name="Nikhil Sunder", email="nsunder724@gmail.com"}
 ]
-description = "A simple python wrapper for interacting with the US Federal Reserve database: FRED"
+description = "A feature-rich python package for interacting with the Federal Reserve Bank of St. Louis Economic Database: FRED"
 readme = "README.md"
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: GNU Affero General Public License v3",
     "Operating System :: OS Independent",
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Financial and Insurance Industry",
     "Topic :: Office/Business :: Financial :: Investment"
 ]
 license = {file = "LICENSE"}
-keywords = ["fred", "federal reserve", "api", "economics", "monetary"]
+keywords = ["fred", "federal reserve", "api", "economics", "finance"]
 
 [project.urls]
 Repository = "https://github.com/nikhilxsunder/fedfred"
 Issues = "https://github.com/nikhilxsunder/fedfred/issues"
-Documentation = "https://fred.stlouisfed.org/docs/api/fred/"
+Documentation = "https://github.com/nikhilxsunder/fedfred/tree/main/docs/fedfred.pdf"
+
+[tool.setuptools]
+packages = ["fedfred"]
+package-dir = {"" = "src"}
+
+[tool.setuptools.package-data]
+"fedfred" = ["py.typed", "*.pyi"]
+
+[tool.mypy]
+files = "fedfred"
+ignore_missing_imports = true
+
+[tool.pylint]
+max-line-length = 100
+disable = ["C0114", "C0115", "C0116", "C0302", "C0301"]
+
+[tool.bandit]
+exclude_dirs = ["tests"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

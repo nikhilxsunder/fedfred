@@ -1,14 +1,24 @@
 # fedfred
-## A simple python wrapper for interacting with the US Federal Reserve database: FRED
-## This package is still in beta please try it out and please report any comments, concerns, and issues.
+## A feature-rich python package for interacting with the Federal Reserve Bank of St. Louis Economic Database: FRED
 
-[![Build and test GitHub](https://github.com/nikhilxsunder/fedfred/actions/workflows/main.yml/badge.svg)](https://github.com/nikhilxsunder/fedfred/actions)
+![Alt text](docs/images/fedfred-logo)
+
+[![Build and test GitHub](https://github.com/nikhilxsunder/fedfred/actions/workflows/main.yml/badge.svg)](https://github.com/nikhilxsunder/fedfred/actions/workflows/main.yml)
+[![Analyze Status](https://github.com/nikhilxsunder/fedfred/actions/workflows/analyze.yml/badge.svg)](https://github.com/nikhilxsunder/fedfred/actions/workflows/analyze.yml)
+[![Test Status](https://github.com/nikhilxsunder/fedfred/actions/workflows/tests.yml/badge.svg)](https://github.com/nikhilxsunder/fedfred/actions/workflows/test.yml)
+[![CodeQL](https://github.com/nikhilxsunder/fedfred/actions/workflows/codeql.yml/badge.svg)](https://github.com/nikhilxsunder/fedfred/actions/workflows/codeql.yml)
 [![PyPI version](https://img.shields.io/pypi/v/fedfred.svg)](https://pypi.org/project/fedfred/)
-[![Downloads](https://img.shields.io/pypi/dm/fedfred.svg)](https://pypi.org/project/fedfred/)
+[![PyPI Downloads](https://static.pepy.tech/badge/fedfred)](https://pepy.tech/projects/fedfred)
 
-### Latest Update
+### Features
 
-- FRED Maps API class
+- Pandas/Polars DataFrame outputs.
+- Native support for asynchronous requests (async).
+- All method outputs are mapped to dataclasses for better usability.
+- Local cacheing for easier data access and faster execution times.
+- Built-in rate limiter that doesn't exceed 120 calls per minute (ignores local caching).
+- GeoPandas outputs for geographical data (FRED-Maps/GeoFRED)
+- MyPy compatible type stubs.
 
 ### Installation
 
@@ -20,57 +30,29 @@ pip install fedfred
 
 ### Rest API Usage
 
-I recommend consulting the offical FRED API documentation at: 
-https://fred.stlouisfed.org/docs/api/fred
+I recommend consulting the documentation at: 
+https://github.com/nikhilxsunder/fedfred/tree/main/docs/fedfred.pdf
+
 Here is a simple example of how to use the package:
 
 ```python
-from fedfred import FredAPI
+# FredAPI
+import fedfred as fd
 
 api_key = 'your_api_key'
-
-# Fred
-fred = FredAPI(api_key)
-
-# Fred Maps
-fred_maps = FredMapsAPI(api_key)
+fred = fd.FredAPI(api_key)
 
 # Get Series: GDP
 gdp = fred.get_series('GDP')
-print(gdp)
-
-# Get Series: Real GNP
-regional_data = fred_maps.get_regional_data(
-    series_group='GNPCA',
-    region_type='state',
-    date='2022-01-01',
-    season='not_seasonally_adjusted',
-    units='lin'
-)
-print(regional_data)
+gdp.head()
 ```
 
 ### Important Notes
 
-- Currently all all responses are either JSON or XML depending on what is specified in the file_type arg (defalt value = 'json').
+- OpenSSF Badge in progress.
 - Store your API keys and secrets in environment variables or secure storage solutions.
 - Do not hardcode your API keys and secrets in your scripts.
-
-### Features
-
-- Get Economic Data
-- Easy to use
-
-## Next Update 
-
-- ALFRED
-    - Vintage Dates
-
-### Planned Updates
-
-- Output data to pandas or polars
-- CartoPy outputs
-- ALFRED
+- XML filetype (file_type='xml') is currently not supported but will be in a future update
 
 ### Contributing
 
