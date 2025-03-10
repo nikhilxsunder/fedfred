@@ -1,29 +1,20 @@
 [build-system]
-requires = ["setuptools>=61.0"]
-build-backend = "setuptools.build_meta"
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
 
-[project]
+[tool.poetry]
 name = "fedfred"
-version = "1.0.4"
-requires-python = ">=3.9, <4.0"
-dependencies = [
-    "httpx",
-    "typed-diskcache",
-    "tenacity",
-    "pandas",
-    "pandas-stubs",
-    "polars",
-    "geopandas",
-    "types-geopandas",
-]
-authors = [
-    {name="Nikhil Sunder", email="nsunder724@gmail.com"}
-]
-maintainers = [
-    {name="Nikhil Sunder", email="nsunder724@gmail.com"}
-]
+version = "1.0.5"
 description = "A feature-rich python package for interacting with the Federal Reserve Bank of St. Louis Economic Database: FRED"
+authors = [
+    "Nikhil Sunder <nsunder724@gmail.com>"
+]
 readme = "README.md"
+license = "AGPL-3.0-or-later"
+repository = "https://github.com/nikhilxsunder/fedfred"
+documentation = "https://github.com/nikhilxsunder/fedfred/tree/main/docs/fedfred.pdf"
+packages = [{include = "fedfred", from = "src"}]
+include = ["src/fedfred/py.typed", "src/fedfred/**/*.pyi"]
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: GNU Affero General Public License v3",
@@ -32,20 +23,27 @@ classifiers = [
     "Intended Audience :: Financial and Insurance Industry",
     "Topic :: Office/Business :: Financial :: Investment"
 ]
-license = {file = "LICENSE"}
 keywords = ["fred", "federal reserve", "api", "economics", "finance"]
+python = ">=3.9, <4.0"
 
-[project.urls]
-Repository = "https://github.com/nikhilxsunder/fedfred"
-Issues = "https://github.com/nikhilxsunder/fedfred/issues"
-Documentation = "https://github.com/nikhilxsunder/fedfred/tree/main/docs/fedfred.pdf"
+[tool.poetry.dependencies]
+python = ">=3.9, <4.0"
+httpx = "*"
+typed-diskcache = "*"
+tenacity = "*"
+pandas = "*"
+pandas-stubs = "*"
+polars = "*"
+geopandas = "*"
+types-geopandas = "*"
 
-[tool.setuptools]
-packages = ["fedfred"]
-package-dir = {"" = "src"}
-
-[tool.setuptools.package-data]
-"fedfred" = ["py.typed", "*.pyi"]
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.0.0"
+pytest-cov = "^3.0.0"
+pylint = "^2.15.0"
+mypy = "^1.0.0"
+bandit = "^1.7.0"
+pip-audit = "^2.4.0"
 
 [tool.mypy]
 files = "fedfred"
@@ -60,14 +58,3 @@ exclude_dirs = ["tests"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-
-[tool.poetry.group.dev.dependencies]
-pytest = "^7.0.0"
-pytest-cov = "^3.0.0"
-pylint = "^2.15.0"
-mypy = "^1.0.0"
-bandit = "^1.7.0"
-pip-audit = "^2.4.0"
-
-[tool.poetry]
-python = ">=3.9, <4.0"
