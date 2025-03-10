@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fedfred"
-version = "1.0.1"
+version = "1.0.2"
 requires-python = ">=3.9"
 dependencies = [
     "httpx",
@@ -60,3 +60,11 @@ exclude_dirs = ["tests"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[tool.poetry.dev-dependencies]
+pytest = "^7.0.0"
+pytest-cov = "^3.0.0"
+pylint = "^2.15.0"
+mypy = "^1.0.0"
+bandit = "^1.7.0"
+pip-audit = "^2.4.0"
