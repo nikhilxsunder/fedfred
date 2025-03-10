@@ -1,7 +1,7 @@
 # fedfred
 ## A feature-rich python package for interacting with the Federal Reserve Bank of St. Louis Economic Database: FRED
 
-![Alt text](docs/images/fedfred-logo)
+![FedFred Logo](https://raw.githubusercontent.com/nikhilxsunder/fedfred/main/docs/images/fedfred-logo.png)
 
 [![Build and test GitHub](https://github.com/nikhilxsunder/fedfred/actions/workflows/main.yml/badge.svg)](https://github.com/nikhilxsunder/fedfred/actions/workflows/main.yml)
 [![Analyze Status](https://github.com/nikhilxsunder/fedfred/actions/workflows/analyze.yml/badge.svg)](https://github.com/nikhilxsunder/fedfred/actions/workflows/analyze.yml)
