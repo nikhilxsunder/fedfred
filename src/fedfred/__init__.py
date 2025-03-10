@@ -1,8 +1,34 @@
 """
-This module initializes the Binance US API package.
+This module initializes the fedfred package.
 
 Imports:
-    BinanceRestAPI: A class that provides methods to interact with the Binance US REST API.
+    FredAPI: A class that provides methods to interact with the Fred API.
+    FredMapsAPI: A class that provides methods to interact with the Fred Maps API.
 """
-from.fedfred import FredAPI
-from.fedfred import FredMapsAPI
+from .fedfred import FredAPI, FredMapsAPI
+# Import data classes
+from .fred_data import (
+    Category,
+    Series,
+    Tag,
+    Release,
+    ReleaseDate,
+    Source,
+    Element,
+    VintageDate,
+    SeriesGroup
+)
+
+__all__ = [
+    "FredAPI",
+    "FredMapsAPI",
+    "Category",
+    "Series",
+    "Tag",
+    "Release",
+    "ReleaseDate", 
+    "Source",
+    "Element",
+    "VintageDate",
+    "SeriesGroup"
+]
