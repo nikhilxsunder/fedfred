@@ -5,7 +5,7 @@
 
 [![Build and test GitHub](https://github.com/nikhilxsunder/fedfred/actions/workflows/main.yml/badge.svg)](https://github.com/nikhilxsunder/fedfred/actions/workflows/main.yml)
 [![Analyze Status](https://github.com/nikhilxsunder/fedfred/actions/workflows/analyze.yml/badge.svg)](https://github.com/nikhilxsunder/fedfred/actions/workflows/analyze.yml)
-[![Test Status](https://github.com/nikhilxsunder/fedfred/actions/workflows/tests.yml/badge.svg)](https://github.com/nikhilxsunder/fedfred/actions/workflows/test.yml)
+[![Test Status](https://github.com/nikhilxsunder/fedfred/actions/workflows/test.yml/badge.svg)](https://github.com/nikhilxsunder/fedfred/actions/workflows/test.yml)
 [![CodeQL](https://github.com/nikhilxsunder/fedfred/actions/workflows/codeql.yml/badge.svg)](https://github.com/nikhilxsunder/fedfred/actions/workflows/codeql.yml)
 [![PyPI version](https://img.shields.io/pypi/v/fedfred.svg)](https://pypi.org/project/fedfred/)
 [![PyPI Downloads](https://static.pepy.tech/badge/fedfred)](https://pepy.tech/projects/fedfred)
