@@ -319,7 +319,19 @@ class SeriesGroup:
         Parses the FRED API response and returns a single SeriesGroup or a list of SeriesGroups.
         """
         if "series_group" not in response:
-            raise ValueError("Invalid API response: Missing 'series_groups' field")
+            raise ValueError("Invalid API response: Missing 'series_group' field")
+        if isinstance(response["series_group"], dict):
+            series_group_data = response["series_group"]
+            return cls(
+                title=series_group_data["title"],
+                region_type=series_group_data["region_type"],
+                series_group=series_group_data["series_group"],
+                season=series_group_data["season"],
+                units=series_group_data["units"],
+                frequency=series_group_data["frequency"],
+                min_date=series_group_data["min_date"],
+                max_date=series_group_data["max_date"]
+            )
         series_groups = [
             cls(
                 title=series_group["title"],
