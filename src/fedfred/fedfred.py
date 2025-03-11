@@ -1872,11 +1872,10 @@ class FredMapsAPI:
             shapefile.set_index('name', inplace=True)
             shapefile['value'] = None
             shapefile['series_id'] = None
-            all_items = []
-            for title_key, title_data in data.items():
-                for _, items in title_data.items():
-                    if isinstance(items, list):
-                        all_items.extend(items)
+            all_items = data.get("meta", {}).get("data", [])
+            print(f"Found {len(all_items)} data items")
+            if all_items:
+                print(f"Sample item: {all_items[0]}")
             for item in all_items:
                 if item['region'] in shapefile.index:
                     shapefile.loc[item['region'], 'value'] = item['value']
@@ -1886,11 +1885,16 @@ class FredMapsAPI:
             region_type = data['meta']['region']
             shapefile = self.get_shape_files(region_type)
             shapefile.set_index('name', inplace=True)
-            if "meta" in data and "data" in data["meta"]:
-                for item in data["meta"]["data"]:
-                    if item['region'] in shapefile.index:
-                        shapefile.loc[item['region'], 'value'] = item['value']
-                        shapefile.loc[item['region'], 'series_id'] = item['series_id']
+            shapefile['value'] = None
+            shapefile['series_id'] = None
+            all_items = data.get("meta", {}).get("data", [])
+            print(f"Found {len(all_items)} data items")
+            if all_items:
+                print(f"Sample item: {all_items[0]}")
+            for item in all_items:
+                if item['region'] in shapefile.index:
+                    shapefile.loc[item['region'], 'value'] = item['value']
+                    shapefile.loc[item['region'], 'series_id'] = item['series_id']
             return shapefile
     async def __update_semaphore(self):
         """
