@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "fedfred"
-version = "1.0.23"
+version = "1.0.24"
 description = "A feature-rich python package for interacting with the Federal Reserve Bank of St. Louis Economic Database: FRED"
 authors = [
     "Nikhil Sunder <nsunder724@gmail.com>"

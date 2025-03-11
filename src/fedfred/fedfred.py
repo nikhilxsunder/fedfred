@@ -1872,14 +1872,23 @@ class FredMapsAPI:
             shapefile.set_index('name', inplace=True)
             shapefile['value'] = None
             shapefile['series_id'] = None
+            
+            # Extract all items from the meta data
             all_items = data.get("meta", {}).get("data", [])
+            
+            # Debug the items
+            print(f"Data keys: {data.keys()}")
+            print(f"Meta keys: {data.get('meta', {}).keys()}")
             print(f"Found {len(all_items)} data items")
             if all_items:
                 print(f"Sample item: {all_items[0]}")
+            
+            # Iterate over each item in the data
             for item in all_items:
                 if item['region'] in shapefile.index:
                     shapefile.loc[item['region'], 'value'] = item['value']
                     shapefile.loc[item['region'], 'series_id'] = item['series_id']
+            
             return shapefile
         elif not region_type:
             region_type = data['meta']['region']
@@ -1887,14 +1896,23 @@ class FredMapsAPI:
             shapefile.set_index('name', inplace=True)
             shapefile['value'] = None
             shapefile['series_id'] = None
+            
+            # Extract all items from the meta data
             all_items = data.get("meta", {}).get("data", [])
+            
+            # Debug the items
+            print(f"Data keys: {data.keys()}")
+            print(f"Meta keys: {data.get('meta', {}).keys()}")
             print(f"Found {len(all_items)} data items")
             if all_items:
                 print(f"Sample item: {all_items[0]}")
+            
+            # Iterate over each item in the data
             for item in all_items:
                 if item['region'] in shapefile.index:
                     shapefile.loc[item['region'], 'value'] = item['value']
                     shapefile.loc[item['region'], 'series_id'] = item['series_id']
+            
             return shapefile
     async def __update_semaphore(self):
         """
