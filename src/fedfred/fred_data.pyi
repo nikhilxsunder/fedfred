@@ -88,11 +88,9 @@ class Release:
 @dataclass
 class ReleaseDate:
     release_id: int
-    release_name: str
     release_date: str
     def __init__(self,
                 release_id: int,
-                release_name: str,
                 release_date: str) -> None: ...
     @classmethod
     def from_api_response(cls, response: Dict[str, Any]) -> Union["ReleaseDate", List["ReleaseDate"], None]: ...

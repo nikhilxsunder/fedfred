@@ -166,7 +166,6 @@ class ReleaseDate:
     A class used to represent a ReleaseDate.
     """
     release_id: int
-    release_name: str
     release_date: str
 
     @classmethod
@@ -179,7 +178,6 @@ class ReleaseDate:
         release_dates = [
             cls(
                 release_id=release_date["release_id"],
-                release_name=release_date["release_name"],
                 release_date=release_date["release_date"]
             )
             for release_date in response["release_dates"]
