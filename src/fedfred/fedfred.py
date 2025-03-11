@@ -1867,9 +1867,43 @@ class FredMapsAPI:
         """
         Helper method to convert a fred observation dictionary to a GeoPandas GeoDataFrame.
         """
-        shapefile = self.get_shape_files(shape=data["meta"]["region"])
-        for item in data['meta']['data']:
-            shapefile.loc[shapefile['code'] == item['code'], 'value'] = float(item['value'])
+        if not isinstance(data, dict):
+            raise ValueError(f"Invalid data format: {data}")
+        region_type = None
+        if 'meta' in data and 'region' in data['meta']:
+            region_type = data["meta"]["region"]
+        else:
+            for title_key, title_data in data.items():
+                if "by State" in title_key:
+                    region_type = "state"
+                    break
+                elif "by County" in title_key:
+                    region_type = "county"
+                    break
+                elif "by MSA" in title_key or "by Metropolitan" in title_key:
+                    region_type = "msa"
+                    break
+        if not region_type:
+            region_type = "state"
+        shapefile = self.get_shape_files(shape=region_type)
+        data_items = []
+        if 'data' in data and isinstance(data['data'], list):
+            data_items.extend(data['data'])
+        elif 'meta' in data and 'data' in data['meta'] and isinstance(data['meta']['data'], list):
+            data_items.extend(data['meta']['data'])
+        else:
+            for title_key, title_data in data.items():
+                if isinstance(title_data, dict):
+                    for _, items in title_data.items():
+                        if isinstance(items, list):
+                            data_items.extend(items)
+        for item in data_items:
+            if isinstance(item, dict) and 'code' in item and 'value' in item:
+                try:
+                    value = float(item['value'])
+                    shapefile.loc[shapefile['code'] == item['code'], 'value'] = value
+                except (ValueError, TypeError):
+                    pass
         return shapefile
     async def __update_semaphore(self):
         """
