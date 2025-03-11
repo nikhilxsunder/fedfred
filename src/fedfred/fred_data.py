@@ -166,7 +166,7 @@ class ReleaseDate:
     A class used to represent a ReleaseDate.
     """
     release_id: int
-    release_date: str
+    date: str
 
     @classmethod
     def from_api_response(cls, response: Dict) -> Union["ReleaseDate", List["ReleaseDate"], None]:
@@ -178,7 +178,7 @@ class ReleaseDate:
         release_dates = [
             cls(
                 release_id=release_date["release_id"],
-                release_date=release_date["release_date"]
+                date=release_date["date"]
             )
             for release_date in response["release_dates"]
         ]
