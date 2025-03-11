@@ -2127,7 +2127,7 @@ class FredMapsAPI:
         if transformation:
             data['transformation'] = transformation
         if frequency:
-            data['frequenecy'] = frequency
+            data['frequency'] = frequency
         if aggregation_method:
             data['aggregation_method'] = aggregation_method
         if self.async_mode:

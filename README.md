@@ -12,6 +12,7 @@
     <a href="https://github.com/nikhilxsunder/fedfred/actions/workflows/codeql.yml"><img src="https://github.com/nikhilxsunder/fedfred/actions/workflows/codeql.yml/badge.svg" alt="CodeQL"></a>
     <a href="https://pypi.org/project/fedfred/"><img src="https://img.shields.io/pypi/v/fedfred.svg" alt="PyPI version"></a>
     <a href="https://pepy.tech/projects/fedfred"><img src="https://static.pepy.tech/badge/fedfred" alt="PyPI Downloads"></a>
+    <a href="https://pypistats.org/packages/fedfred"><img src="https://img.shields.io/pypi/dm/fedfred" alt="PyPI Monthly Downloads"></a>
 </div>
 
 ### Features
