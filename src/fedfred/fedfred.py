@@ -1863,48 +1863,35 @@ class FredMapsAPI:
         self.lock = asyncio.Lock()
         self.semaphore = asyncio.Semaphore(self.max_requests_per_minute // 10)
     # Private Methods
-    def __to_gpd_gdf(self, data):
+    def __to_gpd_gdf(self, data, region_type=None):
         """
         Helper method to convert a fred observation dictionary to a GeoPandas GeoDataFrame.
         """
-        if not isinstance(data, dict):
-            raise ValueError(f"Invalid data format: {data}")
-        region_type = None
-        if 'meta' in data and 'region' in data['meta']:
-            region_type = data["meta"]["region"]
-        else:
+        if region_type:
+            shapefile = self.get_shape_files(region_type)
+            shapefile.set_index('name', inplace=True)
+            shapefile['value'] = None
+            shapefile['series_id'] = None
+            all_items = []
             for title_key, title_data in data.items():
-                if "by State" in title_key:
-                    region_type = "state"
-                    break
-                elif "by County" in title_key:
-                    region_type = "county"
-                    break
-                elif "by MSA" in title_key or "by Metropolitan" in title_key:
-                    region_type = "msa"
-                    break
-        if not region_type:
-            region_type = "state"
-        shapefile = self.get_shape_files(shape=region_type)
-        data_items = []
-        if 'data' in data and isinstance(data['data'], list):
-            data_items.extend(data['data'])
-        elif 'meta' in data and 'data' in data['meta'] and isinstance(data['meta']['data'], list):
-            data_items.extend(data['meta']['data'])
-        else:
-            for title_key, title_data in data.items():
-                if isinstance(title_data, dict):
-                    for _, items in title_data.items():
-                        if isinstance(items, list):
-                            data_items.extend(items)
-        for item in data_items:
-            if isinstance(item, dict) and 'code' in item and 'value' in item:
-                try:
-                    value = float(item['value'])
-                    shapefile.loc[shapefile['code'] == item['code'], 'value'] = value
-                except (ValueError, TypeError):
-                    pass
-        return shapefile
+                for year_key, items in title_data.items():
+                    if isinstance(items, list):
+                        all_items.extend(items)
+            for item in items:
+                if item['region'] in shapefile.index:
+                    shapefile.loc[item['region'], 'value'] = item['value']
+                    shapefile.loc[item['region'], 'series_id'] = item['series_id']
+            return shapefile
+        elif not region_type:
+            region_type = data['meta']['region']
+            shapefile = self.get_shape_files(region_type)
+            shapefile.set_index('name', inplace=True)
+            if "meta" in data and "data" in data["meta"]:
+                for item in data["meta"]["data"]:
+                    if item['region'] in shapefile.index:
+                        shapefile.loc[item['region'], 'value'] = item['value']
+                        shapefile.loc[item['region'], 'series_id'] = item['series_id']
+            return shapefile
     async def __update_semaphore(self):
         """
         Dynamically adjusts the semaphore based on requests left in the minute.
@@ -2168,4 +2155,4 @@ class FredMapsAPI:
             response = asyncio.run(self.__fred_maps_get_request_async(url_endpoint, data))
         else:
             response = self.__fred_maps_get_request(url_endpoint, data)
-        return self.__to_gpd_gdf(response)
+        return self.__to_gpd_gdf(response, region_type)
