@@ -1874,10 +1874,10 @@ class FredMapsAPI:
             shapefile['series_id'] = None
             all_items = []
             for title_key, title_data in data.items():
-                for year_key, items in title_data.items():
+                for _, items in title_data.items():
                     if isinstance(items, list):
                         all_items.extend(items)
-            for item in items:
+            for item in all_items:
                 if item['region'] in shapefile.index:
                     shapefile.loc[item['region'], 'value'] = item['value']
                     shapefile.loc[item['region'], 'series_id'] = item['series_id']
