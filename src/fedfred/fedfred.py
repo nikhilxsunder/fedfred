@@ -1863,30 +1863,29 @@ class FredMapsAPI:
         self.lock = asyncio.Lock()
         self.semaphore = asyncio.Semaphore(self.max_requests_per_minute // 10)
     # Private Methods
-    def __to_gpd_gdf(self, data, region_type=None):
+    def __to_gpd_gdf(self, data):
         """
         Helper method to convert a fred observation dictionary to a GeoPandas GeoDataFrame.
         """
+        meta_data = data.get('meta', {})
+        if not meta_data:
+            return None
+        region_type = meta_data.get('region')
+        if not region_type:
+            return None
         shapefile = self.get_shape_files(region_type)
         shapefile.set_index('name', inplace=True)
         shapefile['value'] = None
         shapefile['series_id'] = None
-
-        # Extract the year and data
-        year = next(iter(data))  # Get the year (e.g., "2013 Per Capita...")
-        items = data[year]  # Get the list of items for that year
-
-        # Debug the items
-        print(f"Found {len(items)} data items")
-        if items:
-            print(f"Sample item: {items[0]}")
-
-        # Iterate over each item in the data
+        data_section = meta_data.get('data', {})
+        if not data_section:
+            return shapefile
+        date_key = next(iter(data_section))
+        items = data_section[date_key]
         for item in items:
             if item['region'] in shapefile.index:
                 shapefile.loc[item['region'], 'value'] = item['value']
                 shapefile.loc[item['region'], 'series_id'] = item['series_id']
-
         return shapefile
     async def __update_semaphore(self):
         """
@@ -2151,5 +2150,4 @@ class FredMapsAPI:
             response = asyncio.run(self.__fred_maps_get_request_async(url_endpoint, data))
         else:
             response = self.__fred_maps_get_request(url_endpoint, data)
-        return self.__to_gpd_gdf(response, region_type)
-
+        return self.__to_gpd_gdf(response)
