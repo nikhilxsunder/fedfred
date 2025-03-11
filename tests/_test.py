@@ -150,15 +150,14 @@ class TestFredAPI(unittest.TestCase):
             "release_dates": [
                 {
                     "release_id": 10,
-                    "release_name": "Gross Domestic Product",
-                    "release_date": "2023-04-27"
+                    "date": "2023-04-27"
                 }
             ]
         }
         release_dates = self.fred_api.get_releases_dates()
         self.assertIsInstance(release_dates, ReleaseDate)
         self.assertEqual(release_dates.release_id, 10)
-        self.assertEqual(release_dates.release_date, "2023-04-27")
+        self.assertEqual(release_dates.date, "2023-04-27")
     @patch('fedfred.fedfred.FredAPI._FredAPI__fred_get_request')
     def test_get_release(self, mock_request):
         """Test get_release method."""
@@ -185,8 +184,7 @@ class TestFredAPI(unittest.TestCase):
             "release_dates": [
                 {
                     "release_id": 10,
-                    "release_name": "Gross Domestic Product",
-                    "release_date": "2023-04-27"
+                    "date": "2023-04-27"
                 }
             ]
         }
