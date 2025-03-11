@@ -5,12 +5,14 @@
     <img src="https://raw.githubusercontent.com/nikhilxsunder/fedfred/main/docs/images/fedfred-logo.png" width="30%" alt="FedFred Logo">
 </div>
 
-[![Build and test GitHub](https://github.com/nikhilxsunder/fedfred/actions/workflows/main.yml/badge.svg)](https://github.com/nikhilxsunder/fedfred/actions/workflows/main.yml)
-[![Analyze Status](https://github.com/nikhilxsunder/fedfred/actions/workflows/analyze.yml/badge.svg)](https://github.com/nikhilxsunder/fedfred/actions/workflows/analyze.yml)
-[![Test Status](https://github.com/nikhilxsunder/fedfred/actions/workflows/test.yml/badge.svg)](https://github.com/nikhilxsunder/fedfred/actions/workflows/test.yml)
-[![CodeQL](https://github.com/nikhilxsunder/fedfred/actions/workflows/codeql.yml/badge.svg)](https://github.com/nikhilxsunder/fedfred/actions/workflows/codeql.yml)
-[![PyPI version](https://img.shields.io/pypi/v/fedfred.svg)](https://pypi.org/project/fedfred/)
-[![PyPI Downloads](https://static.pepy.tech/badge/fedfred)](https://pepy.tech/projects/fedfred)
+<div align="center">
+    <a href="https://github.com/nikhilxsunder/fedfred/actions/workflows/main.yml"><img src="https://github.com/nikhilxsunder/fedfred/actions/workflows/main.yml/badge.svg" alt="Build and test GitHub"></a>
+    <a href="https://github.com/nikhilxsunder/fedfred/actions/workflows/analyze.yml"><img src="https://github.com/nikhilxsunder/fedfred/actions/workflows/analyze.yml/badge.svg" alt="Analyze Status"></a>
+    <a href="https://github.com/nikhilxsunder/fedfred/actions/workflows/test.yml"><img src="https://github.com/nikhilxsunder/fedfred/actions/workflows/test.yml/badge.svg" alt="Test Status"></a>
+    <a href="https://github.com/nikhilxsunder/fedfred/actions/workflows/codeql.yml"><img src="https://github.com/nikhilxsunder/fedfred/actions/workflows/codeql.yml/badge.svg" alt="CodeQL"></a>
+    <a href="https://pypi.org/project/fedfred/"><img src="https://img.shields.io/pypi/v/fedfred.svg" alt="PyPI version"></a>
+    <a href="https://pepy.tech/projects/fedfred"><img src="https://static.pepy.tech/badge/fedfred" alt="PyPI Downloads"></a>
+</div>
 
 ### Features
 

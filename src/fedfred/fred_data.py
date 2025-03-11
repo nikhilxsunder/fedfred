@@ -51,7 +51,7 @@ class Series:
     seasonal_adjustment_short: str
     last_updated: str
     popularity: int
-    group_popularity: int
+    group_popularity: Optional[int] = None
     notes: Optional[str] = None
 
     @classmethod
@@ -75,7 +75,7 @@ class Series:
                 seasonal_adjustment_short=series["seasonal_adjustment_short"],
                 last_updated=series["last_updated"],
                 popularity=series["popularity"],
-                group_popularity=series["group_popularity"],
+                group_popularity=series.get("group_popularity"),
                 notes=series.get("notes")
             )
             for series in response["seriess"]
@@ -167,6 +167,7 @@ class ReleaseDate:
     """
     release_id: int
     date: str
+    release_name: Optional[str] = None
 
     @classmethod
     def from_api_response(cls, response: Dict) -> Union["ReleaseDate", List["ReleaseDate"], None]:
@@ -178,7 +179,8 @@ class ReleaseDate:
         release_dates = [
             cls(
                 release_id=release_date["release_id"],
-                date=release_date["date"]
+                date=release_date["date"],
+                release_name=release_date.get("release_name")
             )
             for release_date in response["release_dates"]
         ]

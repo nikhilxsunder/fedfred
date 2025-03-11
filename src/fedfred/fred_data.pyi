@@ -27,7 +27,7 @@ class Series:
     seasonal_adjustment_short: str
     last_updated: str
     popularity: int
-    group_popularity: int
+    group_popularity: Optional[int]
     notes: Optional[str]
     def __init__(self,
                 id: str,
@@ -42,7 +42,7 @@ class Series:
                 seasonal_adjustment_short: str,
                 last_updated: str,
                 popularity: int,
-                group_popularity: int,
+                group_popularity: Optional[int]=None,
                 notes: Optional[str]=None) -> None: ...
     @classmethod
     def from_api_response(cls, response: Dict[str, Any]) -> Union["Series", List["Series"], None]: ...
@@ -89,9 +89,11 @@ class Release:
 class ReleaseDate:
     release_id: int
     date: str
+    release_name: Optional[str]
     def __init__(self,
                 release_id: int,
-                date: str) -> None: ...
+                date: str,
+                release_name: Optional[str]=None) -> None: ...
     @classmethod
     def from_api_response(cls, response: Dict[str, Any]) -> Union["ReleaseDate", List["ReleaseDate"], None]: ...
 
