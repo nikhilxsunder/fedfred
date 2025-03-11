@@ -661,7 +661,7 @@ class TestFredMapsAPI(unittest.TestCase):
     def test_get_series_group(self, mock_request):
         """Test get_series_group method."""
         mock_request.return_value = {
-            "series_groups": [
+            "series_group": [
                 {
                     "title": "Per Capita Personal Income by State",
                     "region_type": "state",
