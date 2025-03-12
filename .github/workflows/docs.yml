@@ -28,7 +28,6 @@ jobs:
       - name: Install dependencies
         run: |
           poetry install --with dev
-          poetry add sphinx sphinx-rtd-theme sphinx-autodoc-typehints myst-parser furo
 
       - name: Build docs
         run: |
