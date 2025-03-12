@@ -269,7 +269,7 @@ class TestFredAPI(unittest.TestCase):
                 }
             ]
         }
-        tags = self.fred_api.get_release_related_tags("gdp")
+        tags = self.fred_api.get_release_related_tags(86)
         self.assertIsInstance(tags, Tag)
         self.assertEqual(tags.name, "quarterly")
     @patch('fedfred.fedfred.FredAPI._FredAPI__fred_get_request')
@@ -340,11 +340,11 @@ class TestFredAPI(unittest.TestCase):
         mock_response.json.return_value = {
             "observations": [
                 {
-                    "date": "2022-01-01", "value": "24000.6", 
+                    "date": "2022-01-01", "value": "24000.6",
                     "realtime_start": "2023-01-01", "realtime_end": "2023-12-31"
                 },
                 {
-                    "date": "2022-04-01", "value": "24400.3", 
+                    "date": "2022-04-01", "value": "24400.3",
                     "realtime_start": "2023-01-01", "realtime_end": "2023-12-31"
                 }
             ]
@@ -805,7 +805,7 @@ class TestFredMapsAPIPrivateMethods(unittest.TestCase):
         test_data = {
             "meta": {
                 "title": "State Boundaries",
-                "region": "state", 
+                "region": "state",
                 "date": "2022-01-01"
             },
             "type": "FeatureCollection",

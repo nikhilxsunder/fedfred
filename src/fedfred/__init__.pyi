@@ -11,7 +11,7 @@ __all__ = [
     "Series",
     "Tag",
     "Release",
-    "ReleaseDate", 
+    "ReleaseDate",
     "Source",
     "Element",
     "VintageDate",

@@ -23,7 +23,7 @@ from .fred_data import SeriesGroup
 
 class FredAPI:
     """
-    The FredAPI class contains methods for interacting with the Federal Reserve Bank of St. Louis 
+    The FredAPI class contains methods for interacting with the Federal Reserve Bank of St. Louis
     FRED® API.
     """
     # Dunder Methods
@@ -31,10 +31,19 @@ class FredAPI:
         """
         Initialize the FredAPI class that provides functions which query FRED data.
 
-        Parameters:
-        - api_key (str): Your FRED API key.
-        - async_mode (bool): Whether to use asynchronous (True) or synchronous (False) requests. 
-          Default is False (synchronous).
+        Args:
+            api_key (str): Your FRED API key.
+            async_mode (bool): Whether to use asynchronous (True) or synchronous (False) requests. Default is False (synchronous).
+
+        Returns:
+            FredAPI: An instance of the FredAPI class.
+
+        Raises:
+            ValueError: If the API key is not provided.
+
+        Example:
+            >>> import fedfred as fd
+            >>> fred = fd.FredAPI('your_api_key')
         """
         self.base_url = 'https://api.stlouisfed.org/fred'
         self.api_key = api_key
@@ -155,23 +164,31 @@ class FredAPI:
     # Public Methods
     ## Categories
     def get_category(self, category_id: int, file_type: str = 'json'):
-        """
+        """Get a FRED Category
+
         Retrieve information about a specific category from the FRED API.
 
-        Parameters:
-        category_id (int): The ID of the category to retrieve.
-        file_type (str, optional): The format of the response. Defaults to 'json'.
+        Args:
+            category_id (int): The ID of the category to retrieve.
+            file_type (str, optional): The format of the response. Defaults to 'json'.
 
         Returns:
-        - Category: If only one category is returned.
-        - List[Category]: If multiple categories are returned.
-        - None: If no child categories exist.
+            Category: If only one category is returned.
+            List[Category]: If multiple categories are returned.
+            None: If no child categories exist.
 
         Raises:
-        ValueError: If the response from the FRED API indicates an error.
+            ValueError: If the response from the FRED API indicates an error.
 
-        Reference:
-        https://fred.stlouisfed.org/docs/api/fred/category.html
+        Example:
+            >>> import fedfred as fd
+            >>> fred = fd.FredAPI('your_api_key')
+            >>> category = fred.get_category(125)
+            >>> print(category.name)
+            'Trade Balance'
+
+        FRED API Documentation:
+            https://fred.stlouisfed.org/docs/api/fred/category.html
         """
         if not isinstance(category_id, int) or category_id < 0:
             raise ValueError("category_id must be a non-negative integer")
@@ -187,26 +204,38 @@ class FredAPI:
         return Category.from_api_response(response)
     def get_category_children(self, category_id: int, realtime_start: Optional[str]=None,
                               realtime_end: Optional[str]=None, file_type: str ='json'):
-        """
+        """Get a FRED Category's Child Categories
+
         Get the child categories for a specified category ID from the FRED API.
 
-        Parameters:
-        category_id (int): The ID for the category whose children are to be retrieved.
-        realtime_start (str, optional): The start of the real-time period. Format: YYYY-MM-DD.
-        realtime_end (str, optional): The end of the real-time period. Format: YYYY-MM-DD.
-        file_type (str, optional): The format of the response. Default is 'json'. Other 
-        options include 'xml'.
+        Args:
+            category_id (int): The ID for the category whose children are to be retrieved.
+            realtime_start (str, optional): The start of the real-time period. Format: YYYY-MM-DD.
+            realtime_end (str, optional): The end of the real-time period. Format: YYYY-MM-DD.
+            file_type (str, optional): The format of the response. Default is 'json'. Other
+            options include 'xml'.
 
         Returns:
-        - Category: If only one category is returned.
-        - List[Category]: If multiple categories are returned.
-        - None: If no child categories exist.
+            Category: If only one category is returned.
+            List[Category]: If multiple categories are returned.
+            None: If no child categories exist.
 
         Raises:
-        ValueError: If the API request fails or returns an error.
+            ValueError: If the API request fails or returns an error.
+
+        Example:
+            >>> import fedfred as fd
+            >>> fred = FredAPI('your_api_key')
+            >>> children = fred.get_category_children(13)
+            >>> for child in children:
+            >>>     print(child.name)
+            'Exports'
+            'Imports'
+            'Income Payments & Receipts'
+            'U.S. International Finance
 
         FRED API Documentation:
-        https://fred.stlouisfed.org/docs/api/fred/category_children.html
+            https://fred.stlouisfed.org/docs/api/fred/category_children.html
         """
         if not isinstance(category_id, int) or category_id < 0:
             raise ValueError("category_id must be a non-negative integer")
@@ -226,26 +255,40 @@ class FredAPI:
         return Category.from_api_response(response)
     def get_category_related(self, category_id: int, realtime_start: Optional[str]=None,
                              realtime_end: Optional[str]=None, file_type: str = 'json'):
-        """
+        """Get a FRED Category's Related Categories
+
         Get related categories for a given category ID from the FRED API.
 
-        Parameters:
-        category_id (int): The ID for the category.
-        realtime_start (str, optional): The start of the real-time period. Format: YYYY-MM-DD.
-        realtime_end (str, optional): The end of the real-time period. Format: YYYY-MM-DD.
-        file_type (str, optional): The format of the response. Default is 'json'. Options 
-        are 'json', 'xml'.
+        Args:
+            category_id (int): The ID for the category.
+            realtime_start (str, optional): The start of the real-time period. Format: YYYY-MM-DD.
+            realtime_end (str, optional): The end of the real-time period. Format: YYYY-MM-DD.
+            file_type (str, optional): The format of the response. Default is 'json'. Options are 'json', 'xml'.
 
         Returns:
-        - Category: If only one category is returned.
-        - List[Category]: If multiple categories are returned.
-        - None: If no child categories exist.
+            Category: If only one category is returned.
+            List[Category]: If multiple categories are returned.
+            None: If no child categories exist.
 
         Raises:
-        ValueError: If the API request fails or returns an error.
+            ValueError: If the API request fails or returns an error.
+
+        Example:
+            >>> import fedfred as fd
+            >>> fred = FredAPI('your_api_key')
+            >>> related = fred.get_category_related(32073)
+            >>> for category in related:
+            >>>     print(category.name)
+            'Arkansas'
+            'Illinois'
+            'Indiana'
+            'Kentucky'
+            'Mississippi'
+            'Missouri'
+            'Tennessee'
 
         FRED API Documentation:
-        https://fred.stlouisfed.org/docs/api/fred/category_related.html
+            https://fred.stlouisfed.org/docs/api/fred/category_related.html
         """
         if not isinstance(category_id, int) or category_id < 0:
             raise ValueError("category_id must be a non-negative integer")
@@ -269,39 +312,44 @@ class FredAPI:
                             sort_order: Optional[str]=None, filter_variable: Optional[str]=None,
                             filter_value: Optional[str]=None, tag_names: Optional[str]=None,
                             exclude_tag_names: Optional[str]=None, file_type: str ='json'):
-        """
-        Get the series in a category.
+        """ Get a FRED Category's FRED Series
 
-        Parameters:
-        category_id (int): The ID for a category.
-        realtime_start (str, optional): The start of the real-time period. Format: YYYY-MM-DD.
-        realtime_end (str, optional): The end of the real-time period. Format: YYYY-MM-DD.
-        limit (int, optional): The maximum number of results to return. Default is 1000.
-        offset (int, optional): The offset for the results. Used for pagination.
-        order_by (str, optional): Order results by values. Options are 'series_id', 'title', 
-        'units', 'frequency', 'seasonal_adjustment', 'realtime_start', 'realtime_end', 
-        'last_updated', 'observation_start', 'observation_end', 'popularity', 'group_popularity'.
-        sort_order (str, optional): Sort results in ascending or descending order. Options are 
-        'asc' or 'desc'.
-        filter_variable (str, optional): The attribute to filter results by. Options are 
-        'frequency', 'units', 'seasonal_adjustment'.
-        filter_value (str, optional): The value of the filter_variable to filter results by.
-        tag_names (str, optional): A semicolon-separated list of tag names to filter results by.
-        exclude_tag_names (str, optional): A semicolon-separated list of tag names to exclude 
-        results by.
-        file_type (str, optional): The type of file to return. Default is 'json'. Options are 
-        'json', 'xml'.
+        Get the series info for all series in a category from the FRED API.
+
+        Args:
+            category_id (int): The ID for a category.
+            realtime_start (str, optional): The start of the real-time period. Format: YYYY-MM-DD.
+            realtime_end (str, optional): The end of the real-time period. Format: YYYY-MM-DD.
+            limit (int, optional): The maximum number of results to return. Default is 1000.
+            offset (int, optional): The offset for the results. Used for pagination.
+            order_by (str, optional): Order results by values. Options are 'series_id', 'title', 'units', 'frequency', 'seasonal_adjustment', 'realtime_start', 'realtime_end', 'last_updated', 'observation_start', 'observation_end', 'popularity', 'group_popularity'.
+            sort_order (str, optional): Sort results in ascending or descending order. Options are 'asc' or 'desc'.
+            filter_variable (str, optional): The attribute to filter results by. Options are 'frequency', 'units', 'seasonal_adjustment'.
+            filter_value (str, optional): The value of the filter_variable to filter results by.
+            tag_names (str, optional): A semicolon-separated list of tag names to filter results by.
+            exclude_tag_names (str, optional): A semicolon-separated list of tag names to exclude results by.
+            file_type (str, optional): The type of file to return. Default is 'json'. Options are 'json', 'xml'.
 
         Returns:
-        - Series: If only one series is returned.
-        - List[Series]: If multiple series are returned.
-        - None: If no series exist.
+            Series: If only one series is returned.
+            List[Series]: If multiple series are returned.
+            None: If no series exist.
 
         Raises:
-        ValueError: If the request to the FRED API fails or returns an error.
+            ValueError: If the request to the FRED API fails or returns an error.
+
+        Example:
+            >>> import fedfred as fd
+            >>> fred = fd.FredAPI('your_api_key')
+            >>> series = fred.get_category_series(125)
+            >>> for s in series:
+            >>>     print(s.frequency)
+            'Quarterly'
+            'Annual'
+            'Quarterly'...
 
         FRED API Documentation:
-        https://fred.stlouisfed.org/docs/api/fred/category_series.html
+            https://fred.stlouisfed.org/docs/api/fred/category_series.html
         """
         if not isinstance(category_id, int) or category_id < 0:
             raise ValueError("category_id must be a non-negative integer")
@@ -341,34 +389,43 @@ class FredAPI:
                           limit: Optional[int]=None, offset: Optional[int]=None,
                           order_by: Optional[int]=None, sort_order: Optional[str]=None,
                           file_type: str ='json'):
-        """
-        Get the tags for a category.
+        """Get a FRED Category's Tags
 
-        Parameters:
-        category_id (int): The ID for a category.
-        realtime_start (str, optional): The start of the real-time period. Format: YYYY-MM-DD.
-        realtime_end (str, optional): The end of the real-time period. Format: YYYY-MM-DD.
-        tag_names (str, optional): A semicolon delimited list of tag names to filter tags by.
-        tag_group_id (int, optional): A tag group ID to filter tags by type.
-        search_text (str, optional): The words to find matching tags with.
-        limit (int, optional): The maximum number of results to return. Default is 1000.
-        offset (int, optional): The offset for the results. Used for pagination.
-        order_by (str, optional): Order results by values. Options are 'series_count', 
-        'popularity', 'created', 'name'. Default is 'series_count'.
-        sort_order (str, optional): Sort results in ascending or descending order. Options are
-        'asc', 'desc'. Default is 'desc'.
-        file_type (str, optional): A key that indicates the type of file to send. Default is 'json'.
+        Get the all the tags for a category from the FRED API.
+
+        Args:
+            category_id (int): The ID for a category.
+            realtime_start (str, optional): The start of the real-time period. Format: YYYY-MM-DD.
+            realtime_end (str, optional): The end of the real-time period. Format: YYYY-MM-DD.
+            tag_names (str, optional): A semicolon delimited list of tag names to filter tags by.
+            tag_group_id (int, optional): A tag group ID to filter tags by type.
+            search_text (str, optional): The words to find matching tags with.
+            limit (int, optional): The maximum number of results to return. Default is 1000.
+            offset (int, optional): The offset for the results. Used for pagination.
+            order_by (str, optional): Order results by values. Options are 'series_count', 'popularity', 'created', 'name'. Default is 'series_count'.
+            sort_order (str, optional): Sort results in ascending or descending order. Options are 'asc', 'desc'. Default is 'desc'.
+            file_type (str, optional): A key that indicates the type of file to send. Default is 'json'.
 
         Returns:
-        - Tag: If only one tag is returned.
-        - List[Tag]: If multiple tags are returned.
-        - None: If no tag exist.
+            Tag: If only one tag is returned.
+            List[Tag]: If multiple tags are returned.
+            None: If no tag exist.
 
         Raises:
-        ValueError: If the request to the FRED API fails or returns an error.
+            ValueError: If the request to the FRED API fails or returns an error.
+
+        Example:
+            >>> import fedfred as fd
+            >>> fred = fd.FredAPI('your_api_key')
+            >>> tags = fred.get_category_tags(125)
+            >>> for tag in tags:
+            >>>     print(tag.notes)
+            'U.S. Department of Commerce: Bureau of Economic Analysis'
+            'Country Level'
+            'United States of America'...
 
         FRED API Documentation:
-        https://fred.stlouisfed.org/docs/api/fred/category_tags.html
+            https://fred.stlouisfed.org/docs/api/fred/category_tags.html
         """
         if not isinstance(category_id, int) or category_id < 0:
             raise ValueError("category_id must be a non-negative integer")
@@ -407,33 +464,45 @@ class FredAPI:
                                   limit: Optional[int]=None, offset: Optional[int]=None,
                                   order_by: Optional[int]=None, sort_order: Optional[int]=None,
                                   file_type: str = 'json'):
-        """
-        Retrieve related tags for a specified category from the FRED API.
-        
-        Parameters:
-        category_id (int): The ID for the category.
-        realtime_start (str, optional): The start of the real-time period. Format: YYYY-MM-DD.
-        realtime_end (str, optional): The end of the real-time period. Format: YYYY-MM-DD.
-        tag_names (str, optional): A semicolon-delimited list of tag names to include.
-        exclude_tag_names (str, optional): A semicolon-delimited list of tag names to exclude.
-        tag_group_id (int, optional): The ID for a tag group.
-        search_text (str, optional): The words to find matching tags with.
-        limit (int, optional): The maximum number of results to return.
-        offset (int, optional): The offset for the results.
-        order_by (str, optional): Order results by values such as 'series_count', 'popularity', etc.
-        sort_order (str, optional): Sort order, either 'asc' or 'desc'.
-        file_type (str, optional): The type of file to return. Default is 'json'.
+        """Get a FRED Category's Related Tags
+
+        Retrieve all tags related to a specified category from the FRED API.
+
+        Args:
+            category_id (int): The ID for the category.
+            realtime_start (str, optional): The start of the real-time period. Format: YYYY-MM-DD.
+            realtime_end (str, optional): The end of the real-time period. Format: YYYY-MM-DD.
+            tag_names (str, optional): A semicolon-delimited list of tag names to include.
+            exclude_tag_names (str, optional): A semicolon-delimited list of tag names to exclude.
+            tag_group_id (int, optional): The ID for a tag group.
+            search_text (str, optional): The words to find matching tags with.
+            limit (int, optional): The maximum number of results to return.
+            offset (int, optional): The offset for the results.
+            order_by (str, optional): Order results by values such as 'series_count', 'popularity', etc.
+            sort_order (str, optional): Sort order, either 'asc' or 'desc'.
+            file_type (str, optional): The type of file to return. Default is 'json'.
 
         Returns:
-        - Tag: If only one tag is returned.
-        - List[Tag]: If multiple tags are returned.
-        - None: If no series exist.
+            Tag: If only one tag is returned.
+            List[Tag]: If multiple tags are returned.
+            None: If no series exist.
 
         Raises:
-        ValueError: If the request to the FRED API fails or returns an error.
+            ValueError: If the request to the FRED API fails or returns an error.
+
+        Example:
+            >>> import fedfred as fd
+            >>> fred = fd.FredAPI('your_api_key')
+            >>> tags = fred.get_category_related_tags(125)
+            >>> for tag in tags:
+            >>>     print(tag.name)
+            'balance'
+            'bea'
+            'nation'
+            'usa'...
 
         FRED API Documentation:
-        https://fred.stlouisfed.org/docs/api/fred/category_related_tags.html
+            https://fred.stlouisfed.org/docs/api/fred/category_related_tags.html
         """
         if not isinstance(category_id, int) or category_id < 0:
             raise ValueError("category_id must be a non-negative integer")
@@ -472,30 +541,39 @@ class FredAPI:
                      limit: Optional[int]=None, offset: Optional[int]=None,
                      order_by: Optional[str]=None, sort_order: Optional[str]=None,
                      file_type: str ='json'):
-        """
-        Get economic data releases from the FRED API.
+        """Get FRED releases
 
-        Parameters:
-        realtime_start (str, optional): The start of the real-time period. Format: YYYY-MM-DD.
-        realtime_end (str, optional): The end of the real-time period. Format: YYYY-MM-DD.
-        limit (int, optional): The maximum number of results to return. Default is None.
-        offset (int, optional): The offset for the results. Default is None.
-        order_by (str, optional): Order results by values such as 'release_id', 'name', 
-        'press_release', 'realtime_start', 'realtime_end'. Default is None.
-        sort_order (str, optional): Sort results in 'asc' (ascending) or 'desc' (descending) 
-        order. Default is None.
-        file_type (str, optional): The format of the response. Default is 'json'.
+        Get all economic data releases from the FRED API.
+
+        Args:
+            realtime_start (str, optional): The start of the real-time period. Format: YYYY-MM-DD.
+            realtime_end (str, optional): The end of the real-time period. Format: YYYY-MM-DD.
+            limit (int, optional): The maximum number of results to return. Default is None.
+            offset (int, optional): The offset for the results. Default is None.
+            order_by (str, optional): Order results by values such as 'release_id', 'name', 'press_release', 'realtime_start', 'realtime_end'. Default is None.
+            sort_order (str, optional): Sort results in 'asc' (ascending) or 'desc' (descending) order. Default is None.
+            file_type (str, optional): The format of the response. Default is 'json'.
 
         Returns:
-        - Release: If only one release is returned.
-        - List[Releases]: If multiple Releases are returned.
-        - None: If no release exist.
+            Release: If only one release is returned.
+            List[Releases]: If multiple Releases are returned.
+            None: If no release exist.
 
         Raises:
-        ValueError: If the API request fails or returns an error.
+            ValueError: If the API request fails or returns an error.
+
+        Example:
+            >>> import fedfred as fd
+            >>> fred = fd.FredAPI('your_api_key')
+            >>> releases = fred.get_releases()
+            >>> for release in releases:
+            >>>     print(release.name)
+            'Advance Monthly Sales for Retail and Food Services'
+            'Consumer Price Index'
+            'Employment Cost Index'...
 
         FRED API Documentation:
-        https://fred.stlouisfed.org/docs/api/fred/releases.html
+            https://fred.stlouisfed.org/docs/api/fred/releases.html
         """
         url_endpoint = '/releases'
         data: Dict[str, Union[str, int]] = {
@@ -524,33 +602,40 @@ class FredAPI:
                            sort_order: Optional[str]=None,
                            include_releases_dates_with_no_data: Optional[bool]=None,
                            file_type: str = 'json'):
-        """
-        Get release dates for economic data releases.
+        """Get FRED releases dates
 
-        Parameters:
-        realtime_start (str, optional): The start of the real-time period. Format: YYYY-MM-DD.
-        realtime_end (str, optional): The end of the real-time period. Format: YYYY-MM-DD.
-        limit (int, optional): The maximum number of results to return. Default is None.
-        offset (int, optional): The offset for the results. Default is None.
-        order_by (str, optional): Order results by values. Options include 'release_id', 
-        'release_name', 'release_date', 'realtime_start', 'realtime_end'. Default is None.
-        sort_order (str, optional): Sort order of results. Options include 'asc' (ascending) 
-        or 'desc' (descending). Default is None.
-        include_releases_dates_with_no_data (bool, optional): Whether to include release dates 
-        with no data. Default is None.
-        file_type (str, optional): The format of the response. Options include 'json', 'xml'. 
-        Default is 'json'.
+        Get all release dates for economic data releases from the FRED API.
+
+        Args:
+            realtime_start (str, optional): The start of the real-time period. Format: YYYY-MM-DD.
+            realtime_end (str, optional): The end of the real-time period. Format: YYYY-MM-DD.
+            limit (int, optional): The maximum number of results to return. Default is None.
+            offset (int, optional): The offset for the results. Default is None.
+            order_by (str, optional): Order results by values. Options include 'release_id', 'release_name', 'release_date', 'realtime_start', 'realtime_end'. Default is None.
+            sort_order (str, optional): Sort order of results. Options include 'asc' (ascending) or 'desc' (descending). Default is None.
+            include_releases_dates_with_no_data (bool, optional): Whether to include release dates with no data. Default is None.
+            file_type (str, optional): The format of the response. Options include 'json', 'xml'. Default is 'json'.
 
         Returns:
-        - ReleaseDate: If only one release date is returned.
-        - List[ReleaseDate]: If multiple release dates are returned.
-        - None: If no release dates exist.
+            ReleaseDate: If only one release date is returned.
+            List[ReleaseDate]: If multiple release dates are returned.
+            None: If no release dates exist.
 
         Raises:
-        Exception: If the request to the FRED API fails.
+            ValueError: If the API request fails or returns an error.
+
+        Example:
+            >>> import fedfred as fd
+            >>> fred = fd.FredAPI('your_api_key')
+            >>> release_dates = fred.get_releases_dates()
+            >>> for release_date in release_dates:
+            >>>     print(release_date.release_name)
+            'Advance Monthly Sales for Retail and Food Services'
+            'Failures and Assistance Transactions'
+            'Manufacturing and Trade Inventories and Sales'...
 
         FRED API Documentation:
-        https://fred.stlouisfed.org/docs/api/fred/releases_dates.html
+            https://fred.stlouisfed.org/docs/api/fred/releases_dates.html
         """
         url_endpoint = '/releases/dates'
         data: Dict[str, Union[str, int]] = {
@@ -577,26 +662,33 @@ class FredAPI:
         return ReleaseDate.from_api_response(response)
     def get_release(self, release_id: int, realtime_start: Optional[str]=None,
                     realtime_end: Optional[str]=None, file_type: str = 'json'):
-        """
+        """Get a FRED release
+
         Get the release for a given release ID from the FRED API.
 
-        Parameters:
-        release_id (int): The ID for the release.
-        realtime_start (str, optional): The start of the real-time period. Format: YYYY-MM-DD.
-        realtime_end (str, optional): The end of the real-time period. Format: YYYY-MM-DD.
-        file_type (str, optional): A key indicating the file type of the response. Default 
-        is 'json'.
+        Args:
+            release_id (int): The ID for the release.
+            realtime_start (str, optional): The start of the real-time period. Format: YYYY-MM-DD.
+            realtime_end (str, optional): The end of the real-time period. Format: YYYY-MM-DD.
+            file_type (str, optional): A key indicating the file type of the response. Default is 'json'.
 
         Returns:
-        - Release: If only one release is returned.
-        - List[Release]: If multiple releases are returned.
-        - None: If no releases exist.
+            Release: If only one release is returned.
+            List[Release]: If multiple releases are returned.
+            None: If no releases exist.
 
         Raises:
-        ValueError: If the request to the FRED API fails or returns an error.
+            ValueError: If the request to the FRED API fails or returns an error.
+
+        Example:
+            >>> import fedfred as fd
+            >>> fred = fd.FredAPI('your_api_key')
+            >>> release = fred.get_release(53)
+            >>> print(release.name)
+            'Gross Domestic Product'
 
         FRED API Documentation:
-        https://fred.stlouisfed.org/docs/api/fred/release.html
+            https://fred.stlouisfed.org/docs/api/fred/release.html
         """
         if not isinstance(release_id, int) or release_id < 0:
             raise ValueError("release_id must be a non-negative integer")
@@ -619,30 +711,40 @@ class FredAPI:
                           offset: Optional[int]=None, sort_order: Optional[str]=None,
                           include_releases_dates_with_no_data: Optional[bool]=None,
                           file_type: str = 'json'):
-        """
+        """Get FRED release dates
+
         Get the release dates for a given release ID from the FRED API.
-        
-        Parameters:
-        release_id (int): The ID for the release.
-        realtime_start (str, optional): The start of the real-time period. Format: YYYY-MM-DD.
-        realtime_end (str, optional): The end of the real-time period. Format: YYYY-MM-DD.
-        limit (int, optional): The maximum number of results to return.
-        offset (int, optional): The offset for the results.
-        sort_order (str, optional): The order of the results. Possible values are 'asc' or 'desc'.
-        include_releases_dates_with_no_data (bool, optional): Whether to include release dates 
-        with no data.
-        file_type (str, optional): The type of file to return. Default is 'json'.
+
+        Args:
+            release_id (int): The ID for the release.
+            realtime_start (str, optional): The start of the real-time period. Format: YYYY-MM-DD.
+            realtime_end (str, optional): The end of the real-time period. Format: YYYY-MM-DD.
+            limit (int, optional): The maximum number of results to return.
+            offset (int, optional): The offset for the results.
+            sort_order (str, optional): The order of the results. Possible values are 'asc' or 'desc'.
+            include_releases_dates_with_no_data (bool, optional): Whether to include release dates with no data.
+            file_type (str, optional): The type of file to return. Default is 'json'.
 
         Returns:
-        - ReleaseDate: If only one release date is returned.
-        - List[ReleaseDate]: If multiple release dates are returned.
-        - None: If no release dates exist.
+            ReleaseDate: If only one release date is returned.
+            List[ReleaseDate]: If multiple release dates are returned.
+            None: If no release dates exist.
 
         Raises:
-        ValueError: If the API request fails or returns an error.
+            ValueError: If the API request fails or returns an error.
+
+        Example:
+            >>> import fedfred as fd
+            >>> fred = fd.FredAPI('your_api_key')
+            >>> release_dates = fred.get_release_dates(82)
+            >>> for release_date in release_dates:
+            >>>     print(release_date.date)
+            '1997-02-10'
+            '1998-02-10'
+            '1999-02-04'...
 
         FRED API Documentation:
-        https://fred.stlouisfed.org/docs/api/fred/release_dates.html
+            https://fred.stlouisfed.org/docs/api/fred/release_dates.html
         """
         url_endpoint = '/release/dates'
         data = {
@@ -673,10 +775,11 @@ class FredAPI:
                            offset: Optional[int]=None, sort_order: Optional[str]=None,
                            filter_variable: Optional[str]=None, filter_value: Optional[str]=None,
                            exclude_tag_names: Optional[str]=None, file_type: str = 'json'):
-        """
+        """Get FRED release series
+
         Get the series in a release.
 
-        Parameters:
+        Args:
         release_id (int): The ID for the release.
         realtime_start (str, optional): The start of the real-time period. Format: YYYY-MM-DD.
         realtime_end (str, optional): The end of the real-time period. Format: YYYY-MM-DD.
@@ -689,15 +792,25 @@ class FredAPI:
         file_type (str, optional): The type of file to return. Default is 'json'.
 
         Returns:
-        - Series: If only one series is returned.
-        - List[Series]: If multiple series are returned.
-        - None: If no series exist.
+            Series: If only one series is returned.
+            List[Series]: If multiple series are returned.
+            None: If no series exist.
 
         Raises:
-        ValueError: If the API request fails or returns an error.
+            ValueError: If the API request fails or returns an error.
+
+        Example:
+            >>> import fedfred as fd
+            >>> fred = fd.FredAPI('your_api_key')
+            >>> series = fred.get_release_series(51)
+            >>> for s in series:
+            >>>     print(s.id)
+            'BOMTVLM133S'
+            'BOMVGMM133S'
+            'BOMVJMM133S'...
 
         FRED API Documentation:
-        https://fred.stlouisfed.org/docs/api/fred/release_series.html
+            https://fred.stlouisfed.org/docs/api/fred/release_series.html
         """
         if not isinstance(release_id, int) or release_id < 0:
             raise ValueError("release_id must be a non-negative integer")
@@ -729,28 +842,35 @@ class FredAPI:
         return Series.from_api_response(response)
     def get_release_sources(self, release_id: int, realtime_start: Optional[str]=None,
                             realtime_end: Optional[str]=None, file_type: str = 'json'):
-        """
+        """Get FRED release sources
+
         Retrieve the sources for a specified release from the FRED API.
 
-        Parameters:
-        release_id (int): The ID of the release for which to retrieve sources.
-        realtime_start (str, optional): The start of the real-time period. Format: YYYY-MM-DD. 
-        Defaults to None.
-        realtime_end (str, optional): The end of the real-time period. Format: YYYY-MM-DD. 
-        Defaults to None.
-        file_type (str, optional): The format of the response. Options are 'json' or 'xml'. 
-        Defaults to 'json'.
+        Args:
+            release_id (int): The ID of the release for which to retrieve sources.
+            realtime_start (str, optional): The start of the real-time period. Format: YYYY-MM-DD. Defaults to None.
+            realtime_end (str, optional): The end of the real-time period. Format: YYYY-MM-DD. Defaults to None.
+            file_type (str, optional): The format of the response. Options are 'json' or 'xml'. Defaults to 'json'.
 
         Returns:
-        - Source: If only one source is returned.
-        - List[Series]: If multiple sources are returned.
-        - None: If no source exist.
+            Source: If only one source is returned.
+            List[Series]: If multiple sources are returned.
+            None: If no source exist.
 
         Raises:
-        ValueError: If the API request fails or returns an error.
+            ValueError: If the API request fails or returns an error.
+
+        Example:
+            >>> import fedfred as fd
+            >>> fred = fd.FredAPI('your_api_key')
+            >>> sources = fred.get_release_sources(51)
+            >>> for source in sources:
+            >>>     print(source.name)
+                'U.S. Department of Commerce: Bureau of Economic Analysis'
+                'U.S. Department of Commerce: Census Bureau'
 
         FRED API Documentation:
-        https://fred.stlouisfed.org/docs/api/fred/release_sources.html
+            https://fred.stlouisfed.org/docs/api/fred/release_sources.html
         """
         if not isinstance(release_id, int) or release_id < 0:
             raise ValueError("release_id must be a non-negative integer")
@@ -773,32 +893,42 @@ class FredAPI:
                          tag_group_id: Optional[int]=None, search_text: Optional[str]=None,
                          limit: Optional[int]=None, offset: Optional[int]=None,
                          order_by: Optional[str]=None, file_type: str = 'json'):
-        """
+        """Get FRED release tags
+
         Get the release tags for a given release ID from the FRED API.
 
-        Parameters:
-        release_id (int): The ID for the release.
-        realtime_start (str, optional): The start of the real-time period. Format: YYYY-MM-DD.
-        realtime_end (str, optional): The end of the real-time period. Format: YYYY-MM-DD.
-        tag_names (str, optional): A semicolon delimited list of tag names.
-        tag_group_id (int, optional): The ID for a tag group.
-        search_text (str, optional): The words to find matching tags with.
-        limit (int, optional): The maximum number of results to return. Default is 1000.
-        offset (int, optional): The offset for the results. Default is 0.
-        order_by (str, optional): Order results by values. Options are 'series_count', 
-        'popularity', 'created', 'name', 'group_id'. Default is 'series_count'.
-        file_type (str, optional): The type of file to return. Default is 'json'.
+        Args:
+            release_id (int): The ID for the release.
+            realtime_start (str, optional): The start of the real-time period. Format: YYYY-MM-DD.
+            realtime_end (str, optional): The end of the real-time period. Format: YYYY-MM-DD.
+            tag_names (str, optional): A semicolon delimited list of tag names.
+            tag_group_id (int, optional): The ID for a tag group.
+            search_text (str, optional): The words to find matching tags with.
+            limit (int, optional): The maximum number of results to return. Default is 1000.
+            offset (int, optional): The offset for the results. Default is 0.
+            order_by (str, optional): Order results by values. Options are 'series_count', 'popularity', 'created', 'name', 'group_id'. Default is 'series_count'.
+            file_type (str, optional): The type of file to return. Default is 'json'.
 
         Returns:
-        - Tag: If only one tag is returned.
-        - List[Tag]: If multiple tags are returned.
-        - None: If no source exist.
+            Tag: If only one tag is returned.
+            List[Tag]: If multiple tags are returned.
+            None: If no source exist.
 
         Raises:
-        ValueError: If the API request fails or returns an error.
-        
+            ValueError: If the API request fails or returns an error.
+
+        Example:
+            >>> import fedfred as fd
+            >>> fred = fd.FredAPI('your_api_key')
+            >>> tags = fred.get_release_tags(86)
+            >>> for tag in tags:
+            >>>     print(tag.name)
+            'commercial paper'
+            'frb'
+            'nation'...
+
         FRED API Documentation:
-        https://fred.stlouisfed.org/docs/api/fred/release_tags.html
+            https://fred.stlouisfed.org/docs/api/fred/release_tags.html
         """
         if not isinstance(release_id, int) or release_id < 0:
             raise ValueError("release_id must be a non-negative integer")
@@ -828,45 +958,55 @@ class FredAPI:
         else:
             response = self.__fred_get_request(url_endpoint, data)
         return Tag.from_api_response(response)
-    def get_release_related_tags(self, series_search_text: str, realtime_start: Optional[str]=None,
+    def get_release_related_tags(self, release_id: int, realtime_start: Optional[str]=None,
                                  realtime_end: Optional[str]=None, tag_names: Optional[str]=None,
-                                 tag_group_id: Optional[str]=None,
-                                 tag_search_text: Optional[str]=None, limit: Optional[int]=None,
+                                 exclude_tag_names: Optional[str]=None, tag_group_id: Optional[str]=None,
+                                 search_text: Optional[str]=None, limit: Optional[int]=None,
                                  offset: Optional[int]=None, order_by: Optional[str]=None,
                                  sort_order: Optional[str]=None, file_type: str = 'json'):
-        """
+        """Get FRED release related tags
+
         Get release related tags for a given series search text.
-        
-        Parameters:
-        series_search_text (str): The text to match against economic data series.
-        realtime_start (str, optional): The start of the real-time period. Format: YYYY-MM-DD.
-        realtime_end (str, optional): The end of the real-time period. Format: YYYY-MM-DD.
-        tag_names (str, optional): A semicolon delimited list of tag names to match.
-        tag_group_id (str, optional): A tag group id to filter tags by type.
-        tag_search_text (str, optional): The text to match against tags.
-        limit (int, optional): The maximum number of results to return.
-        offset (int, optional): The offset for the results.
-        order_by (str, optional): Order results by values. Options: 'series_count', 'popularity', 
-        'created', 'name', 'group_id'.
-        sort_order (str, optional): Sort order of results. Options: 'asc', 'desc'.
-        file_type (str, optional): The type of file to return. Default is 'json'.
+
+        Args:
+            series_search_text (str, optional): The text to match against economic data series.
+            realtime_start (str, optional): The start of the real-time period. Format: YYYY-MM-DD.
+            realtime_end (str, optional): The end of the real-time period. Format: YYYY-MM-DD.
+            tag_names (str, optional): A semicolon delimited list of tag names to match.
+            tag_group_id (str, optional): A tag group id to filter tags by type.
+            tag_search_text (str, optional): The text to match against tags.
+            limit (int, optional): The maximum number of results to return.
+            offset (int, optional): The offset for the results.
+            order_by (str, optional): Order results by values. Options: 'series_count', 'popularity', 'created', 'name', 'group_id'.
+            sort_order (str, optional): Sort order of results. Options: 'asc', 'desc'.
+            file_type (str, optional): The type of file to return. Default is 'json'.
 
         Returns:
-        - Tag: If only one tag is returned.
-        - List[Tag]: If multiple tags are returned.
-        - None: If no source exist.
+            Tag: If only one tag is returned.
+            List[Tag]: If multiple tags are returned.
+            None: If no source exist.
 
         Raises:
-        ValueError: If the API request fails or returns an error.
+            ValueError: If the API request fails or returns an error.
+
+        Example:
+            >>> import fedfred as fd
+            >>> fred = fd.FredAPI('your_api_key')
+            >>> tags = fred.get_release_related_tags('86')
+            >>> for tag in tags:
+            >>>     print(tag.name)
+            'commercial paper'
+            'frb'
+            'nation'...
 
         FRED API Documentation:
-        https://fred.stlouisfed.org/docs/api/fred/release_related_tags.html
+            https://fred.stlouisfed.org/docs/api/fred/release_related_tags.html
         """
-        if not isinstance(series_search_text, str):
-            raise ValueError("release_id must be a string")
+        if not isinstance(release_id, int):
+            raise ValueError("release_id must be an integer")
         url_endpoint = '/release/related_tags'
         data: Dict[str, Union[str, int]] = {
-            'series_search_text': series_search_text,
+            'release_id': release_id,
             'file_type': file_type
         }
         if realtime_start:
@@ -875,10 +1015,12 @@ class FredAPI:
             data['realtime_end'] = realtime_end
         if tag_names:
             data['tag_names'] = tag_names
+        if exclude_tag_names:
+            data['exclude_tag_names'] = exclude_tag_names
         if tag_group_id:
             data['tag_group_id'] = tag_group_id
-        if tag_search_text:
-            data['tag_search_text'] = tag_search_text
+        if search_text:
+            data['search_text'] = search_text
         if limit:
             data['limit'] = limit
         if offset:
@@ -895,28 +1037,38 @@ class FredAPI:
     def get_release_tables(self, release_id: int, element_id: Optional[int]=None,
                            include_observation_values: Optional[bool]=None,
                            observation_date: Optional[str]=None, file_type: str = 'json'):
-        """
+        """Get FRED release tables
+
         Fetches release tables from the FRED API.
 
-        Parameters:
-        release_id (int): The ID for the release.
-        element_id (int, optional): The ID for the element. Defaults to None.
-        include_observation_values (bool, optional): Whether to include observation values. 
-        Defaults to None.
-        observation_date (str, optional): The observation date in YYYY-MM-DD format. Defaults 
-        to None.
-        file_type (str, optional): The format of the returned data. Defaults to 'json'.
+        Args:
+            release_id (int): The ID for the release.
+            element_id (int, optional): The ID for the element. Defaults to None.
+            include_observation_values (bool, optional): Whether to include observation values. Defaults to None.
+            observation_date (str, optional): The observation date in YYYY-MM-DD format. Defaults to None.
+            file_type (str, optional): The format of the returned data. Defaults to 'json'.
 
         Returns:
-        - Element: If only one element is returned.
-        - List[Element]: If multiple elements are returned.
-        - None: If no element exist.
+            Element: If only one element is returned.
+            List[Element]: If multiple elements are returned.
+            None: If no element exist.
 
         Raises:
-        ValueError: If the API request fails or returns an error.
+            ValueError: If the API request fails or returns an error.
+
+        Example:
+            >>> import fedfred as fd
+            >>> fred = fd.FredAPI('your_api_key')
+            >>> elements = fred.get_release_tables(53)
+            >>> for element in elements:
+            >>>     print(element.series_id)
+            'DGDSRL1A225NBEA'
+            'DDURRL1A225NBEA'
+            'DNDGRL1A225NBEA'...
+
 
         FRED API Documentation:
-        https://fred.stlouisfed.org/docs/api/fred/release_tables.html
+            https://fred.stlouisfed.org/docs/api/fred/release_tables.html
         """
         if not isinstance(release_id, int):
             raise ValueError("release_id must be a non-negative integer")
@@ -939,26 +1091,33 @@ class FredAPI:
     ## Series
     def get_series(self, series_id: str, realtime_start: Optional[str]=None,
                    realtime_end: Optional[str]=None, file_type: str = 'json'):
-        """
+        """Get a FRED series
+
         Retrieve economic data series information from the FRED API.
 
-        Parameters:
-        series_id (str): The ID for the economic data series.
-        realtime_start (str, optional): The start of the real-time period. Format: YYYY-MM-DD.
-        realtime_end (str, optional): The end of the real-time period. Format: YYYY-MM-DD.
-        file_type (str, optional): The format of the returned data. Default is 'json'. Options 
-        are 'json' and 'xml'.
+        Args:
+            series_id (str): The ID for the economic data series.
+            realtime_start (str, optional): The start of the real-time period. Format: YYYY-MM-DD.
+            realtime_end (str, optional): The end of the real-time period. Format: YYYY-MM-DD.
+            file_type (str, optional): The format of the returned data. Default is 'json'. Options are 'json' and 'xml'.
 
         Returns:
-        - Series: If only one series is returned.
-        - List[Series]: If multiple series are returned.
-        - None: If no series exist.
+            Series: If only one series is returned.
+            List[Series]: If multiple series are returned.
+            None: If no series exist.
 
         Raises:
-        ValueError: If the API request fails or returns an error.
+            ValueError: If the API request fails or returns an error.
+
+        Example:
+            >>> import fedfred as fd
+            >>> fred = fd.FredAPI('your_api_key')
+            >>> series = fred.get_series('GNPCA')
+            >>> print(series.title)
+            'Real Gross National Product'
 
         FRED API Documentation:
-        https://fred.stlouisfed.org/docs/api/fred/series.html
+            https://fred.stlouisfed.org/docs/api/fred/series.html
         """
         if not isinstance(series_id, str):
             raise ValueError("series_id must be a string")
@@ -978,25 +1137,35 @@ class FredAPI:
         return Series.from_api_response(response)
     def get_series_categories(self, series_id: str, realtime_start: Optional[str]=None,
                               realtime_end: Optional[str]=None, file_type: str = 'json'):
-        """
+        """Get FRED series categories
+
         Get the categories for a specified series.
 
-        Parameters:
-        series_id (str): The ID for the series.
-        realtime_start (str, optional): The start of the real-time period. Defaults to None.
-        realtime_end (str, optional): The end of the real-time period. Defaults to None.
-        file_type (str, optional): The type of file to return. Defaults to 'json'.
+        Args:
+            series_id (str): The ID for the series.
+            realtime_start (str, optional): The start of the real-time period. Defaults to None.
+            realtime_end (str, optional): The end of the real-time period. Defaults to None.
+            file_type (str, optional): The type of file to return. Defaults to 'json'.
 
         Returns:
-        - Category: If only one category is returned.
-        - List[Category]: If multiple categories are returned.
-        - None: If no categories exist.
+            Category: If only one category is returned.
+            List[Category]: If multiple categories are returned.
+            None: If no categories exist.
 
         Raises:
-        ValueError: If the API request fails or returns an error.
+            ValueError: If the API request fails or returns an error.
+
+        Example:
+            >>> import fedfred as fd
+            >>> fred = fd.FredAPI('your_api_key')
+            >>> categories = fred.get_series_categories('EXJPUS')
+            >>> for category in categories:
+            >>>     print(category.id)
+            95
+            275
 
         FRED API Documentation:
-        https://fred.stlouisfed.org/docs/api/fred/series_categories.html
+            https://fred.stlouisfed.org/docs/api/fred/series_categories.html
         """
         if not isinstance(series_id, str):
             raise ValueError("series_id must be a string")
@@ -1024,45 +1193,49 @@ class FredAPI:
                                aggregation_method: Optional[str]=None,
                                output_type: Optional[int]=None, vintage_dates: Optional[str]=None,
                                file_type: str = 'json'):
-        """
-        Get observations for a FRED series.
+        """Get FRED series observations
 
-        Parameters:
-        series_id (str): The ID for a series.
-        dataframe_method (str, optional): The method to use to convert the response to a
-        DataFrame. Options: 'pandas' or 'polars. Default is 'pandas'.
-        realtime_start (str, optional): The start of the real-time period. Format: YYYY-MM-DD.
-        realtime_end (str, optional): The end of the real-time period. Format: YYYY-MM-DD.
-        limit (int, optional): The maximum number of results to return. Default is 100000.
-        offset (int, optional): The offset for the results. Used for pagination.
-        sort_order (str, optional): Sort results by observation date. Options: 'asc', 'desc'.
-        observation_start (str, optional): The start of the observation period. Format: YYYY-MM-DD.
-        observation_end (str, optional): The end of the observation period. Format: YYYY-MM-DD.
-        units (str, optional): A key that indicates a data transformation. Options: 'lin', 'chg', 
-        'ch1', 'pch', 'pc1', 'pca', 'cch', 'cca', 'log'.
-        frequency (str, optional): An optional parameter to change the frequency of the 
-        observations. Options: 'd', 'w', 'bw', 'm', 'q', 'sa', 'a', 'wef', 'weth', 'wew', 
-        'wetu', 'wem', 'wesu', 'wesa', 'bwew', 'bwem'.
-        aggregation_method (str, optional): A key that indicates the aggregation method used 
-        for frequency aggregation. Options: 'avg', 'sum', 'eop'.
-        output_type (int, optional): An integer indicating the type of output. Options: 1 
-        (observations by realtime period), 2 (observations by vintage date), 3 (observations by 
-        vintage date and realtime period).
-        vintage_dates (str, optional): A comma-separated string of vintage dates. 
-        Format: YYYY-MM-DD.
-        file_type (str, optional): A key that indicates the file type of the response. 
-        Default is 'json'. Options: 'json', 'xml'.
+        Get observations for a FRED series as a pandas or polars DataFrame.
+
+        Args:
+            series_id (str): The ID for a series.
+            dataframe_method (str, optional): The method to use to convert the response to a DataFrame. Options: 'pandas' or 'polars. Default is 'pandas'.
+            realtime_start (str, optional): The start of the real-time period. Format: YYYY-MM-DD.
+            realtime_end (str, optional): The end of the real-time period. Format: YYYY-MM-DD.
+            limit (int, optional): The maximum number of results to return. Default is 100000.
+            offset (int, optional): The offset for the results. Used for pagination.
+            sort_order (str, optional): Sort results by observation date. Options: 'asc', 'desc'.
+            observation_start (str, optional): The start of the observation period. Format: YYYY-MM-DD.
+            observation_end (str, optional): The end of the observation period. Format: YYYY-MM-DD.
+            units (str, optional): A key that indicates a data transformation. Options: 'lin', 'chg', 'ch1', 'pch', 'pc1', 'pca', 'cch', 'cca', 'log'.
+            frequency (str, optional): An optional parameter to change the frequency of the observations. Options: 'd', 'w', 'bw', 'm', 'q', 'sa', 'a', 'wef', 'weth', 'wew', 'wetu', 'wem', 'wesu', 'wesa', 'bwew', 'bwem'.
+            aggregation_method (str, optional): A key that indicates the aggregation method used for frequency aggregation. Options: 'avg', 'sum', 'eop'.
+            output_type (int, optional): An integer indicating the type of output. Options: 1 (observations by realtime period), 2 (observations by vintage date), 3 (observations by vintage date and realtime period).
+            vintage_dates (str, optional): A comma-separated string of vintage dates. Format: YYYY-MM-DD.
+            file_type (str, optional): A key that indicates the file type of the response. Default is 'json'. Options: 'json', 'xml'.
 
         Returns:
-        - Pandas Dataframe: dataframe_method='pandas' or is left blank.
-        - Polars Dataframe: If dataframe_method='polars'.
-        - None: If no observations exist.
+            Pandas Dataframe: dataframe_method='pandas' or is left blank.
+            Polars Dataframe: If dataframe_method='polars'.
+            None: If no observations exist.
 
         Raises:
-        ValueError: If the API request fails or returns an error.
+            ValueError: If the API request fails or returns an error.
+
+        Example:
+            >>> import fedfred as fd
+            >>> fred = fd.FredAPI('your_api_key')
+            >>> observations = fred.get_series_observations('GNPCA')
+            >>> print(observations.head())
+            date       realtime_start realtime_end     value
+            1929-01-01     2025-02-13   2025-02-13  1202.659
+            1930-01-01     2025-02-13   2025-02-13  1100.670
+            1931-01-01     2025-02-13   2025-02-13  1029.038
+            1932-01-01     2025-02-13   2025-02-13   895.802
+            1933-01-01     2025-02-13   2025-02-13   883.847
 
         FRED API Documentation:
-        https://fred.stlouisfed.org/docs/api/fred/series_observations.html
+            https://fred.stlouisfed.org/docs/api/fred/series_observations.html
         """
         if not isinstance(series_id, str):
             raise ValueError("series_id must be a string")
@@ -1109,28 +1282,33 @@ class FredAPI:
         return df
     def get_series_release(self, series_id: str, realtime_start: Optional[str]=None,
                            realtime_end: Optional[str]=None, file_type: str = 'json'):
-        """
+        """Get FRED series release
+
         Get the release for a specified series from the FRED API.
 
-        Parameters:
-        series_id (str): The ID for the series.
-        realtime_start (str, optional): The start of the real-time period. Format: YYYY-MM-DD. 
-        Defaults to None.
-        realtime_end (str, optional): The end of the real-time period. Format: YYYY-MM-DD. 
-        Defaults to None.
-        file_type (str, optional): The format of the response. Options are 'json', 'xml'. 
-        Defaults to 'json'.
+        Args:
+            series_id (str): The ID for the series.
+            realtime_start (str, optional): The start of the real-time period. Format: YYYY-MM-DD. Defaults to None.
+            realtime_end (str, optional): The end of the real-time period. Format: YYYY-MM-DD. Defaults to None.
+            file_type (str, optional): The format of the response. Options are 'json', 'xml'. Defaults to 'json'.
 
         Returns:
-        - Release: If only one release is returned.
-        - List[Release]: If multiple releases are returned.
-        - None: If no release exist.
+            Release: If only one release is returned.
+            List[Release]: If multiple releases are returned.
+            None: If no release exist.
 
         Raises:
-        ValueError: If the API request fails or returns an error.
+            ValueError: If the API request fails or returns an error.
+
+        Example:
+            >>> import fedfred as fd
+            >>> fred = fd.FredAPI('your_api_key')
+            >>> release = fred.get_series_release('GNPCA')
+            >>> print(release.name)
+            'Gross National Product'
 
         FRED API Documentation:
-        https://fred.stlouisfed.org/docs/api/fred/series_release.html
+            https://fred.stlouisfed.org/docs/api/fred/series_release.html
         """
         if not isinstance(series_id, str):
             raise ValueError("series_id must be a string")
@@ -1155,42 +1333,45 @@ class FredAPI:
                           filter_variable: Optional[str]=None, filter_value: Optional[str]=None,
                           tag_names: Optional[str]=None, exclude_tag_names: Optional[str]=None,
                           file_type: str = 'json'):
-        """
+        """Get FRED series search
+
         Searches for economic data series based on text queries.
 
-        Parameters:
-        search_text (str): The text to search for in economic data series.
-        search_type (str, optional): The type of search to perform. Options include 'full_text' 
-        or 'series_id'. Defaults to None.
-        realtime_start (str, optional): The start of the real-time period. Format: YYYY-MM-DD. 
-        Defaults to None.
-        realtime_end (str, optional): The end of the real-time period. Format: YYYY-MM-DD. 
-        Defaults to None.
-        limit (int, optional): The maximum number of results to return. Defaults to None.
-        offset (int, optional): The offset for the results. Defaults to None.
-        order_by (str, optional): The attribute to order results by. Options include 
-        'search_rank', 'series_id', 'title', etc. Defaults to None.
-        sort_order (str, optional): The order to sort results. Options include 'asc' or 
-        'desc'. Defaults to None.
-        filter_variable (str, optional): The variable to filter results by. Defaults to None.
-        filter_value (str, optional): The value to filter results by. Defaults to None.
-        tag_names (str, optional): A comma-separated list of tag names to include in the search.
-        Defaults to None.
-        exclude_tag_names (str, optional): A comma-separated list of tag names to exclude from 
-        the search. Defaults to None.
-        file_type (str, optional): The format of the response. Options include 'json', 'xml'. 
-        Defaults to 'json'.
+        Args:
+            search_text (str): The text to search for in economic data series.
+            search_type (str, optional): The type of search to perform. Options include 'full_text' or 'series_id'. Defaults to None.
+            realtime_start (str, optional): The start of the real-time period. Format: YYYY-MM-DD. Defaults to None.
+            realtime_end (str, optional): The end of the real-time period. Format: YYYY-MM-DD. Defaults to None.
+            limit (int, optional): The maximum number of results to return. Defaults to None.
+            offset (int, optional): The offset for the results. Defaults to None.
+            order_by (str, optional): The attribute to order results by. Options include 'search_rank', 'series_id', 'title', etc. Defaults to None.
+            sort_order (str, optional): The order to sort results. Options include 'asc' or 'desc'. Defaults to None.
+            filter_variable (str, optional): The variable to filter results by. Defaults to None.
+            filter_value (str, optional): The value to filter results by. Defaults to None.
+            tag_names (str, optional): A comma-separated list of tag names to include in the search. Defaults to None.
+            exclude_tag_names (str, optional): A comma-separated list of tag names to exclude from the search. Defaults to None.
+            file_type (str, optional): The format of the response. Options include 'json', 'xml'. Defaults to 'json'.
 
         Returns:
-        - Series: If only one series is returned.
-        - List[Series]: If multiple series are returned.
-        - None: If no series exist.
+            Series: If only one series is returned.
+            List[Series]: If multiple series are returned.
+            None: If no series exist.
 
         Raises:
-        ValueError: If the API request fails or returns an error.
+            ValueError: If the API request fails or returns an error.
+
+        Example:
+            >>> import fedfred as fd
+            >>> fred = fd.FredAPI('your_api_key')
+            >>> series = fred.get_series_search('monetary services index')
+            >>> for s in series:
+            >>>     print(s.id)
+            'MSIM2'
+            'MSIM1P'
+            'OCM1P'...
 
         FRED API Documentation:
-        https://fred.stlouisfed.org/docs/api/fred/series_search.html
+            https://fred.stlouisfed.org/docs/api/fred/series_search.html
         """
         if not isinstance(search_text, str):
             raise ValueError("search_text must be a string")
@@ -1232,34 +1413,43 @@ class FredAPI:
                                tag_search_text: Optional[str]=None, limit: Optional[int]=None,
                                offset: Optional[int]=None, order_by: Optional[str]=None,
                                sort_order: Optional[str]=None, file_type: str = 'json'):
-        """
+        """Get FRED series search tags
+
         Get the tags for a series search.
-        
-        Parameters:
-        series_search_text (str): The words to match against economic data series.
-        realtime_start (str, optional): The start of the real-time period. Format: YYYY-MM-DD.
-        realtime_end (str, optional): The end of the real-time period. Format: YYYY-MM-DD.
-        tag_names (str, optional): A semicolon-delimited list of tag names to match.
-        tag_group_id (str, optional): A tag group id to filter tags by type.
-        tag_search_text (str, optional): The words to match against tags.
-        limit (int, optional): The maximum number of results to return. Default is 1000.
-        offset (int, optional): The offset for the results. Default is 0.
-        order_by (str, optional): Order results by values of the specified attribute. Options 
-        are 'series_count', 'popularity', 'created', 'name', 'group_id'.
-        sort_order (str, optional): Sort results in ascending or descending order. Options 
-        are 'asc' or 'desc'. Default is 'asc'.
-        file_type (str, optional): The type of file to return. Default is 'json'.
+
+        Args:
+            series_search_text (str): The words to match against economic data series.
+            realtime_start (str, optional): The start of the real-time period. Format: YYYY-MM-DD.
+            realtime_end (str, optional): The end of the real-time period. Format: YYYY-MM-DD.
+            tag_names (str, optional): A semicolon-delimited list of tag names to match.
+            tag_group_id (str, optional): A tag group id to filter tags by type.
+            tag_search_text (str, optional): The words to match against tags.
+            limit (int, optional): The maximum number of results to return. Default is 1000.
+            offset (int, optional): The offset for the results. Default is 0.
+            order_by (str, optional): Order results by values of the specified attribute. Options are 'series_count', 'popularity', 'created', 'name', 'group_id'.
+            sort_order (str, optional): Sort results in ascending or descending order. Options are 'asc' or 'desc'. Default is 'asc'.
+            file_type (str, optional): The type of file to return. Default is 'json'.
 
         Returns:
-        - Tag: If only one tag is returned.
-        - List[Tag]: If multiple tags are returned.
-        - None: If no tags exist.
+            Tag: If only one tag is returned.
+            List[Tag]: If multiple tags are returned.
+            None: If no tags exist.
 
         Raises:
-        ValueError: If the API request fails or returns an error.
+            ValueError: If the API request fails or returns an error.
 
-        See also:
-        https://fred.stlouisfed.org/docs/api/fred/series_search_tags.html
+        Example:
+            >>> import fedfred as fd
+            >>> fred = fd.FredAPI('your_api_key')
+            >>> tags = fred.get_series_search_tags('monetary services index')
+            >>> for tag in tags:
+            >>>     print(tag.name)
+            'academic data'
+            'anderson & jones'
+            'divisia'...
+
+        FRED API Documentation:
+            https://fred.stlouisfed.org/docs/api/fred/series_search_tags.html
         """
         if not isinstance(series_search_text, str):
             raise ValueError("series_search_text must be a string")
@@ -1301,35 +1491,44 @@ class FredAPI:
                                        limit: Optional[int]=None, offset: Optional[int]=None,
                                        order_by: Optional[str]=None, sort_order: Optional[str]=None,
                                        file_type: str = 'json'):
-        """
+        """Get FRED series search related tags
+
         Get related tags for a series search text.
-        
-        Parameters:
-        series_search_text (str): The text to search for series.
-        realtime_start (str, optional): The start of the real-time period. Format: YYYY-MM-DD.
-        realtime_end (str, optional): The end of the real-time period. Format: YYYY-MM-DD.
-        tag_names (str, optional): A semicolon-delimited list of tag names to include.
-        exclude_tag_names (str, optional): A semicolon-delimited list of tag names to exclude.
-        tag_group_id (str, optional): The tag group id to filter tags by type.
-        tag_search_text (str, optional): The text to search for tags.
-        limit (int, optional): The maximum number of results to return. Default is 1000.
-        offset (int, optional): The offset for the results. Used for pagination.
-        order_by (str, optional): Order results by values. Options are 'series_count', 
-        'popularity', 'created', 'name', 'group_id'.
-        sort_order (str, optional): Sort order of results. Options are 'asc' (ascending) 
-        or 'desc' (descending).
-        file_type (str, optional): The type of file to return. Default is 'json'.
+
+        Args:
+            series_search_text (str): The text to search for series.
+            realtime_start (str, optional): The start of the real-time period. Format: YYYY-MM-DD.
+            realtime_end (str, optional): The end of the real-time period. Format: YYYY-MM-DD.
+            tag_names (str, optional): A semicolon-delimited list of tag names to include.
+            exclude_tag_names (str, optional): A semicolon-delimited list of tag names to exclude.
+            tag_group_id (str, optional): The tag group id to filter tags by type.
+            tag_search_text (str, optional): The text to search for tags.
+            limit (int, optional): The maximum number of results to return. Default is 1000.
+            offset (int, optional): The offset for the results. Used for pagination.
+            order_by (str, optional): Order results by values. Options are 'series_count', 'popularity', 'created', 'name', 'group_id'.
+            sort_order (str, optional): Sort order of results. Options are 'asc' (ascending) or 'desc' (descending).
+            file_type (str, optional): The type of file to return. Default is 'json'.
 
         Returns:
-        - Tag: If only one tag is returned.
-        - List[Tag]: If multiple tags are returned.
-        - None: If no tags exist.
+            Tag: If only one tag is returned.
+            List[Tag]: If multiple tags are returned.
+            None: If no tags exist.
 
         Raises:
-        ValueError: If the API request fails or returns an error.
+            ValueError: If the API request fails or returns an error.
 
-        See also:
-        https://fred.stlouisfed.org/docs/api/fred/series_search_related_tags.html
+        Example:
+            >>> import fedfred as fd
+            >>> fred = fd.FredAPI('your_api_key')
+            >>> tags = fred.get_series_search_related_tags('mortgage rate')
+            >>> for tag in tags:
+            >>>     print(tag.name)
+            'conventional'
+            'h15'
+            'interest rate'...
+
+        FRED API Documentation:
+            https://fred.stlouisfed.org/docs/api/fred/series_search_related_tags.html
         """
         if not isinstance(series_search_text, str):
             raise ValueError("series_search_text must be a string")
@@ -1366,29 +1565,38 @@ class FredAPI:
     def get_series_tags(self, series_id: str, realtime_start: Optional[str]=None,
                         realtime_end: Optional[str]=None, order_by: Optional[str]=None,
                         sort_order: Optional[str]=None, file_type: str ='json'):
-        """
+        """Get FRED series tags
+
         Get the tags for a series.
-        
-        Parameters:
-        series_id (str): The ID for a series.
-        realtime_start (str, optional): The start of the real-time period. Format: YYYY-MM-DD.
-        realtime_end (str, optional): The end of the real-time period. Format: YYYY-MM-DD.
-        order_by (str, optional): Order results by values such as 'series_id', 'name', 
-        'popularity', etc.
-        sort_order (str, optional): Sort results in 'asc' (ascending) or 'desc' (descending) order.
-        file_type (str, optional): A key that indicates the type of file to download. Default 
-        is 'json'.
+
+        Args:
+            series_id (str): The ID for a series.
+            realtime_start (str, optional): The start of the real-time period. Format: YYYY-MM-DD.
+            realtime_end (str, optional): The end of the real-time period. Format: YYYY-MM-DD.
+            order_by (str, optional): Order results by values such as 'series_id', 'name', 'popularity', etc.
+            sort_order (str, optional): Sort results in 'asc' (ascending) or 'desc' (descending) order.
+            file_type (str, optional): A key that indicates the type of file to download. Default is 'json'.
 
         Returns:
-        - Tag: If only one tag is returned.
-        - List[Tag]: If multiple tags are returned.
-        - None: If no tags exist.
+            Tag: If only one tag is returned.
+            List[Tag]: If multiple tags are returned.
+            None: If no tags exist.
 
         Raises:
-        ValueError: If the API request fails or returns an error.
+            ValueError: If the API request fails or returns an error.
 
-        See also:
-        https://fred.stlouisfed.org/docs/api/fred/series_tags.html
+        Example:
+            >>> import fedfred as fd
+            >>> fred = fd.FredAPI('your_api_key')
+            >>> tags = fred.get_series_tags('GNPCA')
+            >>> for tag in tags:
+            >>>     print(tag.name)
+            'nation'
+            'nsa'
+            'usa'...
+
+        FRED API Documentation:
+            https://fred.stlouisfed.org/docs/api/fred/series_tags.html
         """
         if not isinstance(series_id, str):
             raise ValueError("series_id must be a string")
@@ -1415,30 +1623,40 @@ class FredAPI:
                            offset: Optional[int]=None, filter_value: Optional[str]=None,
                            start_time: Optional[str]=None, end_time: Optional[str]=None,
                            file_type: str = 'json'):
-        """
+        """Get FRED series updates
+
         Retrieves updates for a series from the FRED API.
 
-        Parameters:
-        realtime_start (str, optional): The start of the real-time period. Format: YYYY-MM-DD.
-        realtime_end (str, optional): The end of the real-time period. Format: YYYY-MM-DD.
-        limit (int, optional): The maximum number of results to return. Default is 1000.
-        offset (int, optional): The offset for the results. Used for pagination.
-        filter_value (str, optional): Filter results by this value.
-        start_time (str, optional): The start time for the updates. Format: HH:MM.
-        end_time (str, optional): The end time for the updates. Format: HH:MM.
-        file_type (str, optional): The format of the returned data. Default is 'json'. 
-        Options are 'json' or 'xml'.
+        Args:
+            realtime_start (str, optional): The start of the real-time period. Format: YYYY-MM-DD.
+            realtime_end (str, optional): The end of the real-time period. Format: YYYY-MM-DD.
+            limit (int, optional): The maximum number of results to return. Default is 1000.
+            offset (int, optional): The offset for the results. Used for pagination.
+            filter_value (str, optional): Filter results by this value.
+            start_time (str, optional): The start time for the updates. Format: HH:MM.
+            end_time (str, optional): The end time for the updates. Format: HH:MM.
+            file_type (str, optional): The format of the returned data. Default is 'json'. Options are 'json' or 'xml'.
 
         Returns:
-        - Series: If only one series is returned.
-        - List[Series]: If multiple series are returned.
-        - None: If no series exist.
+            Series: If only one series is returned.
+            List[Series]: If multiple series are returned.
+            None: If no series exist.
 
         Raises:
-        ValueError: If the API request fails or returns an error.
+            ValueError: If the API request fails or returns an error.
 
-        See also:
-        https://fred.stlouisfed.org/docs/api/fred/series_updates.html
+        Example:
+            >>> import fedfred as fd
+            >>> fred = fd.FredAPI('your_api_key')
+            >>> series = fred.get_series_updates()
+            >>> for s in series:
+            >>>     print(s.id)
+            'PPIITM'
+            'PPILFE'
+            'PPIFGS'...
+
+        FRED API Documentation:
+            https://fred.stlouisfed.org/docs/api/fred/series_updates.html
         """
         url_endpoint = '/series/updates'
         data: Dict[str, Union[str, int]] = {
@@ -1467,28 +1685,39 @@ class FredAPI:
                                 realtime_end: Optional[str]=None, limit: Optional[int]=None,
                                 offset: Optional[int]=None, sort_order: Optional[str]=None,
                                 file_type: str = 'json'):
-        """
+        """Get FRED series vintage dates
+
         Get the vintage dates for a given FRED series.
 
-        Parameters:
-        series_id (str): The ID for the FRED series.
-        realtime_start (str, optional): The start of the real-time period. Format: YYYY-MM-DD.
-        realtime_end (str, optional): The end of the real-time period. Format: YYYY-MM-DD.
-        limit (int, optional): The maximum number of results to return.
-        offset (int, optional): The offset for the results.
-        sort_order (str, optional): The order of the results. Possible values: 'asc' or 'desc'.
-        file_type (str, optional): The format of the returned data. Default is 'json'.
+        Args:
+            series_id (str): The ID for the FRED series.
+            realtime_start (str, optional): The start of the real-time period. Format: YYYY-MM-DD.
+            realtime_end (str, optional): The end of the real-time period. Format: YYYY-MM-DD.
+            limit (int, optional): The maximum number of results to return.
+            offset (int, optional): The offset for the results.
+            sort_order (str, optional): The order of the results. Possible values: 'asc' or 'desc'.
+            file_type (str, optional): The format of the returned data. Default is 'json'.
 
         Returns:
-        - VintageDate: If only one vintage date is returned.
-        - List[VintageDate]: If multiple vintage dates are returned.
-        - None: If no vintage dates exist.
+            VintageDate: If only one vintage date is returned.
+            List[VintageDate]: If multiple vintage dates are returned.
+            None: If no vintage dates exist.
 
         Raises:
-        ValueError: If the API request fails or returns an error.
+            ValueError: If the API request fails or returns an error.
 
-        See also:
-        https://fred.stlouisfed.org/docs/api/fred/series_vintagedates.html
+        Example:
+            >>> import fedfred as fd
+            >>> fred = fd.FredAPI('your_api_key')
+            >>> vintage_dates = fred.get_series_vintagedates('GNPCA')
+            >>> for vintage_date in vintage_dates:
+            >>>     print(vintage_date.vintage_date)
+            '1958-12-21'
+            '1959-02-19'
+            '1959-07-19'...
+
+        FRED API Documentation:
+            https://fred.stlouisfed.org/docs/api/fred/series_vintagedates.html
         """
         if not isinstance(series_id, str):
             raise ValueError("series_id must be a string")
@@ -1517,32 +1746,39 @@ class FredAPI:
                     limit: Optional[int]=None, offset: Optional[int]=None,
                     order_by: Optional[str]=None, sort_order: Optional[str]=None,
                     file_type: str = 'json'):
-        """
+        """Get FRED sources
+
         Retrieve sources of economic data from the FRED API.
 
-        Parameters:
-        realtime_start (str, optional): The start of the real-time period. Format: YYYY-MM-DD.
-        realtime_end (str, optional): The end of the real-time period. Format: YYYY-MM-DD.
-        limit (int, optional): The maximum number of results to return. Default is 1000,
-        maximum is 1000.
-        offset (int, optional): The offset for the results. Used for pagination.
-        order_by (str, optional): Order results by values. Options are 'source_id', 'name', 
-        'realtime_start', 'realtime_end'.
-        sort_order (str, optional): Sort order of results. Options are 'asc' (ascending) or 
-        'desc' (descending).
-        file_type (str, optional): The format of the returned data. Default is 'json'. Options 
-        are 'json', 'xml'.
+        Args:
+            realtime_start (str, optional): The start of the real-time period. Format: YYYY-MM-DD.
+            realtime_end (str, optional): The end of the real-time period. Format: YYYY-MM-DD.
+            limit (int, optional): The maximum number of results to return. Default is 1000, maximum is 1000.
+            offset (int, optional): The offset for the results. Used for pagination.
+            order_by (str, optional): Order results by values. Options are 'source_id', 'name', 'realtime_start', 'realtime_end'.
+            sort_order (str, optional): Sort order of results. Options are 'asc' (ascending) or 'desc' (descending).
+            file_type (str, optional): The format of the returned data. Default is 'json'. Options are 'json', 'xml'.
 
         Returns:
-        - Source: If only one source is returned.
-        - List[Source]: If multiple sources are returned.
-        - None: If no sources exist.
+            Source: If only one source is returned.
+            List[Source]: If multiple sources are returned.
+            None: If no sources exist.
 
         Raises:
-        ValueError: If the API request fails or returns an error.
+            ValueError: If the API request fails or returns an error.
 
-        See also:
-        https://fred.stlouisfed.org/docs/api/fred/sources.html
+        Example:
+            >>> import fedfred as fd
+            >>> fred = fd.FredAPI('your_api_key')
+            >>> sources = fred.get_sources()
+            >>> for source in sources:
+            >>>     print(source.name)
+            'Board of Governors of the Federal Reserve System'
+            'Federal Reserve Bank of Philadelphia'
+            'Federal Reserve Bank of St. Louis'...
+
+        FRED API Documentation:
+            https://fred.stlouisfed.org/docs/api/fred/sources.html
         """
         url_endpoint = '/sources'
         data: Dict[str, Union[str, int]] = {
@@ -1567,28 +1803,33 @@ class FredAPI:
         return Source.from_api_response(response)
     def get_source(self, source_id: int, realtime_start: Optional[str]=None,
                    realtime_end: Optional[str]=None, file_type: str = 'json'):
-        """
+        """Get a FRED source
+
         Retrieves information about a source from the FRED API.
 
-        Parameters:
-        source_id (int): The ID for the source.
-        realtime_start (str, optional): The start of the real-time period. Format: YYYY-MM-DD. 
-        Defaults to None.
-        realtime_end (str, optional): The end of the real-time period. Format: YYYY-MM-DD. 
-        Defaults to None.
-        file_type (str, optional): The format of the file to be returned. Options are 'json', 
-        'xml'. Defaults to 'json'.
+        Args:
+            source_id (int): The ID for the source.
+            realtime_start (str, optional): The start of the real-time period. Format: YYYY-MM-DD. Defaults to None.
+            realtime_end (str, optional): The end of the real-time period. Format: YYYY-MM-DD. Defaults to None.
+            file_type (str, optional): The format of the file to be returned. Options are 'json', 'xml'. Defaults to 'json'.
 
         Returns:
-        - Source: If only one source is returned.
-        - List[Source]: If multiple sources are returned.
-        - None: If no sources exist.
+            Source: If only one source is returned.
+            List[Source]: If multiple sources are returned.
+            None: If no sources exist.
 
         Raises:
-        ValueError: If the request to the FRED API fails or returns an error.
+            ValueError: If the request to the FRED API fails or returns an error.
 
-        See also:
-        https://fred.stlouisfed.org/docs/api/fred/source.html
+        Example:
+            >>> import fedfred as fd
+            >>> fred = fd.FredAPI('your_api_key')
+            >>> source = fred.get_source(1)
+            >>> print(source.name)
+            'Board of Governors of the Federal Reserve System'
+
+        FRED API Documentation:
+            https://fred.stlouisfed.org/docs/api/fred/source.html
         """
         if not isinstance(source_id, int):
             raise ValueError("source_id must be an integer")
@@ -1610,30 +1851,41 @@ class FredAPI:
                             realtime_end: Optional[str]=None, limit: Optional[int]=None,
                             offset: Optional[int]=None, order_by: Optional[str]=None,
                             sort_order: Optional[str]=None, file_type: str = 'json'):
-        """
+        """Get FRED source releases
+
         Get the releases for a specified source from the FRED API.
 
-        Parameters:
-        source_id (int): The ID for the source.
-        realtime_start (str, optional): The start of the real-time period. Format: YYYY-MM-DD.
-        realtime_end (str, optional): The end of the real-time period. Format: YYYY-MM-DD.
-        limit (int, optional): The maximum number of results to return.
-        offset (int, optional): The offset for the results.
-        order_by (str, optional): Order results by values such as 'release_id', 'name', etc.
-        sort_order (str, optional): Sort order of results. 'asc' for ascending, 'desc' for 
-        descending.
-        file_type (str, optional): The format of the response. Default is 'json'.
+        Args:
+            source_id (int): The ID for the source.
+            realtime_start (str, optional): The start of the real-time period. Format: YYYY-MM-DD.
+            realtime_end (str, optional): The end of the real-time period. Format: YYYY-MM-DD.
+            limit (int, optional): The maximum number of results to return.
+            offset (int, optional): The offset for the results.
+            order_by (str, optional): Order results by values such as 'release_id', 'name', etc.
+            sort_order (str, optional): Sort order of results. 'asc' for ascending, 'desc' for
+            descending.
+            file_type (str, optional): The format of the response. Default is 'json'.
 
         Returns:
-        dict: A dictionary containing the releases for the specified source.
+            Release: If only one release is returned.
+            List[Releases]: If multiple Releases are returned.
+            None: If no release exist.
 
         Raises:
-        - Source: If only one source is returned.
-        - List[Source]: If multiple sources are returned.
-        - None: If no sources exist.
+            ValueError: If the request to the FRED API fails or returns an error.
 
-        See also:
-        https://fred.stlouisfed.org/docs/api/fred/source_releases.html
+        Example:
+            >>> import fedfred as fd
+            >>> fred = fd.FredAPI('your_api_key')
+            >>> releases = fred.get_source_releases(1)
+            >>> for release in releases:
+            >>>     print(release.name)
+            'G.17 Industrial Production and Capacity Utilization'
+            'G.19 Consumer Credit'
+            'G.5 Foreign Exchange Rates'...
+
+        FRED API Documentation:
+            https://fred.stlouisfed.org/docs/api/fred/source_releases.html
         """
         if not isinstance(source_id, int):
             raise ValueError("source_id must be an integer")
@@ -1665,32 +1917,43 @@ class FredAPI:
                 search_text: Optional[str]=None, limit: Optional[int]=None,
                 offset: Optional[int]=None, order_by: Optional[str]=None,
                 sort_order: Optional[str]=None, file_type: str = 'json'):
-        """
+        """Get FRED tags
+
         Retrieve FRED tags based on specified parameters.
 
-        Parameters:
-        realtime_start (str, optional): The start of the real-time period. Format: YYYY-MM-DD.
-        realtime_end (str, optional): The end of the real-time period. Format: YYYY-MM-DD.
-        tag_names (str, optional): A semicolon-delimited list of tag names to filter results.
-        tag_group_id (str, optional): A tag group ID to filter results.
-        search_text (str, optional): The words to match against tag names and descriptions.
-        limit (int, optional): The maximum number of results to return. Default is 1000.
-        offset (int, optional): The offset for the results. Used for pagination.
-        order_by (str, optional): Order results by values such as 'series_count', 'popularity', etc.
-        sort_order (str, optional): Sort order of results. 'asc' for ascending, 'desc' for 
-        descending.
-        file_type (str, optional): The format of the returned data. Default is 'json'.
+        Args:
+            realtime_start (str, optional): The start of the real-time period. Format: YYYY-MM-DD.
+            realtime_end (str, optional): The end of the real-time period. Format: YYYY-MM-DD.
+            tag_names (str, optional): A semicolon-delimited list of tag names to filter results.
+            tag_group_id (str, optional): A tag group ID to filter results.
+            search_text (str, optional): The words to match against tag names and descriptions.
+            limit (int, optional): The maximum number of results to return. Default is 1000.
+            offset (int, optional): The offset for the results. Used for pagination.
+            order_by (str, optional): Order results by values such as 'series_count', 'popularity', etc.
+            sort_order (str, optional): Sort order of results. 'asc' for ascending, 'desc' for descending.
+            file_type (str, optional): The format of the returned data. Default is 'json'.
 
         Returns:
-        - Tag: If only one tag is returned.
-        - List[Tag]: If multiple tags are returned.
-        - None: If no tags exist.
+            Tag: If only one tag is returned.
+            List[Tag]: If multiple tags are returned.
+            None: If no tags exist.
 
         Raises:
-        ValueError: If the API request fails or returns an error.
+            ValueError: If the API request fails or returns an error.
 
-        See also:
-        https://fred.stlouisfed.org/docs/api/fred/tags.html
+        Example:
+            >>> import fedfred as fd
+            >>> fred = fd.FredAPI('your_api_key')
+            >>> tags = fred.get_tags()
+            >>> for tag in tags:
+            >>>     print(tag.name)
+            'nation'
+            'nsa'
+            'oecd'...
+
+
+        FRED API Documentation:
+            https://fred.stlouisfed.org/docs/api/fred/tags.html
         """
         url_endpoint = '/tags'
         data: Dict[str, Union[str, int]] = {
@@ -1725,35 +1988,43 @@ class FredAPI:
                          limit: Optional[int]=None, offset: Optional[int]=None,
                          order_by: Optional[str]=None, sort_order: Optional[str]=None,
                          file_type: str = 'json'):
-        """
+        """Get FRED related tags
+
         Retrieve related tags for a given set of tags from the FRED API.
 
-        Parameters:
-        realtime_start (str, optional): The start of the real-time period. Format: YYYY-MM-DD.
-        realtime_end (str, optional): The end of the real-time period. Format: YYYY-MM-DD.
-        tag_names (str, optional): A semicolon-delimited list of tag names to include in the search.
-        exclude_tag_names (str, optional): A semicolon-delimited list of tag names to exclude from 
-        the search.
-        tag_group_id (str, optional): A tag group ID to filter tags by group.
-        search_text (str, optional): The words to match against tag names and descriptions.
-        limit (int, optional): The maximum number of results to return. Default is 1000.
-        offset (int, optional): The offset for the results. Used for pagination.
-        order_by (str, optional): Order results by values. Options: 'series_count', 'popularity', 
-        'created', 'name', 'group_id'.
-        sort_order (str, optional): Sort order of results. Options: 'asc' (ascending), 'desc' 
-        (descending). Default is 'asc'.
-        file_type (str, optional): The type of file to return. Default is 'json'.
+        Args:
+            realtime_start (str, optional): The start of the real-time period. Format: YYYY-MM-DD.
+            realtime_end (str, optional): The end of the real-time period. Format: YYYY-MM-DD.
+            tag_names (str, optional): A semicolon-delimited list of tag names to include in the search.
+            exclude_tag_names (str, optional): A semicolon-delimited list of tag names to exclude from the search.
+            tag_group_id (str, optional): A tag group ID to filter tags by group.
+            search_text (str, optional): The words to match against tag names and descriptions.
+            limit (int, optional): The maximum number of results to return. Default is 1000.
+            offset (int, optional): The offset for the results. Used for pagination.
+            order_by (str, optional): Order results by values. Options: 'series_count', 'popularity', 'created', 'name', 'group_id'.
+            sort_order (str, optional): Sort order of results. Options: 'asc' (ascending), 'desc' (descending). Default is 'asc'.
+            file_type (str, optional): The type of file to return. Default is 'json'.
 
         Returns:
-        - Tag: If only one tag is returned.
-        - List[Tag]: If multiple tags are returned.
-        - None: If no tags exist.
+            Tag: If only one tag is returned.
+            List[Tag]: If multiple tags are returned.
+            None: If no tags exist.
 
         Raises:
-        ValueError: If the API request fails or returns an error.
+            ValueError: If the API request fails or returns an error.
 
-        See also:
-        https://fred.stlouisfed.org/docs/api/fred/related_tags.html
+        Example:
+            >>> import fedfred as fd
+            >>> fred = fd.FredAPI('your_api_key')
+            >>> tags = fred.get_related_tags()
+            >>> for tag in tags:
+            >>>     print(tag.name)
+            'nation'
+            'usa'
+            'frb'...
+
+        FRED API Documentation:
+            https://fred.stlouisfed.org/docs/api/fred/related_tags.html
         """
         url_endpoint = '/related_tags'
         data: Dict[str, Union[str, int]] = {
@@ -1789,34 +2060,30 @@ class FredAPI:
                         limit: Optional[int]=None, offset: Optional[int]=None,
                         order_by: Optional[str]=None, sort_order: Optional[str]=None,
                         file_type: str = 'json'):
-        """
+        """Get FRED tags series
+
         Get the series matching tags.
 
-        Parameters:
-        tag_names (str, optional): A semicolon delimited list of tag names to include in the search.
-        exclude_tag_names (str, optional): A semicolon delimited list of tag names to exclude in 
-        the search.
-        realtime_start (str, optional): The start of the real-time period. Format: YYYY-MM-DD.
-        realtime_end (str, optional): The end of the real-time period. Format: YYYY-MM-DD.
-        limit (int, optional): The maximum number of results to return. Default is 1000.
-        offset (int, optional): The offset for the results. Default is 0.
-        order_by (str, optional): Order results by values. Options: 'series_id', 'title', 'units', 
-        'frequency', 'seasonal_adjustment', 'realtime_start', 'realtime_end', 'last_updated', 
-        'observation_start', 'observation_end', 'popularity', 'group_popularity'.
-        sort_order (str, optional): Sort results in ascending or descending order. Options: 'asc', 
-        'desc'.
-        file_type (str, optional): The type of file to return. Default is 'json'. Options: 'json', 
-        'xml'.
+        Args:
+            tag_names (str, optional): A semicolon delimited list of tag names to include in the search.
+            exclude_tag_names (str, optional): A semicolon delimited list of tag names to exclude in the search.
+            realtime_start (str, optional): The start of the real-time period. Format: YYYY-MM-DD.
+            realtime_end (str, optional): The end of the real-time period. Format: YYYY-MM-DD.
+            limit (int, optional): The maximum number of results to return. Default is 1000.
+            offset (int, optional): The offset for the results. Default is 0.
+            order_by (str, optional): Order results by values. Options: 'series_id', 'title', 'units', 'frequency', 'seasonal_adjustment', 'realtime_start', 'realtime_end', 'last_updated', 'observation_start', 'observation_end', 'popularity', 'group_popularity'.
+            sort_order (str, optional): Sort results in ascending or descending order. Options: 'asc', 'desc'.
+            file_type (str, optional): The type of file to return. Default is 'json'. Options: 'json', 'xml'.
 
         Returns:
-        - Series: If only one series is returned.
-        - List[Series]: If multiple series are returned.
-        - None: If no series exist.
+            Series: If only one series is returned.
+            List[Series]: If multiple series are returned.
+            None: If no series exist.
 
         Raises:
-        ValueError: If the API request fails or returns an error.
+            ValueError: If the API request fails or returns an error.
 
-        See also:
+        FRED API Documentation:
         https://fred.stlouisfed.org/docs/api/fred/tags_series.html
         """
         url_endpoint = '/tags/series'
@@ -1846,7 +2113,7 @@ class FredAPI:
         return Series.from_api_response(response)
 class FredMapsAPI:
     """
-    The FredMapsAPI class contains methods for interacting with the FRED® Maps API and GeoFRED 
+    The FredMapsAPI class contains methods for interacting with the FRED® Maps API and GeoFRED
     endpoints.
     """
     def __init__(self, api_key, async_mode=False, cache_mode=False):
@@ -1972,31 +2239,35 @@ class FredMapsAPI:
                 raise ValueError(f"Request Error occurred: {e}") from e
     # Public Methods
     def get_shape_files(self, shape: str):
-        """
+        """Get GeoFRED shape files
+
         This request returns shape files from FRED in GeoJSON format.
 
-        Parameters:
-        shape (str, required): The type of shape you want to pull GeoJSON data for. 
-        Available Shape Types: 
-            'bea' (Bureau of Economic Anaylis Region) 
-            'msa' (Metropolitan Statistical Area)
-            'frb' (Federal Reserve Bank Districts)
-            'necta' (New England City and Town Area)
-            'state'
-            'country'
-            'county' (USA Counties)
-            'censusregion' (US Census Regions)
-            'censusdivision' (US Census Divisons)
+        Args:
+            shape (str, required): The type of shape you want to pull GeoJSON data for. Available Shape Types: 'bea' (Bureau of Economic Anaylis Region), 'msa' (Metropolitan Statistical Area), 'frb' (Federal Reserve Bank Districts), 'necta' (New England City and Town Area), 'state', 'country', 'county' (USA Counties), 'censusregion' (US Census Regions), 'censusdivision' (US Census Divisons).
 
         Returns:
-        - GeoDataframe: If GeoJSON shape file exists.
-        - None: If no series exist.
+            GeoDataframe: If GeoJSON shape file exists.
+            None: If no shapefiles exist.
 
         Raises:
-        ValueError: If the API request fails or returns an error.
+            ValueError: If the API request fails or returns an error.
 
-        See also:
-        https://fred.stlouisfed.org/docs/api/geofred/shapes.html
+        Example:
+            >>> import fedfred as fd
+            >>> fred = fd.FredMapsAPI('your_api_key')
+            >>> shapefile = fred.get_shape_files('state')
+            >>> print(shapefile.head())
+                                                        geometry  ...   type
+            0  MULTIPOLYGON (((9727 7650, 10595 7650, 10595 7...  ...  State
+            1  MULTIPOLYGON (((-77 9797, -56 9768, -91 9757, ...  ...  State
+            2  POLYGON ((-833 8186, -50 7955, -253 7203, 32 6...  ...  State
+            3  POLYGON ((-50 7955, -833 8186, -851 8223, -847...  ...  State
+            4  MULTIPOLYGON (((6206 8297, 6197 8237, 6159 815...  ...  State
+            [5 rows x 20 columns]
+
+        FRED API Documentation:
+            https://fred.stlouisfed.org/docs/api/geofred/shapes.html
         """
         if not isinstance(shape, str):
             raise ValueError("shape must be a string")
@@ -2010,28 +2281,25 @@ class FredMapsAPI:
             response = self.__fred_maps_get_request(url_endpoint, data)
         return gpd.GeoDataFrame.from_features(response['features'])
     def get_series_group(self, series_id: str, file_type: str = 'json'):
-        """
-        This request returns the meta information needed to make requests for FRED data. Minimum 
+        """Get a GeoFRED series group
+
+        This request returns the meta information needed to make requests for FRED data. Minimum
         and maximum date are also supplied for the data range available.
 
-        Parameters:
-        series_id (str, required): The FRED series id you want to request maps meta information 
-        for. Not all series that are in FRED have geographical data.
-        filetype (str, optional): A key or file extension that indicates the type of file to send.
-        One of the following values: 'xml', 'json'
-        xml = Extensible Markup Language. The HTTP Content-Type is text/xml.
-        json = JavaScript Object Notation. The HTTP Content-Type is application/json.
+        Args:
+            series_id (str, required): The FRED series id you want to request maps meta information for. Not all series that are in FRED have geographical data.
+            filetype (str, optional): A key or file extension that indicates the type of file to send. One of the following values: 'xml', 'json'. Default is 'json'.
 
         Returns:
-        - SeriesGroup: If only one series group is returned.
-        - List[SeriesGroup]: If multiple series groups are returned.
-        - None: If no series groups exist.
+            SeriesGroup: If only one series group is returned.
+            List[SeriesGroup]: If multiple series groups are returned.
+            None: If no series groups exist.
 
         Raises:
-        ValueError: If the API request fails or returns an error.
+            ValueError: If the API request fails or returns an error.
 
-        See also:
-        https://fred.stlouisfed.org/docs/api/geofred/series_group.html
+        FRED API Documentation:
+            https://fred.stlouisfed.org/docs/api/geofred/series_group.html
         """
         if not isinstance(series_id, str):
             raise ValueError("series_id must be a string")
@@ -2047,34 +2315,37 @@ class FredMapsAPI:
         return SeriesGroup.from_api_response(response)
     def get_series_data(self, series_id: str, date: Optional[str]=None,
                         start_date: Optional[str]=None, file_type: str = 'json'):
-        """
-        This request returns a cross section of regional data for a specified release date. If no 
+        """Get GeoFRED series data
+
+        This request returns a cross section of regional data for a specified release date. If no
         date is specified, the most recent data available are returned.
 
-        Parameters:
-        series_id (string, required): The FRED series_id you want to request maps data for. Not all 
-        series that are in FRED have geographical data.
-        date (string, optional): The date you want to request series group data from.
-        Format: YYYY-MM-DD
-        start_date (string, optional): The start date you want to request series group data from. 
-        This allows you to pull a range of data
-        Format: YYYY-MM-DD
-        file_type (string, optional): A key or file extension that indicates the type of file to 
-        send.
-        One of the following values: 'xml', 'json'
-        xml = Extensible Markup Language. The HTTP Content-Type is text/xml (xml is not available 
-        for county data).
-        json = JavaScript Object Notation. The HTTP Content-Type is application/json.
-        
+        Args:
+            series_id (string, required): The FRED series_id you want to request maps data for. Not all
+            series that are in FRED have geographical data.
+            date (string, optional): The date you want to request series group data from. Format: YYYY-MM-DD
+            start_date (string, optional): The start date you want to request series group data from. This allows you to pull a range of dataFormat: YYYY-MM-DD
+            file_type (string, optional): A key or file extension that indicates the type of file to send.One of the following values: 'xml', 'json'. Default is 'json'.
+
         Returns:
-        - GeoDataframe: If GeoJSON shape file exists.
-        - None: If no series exist.
+            GeoDataframe: If GeoJSON shape file exists.
+            None: If no series exist.
 
         Raises:
-        ValueError: If the API request fails or returns an error.
+            ValueError: If the API request fails or returns an error.
 
-        See also:
-        https://fred.stlouisfed.org/docs/api/geofred/series_data.html
+        Example:
+            >>> import fedfred as fd
+            >>> fred = fd.FredMapsAPI('your_api_key')
+            >>> series_data = fred.get_series_data('SMU56000000500000001')
+            >>> print(series_data.head())
+            name                                                    geometry  ...             series_id
+            Washington     MULTIPOLYGON (((-77 9797, -56 9768, -91 9757, ...  ...  SMU53000000500000001
+            California     POLYGON ((-833 8186, -50 7955, -253 7203, 32 6...  ...  SMU06000000500000001
+            Oregon         POLYGON ((-50 7955, -833 8186, -851 8223, -847...  ...  SMU41000000500000001
+            Wisconsin      MULTIPOLYGON (((6206 8297, 6197 8237, 6159 815...  ...  SMU55000000500000001
+        FRED API Documentation:
+            https://fred.stlouisfed.org/docs/api/geofred/series_data.html
         """
         if not isinstance(series_id, str):
             raise ValueError("series_id must be a string")
@@ -2097,37 +2368,44 @@ class FredMapsAPI:
                           transformation: Optional[str]=None, frequency: Optional[str]=None,
                           aggregation_method: Optional[str]=None,
                           file_type: str = 'json'):
-        """
+        """Get GeoFRED regional data
+
         Retrieve regional data for a specified series group and date from the FRED Maps API.
 
-        Parameters:
-        series_group (str): The series group for which you want to request regional data.
-        region_type (str): The type of region for which you want to request data. Examples include 
-        'state', 'county', 'msa', etc.
-        date (str): The date for which you want to request regional data. Format: YYYY-MM-DD.
-        season (str): The seasonality of the data. Options include 'seasonally_adjusted' or 
-        'not_seasonally_adjusted'.
-        units (str): The units of the data. Examples include 'lin', 'chg', 'pch', etc.
-        start_date (str, optional): The start date for the range of data you want to request. 
-        Format: YYYY-MM-DD.
-        transformation (str, optional): The data transformation to apply. Examples include 'lin', 
-        'chg', 'pch', etc.
-        frequency (str, optional): The frequency of the data. Examples include 'd', 'w', 'm', 
-        'q', 'a'.
-        aggregation_method (str, optional): The aggregation method to use. Examples include 'avg', 
-        'sum', 'eop'.
-        file_type (str, optional): The format of the response. Options are 'json' or 'xml'. 
-        Default is 'json'.
+        Args:
+            series_group (str): The series group for which you want to request regional data.
+            region_type (str): The type of region for which you want to request data. Examples include 'state', 'county', 'msa', etc.
+            date (str): The date for which you want to request regional data. Format: YYYY-MM-DD.
+            season (str): The seasonality of the data. Options include 'seasonally_adjusted' or 'not_seasonally_adjusted'.
+            units (str): The units of the data. Examples include 'lin', 'chg', 'pch', etc.
+            start_date (str, optional): The start date for the range of data you want to request. Format: YYYY-MM-DD.
+            transformation (str, optional): The data transformation to apply. Examples include 'lin', 'chg', 'pch', etc.
+            frequency (str, optional): The frequency of the data. Examples include 'd', 'w', 'm', 'q', 'a'.
+            aggregation_method (str, optional): The aggregation method to use. Examples include 'avg', 'sum', 'eop'.
+            file_type (str, optional): The format of the response. Options are 'json' or 'xml'. Default is 'json'.
 
         Returns:
-        - GeoDataframe: If GeoJSON shape file exists.
-        - None: If no series exist.
+            GeoDataframe: If GeoJSON shape file exists.
+            None: If no series exist.
 
         Raises:
-        ValueError: If the API request fails or returns an error.
-        
-        See also:
-        https://fred.stlouisfed.org/docs/api/geofred/regional_data.html
+            ValueError: If the API request fails or returns an error.
+
+        Example:
+            >>> import fedfred as fd
+            >>> fred = fd.FredMapsAPI('your_api_key')
+            >>> regional_data = fred.get_regional_data(series_group='882', date='2013-01-01', region_type='state', units='Dollars', frequency='a', season='NSA')
+            >>> print(regional_data.head())
+            name                                                    geometry hc-group  ...  value  series_id
+            Massachusetts  MULTIPOLYGON (((9727 7650, 10595 7650, 10595 7...   admin1  ...  56119     MAPCPI
+            Washington     MULTIPOLYGON (((-77 9797, -56 9768, -91 9757, ...   admin1  ...  47448     WAPCPI
+            California     POLYGON ((-833 8186, -50 7955, -253 7203, 32 6...   admin1  ...  48074     CAPCPI
+            Oregon         POLYGON ((-50 7955, -833 8186, -851 8223, -847...   admin1  ...  39462     ORPCPI
+            Wisconsin      MULTIPOLYGON (((6206 8297, 6197 8237, 6159 815...   admin1  ...  42685     WIPCPI
+            [5 rows x 21 columns]
+
+        FRED API Documentation:
+            https://fred.stlouisfed.org/docs/api/geofred/regional_data.html
         """
         url_endpoint = '/regional/data'
         data = {
@@ -2136,7 +2414,7 @@ class FredMapsAPI:
             'date': date,
             'season': season,
             'units': units,
-            'file_type': file_type 
+            'file_type': file_type
         }
         if start_date:
             data['start_date'] = start_date

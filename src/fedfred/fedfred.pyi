@@ -71,10 +71,10 @@ class FredAPI:
                          tag_group_id: Optional[int]=None, search_text: Optional[str]=None,
                          limit: Optional[int]=None, offset: Optional[int]=None,
                          order_by: Optional[str]=None, file_type: str = 'json') -> Union[Tag, List[Tag]]: ...
-    def get_release_related_tags(self, series_search_text: str, realtime_start: Optional[str]=None,
+    def get_release_related_tags(self, release_id: int, realtime_start: Optional[str]=None,
                                  realtime_end: Optional[str]=None, tag_names: Optional[str]=None,
-                                 tag_group_id: Optional[str]=None,
-                                 tag_search_text: Optional[str]=None, limit: Optional[int]=None,
+                                 exclude_tag_names: Optional[str]=None, tag_group_id: Optional[str]=None,
+                                 search_text: Optional[str]=None, limit: Optional[int]=None,
                                  offset: Optional[int]=None, order_by: Optional[str]=None,
                                  sort_order: Optional[str]=None, file_type: str = 'json') -> Union[Tag, List[Tag]]: ...
     def get_release_tables(self, release_id: int, element_id: Optional[int]=None,

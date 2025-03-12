@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "fedfred"
-version = "1.0.26"
+version = "1.1.0"
 description = "A feature-rich python package for interacting with the Federal Reserve Bank of St. Louis Economic Database: FRED"
 authors = [
     "Nikhil Sunder <nsunder724@gmail.com>"
@@ -37,12 +37,19 @@ geopandas = "*"
 types-geopandas = "*"
 
 [tool.poetry.group.dev.dependencies]
-pytest = "^7.0.0"
-pytest-cov = "^3.0.0"
-pylint = "^2.15.0"
-mypy = "^1.0.0"
-bandit = "^1.7.0"
-pip-audit = "^2.4.0"
+pytest = ">=7.0.0,<=8.3.5"
+pytest-cov = ">=3.0.0,<=3.0.1"
+pylint = ">=2.15.0,<=3.3.5"
+mypy = ">=1.0.0,<=1.15.0"
+bandit = ">=1.7.0, <=1.8.3"
+pip-audit = ">=2.4.0,<=2.8.0"
+pre-commit = "^4.1.0"
+hypothesis = "^6.129.0"
+sphinx = ">=6.2.0,<=8.2.3"
+furo = ">=2021.11.23,<=2024.09.06"
+sphinx-autodoc-typehints = ">=1.12.0,<=3.1.0"
+myst-parser = ">=0.15,<4.0.1"
+linkify-it-py = "^2.0.3"
 
 [tool.mypy]
 files = "fedfred"
@@ -53,7 +60,7 @@ max-line-length = 120
 disable = ["C0114", "C0115", "C0116", "C0302", "C0301"]
 
 [tool.bandit]
-exclude_dirs = ["tests"]
+exclude_dirs = ["tests", "docs"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
