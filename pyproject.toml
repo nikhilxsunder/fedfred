@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "fedfred"
-version = "1.1.0"
+version = "1.2.0"
 description = "A feature-rich python package for interacting with the Federal Reserve Bank of St. Louis Economic Database: FRED"
 authors = [
     "Nikhil Sunder <nsunder724@gmail.com>"
@@ -12,7 +12,7 @@ authors = [
 readme = "README.md"
 license = "AGPL-3.0-or-later"
 repository = "https://github.com/nikhilxsunder/fedfred"
-documentation = "https://github.com/nikhilxsunder/fedfred/tree/main/docs/fedfred.pdf"
+documentation = "https://nikhilxsunder.github.io/fedfred/"
 packages = [{include = "fedfred", from = "src"}]
 include = ["src/fedfred/py.typed", "src/fedfred/**/*.pyi"]
 classifiers = [
@@ -28,7 +28,7 @@ keywords = ["fred", "federal reserve", "api", "economics", "finance"]
 [tool.poetry.dependencies]
 python = ">=3.9, <4.0"
 httpx = "*"
-typed-diskcache = "*"
+cacheout = "*"
 tenacity = "*"
 pandas = "*"
 pandas-stubs = "*"
@@ -39,7 +39,7 @@ types-geopandas = "*"
 [tool.poetry.group.dev.dependencies]
 pytest = ">=7.0.0,<=8.3.5"
 pytest-cov = ">=3.0.0,<=3.0.1"
-pylint = ">=2.15.0,<=3.3.5"
+pylint = ">=2.15.0,<=3.3.9"
 mypy = ">=1.0.0,<=1.15.0"
 bandit = ">=1.7.0, <=1.8.3"
 pip-audit = ">=2.4.0,<=2.8.0"

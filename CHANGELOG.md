@@ -9,14 +9,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Dynnamic Analysis Workflow (hypothesis)
-- [property_based_test.py](https://github.com/nikhilxsunder/fedfred/blob/main/tests/property_based_test.py)
+- Dynamic Analysis Workflow (hypothesis)
+- [fedfred_property_based_test.py](https://github.com/nikhilxsunder/fedfred/blob/main/tests/fedfred_property_based_test.py)
+- [fred_data_property_based_test.py](https://github.com/nikhilxsunder/fedfred/blob/main/tests/fred_data_property_based_test.py)
+
+### Changed
+
+- \_test.py -> [fedfred_test.py](https://github.com/nikhilxsunder/fedfred/blob/main/tests/fedfred_test.py)
+
+## [1.2.0]
+
+### Added
+
+- FredAPI.Maps subclass
+- FredAPI.Async subclass
+- FredAPI.Async.Maps subclass
+- [cacheout](https://pypi.org/project/cacheout/) dependency
+- [fred_data_test.py](https://github.com/nikhilxsunder/fedfred/blob/main/tests/fred_data_test.py)
 
 ### Fixed
 
 - Async logic (asyncio.run cannot be called within a loop)
-- Caching logic and level (data object level as opposed to api response level)
-- [\_test.py](https://github.com/nikhilxsunder/fedfred/blob/main/tests/_test.py) increased coverage
+- Caching logic
+
+### Deprecated
+
+- async_mode -> bool for all classes
+- FredMapsAPI class
+- [typed-diskcache](https://pypi.org/project/typed-diskcache/) dependency
 
 ## [1.1.0] - 2025-03-12
 
@@ -311,6 +331,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - setuptools for build backend
 
 [Unreleased]: https://github.com/nikhilxsunder/fedfred/compare/v1.1.0...HEAD
+[1.2.0]: https://github.com/nikhilxsunder/fedfred/compare/v1.0.26...v1.2.0
 [1.1.0]: https://github.com/nikhilxsunder/fedfred/compare/v1.0.26...v1.1.0
 [1.0.26]: https://github.com/nikhilxsunder/fedfred/compare/v1.0.25...v1.0.26
 [1.0.25]: https://github.com/nikhilxsunder/fedfred/compare/v1.0.24...v1.0.25

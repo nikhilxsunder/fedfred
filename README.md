@@ -37,20 +37,27 @@ pip install fedfred
 ### Rest API Usage
 
 I recommend consulting the documentation at:
-https://github.com/nikhilxsunder/fedfred/tree/main/docs/fedfred.pdf
+https://nikhilxsunder.github.io/fedfred/
 
 Here is a simple example of how to use the package:
 
 ```python
 # FredAPI
 import fedfred as fd
-
 api_key = 'your_api_key'
 fred = fd.FredAPI(api_key)
 
-# Get Series: GDP
-gdp = fred.get_series('GDP')
+# Get Series Observations as a pandas DataFrame
+gdp = fred.get_series_observations('GDP')
 gdp.head()
+
+# Get Series Observations as a pandas DataFrame (async)
+import asyncio
+async def main():
+    fred = fd.FredAPI(api_key).Async
+    gdp = fred.get_series_observations('GNPCA')
+    print(observations.head())
+asyncio.run(main())
 ```
 
 ### Important Notes

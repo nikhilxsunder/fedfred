@@ -5,7 +5,7 @@ Imports:
     FredAPI: A class that provides methods to interact with the Fred API.
     FredMapsAPI: A class that provides methods to interact with the Fred Maps API.
 """
-from .fedfred import FredAPI, FredMapsAPI
+from .fedfred import FredAPI
 # Import data classes
 from .fred_data import (
     Category,
@@ -21,7 +21,6 @@ from .fred_data import (
 
 __all__ = [
     "FredAPI",
-    "FredMapsAPI",
     "Category",
     "Series",
     "Tag",

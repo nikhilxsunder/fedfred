@@ -30,10 +30,10 @@ class Category:
         ]
         if not categories:
             return None
-        if len(categories) == 1:
+        elif len(categories) == 1:
             return categories[0]
-        return categories
-
+        else:
+            return categories
 @dataclass
 class Series:
     """
@@ -51,6 +51,8 @@ class Series:
     seasonal_adjustment_short: str
     last_updated: str
     popularity: int
+    realtime_start: Optional[str] = None
+    realtime_end: Optional[str] = None
     group_popularity: Optional[int] = None
     notes: Optional[str] = None
 
@@ -76,6 +78,8 @@ class Series:
                 last_updated=series["last_updated"],
                 popularity=series["popularity"],
                 group_popularity=series.get("group_popularity"),
+                realtime_start=series.get("realtime_start"),
+                realtime_end=series.get("realtime_end"),
                 notes=series.get("notes")
             )
             for series in response["seriess"]
@@ -246,6 +250,8 @@ class Element:
         """
         Parses the FRED API response and returns a single Element or a list of Elements.
         """
+        if "elements" not in response:
+            raise ValueError("Invalid API response: Missing 'elements' field")
         elements = []
         def process_element(element_data: Dict) -> "Element":
             children_list = []

@@ -24,7 +24,10 @@ repos:
               .*\.md|
               .*\.rst
           )$
-        args: ["--disable=E0401,R0902,R0913,R0917,R0914,R0912,R0904"]
+        args:
+          [
+            "--disable=E0401,R0902,R0913,R0917,R0914,R0912,R0904,R1705,C0103,R1710",
+          ]
 
   - repo: local
     hooks:

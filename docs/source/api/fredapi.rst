@@ -2,7 +2,6 @@ FredAPI
 =======
 
 .. autoclass:: fedfred.FredAPI
-   :members:
+   :members: __init__
    :undoc-members:
    :show-inheritance:
-   :special-members: __init__

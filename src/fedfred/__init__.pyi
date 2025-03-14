@@ -1,4 +1,4 @@
-from .fedfred import FredAPI, FredMapsAPI
+from .fedfred import FredAPI
 from .fred_data import (
     Category, Series, Tag, Release, ReleaseDate,
     Source, Element, VintageDate, SeriesGroup
@@ -6,7 +6,6 @@ from .fred_data import (
 
 __all__ = [
     "FredAPI",
-    "FredMapsAPI",
     "Category",
     "Series",
     "Tag",

@@ -4,8 +4,10 @@ API Reference
 This section provides detailed API documentation for fedfred's classes and functions.
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 6
 
    fredapi
-   fredmapsapi
+   mapsapi
+   asyncapi
+   asyncmapsapi
    data_classes

@@ -74,7 +74,7 @@ html_theme_options = {
 }
 html_static_path = ['_static']
 html_title = "fedfred"
-html_favicon = "_static/favicon.ico"
+html_favicon = "_static/fedfred_favicon.ico"
 html_logo = "_static/fedfred-logo.png"
 
 # autodocs
