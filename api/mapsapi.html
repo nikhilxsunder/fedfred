@@ -3,10 +3,10 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
-<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Data Classes" href="data_classes.html" /><link rel="prev" title="FredAPI" href="fredapi.html" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="AsyncAPI Class" href="asyncapi.html" /><link rel="prev" title="FredAPI" href="fredapi.html" />
 
-    <!-- Generated with Sphinx 6.2.1 and Furo 2024.08.06 -->
-        <title>FredMapsAPI - fedfred</title>
+    <link rel="shortcut icon" href="../_static/fedfred_favicon.ico"/><!-- Generated with Sphinx 6.2.1 and Furo 2024.08.06 -->
+        <title>MapsAPI Class - fedfred</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=04c057b233f3c8d71940eee6080f658a04e2027d" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?digest=cf727022eb7470bc603c08d2e55c3247faec75c9" />
@@ -219,7 +219,9 @@
 </li>
 <li class="toctree-l1 current has-children"><a class="reference internal" href="index.html">API Reference</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of API Reference</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="fredapi.html">FredAPI</a></li>
-<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">FredMapsAPI</a></li>
+<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">MapsAPI Class</a></li>
+<li class="toctree-l2"><a class="reference internal" href="asyncapi.html">AsyncAPI Class</a></li>
+<li class="toctree-l2"><a class="reference internal" href="asyncmapsapi.html">AsyncMapsAPI Class</a></li>
 <li class="toctree-l2"><a class="reference internal" href="data_classes.html">Data Classes</a></li>
 </ul>
 </li>
@@ -248,7 +250,7 @@
         </a>
         <div class="content-icon-container">
           <div class="view-this-page">
-  <a class="muted-link" href="../_sources/api/fredmapsapi.rst.txt" title="View this page">
+  <a class="muted-link" href="../_sources/api/mapsapi.rst.txt" title="View this page">
     <svg><use href="#svg-eye"></use></svg>
     <span class="visually-hidden">View this page</span>
   </a>
@@ -268,23 +270,17 @@
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <section id="fredmapsapi">
-<h1>FredMapsAPI<a class="headerlink" href="#fredmapsapi" title="Permalink to this heading">¶</a></h1>
+          <section id="mapsapi-class">
+<h1>MapsAPI Class<a class="headerlink" href="#mapsapi-class" title="Permalink to this heading">¶</a></h1>
 <dl class="py class">
-<dt class="sig sig-object py" id="fedfred.FredMapsAPI">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">fedfred.</span></span><span class="sig-name descname"><span class="pre">FredMapsAPI</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">api_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">async_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fedfred/fedfred.html#FredMapsAPI"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedfred.FredMapsAPI" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="fedfred.FredAPI.MapsAPI">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">fedfred.FredAPI.</span></span><span class="sig-name descname"><span class="pre">MapsAPI</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fedfred.FredAPI.MapsAPI" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>The FredMapsAPI class contains methods for interacting with the FRED® Maps API and GeoFRED
+<p>The Maps sub-class contains methods for interacting with the FRED® Maps API and GeoFRED
 endpoints.</p>
 <dl class="py method">
-<dt class="sig sig-object py" id="fedfred.FredMapsAPI.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">api_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">async_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fedfred/fedfred.html#FredMapsAPI.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedfred.FredMapsAPI.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Initialize the FredMapsAPI class that provides functions which query FRED Maps data.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="fedfred.FredMapsAPI.get_regional_data">
-<span class="sig-name descname"><span class="pre">get_regional_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">series_group</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">region_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">date</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">season</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_date</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transformation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frequency</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aggregation_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'json'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fedfred/fedfred.html#FredMapsAPI.get_regional_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedfred.FredMapsAPI.get_regional_data" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="fedfred.FredAPI.MapsAPI.get_regional_data">
+<span class="sig-name descname"><span class="pre">get_regional_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">series_group</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">region_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">date</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">season</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_date</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transformation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frequency</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aggregation_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'json'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fedfred.FredAPI.MapsAPI.get_regional_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get GeoFRED regional data</p>
 <p>Retrieve regional data for a specified series group and date from the FRED Maps API.</p>
 <dl class="field-list simple">
@@ -315,7 +311,7 @@ None: If no series exist.</p>
 </dl>
 <p class="rubric">Example</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">fedfred</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">fd</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">fred</span> <span class="o">=</span> <span class="n">fd</span><span class="o">.</span><span class="n">FredMapsAPI</span><span class="p">(</span><span class="s1">&#39;your_api_key&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fred</span> <span class="o">=</span> <span class="n">fd</span><span class="o">.</span><span class="n">FredAPI</span><span class="p">(</span><span class="s1">&#39;your_api_key&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">Maps</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">regional_data</span> <span class="o">=</span> <span class="n">fred</span><span class="o">.</span><span class="n">get_regional_data</span><span class="p">(</span><span class="n">series_group</span><span class="o">=</span><span class="s1">&#39;882&#39;</span><span class="p">,</span> <span class="n">date</span><span class="o">=</span><span class="s1">&#39;2013-01-01&#39;</span><span class="p">,</span> <span class="n">region_type</span><span class="o">=</span><span class="s1">&#39;state&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;Dollars&#39;</span><span class="p">,</span> <span class="n">frequency</span><span class="o">=</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="n">season</span><span class="o">=</span><span class="s1">&#39;NSA&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">regional_data</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
 <span class="go">name                                                    geometry hc-group  ...  value  series_id</span>
@@ -334,8 +330,8 @@ None: If no series exist.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="fedfred.FredMapsAPI.get_series_data">
-<span class="sig-name descname"><span class="pre">get_series_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">series_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">date</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_date</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'json'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fedfred/fedfred.html#FredMapsAPI.get_series_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedfred.FredMapsAPI.get_series_data" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="fedfred.FredAPI.MapsAPI.get_series_data">
+<span class="sig-name descname"><span class="pre">get_series_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">series_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">date</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_date</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'json'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fedfred.FredAPI.MapsAPI.get_series_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get GeoFRED series data</p>
 <p>This request returns a cross section of regional data for a specified release date. If no
 date is specified, the most recent data available are returned.</p>
@@ -362,7 +358,7 @@ None: If no series exist.</p>
 </dl>
 <p class="rubric">Example</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">fedfred</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">fd</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">fred</span> <span class="o">=</span> <span class="n">fd</span><span class="o">.</span><span class="n">FredMapsAPI</span><span class="p">(</span><span class="s1">&#39;your_api_key&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fred</span> <span class="o">=</span> <span class="n">fd</span><span class="o">.</span><span class="n">FredAPI</span><span class="p">(</span><span class="s1">&#39;your_api_key&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">Maps</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">series_data</span> <span class="o">=</span> <span class="n">fred</span><span class="o">.</span><span class="n">get_series_data</span><span class="p">(</span><span class="s1">&#39;SMU56000000500000001&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">series_data</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
 <span class="go">name                                                    geometry  ...             series_id</span>
@@ -379,8 +375,8 @@ None: If no series exist.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="fedfred.FredMapsAPI.get_series_group">
-<span class="sig-name descname"><span class="pre">get_series_group</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">series_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'json'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fedfred/fedfred.html#FredMapsAPI.get_series_group"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedfred.FredMapsAPI.get_series_group" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="fedfred.FredAPI.MapsAPI.get_series_group">
+<span class="sig-name descname"><span class="pre">get_series_group</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">series_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'json'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fedfred.FredAPI.MapsAPI.get_series_group" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get a GeoFRED series group</p>
 <p>This request returns the meta information needed to make requests for FRED data. Minimum
 and maximum date are also supplied for the data range available.</p>
@@ -403,6 +399,14 @@ None: If no series groups exist.</p>
 <dd class="field-even"><p><strong>ValueError</strong> – If the API request fails or returns an error.</p>
 </dd>
 </dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">fedfred</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">fd</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fred</span> <span class="o">=</span> <span class="n">fd</span><span class="o">.</span><span class="n">FredAPI</span><span class="p">(</span><span class="s1">&#39;your_api_key&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">Maps</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">series_group</span> <span class="o">=</span> <span class="n">fred</span><span class="o">.</span><span class="n">get_series_group</span><span class="p">(</span><span class="s1">&#39;SMU56000000500000001&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">series_group</span><span class="o">.</span><span class="n">title</span><span class="p">)</span>
+<span class="go">&#39;State Personal Income&#39;</span>
+</pre></div>
+</div>
 <dl class="simple">
 <dt>FRED API Documentation:</dt><dd><p><a class="reference external" href="https://fred.stlouisfed.org/docs/api/geofred/series_group.html">https://fred.stlouisfed.org/docs/api/geofred/series_group.html</a></p>
 </dd>
@@ -410,8 +414,8 @@ None: If no series groups exist.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="fedfred.FredMapsAPI.get_shape_files">
-<span class="sig-name descname"><span class="pre">get_shape_files</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shape</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fedfred/fedfred.html#FredMapsAPI.get_shape_files"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedfred.FredMapsAPI.get_shape_files" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="fedfred.FredAPI.MapsAPI.get_shape_files">
+<span class="sig-name descname"><span class="pre">get_shape_files</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shape</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fedfred.FredAPI.MapsAPI.get_shape_files" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get GeoFRED shape files</p>
 <p>This request returns shape files from FRED in GeoJSON format.</p>
 <dl class="field-list simple">
@@ -431,7 +435,7 @@ None: If no shapefiles exist.</p>
 </dl>
 <p class="rubric">Example</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">fedfred</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">fd</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">fred</span> <span class="o">=</span> <span class="n">fd</span><span class="o">.</span><span class="n">FredMapsAPI</span><span class="p">(</span><span class="s1">&#39;your_api_key&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fred</span> <span class="o">=</span> <span class="n">fd</span><span class="o">.</span><span class="n">FredAPI</span><span class="p">(</span><span class="s1">&#39;your_api_key&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">Maps</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">shapefile</span> <span class="o">=</span> <span class="n">fred</span><span class="o">.</span><span class="n">get_shape_files</span><span class="p">(</span><span class="s1">&#39;state&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">shapefile</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
 <span class="go">                                            geometry  ...   type</span>
@@ -458,12 +462,12 @@ None: If no shapefiles exist.</p>
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="data_classes.html">
+          <a class="next-page" href="asyncapi.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">Data Classes</div>
+                <div class="title">AsyncAPI Class</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
@@ -520,13 +524,12 @@ None: If no shapefiles exist.</p>
         <div class="toc-tree-container">
           <div class="toc-tree">
             <ul>
-<li><a class="reference internal" href="#">FredMapsAPI</a><ul>
-<li><a class="reference internal" href="#fedfred.FredMapsAPI"><code class="docutils literal notranslate"><span class="pre">FredMapsAPI</span></code></a><ul>
-<li><a class="reference internal" href="#fedfred.FredMapsAPI.__init__"><code class="docutils literal notranslate"><span class="pre">FredMapsAPI.__init__()</span></code></a></li>
-<li><a class="reference internal" href="#fedfred.FredMapsAPI.get_regional_data"><code class="docutils literal notranslate"><span class="pre">FredMapsAPI.get_regional_data()</span></code></a></li>
-<li><a class="reference internal" href="#fedfred.FredMapsAPI.get_series_data"><code class="docutils literal notranslate"><span class="pre">FredMapsAPI.get_series_data()</span></code></a></li>
-<li><a class="reference internal" href="#fedfred.FredMapsAPI.get_series_group"><code class="docutils literal notranslate"><span class="pre">FredMapsAPI.get_series_group()</span></code></a></li>
-<li><a class="reference internal" href="#fedfred.FredMapsAPI.get_shape_files"><code class="docutils literal notranslate"><span class="pre">FredMapsAPI.get_shape_files()</span></code></a></li>
+<li><a class="reference internal" href="#">MapsAPI Class</a><ul>
+<li><a class="reference internal" href="#fedfred.FredAPI.MapsAPI"><code class="docutils literal notranslate"><span class="pre">MapsAPI</span></code></a><ul>
+<li><a class="reference internal" href="#fedfred.FredAPI.MapsAPI.get_regional_data"><code class="docutils literal notranslate"><span class="pre">MapsAPI.get_regional_data()</span></code></a></li>
+<li><a class="reference internal" href="#fedfred.FredAPI.MapsAPI.get_series_data"><code class="docutils literal notranslate"><span class="pre">MapsAPI.get_series_data()</span></code></a></li>
+<li><a class="reference internal" href="#fedfred.FredAPI.MapsAPI.get_series_group"><code class="docutils literal notranslate"><span class="pre">MapsAPI.get_series_group()</span></code></a></li>
+<li><a class="reference internal" href="#fedfred.FredAPI.MapsAPI.get_shape_files"><code class="docutils literal notranslate"><span class="pre">MapsAPI.get_shape_files()</span></code></a></li>
 </ul>
 </li>
 </ul>

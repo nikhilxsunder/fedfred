@@ -4,7 +4,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../genindex.html" /><link rel="search" title="Search" href="../../search.html" />
 
-    <!-- Generated with Sphinx 6.2.1 and Furo 2024.08.06 -->
+    <link rel="shortcut icon" href="../../_static/fedfred_favicon.ico"/><!-- Generated with Sphinx 6.2.1 and Furo 2024.08.06 -->
         <title>fedfred.fred_data - fedfred</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/furo.css?digest=04c057b233f3c8d71940eee6080f658a04e2027d" />
@@ -218,7 +218,9 @@
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../api/index.html">API Reference</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of API Reference</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../api/fredapi.html">FredAPI</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../api/fredmapsapi.html">FredMapsAPI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/mapsapi.html">MapsAPI Class</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/asyncapi.html">AsyncAPI Class</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/asyncmapsapi.html">AsyncMapsAPI Class</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/data_classes.html">Data Classes</a></li>
 </ul>
 </li>
@@ -294,10 +296,10 @@
         <span class="p">]</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">categories</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">categories</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">categories</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">categories</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="k">return</span> <span class="n">categories</span></div></div>
-
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">categories</span></div></div>
 <div class="viewcode-block" id="Series"><a class="viewcode-back" href="../../api/data_classes.html#fedfred.fred_data.Series">[docs]</a><span class="nd">@dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">Series</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -315,6 +317,8 @@
     <span class="n">seasonal_adjustment_short</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">last_updated</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">popularity</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">realtime_start</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">realtime_end</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">group_popularity</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">notes</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
 
@@ -340,6 +344,8 @@
                 <span class="n">last_updated</span><span class="o">=</span><span class="n">series</span><span class="p">[</span><span class="s2">&quot;last_updated&quot;</span><span class="p">],</span>
                 <span class="n">popularity</span><span class="o">=</span><span class="n">series</span><span class="p">[</span><span class="s2">&quot;popularity&quot;</span><span class="p">],</span>
                 <span class="n">group_popularity</span><span class="o">=</span><span class="n">series</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;group_popularity&quot;</span><span class="p">),</span>
+                <span class="n">realtime_start</span><span class="o">=</span><span class="n">series</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;realtime_start&quot;</span><span class="p">),</span>
+                <span class="n">realtime_end</span><span class="o">=</span><span class="n">series</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;realtime_end&quot;</span><span class="p">),</span>
                 <span class="n">notes</span><span class="o">=</span><span class="n">series</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;notes&quot;</span><span class="p">)</span>
             <span class="p">)</span>
             <span class="k">for</span> <span class="n">series</span> <span class="ow">in</span> <span class="n">response</span><span class="p">[</span><span class="s2">&quot;seriess&quot;</span><span class="p">]</span>
@@ -510,6 +516,8 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parses the FRED API response and returns a single Element or a list of Elements.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="s2">&quot;elements&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">response</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid API response: Missing &#39;elements&#39; field&quot;</span><span class="p">)</span>
         <span class="n">elements</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">def</span><span class="w"> </span><span class="nf">process_element</span><span class="p">(</span><span class="n">element_data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Element&quot;</span><span class="p">:</span>
             <span class="n">children_list</span> <span class="o">=</span> <span class="p">[]</span>

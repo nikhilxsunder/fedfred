@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 <link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="Usage Examples" href="examples/index.html" /><link rel="prev" title="Installation" href="installation.html" />
 
-    <!-- Generated with Sphinx 6.2.1 and Furo 2024.08.06 -->
+    <link rel="shortcut icon" href="_static/fedfred_favicon.ico"/><!-- Generated with Sphinx 6.2.1 and Furo 2024.08.06 -->
         <title>Quick Start Guide - fedfred</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?digest=04c057b233f3c8d71940eee6080f658a04e2027d" />
@@ -219,7 +219,9 @@
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="api/index.html">API Reference</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of API Reference</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="api/fredapi.html">FredAPI</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/fredmapsapi.html">FredMapsAPI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/mapsapi.html">MapsAPI Class</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/asyncapi.html">AsyncAPI Class</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/asyncmapsapi.html">AsyncMapsAPI Class</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/data_classes.html">Data Classes</a></li>
 </ul>
 </li>
@@ -286,6 +288,39 @@
 
 <span class="c1"># Convert to pandas DataFrame</span>
 <span class="n">data</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="async-usage">
+<h2>Async Usage<a class="headerlink" href="#async-usage" title="Permalink to this heading">¶</a></h2>
+<p>FedFred provides native support for asynchronous requests, allowing you to efficiently fetch data in an asynchronous environment.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">fedfred</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">fd</span>
+
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+    <span class="c1"># Initialize the async API client</span>
+    <span class="n">fred</span> <span class="o">=</span> <span class="n">fd</span><span class="o">.</span><span class="n">FredAPI</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="s2">&quot;your_api_key_here&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">Async</span>
+
+    <span class="c1"># Fetch a time series asynchronously</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="k">await</span> <span class="n">fred</span><span class="o">.</span><span class="n">get_series_observations</span><span class="p">(</span><span class="s2">&quot;GDPC1&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Convert to pandas DataFrame</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
+
+    <span class="c1"># Fetch multiple series concurrently</span>
+    <span class="n">tasks</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">fred</span><span class="o">.</span><span class="n">get_series_observations</span><span class="p">(</span><span class="s2">&quot;UNRATE&quot;</span><span class="p">),</span>  <span class="c1"># Unemployment Rate</span>
+        <span class="n">fred</span><span class="o">.</span><span class="n">get_series_observations</span><span class="p">(</span><span class="s2">&quot;CPIAUCSL&quot;</span><span class="p">),</span>  <span class="c1"># Consumer Price Index</span>
+        <span class="n">fred</span><span class="o">.</span><span class="n">get_series_observations</span><span class="p">(</span><span class="s2">&quot;DGS10&quot;</span><span class="p">)</span>  <span class="c1"># 10-Year Treasury Rate</span>
+    <span class="p">]</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="o">*</span><span class="n">tasks</span><span class="p">)</span>
+
+    <span class="c1"># Process the results</span>
+    <span class="k">for</span> <span class="n">series</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">series</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
+
+<span class="c1"># Run the async function</span>
+<span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
 </pre></div>
 </div>
 </section>
@@ -472,6 +507,7 @@
 <li><a class="reference internal" href="#">Quick Start Guide</a><ul>
 <li><a class="reference internal" href="#getting-started">Getting Started</a></li>
 <li><a class="reference internal" href="#basic-usage">Basic Usage</a></li>
+<li><a class="reference internal" href="#async-usage">Async Usage</a></li>
 <li><a class="reference internal" href="#working-with-data">Working with Data</a></li>
 <li><a class="reference internal" href="#searching-for-series">Searching for Series</a></li>
 <li><a class="reference internal" href="#categories-and-tags">Categories and Tags</a></li>

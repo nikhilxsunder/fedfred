@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="API Reference" href="../api/index.html" /><link rel="prev" title="Advanced Usage Examples" href="advanced_usage.html" />
 
-    <!-- Generated with Sphinx 6.2.1 and Furo 2024.08.06 -->
+    <link rel="shortcut icon" href="../_static/fedfred_favicon.ico"/><!-- Generated with Sphinx 6.2.1 and Furo 2024.08.06 -->
         <title>Data Visualization Examples - fedfred</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=04c057b233f3c8d71940eee6080f658a04e2027d" />
@@ -219,7 +219,9 @@
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../api/index.html">API Reference</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of API Reference</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../api/fredapi.html">FredAPI</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../api/fredmapsapi.html">FredMapsAPI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/mapsapi.html">MapsAPI Class</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/asyncapi.html">AsyncAPI Class</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/asyncmapsapi.html">AsyncMapsAPI Class</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/data_classes.html">Data Classes</a></li>
 </ul>
 </li>
@@ -270,8 +272,10 @@
         <article role="main" id="furo-main-content">
           <section id="data-visualization-examples">
 <h1>Data Visualization Examples<a class="headerlink" href="#data-visualization-examples" title="Permalink to this heading">¶</a></h1>
-<section id="example-1">
-<h2>Example 1<a class="headerlink" href="#example-1" title="Permalink to this heading">¶</a></h2>
+<p>This section provides examples of how to visualize economic data fetched using the <cite>fedfred</cite> library. These examples demonstrate how to use popular Python libraries like Matplotlib, Seaborn, and GeoPandas for creating insightful visualizations.</p>
+<section id="line-plot-of-time-series-data">
+<h2>Line Plot of Time Series Data<a class="headerlink" href="#line-plot-of-time-series-data" title="Permalink to this heading">¶</a></h2>
+<p>This example demonstrates how to create a simple line plot of time series data using Matplotlib.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">fedfred</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">fd</span>
 
@@ -293,6 +297,103 @@
 <span class="c1"># Format the plot</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">xticks</span><span class="p">(</span><span class="n">rotation</span><span class="o">=</span><span class="mi">45</span><span class="p">)</span>
+
+<span class="c1"># Show the plot</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="bar-plot-of-category-data">
+<h2>Bar Plot of Category Data<a class="headerlink" href="#bar-plot-of-category-data" title="Permalink to this heading">¶</a></h2>
+<p>This example demonstrates how to create a bar plot to visualize data for multiple categories.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">fedfred</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">fd</span>
+
+<span class="c1"># Fetch data for a specific category</span>
+<span class="n">fred</span> <span class="o">=</span> <span class="n">fd</span><span class="o">.</span><span class="n">FredAPI</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="s2">&quot;your_api_key_here&quot;</span><span class="p">)</span>
+<span class="n">category_id</span> <span class="o">=</span> <span class="mi">125</span>  <span class="c1"># Example category ID</span>
+<span class="n">series</span> <span class="o">=</span> <span class="n">fred</span><span class="o">.</span><span class="n">get_category_series</span><span class="p">(</span><span class="n">category_id</span><span class="p">)</span>
+
+<span class="c1"># Extract series names and values</span>
+<span class="n">series_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">title</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">series</span><span class="p">]</span>
+<span class="n">series_values</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">popularity</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">series</span><span class="p">]</span>
+
+<span class="c1"># Create a bar plot</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">series_names</span><span class="p">,</span> <span class="n">series_values</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;skyblue&#39;</span><span class="p">)</span>
+
+<span class="c1"># Add labels and title</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;Category Series Popularity&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;Series&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;Popularity&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xticks</span><span class="p">(</span><span class="n">rotation</span><span class="o">=</span><span class="mi">45</span><span class="p">,</span> <span class="n">ha</span><span class="o">=</span><span class="s1">&#39;right&#39;</span><span class="p">)</span>
+
+<span class="c1"># Format the plot</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+
+<span class="c1"># Show the plot</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="heatmap-of-correlations">
+<h2>Heatmap of Correlations<a class="headerlink" href="#heatmap-of-correlations" title="Permalink to this heading">¶</a></h2>
+<p>This example demonstrates how to create a heatmap of correlations between multiple time series using Seaborn.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">seaborn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">sns</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">fedfred</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">fd</span>
+
+<span class="c1"># Fetch data for multiple series</span>
+<span class="n">fred</span> <span class="o">=</span> <span class="n">fd</span><span class="o">.</span><span class="n">FredAPI</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="s2">&quot;your_api_key_here&quot;</span><span class="p">)</span>
+<span class="n">series_ids</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;GDP&quot;</span><span class="p">,</span> <span class="s2">&quot;UNRATE&quot;</span><span class="p">,</span> <span class="s2">&quot;CPIAUCSL&quot;</span><span class="p">]</span>  <span class="c1"># Example series IDs</span>
+<span class="n">data_frames</span> <span class="o">=</span> <span class="p">[</span><span class="n">fred</span><span class="o">.</span><span class="n">get_series_observations</span><span class="p">(</span><span class="n">series_id</span><span class="p">)</span> <span class="k">for</span> <span class="n">series_id</span> <span class="ow">in</span> <span class="n">series_ids</span><span class="p">]</span>
+
+<span class="c1"># Combine data into a single DataFrame</span>
+<span class="n">combined_data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">data_frames</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">combined_data</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="n">series_ids</span>
+
+<span class="c1"># Compute correlations</span>
+<span class="n">correlations</span> <span class="o">=</span> <span class="n">combined_data</span><span class="o">.</span><span class="n">corr</span><span class="p">()</span>
+
+<span class="c1"># Create a heatmap</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+<span class="n">sns</span><span class="o">.</span><span class="n">heatmap</span><span class="p">(</span><span class="n">correlations</span><span class="p">,</span> <span class="n">annot</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;coolwarm&quot;</span><span class="p">,</span> <span class="n">fmt</span><span class="o">=</span><span class="s2">&quot;.2f&quot;</span><span class="p">)</span>
+
+<span class="c1"># Add title</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;Correlation Heatmap of Economic Indicators&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
+
+<span class="c1"># Show the plot</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="geographic-visualization-with-geopandas">
+<h2>Geographic Visualization with GeoPandas<a class="headerlink" href="#geographic-visualization-with-geopandas" title="Permalink to this heading">¶</a></h2>
+<p>This example demonstrates how to visualize geographic data using GeoPandas.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">geopandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gpd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">fedfred</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">fd</span>
+
+<span class="c1"># Fetch geographic data for unemployment rates by state</span>
+<span class="n">fred_maps</span> <span class="o">=</span> <span class="n">fd</span><span class="o">.</span><span class="n">FredMapsAPI</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="s2">&quot;your_api_key_here&quot;</span><span class="p">)</span>
+<span class="n">unemployment_by_state</span> <span class="o">=</span> <span class="n">fred_maps</span><span class="o">.</span><span class="n">get_regional_data</span><span class="p">(</span>
+    <span class="n">series_group</span><span class="o">=</span><span class="s2">&quot;unemployment&quot;</span><span class="p">,</span>
+    <span class="n">region_type</span><span class="o">=</span><span class="s2">&quot;state&quot;</span><span class="p">,</span>
+    <span class="n">date</span><span class="o">=</span><span class="s2">&quot;2023-01-01&quot;</span><span class="p">,</span>
+    <span class="n">season</span><span class="o">=</span><span class="s2">&quot;nsa&quot;</span><span class="p">,</span>  <span class="c1"># Not seasonally adjusted</span>
+    <span class="n">units</span><span class="o">=</span><span class="s2">&quot;percent&quot;</span>
+<span class="p">)</span>
+
+<span class="c1"># Plot the data</span>
+<span class="n">unemployment_by_state</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+    <span class="n">column</span><span class="o">=</span><span class="s2">&quot;value&quot;</span><span class="p">,</span>
+    <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;OrRd&quot;</span><span class="p">,</span>
+    <span class="n">legend</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span>
+    <span class="n">edgecolor</span><span class="o">=</span><span class="s2">&quot;black&quot;</span>
+<span class="p">)</span>
+
+<span class="c1"># Add title</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;Unemployment Rates by State (January 2023)&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
 
 <span class="c1"># Show the plot</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
@@ -369,7 +470,10 @@
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">Data Visualization Examples</a><ul>
-<li><a class="reference internal" href="#example-1">Example 1</a></li>
+<li><a class="reference internal" href="#line-plot-of-time-series-data">Line Plot of Time Series Data</a></li>
+<li><a class="reference internal" href="#bar-plot-of-category-data">Bar Plot of Category Data</a></li>
+<li><a class="reference internal" href="#heatmap-of-correlations">Heatmap of Correlations</a></li>
+<li><a class="reference internal" href="#geographic-visualization-with-geopandas">Geographic Visualization with GeoPandas</a></li>
 </ul>
 </li>
 </ul>

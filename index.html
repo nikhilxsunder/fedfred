@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 <link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="Installation" href="installation.html" />
 
-    <!-- Generated with Sphinx 6.2.1 and Furo 2024.08.06 -->
+    <link rel="shortcut icon" href="_static/fedfred_favicon.ico"/><!-- Generated with Sphinx 6.2.1 and Furo 2024.08.06 -->
         <title>fedfred</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?digest=04c057b233f3c8d71940eee6080f658a04e2027d" />
@@ -219,7 +219,9 @@
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="api/index.html">API Reference</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of API Reference</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="api/fredapi.html">FredAPI</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/fredmapsapi.html">FredMapsAPI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/mapsapi.html">MapsAPI Class</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/asyncapi.html">AsyncAPI Class</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/asyncmapsapi.html">AsyncMapsAPI Class</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/data_classes.html">Data Classes</a></li>
 </ul>
 </li>
@@ -294,6 +296,7 @@
 <li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start Guide</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="quickstart.html#getting-started">Getting Started</a></li>
 <li class="toctree-l2"><a class="reference internal" href="quickstart.html#basic-usage">Basic Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#async-usage">Async Usage</a></li>
 <li class="toctree-l2"><a class="reference internal" href="quickstart.html#working-with-data">Working with Data</a></li>
 <li class="toctree-l2"><a class="reference internal" href="quickstart.html#searching-for-series">Searching for Series</a></li>
 <li class="toctree-l2"><a class="reference internal" href="quickstart.html#categories-and-tags">Categories and Tags</a></li>
@@ -304,36 +307,278 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="examples/index.html">Usage Examples</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="examples/basic_usage.html">Basic Usage Examples</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="examples/basic_usage.html#fetching-a-single-series-observations">Fetching a Single Series Observations</a></li>
-<li class="toctree-l3"><a class="reference internal" href="examples/basic_usage.html#working-with-categories">Working with Categories</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/basic_usage.html#initializing-the-api-client">Initializing the API Client</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/basic_usage.html#fetching-a-time-series">Fetching a Time Series</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/basic_usage.html#fetching-metadata-for-a-series">Fetching Metadata for a Series</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/basic_usage.html#exploring-categories">Exploring Categories</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/basic_usage.html#fetching-tags-for-a-series">Fetching Tags for a Series</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/basic_usage.html#fetching-related-series">Fetching Related Series</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="examples/advanced_usage.html">Advanced Usage Examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/advanced_usage.html">Advanced Usage Examples</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="examples/advanced_usage.html#caching-and-rate-limiting">Caching and Rate Limiting</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/advanced_usage.html#concurrent-requests-with-asyncapi">Concurrent Requests with AsyncAPI</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/advanced_usage.html#working-with-geographic-data">Working with Geographic Data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/advanced_usage.html#customizing-api-requests">Customizing API Requests</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/advanced_usage.html#exploring-categories-and-tags">Exploring Categories and Tags</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/advanced_usage.html#error-handling-and-validation">Error Handling and Validation</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="examples/data_visualization.html">Data Visualization Examples</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="examples/data_visualization.html#example-1">Example 1</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/data_visualization.html#line-plot-of-time-series-data">Line Plot of Time Series Data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/data_visualization.html#bar-plot-of-category-data">Bar Plot of Category Data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/data_visualization.html#heatmap-of-correlations">Heatmap of Correlations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/data_visualization.html#geographic-visualization-with-geopandas">Geographic Visualization with GeoPandas</a></li>
 </ul>
 </li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="api/index.html">API Reference</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="api/fredapi.html">FredAPI</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI"><code class="docutils literal notranslate"><span class="pre">FredAPI</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI"><code class="docutils literal notranslate"><span class="pre">FredAPI</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.AsyncAPI"><code class="docutils literal notranslate"><span class="pre">FredAPI.AsyncAPI</span></code></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.AsyncAPI.AsyncMapsAPI"><code class="docutils literal notranslate"><span class="pre">FredAPI.AsyncAPI.AsyncMapsAPI</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.AsyncAPI.AsyncMapsAPI.get_regional_data"><code class="docutils literal notranslate"><span class="pre">FredAPI.AsyncAPI.AsyncMapsAPI.get_regional_data()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.AsyncAPI.AsyncMapsAPI.get_series_data"><code class="docutils literal notranslate"><span class="pre">FredAPI.AsyncAPI.AsyncMapsAPI.get_series_data()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.AsyncAPI.AsyncMapsAPI.get_series_group"><code class="docutils literal notranslate"><span class="pre">FredAPI.AsyncAPI.AsyncMapsAPI.get_series_group()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.AsyncAPI.AsyncMapsAPI.get_shape_files"><code class="docutils literal notranslate"><span class="pre">FredAPI.AsyncAPI.AsyncMapsAPI.get_shape_files()</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="api/fredmapsapi.html">FredMapsAPI</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="api/fredmapsapi.html#fedfred.FredMapsAPI"><code class="docutils literal notranslate"><span class="pre">FredMapsAPI</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.AsyncAPI.get_category"><code class="docutils literal notranslate"><span class="pre">FredAPI.AsyncAPI.get_category()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.AsyncAPI.get_category_children"><code class="docutils literal notranslate"><span class="pre">FredAPI.AsyncAPI.get_category_children()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.AsyncAPI.get_category_related"><code class="docutils literal notranslate"><span class="pre">FredAPI.AsyncAPI.get_category_related()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.AsyncAPI.get_category_related_tags"><code class="docutils literal notranslate"><span class="pre">FredAPI.AsyncAPI.get_category_related_tags()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.AsyncAPI.get_category_series"><code class="docutils literal notranslate"><span class="pre">FredAPI.AsyncAPI.get_category_series()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.AsyncAPI.get_category_tags"><code class="docutils literal notranslate"><span class="pre">FredAPI.AsyncAPI.get_category_tags()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.AsyncAPI.get_related_tags"><code class="docutils literal notranslate"><span class="pre">FredAPI.AsyncAPI.get_related_tags()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.AsyncAPI.get_release"><code class="docutils literal notranslate"><span class="pre">FredAPI.AsyncAPI.get_release()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.AsyncAPI.get_release_dates"><code class="docutils literal notranslate"><span class="pre">FredAPI.AsyncAPI.get_release_dates()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.AsyncAPI.get_release_related_tags"><code class="docutils literal notranslate"><span class="pre">FredAPI.AsyncAPI.get_release_related_tags()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.AsyncAPI.get_release_series"><code class="docutils literal notranslate"><span class="pre">FredAPI.AsyncAPI.get_release_series()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.AsyncAPI.get_release_sources"><code class="docutils literal notranslate"><span class="pre">FredAPI.AsyncAPI.get_release_sources()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.AsyncAPI.get_release_tables"><code class="docutils literal notranslate"><span class="pre">FredAPI.AsyncAPI.get_release_tables()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.AsyncAPI.get_release_tags"><code class="docutils literal notranslate"><span class="pre">FredAPI.AsyncAPI.get_release_tags()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.AsyncAPI.get_releases"><code class="docutils literal notranslate"><span class="pre">FredAPI.AsyncAPI.get_releases()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.AsyncAPI.get_releases_dates"><code class="docutils literal notranslate"><span class="pre">FredAPI.AsyncAPI.get_releases_dates()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.AsyncAPI.get_series"><code class="docutils literal notranslate"><span class="pre">FredAPI.AsyncAPI.get_series()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.AsyncAPI.get_series_categories"><code class="docutils literal notranslate"><span class="pre">FredAPI.AsyncAPI.get_series_categories()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.AsyncAPI.get_series_observations"><code class="docutils literal notranslate"><span class="pre">FredAPI.AsyncAPI.get_series_observations()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.AsyncAPI.get_series_release"><code class="docutils literal notranslate"><span class="pre">FredAPI.AsyncAPI.get_series_release()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.AsyncAPI.get_series_search"><code class="docutils literal notranslate"><span class="pre">FredAPI.AsyncAPI.get_series_search()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.AsyncAPI.get_series_search_related_tags"><code class="docutils literal notranslate"><span class="pre">FredAPI.AsyncAPI.get_series_search_related_tags()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.AsyncAPI.get_series_search_tags"><code class="docutils literal notranslate"><span class="pre">FredAPI.AsyncAPI.get_series_search_tags()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.AsyncAPI.get_series_tags"><code class="docutils literal notranslate"><span class="pre">FredAPI.AsyncAPI.get_series_tags()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.AsyncAPI.get_series_updates"><code class="docutils literal notranslate"><span class="pre">FredAPI.AsyncAPI.get_series_updates()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.AsyncAPI.get_series_vintagedates"><code class="docutils literal notranslate"><span class="pre">FredAPI.AsyncAPI.get_series_vintagedates()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.AsyncAPI.get_source"><code class="docutils literal notranslate"><span class="pre">FredAPI.AsyncAPI.get_source()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.AsyncAPI.get_source_releases"><code class="docutils literal notranslate"><span class="pre">FredAPI.AsyncAPI.get_source_releases()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.AsyncAPI.get_sources"><code class="docutils literal notranslate"><span class="pre">FredAPI.AsyncAPI.get_sources()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.AsyncAPI.get_tags"><code class="docutils literal notranslate"><span class="pre">FredAPI.AsyncAPI.get_tags()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.AsyncAPI.get_tags_series"><code class="docutils literal notranslate"><span class="pre">FredAPI.AsyncAPI.get_tags_series()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.MapsAPI"><code class="docutils literal notranslate"><span class="pre">FredAPI.MapsAPI</span></code></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.MapsAPI.get_regional_data"><code class="docutils literal notranslate"><span class="pre">FredAPI.MapsAPI.get_regional_data()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.MapsAPI.get_series_data"><code class="docutils literal notranslate"><span class="pre">FredAPI.MapsAPI.get_series_data()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.MapsAPI.get_series_group"><code class="docutils literal notranslate"><span class="pre">FredAPI.MapsAPI.get_series_group()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.MapsAPI.get_shape_files"><code class="docutils literal notranslate"><span class="pre">FredAPI.MapsAPI.get_shape_files()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.get_category"><code class="docutils literal notranslate"><span class="pre">FredAPI.get_category()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.get_category_children"><code class="docutils literal notranslate"><span class="pre">FredAPI.get_category_children()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.get_category_related"><code class="docutils literal notranslate"><span class="pre">FredAPI.get_category_related()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.get_category_related_tags"><code class="docutils literal notranslate"><span class="pre">FredAPI.get_category_related_tags()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.get_category_series"><code class="docutils literal notranslate"><span class="pre">FredAPI.get_category_series()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.get_category_tags"><code class="docutils literal notranslate"><span class="pre">FredAPI.get_category_tags()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.get_related_tags"><code class="docutils literal notranslate"><span class="pre">FredAPI.get_related_tags()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.get_release"><code class="docutils literal notranslate"><span class="pre">FredAPI.get_release()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.get_release_dates"><code class="docutils literal notranslate"><span class="pre">FredAPI.get_release_dates()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.get_release_related_tags"><code class="docutils literal notranslate"><span class="pre">FredAPI.get_release_related_tags()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.get_release_series"><code class="docutils literal notranslate"><span class="pre">FredAPI.get_release_series()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.get_release_sources"><code class="docutils literal notranslate"><span class="pre">FredAPI.get_release_sources()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.get_release_tables"><code class="docutils literal notranslate"><span class="pre">FredAPI.get_release_tables()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.get_release_tags"><code class="docutils literal notranslate"><span class="pre">FredAPI.get_release_tags()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.get_releases"><code class="docutils literal notranslate"><span class="pre">FredAPI.get_releases()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.get_releases_dates"><code class="docutils literal notranslate"><span class="pre">FredAPI.get_releases_dates()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.get_series"><code class="docutils literal notranslate"><span class="pre">FredAPI.get_series()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.get_series_categories"><code class="docutils literal notranslate"><span class="pre">FredAPI.get_series_categories()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.get_series_observations"><code class="docutils literal notranslate"><span class="pre">FredAPI.get_series_observations()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.get_series_release"><code class="docutils literal notranslate"><span class="pre">FredAPI.get_series_release()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.get_series_search"><code class="docutils literal notranslate"><span class="pre">FredAPI.get_series_search()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.get_series_search_related_tags"><code class="docutils literal notranslate"><span class="pre">FredAPI.get_series_search_related_tags()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.get_series_search_tags"><code class="docutils literal notranslate"><span class="pre">FredAPI.get_series_search_tags()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.get_series_tags"><code class="docutils literal notranslate"><span class="pre">FredAPI.get_series_tags()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.get_series_updates"><code class="docutils literal notranslate"><span class="pre">FredAPI.get_series_updates()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.get_series_vintagedates"><code class="docutils literal notranslate"><span class="pre">FredAPI.get_series_vintagedates()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.get_source"><code class="docutils literal notranslate"><span class="pre">FredAPI.get_source()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.get_source_releases"><code class="docutils literal notranslate"><span class="pre">FredAPI.get_source_releases()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.get_sources"><code class="docutils literal notranslate"><span class="pre">FredAPI.get_sources()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.get_tags"><code class="docutils literal notranslate"><span class="pre">FredAPI.get_tags()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fredapi.html#fedfred.FredAPI.get_tags_series"><code class="docutils literal notranslate"><span class="pre">FredAPI.get_tags_series()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/mapsapi.html">MapsAPI Class</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/mapsapi.html#fedfred.FredAPI.MapsAPI"><code class="docutils literal notranslate"><span class="pre">MapsAPI</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/mapsapi.html#fedfred.FredAPI.MapsAPI.get_regional_data"><code class="docutils literal notranslate"><span class="pre">MapsAPI.get_regional_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/mapsapi.html#fedfred.FredAPI.MapsAPI.get_series_data"><code class="docutils literal notranslate"><span class="pre">MapsAPI.get_series_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/mapsapi.html#fedfred.FredAPI.MapsAPI.get_series_group"><code class="docutils literal notranslate"><span class="pre">MapsAPI.get_series_group()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/mapsapi.html#fedfred.FredAPI.MapsAPI.get_shape_files"><code class="docutils literal notranslate"><span class="pre">MapsAPI.get_shape_files()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/asyncapi.html">AsyncAPI Class</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI"><code class="docutils literal notranslate"><span class="pre">AsyncAPI</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.AsyncMapsAPI"><code class="docutils literal notranslate"><span class="pre">AsyncAPI.AsyncMapsAPI</span></code></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.AsyncMapsAPI.get_regional_data"><code class="docutils literal notranslate"><span class="pre">AsyncAPI.AsyncMapsAPI.get_regional_data()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.AsyncMapsAPI.get_series_data"><code class="docutils literal notranslate"><span class="pre">AsyncAPI.AsyncMapsAPI.get_series_data()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.AsyncMapsAPI.get_series_group"><code class="docutils literal notranslate"><span class="pre">AsyncAPI.AsyncMapsAPI.get_series_group()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.AsyncMapsAPI.get_shape_files"><code class="docutils literal notranslate"><span class="pre">AsyncAPI.AsyncMapsAPI.get_shape_files()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_category"><code class="docutils literal notranslate"><span class="pre">AsyncAPI.get_category()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_category_children"><code class="docutils literal notranslate"><span class="pre">AsyncAPI.get_category_children()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_category_related"><code class="docutils literal notranslate"><span class="pre">AsyncAPI.get_category_related()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_category_related_tags"><code class="docutils literal notranslate"><span class="pre">AsyncAPI.get_category_related_tags()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_category_series"><code class="docutils literal notranslate"><span class="pre">AsyncAPI.get_category_series()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_category_tags"><code class="docutils literal notranslate"><span class="pre">AsyncAPI.get_category_tags()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_related_tags"><code class="docutils literal notranslate"><span class="pre">AsyncAPI.get_related_tags()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_release"><code class="docutils literal notranslate"><span class="pre">AsyncAPI.get_release()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_release_dates"><code class="docutils literal notranslate"><span class="pre">AsyncAPI.get_release_dates()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_release_related_tags"><code class="docutils literal notranslate"><span class="pre">AsyncAPI.get_release_related_tags()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_release_series"><code class="docutils literal notranslate"><span class="pre">AsyncAPI.get_release_series()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_release_sources"><code class="docutils literal notranslate"><span class="pre">AsyncAPI.get_release_sources()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_release_tables"><code class="docutils literal notranslate"><span class="pre">AsyncAPI.get_release_tables()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_release_tags"><code class="docutils literal notranslate"><span class="pre">AsyncAPI.get_release_tags()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_releases"><code class="docutils literal notranslate"><span class="pre">AsyncAPI.get_releases()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_releases_dates"><code class="docutils literal notranslate"><span class="pre">AsyncAPI.get_releases_dates()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_series"><code class="docutils literal notranslate"><span class="pre">AsyncAPI.get_series()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_series_categories"><code class="docutils literal notranslate"><span class="pre">AsyncAPI.get_series_categories()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_series_observations"><code class="docutils literal notranslate"><span class="pre">AsyncAPI.get_series_observations()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_series_release"><code class="docutils literal notranslate"><span class="pre">AsyncAPI.get_series_release()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_series_search"><code class="docutils literal notranslate"><span class="pre">AsyncAPI.get_series_search()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_series_search_related_tags"><code class="docutils literal notranslate"><span class="pre">AsyncAPI.get_series_search_related_tags()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_series_search_tags"><code class="docutils literal notranslate"><span class="pre">AsyncAPI.get_series_search_tags()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_series_tags"><code class="docutils literal notranslate"><span class="pre">AsyncAPI.get_series_tags()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_series_updates"><code class="docutils literal notranslate"><span class="pre">AsyncAPI.get_series_updates()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_series_vintagedates"><code class="docutils literal notranslate"><span class="pre">AsyncAPI.get_series_vintagedates()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_source"><code class="docutils literal notranslate"><span class="pre">AsyncAPI.get_source()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_source_releases"><code class="docutils literal notranslate"><span class="pre">AsyncAPI.get_source_releases()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_sources"><code class="docutils literal notranslate"><span class="pre">AsyncAPI.get_sources()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_tags"><code class="docutils literal notranslate"><span class="pre">AsyncAPI.get_tags()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_tags_series"><code class="docutils literal notranslate"><span class="pre">AsyncAPI.get_tags_series()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/asyncmapsapi.html">AsyncMapsAPI Class</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/asyncmapsapi.html#fedfred.FredAPI.AsyncAPI.AsyncMapsAPI"><code class="docutils literal notranslate"><span class="pre">AsyncMapsAPI</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/asyncmapsapi.html#fedfred.FredAPI.AsyncAPI.AsyncMapsAPI.get_regional_data"><code class="docutils literal notranslate"><span class="pre">AsyncMapsAPI.get_regional_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/asyncmapsapi.html#fedfred.FredAPI.AsyncAPI.AsyncMapsAPI.get_series_data"><code class="docutils literal notranslate"><span class="pre">AsyncMapsAPI.get_series_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/asyncmapsapi.html#fedfred.FredAPI.AsyncAPI.AsyncMapsAPI.get_series_group"><code class="docutils literal notranslate"><span class="pre">AsyncMapsAPI.get_series_group()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/asyncmapsapi.html#fedfred.FredAPI.AsyncAPI.AsyncMapsAPI.get_shape_files"><code class="docutils literal notranslate"><span class="pre">AsyncMapsAPI.get_shape_files()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="api/data_classes.html">Data Classes</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.Category"><code class="docutils literal notranslate"><span class="pre">Category</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.Element"><code class="docutils literal notranslate"><span class="pre">Element</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.Release"><code class="docutils literal notranslate"><span class="pre">Release</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.ReleaseDate"><code class="docutils literal notranslate"><span class="pre">ReleaseDate</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.Series"><code class="docutils literal notranslate"><span class="pre">Series</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.SeriesGroup"><code class="docutils literal notranslate"><span class="pre">SeriesGroup</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.Source"><code class="docutils literal notranslate"><span class="pre">Source</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.Tag"><code class="docutils literal notranslate"><span class="pre">Tag</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.VintageDate"><code class="docutils literal notranslate"><span class="pre">VintageDate</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.Category"><code class="docutils literal notranslate"><span class="pre">Category</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.Category.from_api_response"><code class="docutils literal notranslate"><span class="pre">Category.from_api_response()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.Category.id"><code class="docutils literal notranslate"><span class="pre">Category.id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.Category.name"><code class="docutils literal notranslate"><span class="pre">Category.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.Category.parent_id"><code class="docutils literal notranslate"><span class="pre">Category.parent_id</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.Element"><code class="docutils literal notranslate"><span class="pre">Element</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.Element.children"><code class="docutils literal notranslate"><span class="pre">Element.children</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.Element.element_id"><code class="docutils literal notranslate"><span class="pre">Element.element_id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.Element.from_api_response"><code class="docutils literal notranslate"><span class="pre">Element.from_api_response()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.Element.level"><code class="docutils literal notranslate"><span class="pre">Element.level</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.Element.line"><code class="docutils literal notranslate"><span class="pre">Element.line</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.Element.name"><code class="docutils literal notranslate"><span class="pre">Element.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.Element.parent_id"><code class="docutils literal notranslate"><span class="pre">Element.parent_id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.Element.release_id"><code class="docutils literal notranslate"><span class="pre">Element.release_id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.Element.series_id"><code class="docutils literal notranslate"><span class="pre">Element.series_id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.Element.type"><code class="docutils literal notranslate"><span class="pre">Element.type</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.Release"><code class="docutils literal notranslate"><span class="pre">Release</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.Release.from_api_response"><code class="docutils literal notranslate"><span class="pre">Release.from_api_response()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.Release.id"><code class="docutils literal notranslate"><span class="pre">Release.id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.Release.link"><code class="docutils literal notranslate"><span class="pre">Release.link</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.Release.name"><code class="docutils literal notranslate"><span class="pre">Release.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.Release.notes"><code class="docutils literal notranslate"><span class="pre">Release.notes</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.Release.press_release"><code class="docutils literal notranslate"><span class="pre">Release.press_release</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.Release.realtime_end"><code class="docutils literal notranslate"><span class="pre">Release.realtime_end</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.Release.realtime_start"><code class="docutils literal notranslate"><span class="pre">Release.realtime_start</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.ReleaseDate"><code class="docutils literal notranslate"><span class="pre">ReleaseDate</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.ReleaseDate.date"><code class="docutils literal notranslate"><span class="pre">ReleaseDate.date</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.ReleaseDate.from_api_response"><code class="docutils literal notranslate"><span class="pre">ReleaseDate.from_api_response()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.ReleaseDate.release_id"><code class="docutils literal notranslate"><span class="pre">ReleaseDate.release_id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.ReleaseDate.release_name"><code class="docutils literal notranslate"><span class="pre">ReleaseDate.release_name</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.Series"><code class="docutils literal notranslate"><span class="pre">Series</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.Series.frequency"><code class="docutils literal notranslate"><span class="pre">Series.frequency</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.Series.frequency_short"><code class="docutils literal notranslate"><span class="pre">Series.frequency_short</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.Series.from_api_response"><code class="docutils literal notranslate"><span class="pre">Series.from_api_response()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.Series.group_popularity"><code class="docutils literal notranslate"><span class="pre">Series.group_popularity</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.Series.id"><code class="docutils literal notranslate"><span class="pre">Series.id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.Series.last_updated"><code class="docutils literal notranslate"><span class="pre">Series.last_updated</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.Series.notes"><code class="docutils literal notranslate"><span class="pre">Series.notes</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.Series.observation_end"><code class="docutils literal notranslate"><span class="pre">Series.observation_end</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.Series.observation_start"><code class="docutils literal notranslate"><span class="pre">Series.observation_start</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.Series.popularity"><code class="docutils literal notranslate"><span class="pre">Series.popularity</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.Series.realtime_end"><code class="docutils literal notranslate"><span class="pre">Series.realtime_end</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.Series.realtime_start"><code class="docutils literal notranslate"><span class="pre">Series.realtime_start</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.Series.seasonal_adjustment"><code class="docutils literal notranslate"><span class="pre">Series.seasonal_adjustment</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.Series.seasonal_adjustment_short"><code class="docutils literal notranslate"><span class="pre">Series.seasonal_adjustment_short</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.Series.title"><code class="docutils literal notranslate"><span class="pre">Series.title</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.Series.units"><code class="docutils literal notranslate"><span class="pre">Series.units</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.Series.units_short"><code class="docutils literal notranslate"><span class="pre">Series.units_short</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.SeriesGroup"><code class="docutils literal notranslate"><span class="pre">SeriesGroup</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.SeriesGroup.frequency"><code class="docutils literal notranslate"><span class="pre">SeriesGroup.frequency</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.SeriesGroup.from_api_response"><code class="docutils literal notranslate"><span class="pre">SeriesGroup.from_api_response()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.SeriesGroup.max_date"><code class="docutils literal notranslate"><span class="pre">SeriesGroup.max_date</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.SeriesGroup.min_date"><code class="docutils literal notranslate"><span class="pre">SeriesGroup.min_date</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.SeriesGroup.region_type"><code class="docutils literal notranslate"><span class="pre">SeriesGroup.region_type</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.SeriesGroup.season"><code class="docutils literal notranslate"><span class="pre">SeriesGroup.season</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.SeriesGroup.series_group"><code class="docutils literal notranslate"><span class="pre">SeriesGroup.series_group</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.SeriesGroup.title"><code class="docutils literal notranslate"><span class="pre">SeriesGroup.title</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.SeriesGroup.units"><code class="docutils literal notranslate"><span class="pre">SeriesGroup.units</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.Source"><code class="docutils literal notranslate"><span class="pre">Source</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.Source.from_api_response"><code class="docutils literal notranslate"><span class="pre">Source.from_api_response()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.Source.id"><code class="docutils literal notranslate"><span class="pre">Source.id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.Source.link"><code class="docutils literal notranslate"><span class="pre">Source.link</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.Source.name"><code class="docutils literal notranslate"><span class="pre">Source.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.Source.notes"><code class="docutils literal notranslate"><span class="pre">Source.notes</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.Source.realtime_end"><code class="docutils literal notranslate"><span class="pre">Source.realtime_end</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.Source.realtime_start"><code class="docutils literal notranslate"><span class="pre">Source.realtime_start</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.Tag"><code class="docutils literal notranslate"><span class="pre">Tag</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.Tag.created"><code class="docutils literal notranslate"><span class="pre">Tag.created</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.Tag.from_api_response"><code class="docutils literal notranslate"><span class="pre">Tag.from_api_response()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.Tag.group_id"><code class="docutils literal notranslate"><span class="pre">Tag.group_id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.Tag.name"><code class="docutils literal notranslate"><span class="pre">Tag.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.Tag.notes"><code class="docutils literal notranslate"><span class="pre">Tag.notes</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.Tag.popularity"><code class="docutils literal notranslate"><span class="pre">Tag.popularity</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.Tag.series_count"><code class="docutils literal notranslate"><span class="pre">Tag.series_count</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.VintageDate"><code class="docutils literal notranslate"><span class="pre">VintageDate</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.VintageDate.from_api_response"><code class="docutils literal notranslate"><span class="pre">VintageDate.from_api_response()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/data_classes.html#fedfred.fred_data.VintageDate.vintage_date"><code class="docutils literal notranslate"><span class="pre">VintageDate.vintage_date</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -342,155 +587,161 @@
 <li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="changelog.html#unreleased">Unreleased</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="changelog.html#added">Added</a></li>
-<li class="toctree-l3"><a class="reference internal" href="changelog.html#fixed">Fixed</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#id1">1.1.0 - 2025-03-12</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="changelog.html#id2">Added</a></li>
 <li class="toctree-l3"><a class="reference internal" href="changelog.html#changed">Changed</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id1">1.2.0</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id2">Added</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#fixed">Fixed</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#deprecated">Deprecated</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id3">1.1.0 - 2025-03-12</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id4">Added</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id5">Changed</a></li>
 <li class="toctree-l3"><a class="reference internal" href="changelog.html#removed">Removed</a></li>
-<li class="toctree-l3"><a class="reference internal" href="changelog.html#id3">Fixed</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#id4">1.0.26 - 2025-03-11</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="changelog.html#id5">Fixed</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#yanked-release">1.0.25 - 2025-03-11 (YANKED RELEASE)</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="changelog.html#id6">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#id7">1.0.24 - 2025-03-11 (YANKED RELEASE)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id7">1.0.26 - 2025-03-11</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="changelog.html#id8">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#id9">1.0.23 - 2025-03-11 (YANKED RELEASE)</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="changelog.html#id10">Fixed</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#yanked-release">1.0.25 - 2025-03-11 (YANKED RELEASE)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id9">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#id11">1.0.22 - 2025-03-11 (YANKED RELEASE)</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="changelog.html#id12">Fixed</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id10">1.0.24 - 2025-03-11 (YANKED RELEASE)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id11">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#id13">1.0.21 - 2025-03-11 (YANKED RELEASE)</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="changelog.html#id14">Fixed</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id12">1.0.23 - 2025-03-11 (YANKED RELEASE)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id13">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#id15">1.0.20 - 2025-03-11 (YANKED RELEASE)</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="changelog.html#id16">Fixed</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id14">1.0.22 - 2025-03-11 (YANKED RELEASE)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id15">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#id17">1.0.19 - 2025-03-11 (YANKED RELEASE)</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="changelog.html#id18">Fixed</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id16">1.0.21 - 2025-03-11 (YANKED RELEASE)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id17">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#id19">1.0.18 - 2025-03-11 (YANKED RELEASE)</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="changelog.html#id20">Fixed</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id18">1.0.20 - 2025-03-11 (YANKED RELEASE)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id19">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#id21">1.0.17 - 2025-03-11 (YANKED RELEASE)</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="changelog.html#id22">Fixed</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id20">1.0.19 - 2025-03-11 (YANKED RELEASE)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id21">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#id23">1.0.16 - 2025-03-11 (YANKED RELEASE)</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="changelog.html#id24">Fixed</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id22">1.0.18 - 2025-03-11 (YANKED RELEASE)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id23">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#id25">1.0.15 - 2025-03-10 (YANKED RELEASE)</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="changelog.html#id26">Fixed</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id24">1.0.17 - 2025-03-11 (YANKED RELEASE)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id25">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#id27">1.0.14 - 2025-03-10 (YANKED RELEASE)</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="changelog.html#id28">Fixed</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id26">1.0.16 - 2025-03-11 (YANKED RELEASE)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id27">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#id29">1.0.13 - 2025-03-10 (YANKED RELEASE)</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="changelog.html#id30">Fixed</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id28">1.0.15 - 2025-03-10 (YANKED RELEASE)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id29">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#id31">1.0.12 - 2025-03-10 (YANKED RELEASE)</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="changelog.html#id32">Fixed</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id30">1.0.14 - 2025-03-10 (YANKED RELEASE)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id31">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#id33">1.0.11 - 2025-03-10 (YANKED RELEASE)</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="changelog.html#id34">Fixed</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id32">1.0.13 - 2025-03-10 (YANKED RELEASE)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id33">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#id35">1.0.10 - 2025-03-10 (YANKED RELEASE)</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="changelog.html#id36">Fixed</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id34">1.0.12 - 2025-03-10 (YANKED RELEASE)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id35">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#id37">1.0.9 - 2025-03-10 (YANKED RELEASE)</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="changelog.html#id38">Fixed</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id36">1.0.11 - 2025-03-10 (YANKED RELEASE)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id37">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#id39">1.0.8 - 2025-03-10 (YANKED RELEASE)</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="changelog.html#id40">Fixed</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id38">1.0.10 - 2025-03-10 (YANKED RELEASE)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id39">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#id41">1.0.7 - 2025-03-10 (YANKED RELEASE)</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="changelog.html#id42">Fixed</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id40">1.0.9 - 2025-03-10 (YANKED RELEASE)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id41">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#id43">[1.0.6] - 2025-03-10 (YANKED RELEASE)</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="changelog.html#id44">Fixed</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id42">1.0.8 - 2025-03-10 (YANKED RELEASE)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id43">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#id45">1.0.5 - 2025-03-10 (YANKED RELEASE)</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="changelog.html#id46">Fixed</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id44">1.0.7 - 2025-03-10 (YANKED RELEASE)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id45">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#id47">1.0.4 - 2025-03-10 (YANKED RELEASE)</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="changelog.html#id48">Fixed</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id46">[1.0.6] - 2025-03-10 (YANKED RELEASE)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id47">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#id49">1.0.3 - 2025-03-10 (YANKED RELEASE)</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="changelog.html#id50">Fixed</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id48">1.0.5 - 2025-03-10 (YANKED RELEASE)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id49">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#id51">1.0.2 - 2025-03-10 (YANKED RELEASE)</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="changelog.html#id52">Fixed</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id50">1.0.4 - 2025-03-10 (YANKED RELEASE)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id51">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#id53">1.0.1 - 2025-03-10 (YANKED RELEASE)</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="changelog.html#id54">Fixed</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id52">1.0.3 - 2025-03-10 (YANKED RELEASE)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id53">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#id55">1.0.0 - 2025-03-10</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="changelog.html#id56">Added</a></li>
-<li class="toctree-l3"><a class="reference internal" href="changelog.html#id57">Changed</a></li>
-<li class="toctree-l3"><a class="reference internal" href="changelog.html#id58">Removed</a></li>
-<li class="toctree-l3"><a class="reference internal" href="changelog.html#id59">Fixed</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id54">1.0.2 - 2025-03-10 (YANKED RELEASE)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id55">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#id60">0.0.7 - 2025-01-29</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="changelog.html#id61">Changed</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id56">1.0.1 - 2025-03-10 (YANKED RELEASE)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id57">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#deleted-release">[0.0.6] - 2025-01-29 (DELETED RELEASE)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id58">1.0.0 - 2025-03-10</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id59">Added</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id60">Changed</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id61">Removed</a></li>
 <li class="toctree-l3"><a class="reference internal" href="changelog.html#id62">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#id63">0.0.5 - 2025-01-29</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="changelog.html#id64">Added</a></li>
-<li class="toctree-l3"><a class="reference internal" href="changelog.html#id65">Changed</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id63">0.0.7 - 2025-01-29</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id64">Changed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#id66">0.0.4 - 2025-01-29</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="changelog.html#id67">Changed</a></li>
-<li class="toctree-l3"><a class="reference internal" href="changelog.html#id68">Added</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#deleted-release">[0.0.6] - 2025-01-29 (DELETED RELEASE)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id65">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#id69">0.0.3 - 2025-01-19</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="changelog.html#id70">Added</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id66">0.0.5 - 2025-01-29</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id67">Added</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id68">Changed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#id71">0.0.2 - 2025-01-17</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="changelog.html#id72">Added</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id69">0.0.4 - 2025-01-29</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id70">Changed</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id71">Added</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#id73">[0.0.1] - 2025-01-16 (DELETED RELEASE)</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="changelog.html#id74">Added</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id72">0.0.3 - 2025-01-19</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id73">Added</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id74">0.0.2 - 2025-01-17</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id75">Added</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id76">[0.0.1] - 2025-01-16 (DELETED RELEASE)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id77">Added</a></li>
 </ul>
 </li>
 </ul>
@@ -502,7 +753,13 @@
 <li class="toctree-l3"><a class="reference internal" href="code_of_conduct.html#enforcement-responsibilities">Enforcement Responsibilities</a></li>
 <li class="toctree-l3"><a class="reference internal" href="code_of_conduct.html#scope">Scope</a></li>
 <li class="toctree-l3"><a class="reference internal" href="code_of_conduct.html#enforcement">Enforcement</a></li>
-<li class="toctree-l3"><a class="reference internal" href="code_of_conduct.html#enforcement-guidelines">Enforcement Guidelines</a></li>
+<li class="toctree-l3"><a class="reference internal" href="code_of_conduct.html#enforcement-guidelines">Enforcement Guidelines</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="code_of_conduct.html#correction">1. Correction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="code_of_conduct.html#warning">2. Warning</a></li>
+<li class="toctree-l4"><a class="reference internal" href="code_of_conduct.html#temporary-ban">3. Temporary Ban</a></li>
+<li class="toctree-l4"><a class="reference internal" href="code_of_conduct.html#permanent-ban">4. Permanent Ban</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="code_of_conduct.html#attribution">Attribution</a></li>
 </ul>
 </li>

@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Data Visualization Examples" href="data_visualization.html" /><link rel="prev" title="Basic Usage Examples" href="basic_usage.html" />
 
-    <!-- Generated with Sphinx 6.2.1 and Furo 2024.08.06 -->
+    <link rel="shortcut icon" href="../_static/fedfred_favicon.ico"/><!-- Generated with Sphinx 6.2.1 and Furo 2024.08.06 -->
         <title>Advanced Usage Examples - fedfred</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=04c057b233f3c8d71940eee6080f658a04e2027d" />
@@ -184,7 +184,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <div class="visually-hidden">Toggle table of contents sidebar</div>
         <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
       </label>
@@ -219,7 +219,9 @@
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../api/index.html">API Reference</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of API Reference</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../api/fredapi.html">FredAPI</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../api/fredmapsapi.html">FredMapsAPI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/mapsapi.html">MapsAPI Class</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/asyncapi.html">AsyncAPI Class</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/asyncmapsapi.html">AsyncMapsAPI Class</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/data_classes.html">Data Classes</a></li>
 </ul>
 </li>
@@ -262,7 +264,7 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <div class="visually-hidden">Toggle table of contents sidebar</div>
             <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
           </label>
@@ -270,7 +272,137 @@
         <article role="main" id="furo-main-content">
           <section id="advanced-usage-examples">
 <h1>Advanced Usage Examples<a class="headerlink" href="#advanced-usage-examples" title="Permalink to this heading">¶</a></h1>
-<p>Coming soon…</p>
+<p>This section provides advanced usage examples for the <cite>fedfred</cite> library, including caching, rate limiting, concurrent requests, and working with geographic data.</p>
+<section id="caching-and-rate-limiting">
+<h2>Caching and Rate Limiting<a class="headerlink" href="#caching-and-rate-limiting" title="Permalink to this heading">¶</a></h2>
+<p>The <cite>fedfred</cite> library includes built-in support for caching and rate limiting to optimize API usage.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">fedfred</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">fd</span>
+
+<span class="c1"># Initialize the API client with caching enabled</span>
+<span class="n">fred</span> <span class="o">=</span> <span class="n">fd</span><span class="o">.</span><span class="n">FredAPI</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="s2">&quot;your_api_key_here&quot;</span><span class="p">,</span> <span class="n">enable_cache</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># Fetch a time series (cached locally for faster subsequent access)</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">fred</span><span class="o">.</span><span class="n">get_series_observations</span><span class="p">(</span><span class="s2">&quot;GDPC1&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
+
+<span class="c1"># The built-in rate limiter ensures you don&#39;t exceed 120 API calls per minute</span>
+<span class="k">for</span> <span class="n">series_id</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;UNRATE&quot;</span><span class="p">,</span> <span class="s2">&quot;CPIAUCSL&quot;</span><span class="p">,</span> <span class="s2">&quot;DGS10&quot;</span><span class="p">]:</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">fred</span><span class="o">.</span><span class="n">get_series_observations</span><span class="p">(</span><span class="n">series_id</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Fetched data for </span><span class="si">{</span><span class="n">series_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="concurrent-requests-with-asyncapi">
+<h2>Concurrent Requests with AsyncAPI<a class="headerlink" href="#concurrent-requests-with-asyncapi" title="Permalink to this heading">¶</a></h2>
+<p>You can use the <cite>AsyncAPI</cite> to make concurrent requests for improved performance.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">fedfred</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">fd</span>
+
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">fetch_multiple_series</span><span class="p">():</span>
+    <span class="n">fred</span> <span class="o">=</span> <span class="n">fd</span><span class="o">.</span><span class="n">FredAPI</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="s2">&quot;your_api_key_here&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">Async</span>
+
+    <span class="c1"># Fetch multiple series concurrently</span>
+    <span class="n">tasks</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">fred</span><span class="o">.</span><span class="n">get_series_observations</span><span class="p">(</span><span class="s2">&quot;UNRATE&quot;</span><span class="p">),</span>
+        <span class="n">fred</span><span class="o">.</span><span class="n">get_series_observations</span><span class="p">(</span><span class="s2">&quot;CPIAUCSL&quot;</span><span class="p">),</span>
+        <span class="n">fred</span><span class="o">.</span><span class="n">get_series_observations</span><span class="p">(</span><span class="s2">&quot;DGS10&quot;</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="o">*</span><span class="n">tasks</span><span class="p">)</span>
+
+    <span class="c1"># Process the results</span>
+    <span class="k">for</span> <span class="n">series</span><span class="p">,</span> <span class="n">series_id</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">results</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;UNRATE&quot;</span><span class="p">,</span> <span class="s2">&quot;CPIAUCSL&quot;</span><span class="p">,</span> <span class="s2">&quot;DGS10&quot;</span><span class="p">]):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Data for </span><span class="si">{</span><span class="n">series_id</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">series</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
+
+<span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">fetch_multiple_series</span><span class="p">())</span>
+</pre></div>
+</div>
+</section>
+<section id="working-with-geographic-data">
+<h2>Working with Geographic Data<a class="headerlink" href="#working-with-geographic-data" title="Permalink to this heading">¶</a></h2>
+<p>The <cite>FredMapsAPI</cite> allows you to fetch and analyze geographic data, such as unemployment rates by state.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">fedfred</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">fd</span>
+
+<span class="c1"># Initialize the FredMapsAPI client</span>
+<span class="n">fred_maps</span> <span class="o">=</span> <span class="n">fd</span><span class="o">.</span><span class="n">FredMapsAPI</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="s2">&quot;your_api_key_here&quot;</span><span class="p">)</span>
+
+<span class="c1"># Fetch regional data for unemployment rates by state</span>
+<span class="n">unemployment_by_state</span> <span class="o">=</span> <span class="n">fred_maps</span><span class="o">.</span><span class="n">get_regional_data</span><span class="p">(</span>
+    <span class="n">series_group</span><span class="o">=</span><span class="s2">&quot;unemployment&quot;</span><span class="p">,</span>
+    <span class="n">region_type</span><span class="o">=</span><span class="s2">&quot;state&quot;</span><span class="p">,</span>
+    <span class="n">date</span><span class="o">=</span><span class="s2">&quot;2023-01-01&quot;</span><span class="p">,</span>
+    <span class="n">season</span><span class="o">=</span><span class="s2">&quot;nsa&quot;</span><span class="p">,</span>  <span class="c1"># Not seasonally adjusted</span>
+    <span class="n">units</span><span class="o">=</span><span class="s2">&quot;percent&quot;</span>
+<span class="p">)</span>
+
+<span class="c1"># The result is a GeoPandas GeoDataFrame</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">unemployment_by_state</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="customizing-api-requests">
+<h2>Customizing API Requests<a class="headerlink" href="#customizing-api-requests" title="Permalink to this heading">¶</a></h2>
+<p>You can customize API requests by passing additional parameters to methods.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">fedfred</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">fd</span>
+
+<span class="c1"># Initialize the API client</span>
+<span class="n">fred</span> <span class="o">=</span> <span class="n">fd</span><span class="o">.</span><span class="n">FredAPI</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="s2">&quot;your_api_key_here&quot;</span><span class="p">)</span>
+
+<span class="c1"># Fetch data with custom parameters</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">fred</span><span class="o">.</span><span class="n">get_series_observations</span><span class="p">(</span>
+    <span class="n">series_id</span><span class="o">=</span><span class="s2">&quot;GDPC1&quot;</span><span class="p">,</span>
+    <span class="n">observation_start</span><span class="o">=</span><span class="s2">&quot;2000-01-01&quot;</span><span class="p">,</span>
+    <span class="n">observation_end</span><span class="o">=</span><span class="s2">&quot;2020-01-01&quot;</span><span class="p">,</span>
+    <span class="n">units</span><span class="o">=</span><span class="s2">&quot;chg&quot;</span><span class="p">,</span>  <span class="c1"># Change from the previous value</span>
+    <span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;q&quot;</span><span class="p">,</span>  <span class="c1"># Quarterly data</span>
+    <span class="n">sort_order</span><span class="o">=</span><span class="s2">&quot;asc&quot;</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
+</pre></div>
+</div>
+</section>
+<section id="exploring-categories-and-tags">
+<h2>Exploring Categories and Tags<a class="headerlink" href="#exploring-categories-and-tags" title="Permalink to this heading">¶</a></h2>
+<p>You can explore categories and tags to discover related data series.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">fedfred</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">fd</span>
+
+<span class="c1"># Initialize the API client</span>
+<span class="n">fred</span> <span class="o">=</span> <span class="n">fd</span><span class="o">.</span><span class="n">FredAPI</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="s2">&quot;your_api_key_here&quot;</span><span class="p">)</span>
+
+<span class="c1"># Get top-level categories</span>
+<span class="n">categories</span> <span class="o">=</span> <span class="n">fred</span><span class="o">.</span><span class="n">get_category_children</span><span class="p">(</span><span class="n">category_id</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">category</span> <span class="ow">in</span> <span class="n">categories</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Category: </span><span class="si">{</span><span class="n">category</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> (ID: </span><span class="si">{</span><span class="n">category</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+
+<span class="c1"># Get tags for a specific category</span>
+<span class="n">tags</span> <span class="o">=</span> <span class="n">fred</span><span class="o">.</span><span class="n">get_category_tags</span><span class="p">(</span><span class="n">category_id</span><span class="o">=</span><span class="mi">125</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">tags</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Tag: </span><span class="si">{</span><span class="n">tag</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="error-handling-and-validation">
+<h2>Error Handling and Validation<a class="headerlink" href="#error-handling-and-validation" title="Permalink to this heading">¶</a></h2>
+<p>The <cite>fedfred</cite> library raises exceptions for invalid API requests or responses. You can handle these exceptions to improve the robustness of your application.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">fedfred</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">fd</span>
+
+<span class="c1"># Initialize the API client</span>
+<span class="n">fred</span> <span class="o">=</span> <span class="n">fd</span><span class="o">.</span><span class="n">FredAPI</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="s2">&quot;your_api_key_here&quot;</span><span class="p">)</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="c1"># Attempt to fetch data for an invalid series ID</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">fred</span><span class="o">.</span><span class="n">get_series_observations</span><span class="p">(</span><span class="s2">&quot;INVALID_SERIES_ID&quot;</span><span class="p">)</span>
+<span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="c1"># Attempt to fetch data with invalid parameters</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">fred</span><span class="o">.</span><span class="n">get_series_observations</span><span class="p">(</span><span class="n">series_id</span><span class="o">=</span><span class="s2">&quot;GDPC1&quot;</span><span class="p">,</span> <span class="n">observation_start</span><span class="o">=</span><span class="s2">&quot;invalid_date&quot;</span><span class="p">)</span>
+<span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
 </section>
 
         </article>
@@ -328,8 +460,32 @@
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Advanced Usage Examples</a><ul>
+<li><a class="reference internal" href="#caching-and-rate-limiting">Caching and Rate Limiting</a></li>
+<li><a class="reference internal" href="#concurrent-requests-with-asyncapi">Concurrent Requests with AsyncAPI</a></li>
+<li><a class="reference internal" href="#working-with-geographic-data">Working with Geographic Data</a></li>
+<li><a class="reference internal" href="#customizing-api-requests">Customizing API Requests</a></li>
+<li><a class="reference internal" href="#exploring-categories-and-tags">Exploring Categories and Tags</a></li>
+<li><a class="reference internal" href="#error-handling-and-validation">Error Handling and Validation</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>

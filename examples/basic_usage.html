@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Advanced Usage Examples" href="advanced_usage.html" /><link rel="prev" title="Usage Examples" href="index.html" />
 
-    <!-- Generated with Sphinx 6.2.1 and Furo 2024.08.06 -->
+    <link rel="shortcut icon" href="../_static/fedfred_favicon.ico"/><!-- Generated with Sphinx 6.2.1 and Furo 2024.08.06 -->
         <title>Basic Usage Examples - fedfred</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=04c057b233f3c8d71940eee6080f658a04e2027d" />
@@ -219,7 +219,9 @@
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../api/index.html">API Reference</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of API Reference</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../api/fredapi.html">FredAPI</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../api/fredmapsapi.html">FredMapsAPI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/mapsapi.html">MapsAPI Class</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/asyncapi.html">AsyncAPI Class</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/asyncmapsapi.html">AsyncMapsAPI Class</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/data_classes.html">Data Classes</a></li>
 </ul>
 </li>
@@ -270,30 +272,78 @@
         <article role="main" id="furo-main-content">
           <section id="basic-usage-examples">
 <h1>Basic Usage Examples<a class="headerlink" href="#basic-usage-examples" title="Permalink to this heading">¶</a></h1>
-<section id="fetching-a-single-series-observations">
-<h2>Fetching a Single Series Observations<a class="headerlink" href="#fetching-a-single-series-observations" title="Permalink to this heading">¶</a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fedfred.fedfred</span><span class="w"> </span><span class="kn">import</span> <span class="n">FredAPI</span>
+<p>This section provides basic examples of how to use the <cite>fedfred</cite> library to interact with the FRED API.</p>
+<section id="initializing-the-api-client">
+<h2>Initializing the API Client<a class="headerlink" href="#initializing-the-api-client" title="Permalink to this heading">¶</a></h2>
+<p>To use the <cite>fedfred</cite> library, you first need to initialize the API client with your FRED API key.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">fedfred</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">fd</span>
 
-<span class="n">fred</span> <span class="o">=</span> <span class="n">FredAPI</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="s2">&quot;your_api_key_here&quot;</span><span class="p">)</span>
-
-<span class="c1"># Get GDP data</span>
-<span class="n">gdp</span> <span class="o">=</span> <span class="n">fred</span><span class="o">.</span><span class="n">get_series_observations</span><span class="p">(</span><span class="s2">&quot;GDP&quot;</span><span class="p">)</span>
-
-<span class="c1"># Observations are already in a Pandas DataFrame</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">gdp</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
+<span class="c1"># Initialize the API client</span>
+<span class="n">fred</span> <span class="o">=</span> <span class="n">fd</span><span class="o">.</span><span class="n">FredAPI</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="s2">&quot;your_api_key_here&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
-<section id="working-with-categories">
-<h2>Working with Categories<a class="headerlink" href="#working-with-categories" title="Permalink to this heading">¶</a></h2>
+<section id="fetching-a-time-series">
+<h2>Fetching a Time Series<a class="headerlink" href="#fetching-a-time-series" title="Permalink to this heading">¶</a></h2>
+<p>You can fetch time series data for a specific economic indicator using the <cite>get_series_observations</cite> method.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Fetch data for a specific economic indicator</span>
+<span class="n">series_id</span> <span class="o">=</span> <span class="s2">&quot;GDP&quot;</span>  <span class="c1"># Example series ID</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">fred</span><span class="o">.</span><span class="n">get_series_observations</span><span class="p">(</span><span class="n">series_id</span><span class="p">)</span>
+
+<span class="c1"># Display the first few rows of the data</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
+</pre></div>
+</div>
+</section>
+<section id="fetching-metadata-for-a-series">
+<h2>Fetching Metadata for a Series<a class="headerlink" href="#fetching-metadata-for-a-series" title="Permalink to this heading">¶</a></h2>
+<p>You can fetch metadata for a specific series using the <cite>get_series</cite> method.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Fetch metadata for a specific series</span>
+<span class="n">series_id</span> <span class="o">=</span> <span class="s2">&quot;GDP&quot;</span>
+<span class="n">metadata</span> <span class="o">=</span> <span class="n">fred</span><span class="o">.</span><span class="n">get_series</span><span class="p">(</span><span class="n">series_id</span><span class="p">)</span>
+
+<span class="c1"># Display the metadata</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Title: </span><span class="si">{</span><span class="n">metadata</span><span class="o">.</span><span class="n">title</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Frequency: </span><span class="si">{</span><span class="n">metadata</span><span class="o">.</span><span class="n">frequency</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Units: </span><span class="si">{</span><span class="n">metadata</span><span class="o">.</span><span class="n">units</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="exploring-categories">
+<h2>Exploring Categories<a class="headerlink" href="#exploring-categories" title="Permalink to this heading">¶</a></h2>
+<p>You can explore categories to discover related data series.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Get top-level categories</span>
-<span class="n">categories</span> <span class="o">=</span> <span class="n">fred</span><span class="o">.</span><span class="n">get_category</span><span class="p">()</span>
+<span class="n">categories</span> <span class="o">=</span> <span class="n">fred</span><span class="o">.</span><span class="n">get_category_children</span><span class="p">(</span><span class="n">category_id</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 
-<span class="c1"># Get child categories for category ID 32991 (U.S. Economy)</span>
-<span class="n">child_categories</span> <span class="o">=</span> <span class="n">fred</span><span class="o">.</span><span class="n">get_category</span><span class="p">(</span><span class="n">category_id</span><span class="o">=</span><span class="mi">32991</span><span class="p">)</span>
+<span class="c1"># Display the categories</span>
+<span class="k">for</span> <span class="n">category</span> <span class="ow">in</span> <span class="n">categories</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Category: </span><span class="si">{</span><span class="n">category</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> (ID: </span><span class="si">{</span><span class="n">category</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="fetching-tags-for-a-series">
+<h2>Fetching Tags for a Series<a class="headerlink" href="#fetching-tags-for-a-series" title="Permalink to this heading">¶</a></h2>
+<p>You can fetch tags associated with a specific series to better understand its context.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Fetch tags for a specific series</span>
+<span class="n">series_id</span> <span class="o">=</span> <span class="s2">&quot;GDP&quot;</span>
+<span class="n">tags</span> <span class="o">=</span> <span class="n">fred</span><span class="o">.</span><span class="n">get_series_tags</span><span class="p">(</span><span class="n">series_id</span><span class="p">)</span>
 
-<span class="k">for</span> <span class="n">category</span> <span class="ow">in</span> <span class="n">child_categories</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">category</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">category</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="c1"># Display the tags</span>
+<span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">tags</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Tag: </span><span class="si">{</span><span class="n">tag</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="fetching-related-series">
+<h2>Fetching Related Series<a class="headerlink" href="#fetching-related-series" title="Permalink to this heading">¶</a></h2>
+<p>You can fetch related series for a specific series using the <cite>get_series_search_related_tags</cite> method.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Fetch related series for a specific series</span>
+<span class="n">series_id</span> <span class="o">=</span> <span class="s2">&quot;GDP&quot;</span>
+<span class="n">related_series</span> <span class="o">=</span> <span class="n">fred</span><span class="o">.</span><span class="n">get_series_search_related_tags</span><span class="p">(</span><span class="n">series_id</span><span class="p">)</span>
+
+<span class="c1"># Display the related series</span>
+<span class="k">for</span> <span class="n">series</span> <span class="ow">in</span> <span class="n">related_series</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Related Series: </span><span class="si">{</span><span class="n">series</span><span class="o">.</span><span class="n">title</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
@@ -367,8 +417,12 @@
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">Basic Usage Examples</a><ul>
-<li><a class="reference internal" href="#fetching-a-single-series-observations">Fetching a Single Series Observations</a></li>
-<li><a class="reference internal" href="#working-with-categories">Working with Categories</a></li>
+<li><a class="reference internal" href="#initializing-the-api-client">Initializing the API Client</a></li>
+<li><a class="reference internal" href="#fetching-a-time-series">Fetching a Time Series</a></li>
+<li><a class="reference internal" href="#fetching-metadata-for-a-series">Fetching Metadata for a Series</a></li>
+<li><a class="reference internal" href="#exploring-categories">Exploring Categories</a></li>
+<li><a class="reference internal" href="#fetching-tags-for-a-series">Fetching Tags for a Series</a></li>
+<li><a class="reference internal" href="#fetching-related-series">Fetching Related Series</a></li>
 </ul>
 </li>
 </ul>

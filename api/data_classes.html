@@ -3,9 +3,9 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
-<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Contributing" href="../contributing.html" /><link rel="prev" title="FredMapsAPI" href="fredmapsapi.html" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Contributing" href="../contributing.html" /><link rel="prev" title="AsyncMapsAPI Class" href="asyncmapsapi.html" />
 
-    <!-- Generated with Sphinx 6.2.1 and Furo 2024.08.06 -->
+    <link rel="shortcut icon" href="../_static/fedfred_favicon.ico"/><!-- Generated with Sphinx 6.2.1 and Furo 2024.08.06 -->
         <title>Data Classes - fedfred</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=04c057b233f3c8d71940eee6080f658a04e2027d" />
@@ -219,7 +219,9 @@
 </li>
 <li class="toctree-l1 current has-children"><a class="reference internal" href="index.html">API Reference</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of API Reference</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="fredapi.html">FredAPI</a></li>
-<li class="toctree-l2"><a class="reference internal" href="fredmapsapi.html">FredMapsAPI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mapsapi.html">MapsAPI Class</a></li>
+<li class="toctree-l2"><a class="reference internal" href="asyncapi.html">AsyncAPI Class</a></li>
+<li class="toctree-l2"><a class="reference internal" href="asyncmapsapi.html">AsyncMapsAPI Class</a></li>
 <li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Data Classes</a></li>
 </ul>
 </li>
@@ -455,7 +457,7 @@
 
 <dl class="py class">
 <dt class="sig sig-object py" id="fedfred.fred_data.Series">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">fedfred.fred_data.</span></span><span class="sig-name descname"><span class="pre">Series</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">observation_start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">observation_end</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frequency</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frequency_short</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units_short</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seasonal_adjustment</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seasonal_adjustment_short</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">last_updated</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">popularity</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">group_popularity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">notes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fedfred/fred_data.html#Series"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedfred.fred_data.Series" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">fedfred.fred_data.</span></span><span class="sig-name descname"><span class="pre">Series</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">observation_start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">observation_end</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frequency</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frequency_short</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units_short</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seasonal_adjustment</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seasonal_adjustment_short</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">last_updated</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">popularity</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">realtime_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">realtime_end</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">group_popularity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">notes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/fedfred/fred_data.html#Series"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fedfred.fred_data.Series" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>A class used to represent a Series.</p>
 <dl class="py attribute">
@@ -512,6 +514,16 @@
 <dl class="py attribute">
 <dt class="sig sig-object py" id="fedfred.fred_data.Series.popularity">
 <span class="sig-name descname"><span class="pre">popularity</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#fedfred.fred_data.Series.popularity" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fedfred.fred_data.Series.realtime_end">
+<span class="sig-name descname"><span class="pre">realtime_end</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#fedfred.fred_data.Series.realtime_end" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fedfred.fred_data.Series.realtime_start">
+<span class="sig-name descname"><span class="pre">realtime_start</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#fedfred.fred_data.Series.realtime_start" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
@@ -734,14 +746,14 @@
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="fredmapsapi.html">
+          <a class="prev-page" href="asyncmapsapi.html">
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">FredMapsAPI</div>
+                <div class="title">AsyncMapsAPI Class</div>
                 
               </div>
             </a>
@@ -837,6 +849,8 @@
 <li><a class="reference internal" href="#fedfred.fred_data.Series.observation_end"><code class="docutils literal notranslate"><span class="pre">Series.observation_end</span></code></a></li>
 <li><a class="reference internal" href="#fedfred.fred_data.Series.observation_start"><code class="docutils literal notranslate"><span class="pre">Series.observation_start</span></code></a></li>
 <li><a class="reference internal" href="#fedfred.fred_data.Series.popularity"><code class="docutils literal notranslate"><span class="pre">Series.popularity</span></code></a></li>
+<li><a class="reference internal" href="#fedfred.fred_data.Series.realtime_end"><code class="docutils literal notranslate"><span class="pre">Series.realtime_end</span></code></a></li>
+<li><a class="reference internal" href="#fedfred.fred_data.Series.realtime_start"><code class="docutils literal notranslate"><span class="pre">Series.realtime_start</span></code></a></li>
 <li><a class="reference internal" href="#fedfred.fred_data.Series.seasonal_adjustment"><code class="docutils literal notranslate"><span class="pre">Series.seasonal_adjustment</span></code></a></li>
 <li><a class="reference internal" href="#fedfred.fred_data.Series.seasonal_adjustment_short"><code class="docutils literal notranslate"><span class="pre">Series.seasonal_adjustment_short</span></code></a></li>
 <li><a class="reference internal" href="#fedfred.fred_data.Series.title"><code class="docutils literal notranslate"><span class="pre">Series.title</span></code></a></li>

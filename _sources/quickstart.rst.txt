@@ -22,6 +22,41 @@ Basic Usage
     # Convert to pandas DataFrame
     data.head()
 
+Async Usage
+-----------
+
+FedFred provides native support for asynchronous requests, allowing you to efficiently fetch data in an asynchronous environment.
+
+.. code-block:: python
+
+    import asyncio
+    import fedfred as fd
+
+    async def main():
+        # Initialize the async API client
+        fred = fd.FredAPI(api_key="your_api_key_here").Async
+
+        # Fetch a time series asynchronously
+        data = await fred.get_series_observations("GDPC1")
+
+        # Convert to pandas DataFrame
+        print(data.head())
+
+        # Fetch multiple series concurrently
+        tasks = [
+            fred.get_series_observations("UNRATE"),  # Unemployment Rate
+            fred.get_series_observations("CPIAUCSL"),  # Consumer Price Index
+            fred.get_series_observations("DGS10")  # 10-Year Treasury Rate
+        ]
+        results = await asyncio.gather(*tasks)
+
+        # Process the results
+        for series in results:
+            print(series.head())
+
+    # Run the async function
+    asyncio.run(main())
+
 Working with Data
 -----------------
 
