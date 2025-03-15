@@ -17,6 +17,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - \_test.py -> [fedfred_test.py](https://github.com/nikhilxsunder/fedfred/blob/main/tests/fedfred_test.py)
 
+## [1.2.1]
+
+### Added
+
+- Google analytics tag for sphinx
+- Dev dependency 'sphinxcontrib.googleanalytics'
+
 ## [1.2.0]
 
 ### Added
