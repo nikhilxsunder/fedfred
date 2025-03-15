@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "fedfred"
-version = "1.2.0"
+version = "1.2.1"
 description = "A feature-rich python package for interacting with the Federal Reserve Bank of St. Louis Economic Database: FRED"
 authors = [
     "Nikhil Sunder <nsunder724@gmail.com>"
@@ -36,6 +36,7 @@ polars = "*"
 geopandas = "*"
 types-geopandas = "*"
 
+
 [tool.poetry.group.dev.dependencies]
 pytest = ">=7.0.0,<=8.3.5"
 pytest-cov = ">=3.0.0,<=3.0.1"
@@ -50,6 +51,7 @@ furo = ">=2021.11.23,<=2024.09.06"
 sphinx-autodoc-typehints = ">=1.12.0,<=3.1.0"
 myst-parser = ">=0.15,<4.0.1"
 linkify-it-py = "^2.0.3"
+sphinxcontrib-googleanalytics = "^0.4"
 
 [tool.mypy]
 files = "fedfred"

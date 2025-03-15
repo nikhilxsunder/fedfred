@@ -214,7 +214,7 @@ We will acknowledge receipt within 48 hours and provide a more detailed response
 
 ### Code of Conduct
 
-This project adheres to our [CODE_OF_CONDUCT](<(https://github.com/nikhilxsunder/fedfred/blob/main/CODE_OF_CONDUCT.md)>). By participating, you are expected to uphold this code. Please report unacceptable behavior to nsunder724@gmail.com.
+This project adheres to our [CODE_OF_CONDUCT](https://github.com/nikhilxsunder/fedfred/blob/main/CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. Please report unacceptable behavior to nsunder724@gmail.com.
 
 ### Development Setup
 

@@ -19,6 +19,7 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx_autodoc_typehints',
     'myst_parser',
+    'sphinxcontrib.googleanalytics',
 ]
 
 # myst
@@ -37,6 +38,10 @@ myst_heading_anchors = 4
 import os
 import sys
 sys.path.insert(0, os.path.abspath('../..'))
+
+# google analytics
+googleanalytics_id = 'G-Q7LK34R0CV'
+googleanalytics_enabled = True
 
 # theme
 html_theme = 'furo'
