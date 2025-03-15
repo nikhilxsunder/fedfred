@@ -1,15 +1,24 @@
 <!doctype html>
-<html class="no-js" lang="en" data-content_root="">
+<html class="no-js" lang="en" data-content_root="./">
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
-    <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
-<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="Installation" href="installation.html" />
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <link rel="shortcut icon" href="_static/fedfred_favicon.ico"/><!-- Generated with Sphinx 6.2.1 and Furo 2024.08.06 -->
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-Q7LK34R0CV"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-Q7LK34R0CV');
+    </script>
+    <link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="Installation" href="installation.html" />
+
+    <link rel="shortcut icon" href="_static/fedfred_favicon.ico"/><!-- Generated with Sphinx 7.4.7 and Furo 2024.08.06 -->
         <title>fedfred</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?digest=04c057b233f3c8d71940eee6080f658a04e2027d" />
-    <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?digest=cf727022eb7470bc603c08d2e55c3247faec75c9" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=354aac6f" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=302659d7" />
     
     
 
@@ -225,7 +234,7 @@
 <li class="toctree-l2"><a class="reference internal" href="api/data_classes.html">Data Classes</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to FedFred</a></li>
 <li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
 <li class="toctree-l1"><a class="reference internal" href="code_of_conduct.html">Code of Conduct</a></li>
 <li class="toctree-l1"><a class="reference internal" href="security.html">Security Policy</a></li>
@@ -271,11 +280,12 @@
         </div>
         <article role="main" id="furo-main-content">
           <section id="fedfred">
-<h1>fedfred<a class="headerlink" href="#fedfred" title="Permalink to this heading">¶</a></h1>
-<a class="only-light reference internal image-reference" href="_images/fedfred-logo.png"><img alt="FedFred Logo" class="only-light" src="_images/fedfred-logo.png" style="width: 300px;" /></a>
+<h1>fedfred<a class="headerlink" href="#fedfred" title="Link to this heading">¶</a></h1>
+<a class="only-light reference internal image-reference" href="_images/fedfred-logo.png"><img alt="FedFred Logo" class="only-light" src="_images/fedfred-logo.png" style="width: 300px;" />
+</a>
 <p>A feature-rich Python package for interacting with the Federal Reserve Bank of St. Louis Economic Database (FRED).</p>
 <section id="features">
-<h2>Features<a class="headerlink" href="#features" title="Permalink to this heading">¶</a></h2>
+<h2>Features<a class="headerlink" href="#features" title="Link to this heading">¶</a></h2>
 <ul class="simple">
 <li><p>Pandas/Polars DataFrames</p></li>
 <li><p>Async support</p></li>
@@ -285,7 +295,7 @@
 </ul>
 </section>
 <section id="table-of-contents">
-<h2>Table of Contents<a class="headerlink" href="#table-of-contents" title="Permalink to this heading">¶</a></h2>
+<h2>Table of Contents<a class="headerlink" href="#table-of-contents" title="Link to this heading">¶</a></h2>
 <div class="toctree-wrapper compound">
 <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
@@ -583,165 +593,200 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to FedFred</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#table-of-contents">Table of Contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#how-to-contribute">How to Contribute</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="contributing.html#reporting-issues">Reporting Issues</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#static-analysis">Static Analysis</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="contributing.html#submitting-code-changes">Submitting Code Changes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing.html#coding-standards">Coding Standards</a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing.html#code-quality-and-warnings">Code Quality and Warnings</a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing.html#testing">Testing</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="contributing.html#testing-with-assertions">Testing with Assertions</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="contributing.html#documentation">Documentation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing.html#license">License</a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing.html#contact">Contact</a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing.html#security-vulnerability-reporting">Security Vulnerability Reporting</a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing.html#code-of-conduct">Code of Conduct</a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing.html#development-setup">Development Setup</a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing.html#pull-request-process">Pull Request Process</a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing.html#continuous-integration">Continuous Integration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing.html#dynamic-analysis">Dynamic Analysis</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="contributing.html#property-based-testing-with-hypothesis">Property-Based Testing with Hypothesis</a></li>
+<li class="toctree-l4"><a class="reference internal" href="contributing.html#running-dynamic-analysis-tests">Running Dynamic Analysis Tests</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="contributing.html#release-process">Release Process</a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="changelog.html#unreleased">Unreleased</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="changelog.html#added">Added</a></li>
 <li class="toctree-l3"><a class="reference internal" href="changelog.html#changed">Changed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#id1">1.2.0</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id1">[1.2.1]</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="changelog.html#id2">Added</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id3">1.2.0</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id4">Added</a></li>
 <li class="toctree-l3"><a class="reference internal" href="changelog.html#fixed">Fixed</a></li>
 <li class="toctree-l3"><a class="reference internal" href="changelog.html#deprecated">Deprecated</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#id3">1.1.0 - 2025-03-12</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="changelog.html#id4">Added</a></li>
-<li class="toctree-l3"><a class="reference internal" href="changelog.html#id5">Changed</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id5">1.1.0 - 2025-03-12</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id6">Added</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id7">Changed</a></li>
 <li class="toctree-l3"><a class="reference internal" href="changelog.html#removed">Removed</a></li>
-<li class="toctree-l3"><a class="reference internal" href="changelog.html#id6">Fixed</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#id7">1.0.26 - 2025-03-11</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="changelog.html#id8">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#yanked-release">1.0.25 - 2025-03-11 (YANKED RELEASE)</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="changelog.html#id9">Fixed</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id9">1.0.26 - 2025-03-11</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id10">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#id10">1.0.24 - 2025-03-11 (YANKED RELEASE)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#yanked-release">1.0.25 - 2025-03-11 (YANKED RELEASE)</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="changelog.html#id11">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#id12">1.0.23 - 2025-03-11 (YANKED RELEASE)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id12">1.0.24 - 2025-03-11 (YANKED RELEASE)</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="changelog.html#id13">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#id14">1.0.22 - 2025-03-11 (YANKED RELEASE)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id14">1.0.23 - 2025-03-11 (YANKED RELEASE)</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="changelog.html#id15">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#id16">1.0.21 - 2025-03-11 (YANKED RELEASE)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id16">1.0.22 - 2025-03-11 (YANKED RELEASE)</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="changelog.html#id17">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#id18">1.0.20 - 2025-03-11 (YANKED RELEASE)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id18">1.0.21 - 2025-03-11 (YANKED RELEASE)</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="changelog.html#id19">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#id20">1.0.19 - 2025-03-11 (YANKED RELEASE)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id20">1.0.20 - 2025-03-11 (YANKED RELEASE)</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="changelog.html#id21">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#id22">1.0.18 - 2025-03-11 (YANKED RELEASE)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id22">1.0.19 - 2025-03-11 (YANKED RELEASE)</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="changelog.html#id23">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#id24">1.0.17 - 2025-03-11 (YANKED RELEASE)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id24">1.0.18 - 2025-03-11 (YANKED RELEASE)</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="changelog.html#id25">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#id26">1.0.16 - 2025-03-11 (YANKED RELEASE)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id26">1.0.17 - 2025-03-11 (YANKED RELEASE)</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="changelog.html#id27">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#id28">1.0.15 - 2025-03-10 (YANKED RELEASE)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id28">1.0.16 - 2025-03-11 (YANKED RELEASE)</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="changelog.html#id29">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#id30">1.0.14 - 2025-03-10 (YANKED RELEASE)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id30">1.0.15 - 2025-03-10 (YANKED RELEASE)</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="changelog.html#id31">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#id32">1.0.13 - 2025-03-10 (YANKED RELEASE)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id32">1.0.14 - 2025-03-10 (YANKED RELEASE)</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="changelog.html#id33">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#id34">1.0.12 - 2025-03-10 (YANKED RELEASE)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id34">1.0.13 - 2025-03-10 (YANKED RELEASE)</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="changelog.html#id35">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#id36">1.0.11 - 2025-03-10 (YANKED RELEASE)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id36">1.0.12 - 2025-03-10 (YANKED RELEASE)</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="changelog.html#id37">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#id38">1.0.10 - 2025-03-10 (YANKED RELEASE)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id38">1.0.11 - 2025-03-10 (YANKED RELEASE)</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="changelog.html#id39">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#id40">1.0.9 - 2025-03-10 (YANKED RELEASE)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id40">1.0.10 - 2025-03-10 (YANKED RELEASE)</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="changelog.html#id41">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#id42">1.0.8 - 2025-03-10 (YANKED RELEASE)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id42">1.0.9 - 2025-03-10 (YANKED RELEASE)</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="changelog.html#id43">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#id44">1.0.7 - 2025-03-10 (YANKED RELEASE)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id44">1.0.8 - 2025-03-10 (YANKED RELEASE)</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="changelog.html#id45">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#id46">[1.0.6] - 2025-03-10 (YANKED RELEASE)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id46">1.0.7 - 2025-03-10 (YANKED RELEASE)</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="changelog.html#id47">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#id48">1.0.5 - 2025-03-10 (YANKED RELEASE)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id48">[1.0.6] - 2025-03-10 (YANKED RELEASE)</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="changelog.html#id49">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#id50">1.0.4 - 2025-03-10 (YANKED RELEASE)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id50">1.0.5 - 2025-03-10 (YANKED RELEASE)</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="changelog.html#id51">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#id52">1.0.3 - 2025-03-10 (YANKED RELEASE)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id52">1.0.4 - 2025-03-10 (YANKED RELEASE)</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="changelog.html#id53">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#id54">1.0.2 - 2025-03-10 (YANKED RELEASE)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id54">1.0.3 - 2025-03-10 (YANKED RELEASE)</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="changelog.html#id55">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#id56">1.0.1 - 2025-03-10 (YANKED RELEASE)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id56">1.0.2 - 2025-03-10 (YANKED RELEASE)</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="changelog.html#id57">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#id58">1.0.0 - 2025-03-10</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="changelog.html#id59">Added</a></li>
-<li class="toctree-l3"><a class="reference internal" href="changelog.html#id60">Changed</a></li>
-<li class="toctree-l3"><a class="reference internal" href="changelog.html#id61">Removed</a></li>
-<li class="toctree-l3"><a class="reference internal" href="changelog.html#id62">Fixed</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id58">1.0.1 - 2025-03-10 (YANKED RELEASE)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id59">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#id63">0.0.7 - 2025-01-29</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="changelog.html#id64">Changed</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id60">1.0.0 - 2025-03-10</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id61">Added</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id62">Changed</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id63">Removed</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id64">Fixed</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id65">0.0.7 - 2025-01-29</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id66">Changed</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="changelog.html#deleted-release">[0.0.6] - 2025-01-29 (DELETED RELEASE)</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="changelog.html#id65">Fixed</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id67">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#id66">0.0.5 - 2025-01-29</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="changelog.html#id67">Added</a></li>
-<li class="toctree-l3"><a class="reference internal" href="changelog.html#id68">Changed</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#id69">0.0.4 - 2025-01-29</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id68">0.0.5 - 2025-01-29</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id69">Added</a></li>
 <li class="toctree-l3"><a class="reference internal" href="changelog.html#id70">Changed</a></li>
-<li class="toctree-l3"><a class="reference internal" href="changelog.html#id71">Added</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#id72">0.0.3 - 2025-01-19</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id71">0.0.4 - 2025-01-29</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id72">Changed</a></li>
 <li class="toctree-l3"><a class="reference internal" href="changelog.html#id73">Added</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#id74">0.0.2 - 2025-01-17</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id74">0.0.3 - 2025-01-19</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="changelog.html#id75">Added</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#id76">[0.0.1] - 2025-01-16 (DELETED RELEASE)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id76">0.0.2 - 2025-01-17</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="changelog.html#id77">Added</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id78">[0.0.1] - 2025-01-16 (DELETED RELEASE)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id79">Added</a></li>
 </ul>
 </li>
 </ul>
@@ -867,9 +912,9 @@
       
     </aside>
   </div>
-</div><script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-    <script src="_static/doctools.js"></script>
-    <script src="_static/sphinx_highlight.js"></script>
-    <script src="_static/scripts/furo.js"></script>
+</div><script src="_static/documentation_options.js?v=f5df12a8"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/scripts/furo.js?v=5fa4622c"></script>
     </body>
 </html>

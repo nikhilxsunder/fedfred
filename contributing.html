@@ -1,15 +1,24 @@
 <!doctype html>
-<html class="no-js" lang="en" data-content_root="">
+<html class="no-js" lang="en" data-content_root="./">
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
-    <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
-<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="Changelog" href="changelog.html" /><link rel="prev" title="Data Classes" href="api/data_classes.html" />
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <link rel="shortcut icon" href="_static/fedfred_favicon.ico"/><!-- Generated with Sphinx 6.2.1 and Furo 2024.08.06 -->
-        <title>Contributing - fedfred</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?digest=04c057b233f3c8d71940eee6080f658a04e2027d" />
-    <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?digest=cf727022eb7470bc603c08d2e55c3247faec75c9" />
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-Q7LK34R0CV"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-Q7LK34R0CV');
+    </script>
+    <link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="Changelog" href="changelog.html" /><link rel="prev" title="Data Classes" href="api/data_classes.html" />
+
+    <link rel="shortcut icon" href="_static/fedfred_favicon.ico"/><!-- Generated with Sphinx 7.4.7 and Furo 2024.08.06 -->
+        <title>Contributing to FedFred - fedfred</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=354aac6f" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=302659d7" />
     
     
 
@@ -184,7 +193,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <div class="visually-hidden">Toggle table of contents sidebar</div>
         <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
       </label>
@@ -225,7 +234,7 @@
 <li class="toctree-l2"><a class="reference internal" href="api/data_classes.html">Data Classes</a></li>
 </ul>
 </li>
-<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Contributing</a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Contributing to FedFred</a></li>
 <li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
 <li class="toctree-l1"><a class="reference internal" href="code_of_conduct.html">Code of Conduct</a></li>
 <li class="toctree-l1"><a class="reference internal" href="security.html">Security Policy</a></li>
@@ -264,14 +273,415 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <div class="visually-hidden">Toggle table of contents sidebar</div>
             <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <section id="contributing">
-<h1>Contributing<a class="headerlink" href="#contributing" title="Permalink to this heading">¶</a></h1>
+          <section id="contributing-to-fedfred">
+<h1>Contributing to FedFred<a class="headerlink" href="#contributing-to-fedfred" title="Link to this heading">¶</a></h1>
+<p>Thank you for your interest in contributing to FedFred! We welcome contributions of all kinds, including bug reports, feature requests, documentation improvements, and code contributions. This document provides guidelines and instructions to help you get started.</p>
+<section id="table-of-contents">
+<h2>Table of Contents<a class="headerlink" href="#table-of-contents" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="#how-to-contribute">How to Contribute</a></p>
+<ul>
+<li><p><a class="reference internal" href="#reporting-issues">Reporting Issues</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#static-analysis">Static Analysis</a></p></li>
+<li><p><a class="reference internal" href="#submitting-code-changes">Submitting Code Changes</a></p></li>
+<li><p><a class="reference internal" href="#coding-standards">Coding Standards</a></p></li>
+<li><p><a class="reference internal" href="#code-quality-and-warnings">Code Quality and Warnings</a></p></li>
+<li><p><a class="reference internal" href="#testing">Testing</a></p>
+<ul>
+<li><p><a class="reference internal" href="#testing-with-assertions">Testing with Assertions</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#documentation">Documentation</a></p></li>
+<li><p><a class="reference internal" href="#license">License</a></p></li>
+<li><p><a class="reference internal" href="#contact">Contact</a></p></li>
+<li><p><a class="reference internal" href="#security-vulnerability-reporting">Security Vulnerability Reporting</a></p></li>
+<li><p><a class="reference internal" href="#code-of-conduct">Code of Conduct</a></p></li>
+<li><p><a class="reference internal" href="#development-setup">Development Setup</a></p></li>
+<li><p><a class="reference internal" href="#pull-request-process">Pull Request Process</a></p></li>
+<li><p><a class="reference internal" href="#continuous-integration">Continuous Integration</a></p></li>
+<li><p><a class="reference internal" href="#dynamic-analysis">Dynamic Analysis</a></p>
+<ul>
+<li><p><a class="reference internal" href="#property-based-testing-with-hypothesis">Property-Based Testing with Hypothesis</a></p></li>
+<li><p><a class="reference internal" href="#running-dynamic-analysis-tests">Running Dynamic Analysis Tests</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#release-process">Release Process</a></p></li>
+</ul>
+</section>
+<section id="how-to-contribute">
+<h2>How to Contribute<a class="headerlink" href="#how-to-contribute" title="Link to this heading">¶</a></h2>
+<section id="reporting-issues">
+<h3>Reporting Issues<a class="headerlink" href="#reporting-issues" title="Link to this heading">¶</a></h3>
+<p>Before opening a new issue:</p>
+<ul class="simple">
+<li><p>Search the issue tracker to verify the issue hasn’t already been reported</p></li>
+<li><p>Use our issue templates where available for bugs, features, or documentation</p></li>
+<li><p>Provide a clear and descriptive title</p></li>
+<li><p>Include detailed information:</p>
+<ul>
+<li><p>Steps to reproduce the issue</p></li>
+<li><p>Expected behavior vs. actual behavior</p></li>
+<li><p>Environment details (OS, Python version, etc.)</p></li>
+<li><p>Relevant logs, screenshots, or error messages</p></li>
+</ul>
+</li>
+<li><p>Tag the issue appropriately (bug, enhancement, documentation, etc.)</p></li>
+</ul>
+</section>
+</section>
+<section id="static-analysis">
+<h2>Static Analysis<a class="headerlink" href="#static-analysis" title="Link to this heading">¶</a></h2>
+<p>Before major releases, all code undergoes static analysis using multiple tools:</p>
+<ul class="simple">
+<li><p><strong>pylint</strong>: General code quality and adherence to PEP 8</p>
+<ul>
+<li><p>Configured with strict settings (9.0+ score required)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">poetry</span> <span class="pre">run</span> <span class="pre">pylint</span> <span class="pre">src/fedfred/</span></code></p></li>
+</ul>
+</li>
+<li><p><strong>mypy</strong>: Static type checking</p>
+<ul>
+<li><p>Configured with strict type checking rules</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">poetry</span> <span class="pre">run</span> <span class="pre">mypy</span> <span class="pre">src/fedfred/</span></code></p></li>
+</ul>
+</li>
+<li><p><strong>bandit</strong>: Security-focused static analysis</p>
+<ul>
+<li><p>Identifies common security issues in Python code</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">poetry</span> <span class="pre">run</span> <span class="pre">bandit</span> <span class="pre">-r</span> <span class="pre">src/fedfred/</span></code></p></li>
+</ul>
+</li>
+</ul>
+<p>These checks are automated through:</p>
+<ul class="simple">
+<li><p>Pre-commit hooks (for developers)</p></li>
+<li><p>GitHub Actions workflows (for all PRs and releases)</p></li>
+<li><p>Required status checks (PRs cannot be merged if static analysis fails)</p></li>
+</ul>
+<p>All identified issues must be addressed before release, either by fixing the code or documenting exceptions with clear justifications.</p>
+<section id="submitting-code-changes">
+<h3>Submitting Code Changes<a class="headerlink" href="#submitting-code-changes" title="Link to this heading">¶</a></h3>
+<p>Follow these steps when contributing code:</p>
+<ol class="arabic simple">
+<li><p><strong>Fork the Repository</strong></p>
+<ul class="simple">
+<li><p>Create your own fork of the repository on GitHub</p></li>
+<li><p>Clone your fork locally</p></li>
+</ul>
+</li>
+<li><p><strong>Create a Branch</strong></p>
+<ul class="simple">
+<li><p>Create a new branch from <code class="docutils literal notranslate"><span class="pre">main</span></code> with a descriptive name</p></li>
+<li><p>Use a prefix like <code class="docutils literal notranslate"><span class="pre">feature/</span></code>, <code class="docutils literal notranslate"><span class="pre">fix/</span></code>, or <code class="docutils literal notranslate"><span class="pre">docs/</span></code> (e.g., <code class="docutils literal notranslate"><span class="pre">feature/add-logging</span></code>)</p></li>
+</ul>
+</li>
+<li><p><strong>Make Your Changes</strong></p>
+<ul class="simple">
+<li><p>Follow the coding standards outlined below</p></li>
+<li><p>Write clear commit messages explaining your changes</p></li>
+<li><p>Keep commits focused and logical</p></li>
+</ul>
+</li>
+<li><p><strong>Submit a Pull Request</strong></p>
+<ul class="simple">
+<li><p>Ensure all tests pass locally</p></li>
+<li><p>Create a PR against the <code class="docutils literal notranslate"><span class="pre">main</span></code> branch</p></li>
+<li><p>Use the PR template to describe your changes</p></li>
+<li><p>Reference related issues (e.g., “Fixes #42”)</p></li>
+<li><p>Keep PRs focused on a single objective</p></li>
+</ul>
+</li>
+</ol>
+</section>
+<section id="coding-standards">
+<h3>Coding Standards<a class="headerlink" href="#coding-standards" title="Link to this heading">¶</a></h3>
+<p>All code must adhere to these standards:</p>
+<ul class="simple">
+<li><p>Follow <a class="reference external" href="https://peps.python.org/pep-0008/">PEP 8</a> coding style guidelines</p></li>
+<li><p>Use <a class="reference external" href="https://peps.python.org/pep-0484/">type hints</a> for all function parameters and return values</p></li>
+<li><p>Write <a class="reference external" href="https://peps.python.org/pep-0257/">PEP 257</a> compliant docstrings</p>
+<ul>
+<li><p>Include parameter descriptions, return values, and examples</p></li>
+<li><p>Document exceptions raised</p></li>
+</ul>
+</li>
+<li><p>Use meaningful variable and function names that describe their purpose</p></li>
+<li><p>Keep functions focused and concise (aim for &lt; 50 lines per function)</p></li>
+<li><p>Avoid unnecessary complexity and nested code blocks</p></li>
+<li><p>Include comments for complex logic or non-obvious behavior</p></li>
+</ul>
+</section>
+<section id="code-quality-and-warnings">
+<h3>Code Quality and Warnings<a class="headerlink" href="#code-quality-and-warnings" title="Link to this heading">¶</a></h3>
+<p>We strive to maintain a codebase with minimal linting warnings:</p>
+<ul class="simple">
+<li><p>All new code should pass pylint, mypy, and bandit checks without warnings</p></li>
+<li><p>Existing warnings are being addressed incrementally</p></li>
+<li><p>False positive warnings must be explicitly suppressed with a comment explaining why</p></li>
+<li><p>We use the strict settings for all linters:</p>
+<ul>
+<li><p>Pylint: 9.0+ score required</p></li>
+<li><p>Mypy: Strict type checking with most error flags enabled</p></li>
+<li><p>Bandit: All security checks enabled</p></li>
+</ul>
+</li>
+</ul>
+<p>Run the following to check for warnings before submitting a PR:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>poetry<span class="w"> </span>run<span class="w"> </span>pylint<span class="w"> </span>src/fedfred/
+poetry<span class="w"> </span>run<span class="w"> </span>mypy<span class="w"> </span>src/fedfred/
+poetry<span class="w"> </span>run<span class="w"> </span>bandit<span class="w"> </span>-r<span class="w"> </span>src/fedfred/
+</pre></div>
+</div>
+</section>
+<section id="testing">
+<h3>Testing<a class="headerlink" href="#testing" title="Link to this heading">¶</a></h3>
+<p>We take testing seriously to maintain code quality:</p>
+<ul>
+<li><p><strong>Test Policy</strong>: All new functionality must be accompanied by appropriate tests in the automated test suite</p></li>
+<li><p>Write tests for all new functionality and bug fixes</p></li>
+<li><p>Aim for high test coverage (minimum 80%)</p></li>
+<li><p>Test structure:</p>
+<ul class="simple">
+<li><p>Unit tests for individual functions</p></li>
+<li><p>Integration tests for component interactions</p></li>
+<li><p>End-to-end tests for complete workflows</p></li>
+</ul>
+</li>
+<li><p>Run the full test suite before submitting:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>poetry<span class="w"> </span>run<span class="w"> </span>pytest<span class="w"> </span>tests/
+</pre></div>
+</div>
+</li>
+<li><p>Include edge cases and error conditions in your tests</p></li>
+<li><p>PRs without adequate test coverage will not be merged</p></li>
+</ul>
+<p>When adding tests:</p>
+<ul class="simple">
+<li><p>Place tests in the <code class="docutils literal notranslate"><span class="pre">tests/</span></code> directory</p></li>
+<li><p>Name test files with a <code class="docutils literal notranslate"><span class="pre">test_</span></code> prefix</p></li>
+<li><p>Follow the existing test patterns</p></li>
+<li><p>Test both success and error conditions</p></li>
+<li><p>Include comments explaining complex test scenarios</p></li>
+</ul>
+<section id="testing-with-assertions">
+<h4>Testing with Assertions<a class="headerlink" href="#testing-with-assertions" title="Link to this heading">¶</a></h4>
+<p>We use Python assertions extensively in our testing suite to verify assumptions and catch edge cases:</p>
+<ul class="simple">
+<li><p><strong>Development and testing</strong>: Assertions are enabled by default</p></li>
+<li><p><strong>Production</strong>: Users may run with the <code class="docutils literal notranslate"><span class="pre">-O</span></code> flag to disable assertions for performance</p></li>
+</ul>
+<p>When writing tests, include assertions to validate:</p>
+<ul class="simple">
+<li><p>Input validation logic</p></li>
+<li><p>Expected data transformations</p></li>
+<li><p>Error handling</p></li>
+<li><p>Edge case behavior</p></li>
+</ul>
+<p>Run tests with assertions explicitly enabled:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Run with assertions explicitly enabled (default)</span>
+python<span class="w"> </span>-B<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/
+
+<span class="c1"># To simulate production environment (assertions disabled)</span>
+python<span class="w"> </span>-O<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/
+</pre></div>
+</div>
+</section>
+</section>
+<section id="documentation">
+<h3>Documentation<a class="headerlink" href="#documentation" title="Link to this heading">¶</a></h3>
+<p>Good documentation is essential:</p>
+<ul class="simple">
+<li><p>Update relevant documentation when modifying code</p></li>
+<li><p>Document all public APIs, classes, and functions</p></li>
+<li><p>Include examples for non-trivial functionality</p></li>
+<li><p>Use clear and concise language</p></li>
+<li><p>For README and other markdown files:</p>
+<ul>
+<li><p>Follow consistent heading hierarchy</p></li>
+<li><p>Include appropriate links and references</p></li>
+<li><p>Use code blocks with language specification</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="license">
+<h3>License<a class="headerlink" href="#license" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>By contributing to FedFred, you agree that your contributions will be licensed under the same license as the project (GNU Affero General Public License v3.0).</p></li>
+</ul>
+</section>
+<section id="contact">
+<h3>Contact<a class="headerlink" href="#contact" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>If you have any questions, feel free to open a discussion or reach out via GitHub Issues.</p></li>
+</ul>
+</section>
+<section id="security-vulnerability-reporting">
+<h3>Security Vulnerability Reporting<a class="headerlink" href="#security-vulnerability-reporting" title="Link to this heading">¶</a></h3>
+<p>We take security vulnerabilities seriously. Please do not report security vulnerabilities through public GitHub issues.</p>
+<p>Instead:</p>
+<ul class="simple">
+<li><p>Email <a class="reference external" href="mailto:nsunder724&#37;&#52;&#48;gmail&#46;com">nsunder724<span>&#64;</span>gmail<span>&#46;</span>com</a> directly</p></li>
+<li><p>Provide a detailed description of the vulnerability</p></li>
+<li><p>Include steps to reproduce if possible</p></li>
+<li><p>Allow time for us to address the vulnerability before public disclosure</p></li>
+</ul>
+<p>We will acknowledge receipt within 48 hours and provide a more detailed response within 72 hours, including next steps and timeline for resolution.</p>
+</section>
+<section id="code-of-conduct">
+<h3>Code of Conduct<a class="headerlink" href="#code-of-conduct" title="Link to this heading">¶</a></h3>
+<p>This project adheres to our <a class="reference external" href="https://github.com/nikhilxsunder/fedfred/blob/main/CODE_OF_CONDUCT.md">CODE_OF_CONDUCT</a>. By participating, you are expected to uphold this code. Please report unacceptable behavior to <a class="reference external" href="mailto:nsunder724&#37;&#52;&#48;gmail&#46;com">nsunder724<span>&#64;</span>gmail<span>&#46;</span>com</a>.</p>
+</section>
+<section id="development-setup">
+<h3>Development Setup<a class="headerlink" href="#development-setup" title="Link to this heading">¶</a></h3>
+<p>To set up your development environment:</p>
+<ol class="arabic">
+<li><p><strong>Prerequisites</strong></p>
+<ul class="simple">
+<li><p>Python 3.9+</p></li>
+<li><p>Poetry (for dependency management)</p></li>
+<li><p>Git</p></li>
+</ul>
+</li>
+<li><p><strong>Installation</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Clone the repository</span>
+git<span class="w"> </span>clone<span class="w"> </span>https://github.com/nikhilxsunder/fedfred.git
+<span class="nb">cd</span><span class="w"> </span>fedfred
+
+<span class="c1"># Install dependencies</span>
+poetry<span class="w"> </span>install
+
+<span class="c1"># Set up pre-commit hooks</span>
+poetry<span class="w"> </span>run<span class="w"> </span>pre-commit<span class="w"> </span>install
+</pre></div>
+</div>
+</li>
+<li><p><strong>Environment Configuration</strong></p>
+<ul class="simple">
+<li><p>Create a <code class="docutils literal notranslate"><span class="pre">.env</span></code> file based on <code class="docutils literal notranslate"><span class="pre">.env.example</span></code> if needed</p></li>
+<li><p>Configure any necessary environment variables</p></li>
+</ul>
+</li>
+</ol>
+</section>
+<section id="pull-request-process">
+<h3>Pull Request Process<a class="headerlink" href="#pull-request-process" title="Link to this heading">¶</a></h3>
+<ol class="arabic simple">
+<li><p><strong>Submission</strong></p>
+<ul class="simple">
+<li><p>Create a PR against the <code class="docutils literal notranslate"><span class="pre">main</span></code> branch</p></li>
+<li><p>Fill out the PR template completely</p></li>
+<li><p>Link any related issues</p></li>
+</ul>
+</li>
+<li><p><strong>Review Process</strong></p>
+<ul class="simple">
+<li><p>At least one maintainer will review your PR</p></li>
+<li><p>Expect initial feedback within 1-2 weeks</p></li>
+<li><p>Address any requested changes and push updates</p></li>
+<li><p>Once approved, a maintainer will merge your PR</p></li>
+</ul>
+</li>
+<li><p><strong>After Merging</strong></p>
+<ul class="simple">
+<li><p>Your contribution will be included in the next release</p></li>
+<li><p>You’ll be added to the contributors list (if not already there)</p></li>
+</ul>
+</li>
+</ol>
+</section>
+<section id="continuous-integration">
+<h3>Continuous Integration<a class="headerlink" href="#continuous-integration" title="Link to this heading">¶</a></h3>
+<p>Static code analysis is performed automatically:</p>
+<ul class="simple">
+<li><p><strong>On every commit</strong>: Pre-commit hooks run locally for developers</p></li>
+<li><p><strong>On every push and PR</strong>: GitHub Actions workflows run all static analysis tools</p></li>
+<li><p><strong>Daily scheduled runs</strong>: Automated analysis runs daily to catch issues with dependencies</p></li>
+<li><p><strong>Before releases</strong>: Full comprehensive analysis with stricter settings</p></li>
+</ul>
+<p>This ensures code quality issues are caught early and consistently throughout the development process.</p>
+<p>All PRs are automatically tested with:</p>
+<ul class="simple">
+<li><p>Unit and integration tests (pytest)</p></li>
+<li><p>Code style checks (pylint)</p></li>
+<li><p>Type checking (mypy)</p></li>
+<li><p>Test coverage (<a class="reference external" href="http://coverage.py">coverage.py</a>)</p></li>
+</ul>
+<p>CI checks must pass before a PR can be merged. You can run these checks locally:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Lint code</span>
+poetry<span class="w"> </span>run<span class="w"> </span>pylint
+
+<span class="c1"># Type check</span>
+poetry<span class="w"> </span>run<span class="w"> </span>mypy<span class="w"> </span>.
+
+<span class="c1"># Run tests with coverage</span>
+poetry<span class="w"> </span>run<span class="w"> </span>pytest<span class="w"> </span>--cov<span class="o">=</span>fedfred<span class="w"> </span>tests/
+</pre></div>
+</div>
+</section>
+<section id="dynamic-analysis">
+<h3>Dynamic Analysis<a class="headerlink" href="#dynamic-analysis" title="Link to this heading">¶</a></h3>
+<p>Before major releases, we perform dynamic analysis to verify robustness:</p>
+<section id="property-based-testing-with-hypothesis">
+<h4>Property-Based Testing with Hypothesis<a class="headerlink" href="#property-based-testing-with-hypothesis" title="Link to this heading">¶</a></h4>
+<p>FedFred uses <a class="reference external" href="https://hypothesis.readthedocs.io/">Hypothesis</a>, a powerful property-based testing tool that automatically generates test cases to find edge cases in our code.</p>
+<p>Property-based testing differs from traditional unit testing:</p>
+<ul class="simple">
+<li><p><strong>Unit tests</strong>: Test specific inputs and expected outputs</p></li>
+<li><p><strong>Property-based tests</strong>: Define properties that should always hold true regardless of input</p></li>
+</ul>
+<p>Our property-based tests:</p>
+<ul class="simple">
+<li><p>Generate thousands of diverse inputs automatically</p></li>
+<li><p>Test boundary conditions and edge cases</p></li>
+<li><p>Explore combinations of parameters that manual tests might miss</p></li>
+<li><p>Automatically shrink failing examples to minimal reproducible cases</p></li>
+</ul>
+</section>
+<section id="running-dynamic-analysis-tests">
+<h4>Running Dynamic Analysis Tests<a class="headerlink" href="#running-dynamic-analysis-tests" title="Link to this heading">¶</a></h4>
+<p>To run property-based tests locally:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Install hypothesis</span>
+poetry<span class="w"> </span>add<span class="w"> </span>--group<span class="w"> </span>dev<span class="w"> </span>hypothesis
+
+<span class="c1"># Run property-based tests with assertions enabled (default)</span>
+python<span class="w"> </span>-B<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/test_property_based.py<span class="w"> </span>-v
+
+<span class="c1"># Show detailed statistics from hypothesis tests</span>
+python<span class="w"> </span>-B<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/test_property_based.py<span class="w"> </span>-v<span class="w"> </span>--hypothesis-show-statistics
+
+<span class="c1"># Run with coverage measurement</span>
+python<span class="w"> </span>-B<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/test_property_based.py<span class="w"> </span>--cov<span class="o">=</span>fedfred
+</pre></div>
+</div>
+</section>
+</section>
+<section id="release-process">
+<h3>Release Process<a class="headerlink" href="#release-process" title="Link to this heading">¶</a></h3>
+<p>FedFred follows <a class="reference external" href="https://semver.org/">Semantic Versioning</a>:</p>
+<ul class="simple">
+<li><p><strong>MAJOR</strong> version for incompatible API changes</p></li>
+<li><p><strong>MINOR</strong> version for new functionality in a backward-compatible manner</p></li>
+<li><p><strong>PATCH</strong> version for backward-compatible bug fixes</p></li>
+<li><p><strong>MAJOR.MINOR.PATCH</strong></p></li>
+</ul>
+<p>Release Procedure:</p>
+<ol class="arabic simple">
+<li><p>Create a PR with version bump and CHANGELOG updates</p></li>
+<li><p>Label the PR as “release-candidate” to trigger dynamic analysis</p></li>
+<li><p>Review test results including property-based tests</p></li>
+<li><p>After merging, tag the release and publish to PyPI</p></li>
+</ol>
+</section>
+</section>
 </section>
 
         </article>
@@ -329,15 +739,62 @@
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Contributing to FedFred</a><ul>
+<li><a class="reference internal" href="#table-of-contents">Table of Contents</a></li>
+<li><a class="reference internal" href="#how-to-contribute">How to Contribute</a><ul>
+<li><a class="reference internal" href="#reporting-issues">Reporting Issues</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#static-analysis">Static Analysis</a><ul>
+<li><a class="reference internal" href="#submitting-code-changes">Submitting Code Changes</a></li>
+<li><a class="reference internal" href="#coding-standards">Coding Standards</a></li>
+<li><a class="reference internal" href="#code-quality-and-warnings">Code Quality and Warnings</a></li>
+<li><a class="reference internal" href="#testing">Testing</a><ul>
+<li><a class="reference internal" href="#testing-with-assertions">Testing with Assertions</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#documentation">Documentation</a></li>
+<li><a class="reference internal" href="#license">License</a></li>
+<li><a class="reference internal" href="#contact">Contact</a></li>
+<li><a class="reference internal" href="#security-vulnerability-reporting">Security Vulnerability Reporting</a></li>
+<li><a class="reference internal" href="#code-of-conduct">Code of Conduct</a></li>
+<li><a class="reference internal" href="#development-setup">Development Setup</a></li>
+<li><a class="reference internal" href="#pull-request-process">Pull Request Process</a></li>
+<li><a class="reference internal" href="#continuous-integration">Continuous Integration</a></li>
+<li><a class="reference internal" href="#dynamic-analysis">Dynamic Analysis</a><ul>
+<li><a class="reference internal" href="#property-based-testing-with-hypothesis">Property-Based Testing with Hypothesis</a></li>
+<li><a class="reference internal" href="#running-dynamic-analysis-tests">Running Dynamic Analysis Tests</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#release-process">Release Process</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>
   </div>
-</div><script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-    <script src="_static/doctools.js"></script>
-    <script src="_static/sphinx_highlight.js"></script>
-    <script src="_static/scripts/furo.js"></script>
+</div><script src="_static/documentation_options.js?v=f5df12a8"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/scripts/furo.js?v=5fa4622c"></script>
     </body>
 </html>

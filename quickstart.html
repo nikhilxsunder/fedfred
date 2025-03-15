@@ -1,15 +1,24 @@
 <!doctype html>
-<html class="no-js" lang="en" data-content_root="">
+<html class="no-js" lang="en" data-content_root="./">
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
-    <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
-<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="Usage Examples" href="examples/index.html" /><link rel="prev" title="Installation" href="installation.html" />
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <link rel="shortcut icon" href="_static/fedfred_favicon.ico"/><!-- Generated with Sphinx 6.2.1 and Furo 2024.08.06 -->
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-Q7LK34R0CV"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-Q7LK34R0CV');
+    </script>
+    <link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="Usage Examples" href="examples/index.html" /><link rel="prev" title="Installation" href="installation.html" />
+
+    <link rel="shortcut icon" href="_static/fedfred_favicon.ico"/><!-- Generated with Sphinx 7.4.7 and Furo 2024.08.06 -->
         <title>Quick Start Guide - fedfred</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?digest=04c057b233f3c8d71940eee6080f658a04e2027d" />
-    <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?digest=cf727022eb7470bc603c08d2e55c3247faec75c9" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=354aac6f" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=302659d7" />
     
     
 
@@ -225,7 +234,7 @@
 <li class="toctree-l2"><a class="reference internal" href="api/data_classes.html">Data Classes</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to FedFred</a></li>
 <li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
 <li class="toctree-l1"><a class="reference internal" href="code_of_conduct.html">Code of Conduct</a></li>
 <li class="toctree-l1"><a class="reference internal" href="security.html">Security Policy</a></li>
@@ -271,13 +280,13 @@
         </div>
         <article role="main" id="furo-main-content">
           <section id="quick-start-guide">
-<h1>Quick Start Guide<a class="headerlink" href="#quick-start-guide" title="Permalink to this heading">¶</a></h1>
+<h1>Quick Start Guide<a class="headerlink" href="#quick-start-guide" title="Link to this heading">¶</a></h1>
 <section id="getting-started">
-<h2>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this heading">¶</a></h2>
+<h2>Getting Started<a class="headerlink" href="#getting-started" title="Link to this heading">¶</a></h2>
 <p>First, obtain a FRED API key from <a class="reference external" href="https://fred.stlouisfed.org/docs/api/api_key.html">https://fred.stlouisfed.org/docs/api/api_key.html</a>.</p>
 </section>
 <section id="basic-usage">
-<h2>Basic Usage<a class="headerlink" href="#basic-usage" title="Permalink to this heading">¶</a></h2>
+<h2>Basic Usage<a class="headerlink" href="#basic-usage" title="Link to this heading">¶</a></h2>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">fedfred</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">fd</span>
 
 <span class="c1"># Initialize the API client</span>
@@ -292,7 +301,7 @@
 </div>
 </section>
 <section id="async-usage">
-<h2>Async Usage<a class="headerlink" href="#async-usage" title="Permalink to this heading">¶</a></h2>
+<h2>Async Usage<a class="headerlink" href="#async-usage" title="Link to this heading">¶</a></h2>
 <p>FedFred provides native support for asynchronous requests, allowing you to efficiently fetch data in an asynchronous environment.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">fedfred</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">fd</span>
@@ -325,7 +334,7 @@
 </div>
 </section>
 <section id="working-with-data">
-<h2>Working with Data<a class="headerlink" href="#working-with-data" title="Permalink to this heading">¶</a></h2>
+<h2>Working with Data<a class="headerlink" href="#working-with-data" title="Link to this heading">¶</a></h2>
 <p>FedFred supports both pandas and polars DataFrames:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Pandas DataFrame (default)</span>
 <span class="n">gdp_pandas</span> <span class="o">=</span> <span class="n">fred</span><span class="o">.</span><span class="n">get_series_observations</span><span class="p">(</span><span class="s2">&quot;GDPC1&quot;</span><span class="p">)</span>
@@ -354,7 +363,7 @@
 </div>
 </section>
 <section id="searching-for-series">
-<h2>Searching for Series<a class="headerlink" href="#searching-for-series" title="Permalink to this heading">¶</a></h2>
+<h2>Searching for Series<a class="headerlink" href="#searching-for-series" title="Link to this heading">¶</a></h2>
 <p>Find series by searching with keywords:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Search for unemployment series</span>
 <span class="n">unemployment_series</span> <span class="o">=</span> <span class="n">fred</span><span class="o">.</span><span class="n">get_series_search</span><span class="p">(</span><span class="s2">&quot;unemployment rate&quot;</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
@@ -368,7 +377,7 @@
 </div>
 </section>
 <section id="categories-and-tags">
-<h2>Categories and Tags<a class="headerlink" href="#categories-and-tags" title="Permalink to this heading">¶</a></h2>
+<h2>Categories and Tags<a class="headerlink" href="#categories-and-tags" title="Link to this heading">¶</a></h2>
 <p>Browse and explore the FRED data hierarchy:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Get top-level categories</span>
 <span class="n">categories</span> <span class="o">=</span> <span class="n">fred</span><span class="o">.</span><span class="n">get_category_children</span><span class="p">(</span><span class="n">category_id</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
@@ -382,7 +391,7 @@
 </div>
 </section>
 <section id="caching-and-rate-limits">
-<h2>Caching and Rate Limits<a class="headerlink" href="#caching-and-rate-limits" title="Permalink to this heading">¶</a></h2>
+<h2>Caching and Rate Limits<a class="headerlink" href="#caching-and-rate-limits" title="Link to this heading">¶</a></h2>
 <p>Enable caching to improve performance and manage API rate limits:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Initialize client with caching enabled</span>
 <span class="n">fred</span> <span class="o">=</span> <span class="n">fd</span><span class="o">.</span><span class="n">FredAPI</span><span class="p">(</span>
@@ -396,7 +405,7 @@
 </div>
 </section>
 <section id="geographic-data-with-fredmapsapi">
-<h2>Geographic Data with FredMapsAPI<a class="headerlink" href="#geographic-data-with-fredmapsapi" title="Permalink to this heading">¶</a></h2>
+<h2>Geographic Data with FredMapsAPI<a class="headerlink" href="#geographic-data-with-fredmapsapi" title="Link to this heading">¶</a></h2>
 <p>Access geographic economic data using the FredMapsAPI:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Initialize the maps API client</span>
 <span class="n">fred_maps</span> <span class="o">=</span> <span class="n">fd</span><span class="o">.</span><span class="n">FredMapsAPI</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="s2">&quot;your_api_key_here&quot;</span><span class="p">)</span>
@@ -416,7 +425,7 @@
 </div>
 </section>
 <section id="common-economic-indicators">
-<h2>Common Economic Indicators<a class="headerlink" href="#common-economic-indicators" title="Permalink to this heading">¶</a></h2>
+<h2>Common Economic Indicators<a class="headerlink" href="#common-economic-indicators" title="Link to this heading">¶</a></h2>
 <p>Quick access to key economic indicators:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Real GDP (quarterly, seasonally adjusted)</span>
 <span class="n">gdp</span> <span class="o">=</span> <span class="n">fred</span><span class="o">.</span><span class="n">get_series_observations</span><span class="p">(</span><span class="s2">&quot;GDPC1&quot;</span><span class="p">)</span>
@@ -525,9 +534,9 @@
       
     </aside>
   </div>
-</div><script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-    <script src="_static/doctools.js"></script>
-    <script src="_static/sphinx_highlight.js"></script>
-    <script src="_static/scripts/furo.js"></script>
+</div><script src="_static/documentation_options.js?v=f5df12a8"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/scripts/furo.js?v=5fa4622c"></script>
     </body>
 </html>
