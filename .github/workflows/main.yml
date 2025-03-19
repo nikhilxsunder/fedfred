@@ -1,6 +1,18 @@
 name: Python Packaging
 
-on: push
+on:
+  push:
+  workflow_dispatch:
+    inputs:
+      release_version:
+        description: "Version to release (e.g., 1.2.3)"
+        required: false
+        type: string
+      publish_to_pypi:
+        description: "Publish to PyPI"
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   build:
@@ -48,6 +60,11 @@ jobs:
       id-token: write
 
     steps:
+      # Checkout the code to get the pyproject.toml file
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
       - name: Download all the dists
         uses: actions/download-artifact@v4
         with:
@@ -69,7 +86,7 @@ jobs:
           POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI_API_TOKEN }}
         run: |
           poetry config pypi-token.pypi $POETRY_PYPI_TOKEN_PYPI
-          poetry publish --no-interaction
+          poetry publish --no-interaction --no-build
 
   github-release:
     name: >-
