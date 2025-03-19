@@ -31,7 +31,7 @@ jobs:
       - name: Run pylint (Linting)
         continue-on-error: true
         run: |
-          poetry run pylint src/fedfred/ --fail-under=7.0
+          poetry run pylint --ignore="*.pyi" src/fedfred/ --fail-under=7.0
 
       - name: Run mypy (Type Checking)
         continue-on-error: true

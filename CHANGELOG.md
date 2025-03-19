@@ -13,6 +13,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [fedfred_property_based_test.py](https://github.com/nikhilxsunder/fedfred/blob/main/tests/fedfred_property_based_test.py)
 - [fred_data_property_based_test.py](https://github.com/nikhilxsunder/fedfred/blob/main/tests/fred_data_property_based_test.py)
 
+## [1.2.3] - 2025-03-19
+
+### Fixed
+
+- Minor workflow config patch
+
 ## [1.2.2] - 2025-03-19
 
 ### Added
@@ -25,7 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- \_test.py -> [fedfred_test.py](https://github.com/nikhilxsunder/fedfred/blob/main/tests/fedfred_test.py)
+- "\_test.py" -> [fedfred_test.py](https://github.com/nikhilxsunder/fedfred/blob/main/tests/fedfred_test.py)
 - [main.yml](https://github.com/nikhilxsunder/fedfred/blob/main/.github/workflows/main.yml) publishing backend
 - [pre-commit-config.yaml](https://github.com/nikhilxsunder/fedfred/blob/main/pre-commit-config.yaml)
 - [poetry.lock](https://github.com/nikhilxsunder/fedfred/blob/main/poetry.lock)
@@ -354,7 +360,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - initial directory structure
 - setuptools for build backend
 
-[Unreleased]: https://github.com/nikhilxsunder/fedfred/compare/v1.2.2...HEAD
+[Unreleased]: https://github.com/nikhilxsunder/fedfred/compare/v1.2.3...HEAD
+[1.2.3]: https://github.com/nikhilxsunder/fedfred/compare/v1.2.2...v1.2.3
 [1.2.2]: https://github.com/nikhilxsunder/fedfred/compare/v1.2.1...v1.2.2
 [1.2.1]: https://github.com/nikhilxsunder/fedfred/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/nikhilxsunder/fedfred/compare/v1.1.0...v1.2.0
