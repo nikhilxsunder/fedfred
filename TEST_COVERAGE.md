@@ -16,22 +16,9 @@ configfile: pyproject.toml
 plugins: asyncio-0.15.1, hypothesis-6.129.4, cov-6.0.0, anyio-4.9.0, mock-3.14.0
 collected 71 items
 
-tests/fedfred_test.py ...............................sssssssssssssssssss [ 70%]
-ssssssssssss                                                             [ 87%]
+tests/fedfred_test.py .................................................. [ 70%]
+............                                                             [ 87%]
 tests/fred_data_test.py .........                                        [100%]
-
-=============================== warnings summary ===============================
-tests/fedfred_test.py: 31 warnings
-  /home/runner/.cache/pypoetry/virtualenvs/fedfred-zTCfcE3D-py3.10/lib/python3.10/site-packages/_pytest/python.py:148: PytestUnhandledCoroutineWarning: async def functions are not natively supported and have been skipped.
-  You need to install a suitable plugin for your async framework, for example:
-    - anyio
-    - pytest-asyncio
-    - pytest-tornasync
-    - pytest-trio
-    - pytest-twisted
-    warnings.warn(PytestUnhandledCoroutineWarning(msg.format(nodeid)))
-
--- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
 
 ---------- coverage: platform linux, python 3.10.16-final-0 ----------
 Name                       Stmts   Miss  Cover
@@ -42,7 +29,8 @@ src/fedfred/fred_data.py     184     17    91%
 ----------------------------------------------
 TOTAL                       1695   1016    40%
 
-================= 40 passed, 31 skipped, 31 warnings in 3.51s ==================
+
+============================== 71 passed in 3.78s ==============================
 ```
 
 ## Running Test Coverage Locally
