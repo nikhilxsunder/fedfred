@@ -1,7 +1,9 @@
-name: Python Packaging
+name: Build, Publish and Sign Release
 
 on:
   push:
+    tags:
+      - "v*"
   workflow_dispatch:
     inputs:
       release_version:
@@ -87,10 +89,9 @@ jobs:
           poetry config pypi-token.pypi $POETRY_PYPI_TOKEN_PYPI
           poetry publish --no-interaction
 
-  github-release:
+  sign-and-release:
     name: >-
-      Sign the Python distribution with Sigstore
-      and upload them to GitHub Release
+      Sign and publish GitHub Release
     if: startsWith(github.ref, 'refs/tags/') || (github.event_name == 'workflow_dispatch' && github.event.inputs.publish_to_pypi == 'true')
     needs:
       - publish-to-pypi
@@ -101,12 +102,15 @@ jobs:
       id-token: write
 
     steps:
+      - uses: actions/checkout@v4
+
       - name: Download all the dists
         uses: actions/download-artifact@v4
         with:
           name: python-package-distributions
           path: dist/
 
+      # Sigstore signing (from main.yml)
       - name: Sign the dists with Sigstore
         uses: sigstore/gh-action-sigstore-python@v3.0.0
         with:
@@ -114,20 +118,43 @@ jobs:
             ./dist/*.tar.gz
             ./dist/*.whl
 
-      - name: Create and publish GitHub Release
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        run: >-
-          gh release create
-          "${{ github.event.inputs.release_version || github.ref_name }}"
-          --repo "$GITHUB_REPOSITORY"
-          --notes ""
-          --publish
+      # GPG signing (from sign-release.yml)
+      - name: Import GPG key
+        uses: crazy-max/ghaction-import-gpg@v5
+        with:
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.GPG_PASSPHRASE }}
 
-      - name: Upload artifact signatures to GitHub Release
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        run: >-
-          gh release upload
-          "${{ github.event.inputs.release_version || github.ref_name }}" dist/**
-          --repo "$GITHUB_REPOSITORY"
+      - name: GPG sign packages
+        run: |
+          echo "GPG signing distribution packages..."
+          for file in dist/*; do
+            echo "Signing $file"
+            gpg --detach-sign --armor "$file"
+          done
+          ls -la dist/
+
+      # Create Release
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.event.inputs.release_version || github.ref_name }}
+          name: Release ${{ github.event.inputs.release_version || github.ref_name }}
+          draft: false
+          prerelease: false
+          files: |
+            dist/*
+            dist/*.asc
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      # This step is just for verification and logging
+      - name: Verify GPG signatures
+        run: |
+          echo "Verifying GPG signatures..."
+          for asc in dist/*.asc; do
+            base_file="${asc%.asc}"
+            if [ -f "$base_file" ]; then
+              echo "Verifying signature for $base_file"
+              gpg --verify "$asc" "$base_file"
+            fi
+          done

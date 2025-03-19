@@ -13,6 +13,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [fedfred_property_based_test.py](https://github.com/nikhilxsunder/fedfred/blob/main/tests/fedfred_property_based_test.py)
 - [fred_data_property_based_test.py](https://github.com/nikhilxsunder/fedfred/blob/main/tests/fred_data_property_based_test.py)
 
+## [1.2.4] - 2025-03-19
+
+### Changed
+
+- "sign-release.yml" merged into [main.yml](https://github.com/nikhilxsunder/fedfred/blob/main/.github/workflows/main.yml)
+
+### Fixed
+
+- test coverage error due to missing async dependency
+
 ## [1.2.3] - 2025-03-19
 
 ### Fixed
@@ -360,7 +370,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - initial directory structure
 - setuptools for build backend
 
-[Unreleased]: https://github.com/nikhilxsunder/fedfred/compare/v1.2.3...HEAD
+[Unreleased]: https://github.com/nikhilxsunder/fedfred/compare/v1.2.4...HEAD
+[1.2.4]: https://github.com/nikhilxsunder/fedfred/compare/v1.2.3...v1.2.4
 [1.2.3]: https://github.com/nikhilxsunder/fedfred/compare/v1.2.2...v1.2.3
 [1.2.2]: https://github.com/nikhilxsunder/fedfred/compare/v1.2.1...v1.2.2
 [1.2.1]: https://github.com/nikhilxsunder/fedfred/compare/v1.2.0...v1.2.1

@@ -1448,6 +1448,7 @@ def test_get_tags_series(fred_api):
 #### add maps tests in next revision
 
 # Async tests fix in next revision
+@pytest.mark.asyncio
 async def test_get_category_async(fred_api):
     # Mock the API response
     mock_response = {
@@ -1477,7 +1478,7 @@ async def test_get_category_async(fred_api):
     with patch.object(fred_api, '_FredAPI__fred_get_request', return_value=mock_invalid_response):
         with pytest.raises(ValueError):
             fred_api.get_category(125)
-
+@pytest.mark.asyncio
 async def test_get_category_children_async(fred_api):
     # Mock the API response
     mock_response = {
@@ -1514,7 +1515,7 @@ async def test_get_category_children_async(fred_api):
     with patch.object(fred_api, '_FredAPI__fred_get_request', return_value=mock_invalid_response):
         with pytest.raises(ValueError):
             fred_api.get_category_children(125)
-
+@pytest.mark.asyncio
 async def test_get_category_related_async(fred_api):
     # Mock the API response
     mock_response = {
@@ -1551,7 +1552,7 @@ async def test_get_category_related_async(fred_api):
     with patch.object(fred_api, '_FredAPI__fred_get_request', return_value=mock_invalid_response):
         with pytest.raises(ValueError):
             fred_api.get_category_related(125)
-
+@pytest.mark.asyncio
 async def test_get_category_series_async(fred_api):
     # Mock the API response
     mock_response = {
@@ -1597,7 +1598,7 @@ async def test_get_category_series_async(fred_api):
     with patch.object(fred_api, '_FredAPI__fred_get_request', return_value=mock_invalid_response):
         with pytest.raises(ValueError):
             fred_api.get_category_series(125)
-
+@pytest.mark.asyncio
 async def test_get_category_tags_async(fred_api):
     # Mock the API response
     mock_response = {
@@ -1651,7 +1652,7 @@ async def test_get_category_tags_async(fred_api):
     with patch.object(fred_api, '_FredAPI__fred_get_request', return_value=mock_invalid_response):
         with pytest.raises(ValueError):
             fred_api.get_category_tags(125)
-
+@pytest.mark.asyncio
 async def test_get_category_related_tags_async(fred_api):
     # Mock the API response
     mock_response = {
@@ -1699,6 +1700,7 @@ async def test_get_category_related_tags_async(fred_api):
             fred_api.get_category_related_tags(125)
 
 # Releases tests
+@pytest.mark.asyncio
 async def test_get_releases_async(fred_api):
     # Mock the API response
     mock_response = {
@@ -1751,7 +1753,7 @@ async def test_get_releases_async(fred_api):
     with patch.object(fred_api, '_FredAPI__fred_get_request', return_value=mock_invalid_response):
         with pytest.raises(ValueError):
             fred_api.get_releases()
-
+@pytest.mark.asyncio
 async def test_get_releases_dates_async(fred_api):
     # Mock the API response
     mock_response = {
@@ -1788,7 +1790,7 @@ async def test_get_releases_dates_async(fred_api):
     with patch.object(fred_api, '_FredAPI__fred_get_request', return_value=mock_invalid_response):
         with pytest.raises(ValueError):
             fred_api.get_releases_dates()
-
+@pytest.mark.asyncio
 async def test_get_release_async(fred_api):
     # Mock the API response
     mock_response = {
@@ -1826,7 +1828,7 @@ async def test_get_release_async(fred_api):
     with patch.object(fred_api, '_FredAPI__fred_get_request', return_value=mock_invalid_response):
         with pytest.raises(ValueError):
             fred_api.get_release(1)
-
+@pytest.mark.asyncio
 async def test_get_release_dates_async(fred_api):
     # Mock the API response
     mock_response = {
@@ -1863,7 +1865,7 @@ async def test_get_release_dates_async(fred_api):
     with patch.object(fred_api, '_FredAPI__fred_get_request', return_value=mock_invalid_response):
         with pytest.raises(ValueError):
             fred_api.get_release_dates(1)
-
+@pytest.mark.asyncio
 async def test_get_release_series_async(fred_api):
     # Mock the API response
     mock_response = {
@@ -1909,7 +1911,7 @@ async def test_get_release_series_async(fred_api):
     with patch.object(fred_api, '_FredAPI__fred_get_request', return_value=mock_invalid_response):
         with pytest.raises(ValueError):
             fred_api.get_release_series(1)
-
+@pytest.mark.asyncio
 async def test_get_release_sources_async(fred_api):
     # Mock the API response
     mock_response = {
@@ -1962,7 +1964,7 @@ async def test_get_release_sources_async(fred_api):
     with patch.object(fred_api, '_FredAPI__fred_get_request', return_value=mock_invalid_response):
         with pytest.raises(ValueError):
             fred_api.get_release_sources(1)
-
+@pytest.mark.asyncio
 async def test_get_release_tags_async(fred_api):
     # Mock the API response
     mock_response = {
@@ -2015,7 +2017,7 @@ async def test_get_release_tags_async(fred_api):
     with patch.object(fred_api, '_FredAPI__fred_get_request', return_value=mock_invalid_response):
         with pytest.raises(ValueError):
             fred_api.get_release_tags(1)
-
+@pytest.mark.asyncio
 async def test_get_release_related_tags_async(fred_api):
     # Mock the API response
     mock_response = {
@@ -2068,7 +2070,7 @@ async def test_get_release_related_tags_async(fred_api):
     with patch.object(fred_api, '_FredAPI__fred_get_request', return_value=mock_invalid_response):
         with pytest.raises(ValueError):
             fred_api.get_release_related_tags(1)
-
+@pytest.mark.asyncio
 async def test_get_release_tables_async(fred_api):
     # Mock the API response
     mock_response = {
@@ -2180,6 +2182,7 @@ async def test_get_release_tables_async(fred_api):
             fred_api.get_release_tables(1)
 
 # Series tests
+@pytest.mark.asyncio
 async def test_get_series_async(fred_api):
     # Mock the API response
     mock_response = {
@@ -2235,7 +2238,7 @@ async def test_get_series_async(fred_api):
     with patch.object(fred_api, '_FredAPI__fred_get_request', return_value=mock_invalid_response):
         with pytest.raises(ValueError):
             fred_api.get_series("GNPCA")
-
+@pytest.mark.asyncio
 async def test_get_series_categories_async(fred_api):
     # Mock the API response
     mock_response = {
@@ -2274,6 +2277,7 @@ async def test_get_series_categories_async(fred_api):
             fred_api.get_series_categories("GNPCA")
 
 # Pandas
+@pytest.mark.asyncio
 async def test_get_series_observations_pandas_async(fred_api):
     # Mock the API response
     mock_response = {
@@ -2313,7 +2317,7 @@ async def test_get_series_observations_pandas_async(fred_api):
             fred_api.get_series_observations("GNPCA")
 
 #### Add Polars method later
-
+@pytest.mark.asyncio
 async def test_get_series_release_async(fred_api):
     # Mock the API response
     mock_response = {
@@ -2351,7 +2355,7 @@ async def test_get_series_release_async(fred_api):
     with patch.object(fred_api, '_FredAPI__fred_get_request', return_value=mock_invalid_response):
         with pytest.raises(ValueError):
             fred_api.get_series_release("GNPCA")
-
+@pytest.mark.asyncio
 async def test_get_series_search_async(fred_api):
     # Mock the API response
     mock_response = {
@@ -2407,7 +2411,7 @@ async def test_get_series_search_async(fred_api):
     with patch.object(fred_api, '_FredAPI__fred_get_request', return_value=mock_invalid_response):
         with pytest.raises(ValueError):
             fred_api.get_series_search("Real Gross National Product")
-
+@pytest.mark.asyncio
 async def test_get_series_search_tags_async(fred_api):
     # Mock the API response
     mock_response = {
@@ -2453,7 +2457,7 @@ async def test_get_series_search_tags_async(fred_api):
     with patch.object(fred_api, '_FredAPI__fred_get_request', return_value=mock_invalid_response):
         with pytest.raises(ValueError):
             fred_api.get_series_search_tags("Real Gross National Product")
-
+@pytest.mark.asyncio
 async def test_get_series_search_related_tags_async(fred_api):
     # Mock the API response
     mock_response = {
@@ -2499,7 +2503,7 @@ async def test_get_series_search_related_tags_async(fred_api):
     with patch.object(fred_api, '_FredAPI__fred_get_request', return_value=mock_invalid_response):
         with pytest.raises(ValueError):
             fred_api.get_series_search_related_tags("Real Gross National Product")
-
+@pytest.mark.asyncio
 async def test_get_series_tags_async(fred_api):
     # Mock the API response
     mock_response = {
@@ -2545,7 +2549,7 @@ async def test_get_series_tags_async(fred_api):
     with patch.object(fred_api, '_FredAPI__fred_get_request', return_value=mock_invalid_response):
         with pytest.raises(ValueError):
             fred_api.get_series_tags("GNPCA")
-
+@pytest.mark.asyncio
 async def test_get_series_updates_async(fred_api):
     # Mock the API response
     mock_response = {
@@ -2593,7 +2597,7 @@ async def test_get_series_updates_async(fred_api):
     with patch.object(fred_api, '_FredAPI__fred_get_request', return_value=mock_invalid_response):
         with pytest.raises(ValueError):
             fred_api.get_series_updates()
-
+@pytest.mark.asyncio
 async def test_get_series_vintage_dates_async(fred_api):
     # Mock the API response
     mock_response = {
@@ -2629,6 +2633,7 @@ async def test_get_series_vintage_dates_async(fred_api):
             fred_api.get_series_vintagedates("GNPCA")
 
 # Sources tests
+@pytest.mark.asyncio
 async def test_get_sources_async(fred_api):
     # Mock the API response
     mock_response = {
@@ -2670,7 +2675,7 @@ async def test_get_sources_async(fred_api):
     with patch.object(fred_api, '_FredAPI__fred_get_request', return_value=mock_invalid_response):
         with pytest.raises(ValueError):
             fred_api.get_sources()
-
+@pytest.mark.asyncio
 async def test_get_source_async(fred_api):
     # Mock the API response
     mock_response = {
@@ -2706,7 +2711,7 @@ async def test_get_source_async(fred_api):
     with patch.object(fred_api, '_FredAPI__fred_get_request', return_value=mock_invalid_response):
         with pytest.raises(ValueError):
             fred_api.get_source(1)
-
+@pytest.mark.asyncio
 async def test_get_source_releases_async(fred_api):
     # Mock the API response
     mock_response = {
@@ -2757,6 +2762,7 @@ async def test_get_source_releases_async(fred_api):
             fred_api.get_source_releases(1)
 
 # Tags tests
+@pytest.mark.asyncio
 async def test_get_tags_async(fred_api):
     # Mock the API response
     mock_response = {
@@ -2798,7 +2804,7 @@ async def test_get_tags_async(fred_api):
     with patch.object(fred_api, '_FredAPI__fred_get_request', return_value=mock_invalid_response):
         with pytest.raises(ValueError):
             fred_api.get_tags()
-
+@pytest.mark.asyncio
 async def test_related_get_tags_async(fred_api):
     # Mock the API response
     mock_response = {
@@ -2830,7 +2836,7 @@ async def test_related_get_tags_async(fred_api):
     with patch.object(fred_api, '_FredAPI__fred_get_request', return_value=mock_invalid_response):
         with pytest.raises(ValueError):
             fred_api.get_related_tags("tag1")
-
+@pytest.mark.asyncio
 async def test_get_tags_series_async(fred_api):
     # Mock the API response
     mock_response = {
