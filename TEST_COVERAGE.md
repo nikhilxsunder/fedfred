@@ -56,7 +56,7 @@ src/fedfred/fred_data.py     184     17    91%
 ----------------------------------------------
 TOTAL                       1695   1016    40%
 
-================= 40 passed, 31 skipped, 33 warnings in 3.83s ==================
+================= 40 passed, 31 skipped, 33 warnings in 3.85s ==================
 ```
 
 ## Running Test Coverage Locally
