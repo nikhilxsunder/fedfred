@@ -147,7 +147,7 @@ FedFred requires tests for all new functionality. When contributing:
 
 ## Security
 
-For information about reporting security vulnerabilities in FedFred, please see our [Security Policy](SECURITY.md).
+For information about reporting security vulnerabilities in FedFred, please see our [Security Policy](https://github.com/nikhilxsunder/fedfred/blob/main/SECURITY.md).
 
 ### Contributing
 
@@ -155,4 +155,4 @@ Contributions are welcome! Please open an issue or submit a pull request.
 
 ### License
 
-This project is licensed under the GNU Affero General Public License v3.0 - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the GNU Affero General Public License v3.0 - see the [LICENSE](https://github.com/nikhilxsunder/fedfred/blob/main/LICENSE) file for details.

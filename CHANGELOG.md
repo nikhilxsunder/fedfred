@@ -13,18 +13,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [fedfred_property_based_test.py](https://github.com/nikhilxsunder/fedfred/blob/main/tests/fedfred_property_based_test.py)
 - [fred_data_property_based_test.py](https://github.com/nikhilxsunder/fedfred/blob/main/tests/fred_data_property_based_test.py)
 
+## [1.2.2] - 2025-03-19
+
+### Added
+
+- [tox.ini](https://github.com/nikhilxsunder/fedfred/blob/main/tox.ini)
+- [test-coverage.yml](https://github.com/nikhilxsunder/fedfred/blob/main/.github/workflows/test-coverage.yml)
+- Dev dependency: [tox](https://pypi.org/project/tox/)
+- Dev dependency: [pytest-asyncio](https://pypi.org/project/pytest-asyncio/)
+- Dev dependency: [pytest-mock](https://pypi.org/project/pytest-mock/)
+
 ### Changed
 
 - \_test.py -> [fedfred_test.py](https://github.com/nikhilxsunder/fedfred/blob/main/tests/fedfred_test.py)
+- [main.yml](https://github.com/nikhilxsunder/fedfred/blob/main/.github/workflows/main.yml) publishing backend
+- [pre-commit-config.yaml](https://github.com/nikhilxsunder/fedfred/blob/main/pre-commit-config.yaml)
+- [poetry.lock](https://github.com/nikhilxsunder/fedfred/blob/main/poetry.lock)
+- [fedfred-logo.png](https://github.com/nikhilxsunder/fedfred/blob/main/docs/source/_static/fedfred-logo.png)
+- [README.md](https://github.com/nikhilxsunder/fedfred/blob/main/README.md)
+- [SECURITY.md](https://github.com/nikhilxsunder/fedfred/blob/main/SECURITY.md)
+- [TEST_COVERAGE.md](https://github.com/nikhilxsunder/fedfred/blob/main/TEST_COVERAGE.md)
 
-## [1.2.1]
+## [1.2.1] - 2025-03-15
 
 ### Added
 
 - Google analytics tag for sphinx
 - Dev dependency 'sphinxcontrib.googleanalytics'
 
-## [1.2.0]
+## [1.2.0] - 2025-03-14
 
 ### Added
 
@@ -337,8 +354,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - initial directory structure
 - setuptools for build backend
 
-[Unreleased]: https://github.com/nikhilxsunder/fedfred/compare/v1.1.0...HEAD
-[1.2.0]: https://github.com/nikhilxsunder/fedfred/compare/v1.0.26...v1.2.0
+[Unreleased]: https://github.com/nikhilxsunder/fedfred/compare/v1.2.2...HEAD
+[1.2.2]: https://github.com/nikhilxsunder/fedfred/compare/v1.2.1...v1.2.2
+[1.2.1]: https://github.com/nikhilxsunder/fedfred/compare/v1.2.0...v1.2.1
+[1.2.0]: https://github.com/nikhilxsunder/fedfred/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/nikhilxsunder/fedfred/compare/v1.0.26...v1.1.0
 [1.0.26]: https://github.com/nikhilxsunder/fedfred/compare/v1.0.25...v1.0.26
 [1.0.25]: https://github.com/nikhilxsunder/fedfred/compare/v1.0.24...v1.0.25

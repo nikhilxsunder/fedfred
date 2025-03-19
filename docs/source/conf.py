@@ -97,25 +97,3 @@ source_suffix = {
 
 templates_path = ['_templates']
 html_static_path = ['_static']
-
-def setup(app):
-    app.connect('source-read', process_custom_comments)
-
-def process_custom_comments(app, docname, source):
-    if docname.endswith('md'):
-        source[0] = re.sub(
-            r'<!-- GITHUB-IGNORE-START -->.*?<!-- GITHUB-IGNORE-END -->',
-            '',
-            source[0],
-            flags=re.DOTALL
-        )
-        source[0] = re.sub(
-            r'<!-- SPHINX-IGNORE-START -->',
-            '',
-            source[0]
-        )
-        source[0] = re.sub(
-            r'<!-- SPHINX-IGNORE-END -->',
-            '',
-            source[0]
-        )
