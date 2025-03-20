@@ -19,6 +19,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - [main.yml](https://github.com/nikhilxsunder/fedfred/blob/main/.github/workflows/main.yml) updated for conda
 
+## [1.2.8] - 2025-03-20
+
+### Changed
+
+- Moved type hinting and stub packages to optional dependency group
+- Duplicated type packages in dev dependencies
+- [tox.ini](https://github.com/nikhilxsunder/fedfred/blob/main/tox.ini) adjusted
+
 ## [1.2.7] - 2025-03-20
 
 ### Added
@@ -406,7 +414,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - initial directory structure
 - setuptools for build backend
 
-[Unreleased]: https://github.com/nikhilxsunder/fedfred/compare/v1.2.7...HEAD
+[Unreleased]: https://github.com/nikhilxsunder/fedfred/compare/v1.2.8...HEAD
+[1.2.8]: https://github.com/nikhilxsunder/fedfred/compare/v1.2.7...v1.2.8
 [1.2.7]: https://github.com/nikhilxsunder/fedfred/compare/v1.2.6...v1.2.7
 [1.2.6]: https://github.com/nikhilxsunder/fedfred/compare/v1.2.5...v1.2.6
 [1.2.5]: https://github.com/nikhilxsunder/fedfred/compare/v1.2.4...v1.2.5

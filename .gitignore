@@ -178,3 +178,4 @@ cython_debug/
 .conda/
 node_modules/
 .coverage
+conda-dist/
