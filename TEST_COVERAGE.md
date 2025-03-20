@@ -1,6 +1,6 @@
 # Test Coverage Report
 
-Last updated: 2025-03-19
+Last updated: 2025-03-20
 
 ## Coverage Summary
 
@@ -30,7 +30,7 @@ src/fedfred/fred_data.py     184     17    91%
 TOTAL                       1695   1016    40%
 
 
-============================== 71 passed in 3.78s ==============================
+============================== 71 passed in 3.86s ==============================
 ```
 
 ## Running Test Coverage Locally
