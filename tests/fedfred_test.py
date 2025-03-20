@@ -5,6 +5,8 @@ from unittest.mock import patch
 import asyncio
 import pytest
 import pandas as pd
+import geopandas as gpd
+import polars as pl
 from fedfred import FredAPI
 from fedfred.fred_data import Category, Series, Tag, Release, ReleaseDate, Source, Element, VintageDate, SeriesGroup
 
@@ -878,7 +880,47 @@ def test_get_series_observations_pandas(fred_api):
         with pytest.raises(ValueError):
             fred_api.get_series_observations("GNPCA")
 
-#### Add polars method in next revision
+# Polars
+def test_get_series_observations_polars(fred_api):
+    # Import polars
+
+    # Mock the API response
+    mock_response = {
+        "observations": [
+            {
+                "realtime_start": "2013-08-14",
+                "realtime_end": "2013-08-14",
+                "date": "2021-01-01",
+                "value": "100.0"
+            },
+            {
+                "realtime_start": "2013-08-14",
+                "realtime_end": "2013-08-14",
+                "date": "2021-01-02",
+                "value": "200.0"
+            }
+        ]
+    }
+
+    # Test valid series ID with polars dataframe method
+    with patch.object(fred_api, '_FredAPI__fred_get_request', return_value=mock_response):
+        observations = fred_api.get_series_observations("GNPCA", dataframe_method='polars')
+        assert isinstance(observations, pl.DataFrame)
+        assert len(observations) == 2
+        assert observations["date"][0] == "2021-01-01"
+        assert observations["date"][1] == "2021-01-02"
+        assert observations["value"][0] == 100.0
+        assert observations["value"][1] == 200.0
+
+    # Test invalid series ID
+    with pytest.raises(ValueError):
+        fred_api.get_series_observations("", dataframe_method='polars')
+
+    # Test invalid API response
+    mock_invalid_response = {}
+    with patch.object(fred_api, '_FredAPI__fred_get_request', return_value=mock_invalid_response):
+        with pytest.raises(ValueError):
+            fred_api.get_series_observations("GNPCA", dataframe_method='polars')
 
 def test_get_series_release(fred_api):
     # Mock the API response
@@ -1445,9 +1487,8 @@ def test_get_tags_series(fred_api):
         with pytest.raises(ValueError):
             fred_api.get_tags_series("tag1")
 
-#### add maps tests in next revision
-
-# Async tests fix in next revision
+# MapsAPI tests
+# AsyncAPI tests
 @pytest.mark.asyncio
 async def test_get_category_async(fred_api):
     # Mock the API response
@@ -2275,7 +2316,6 @@ async def test_get_series_categories_async(fred_api):
     with patch.object(fred_api, '_FredAPI__fred_get_request', return_value=mock_invalid_response):
         with pytest.raises(ValueError):
             fred_api.get_series_categories("GNPCA")
-
 # Pandas
 @pytest.mark.asyncio
 async def test_get_series_observations_pandas_async(fred_api):
@@ -2315,8 +2355,46 @@ async def test_get_series_observations_pandas_async(fred_api):
     with patch.object(fred_api, '_FredAPI__fred_get_request', return_value=mock_invalid_response):
         with pytest.raises(ValueError):
             fred_api.get_series_observations("GNPCA")
+# Polars
+@pytest.mark.asyncio
+async def test_get_series_observations_polars_async(fred_api):
+    # Mock the API response
+    mock_response = {
+        "observations": [
+            {
+                "realtime_start": "2013-08-14",
+                "realtime_end": "2013-08-14",
+                "date": "2021-01-01",
+                "value": "100.0"
+            },
+            {
+                "realtime_start": "2013-08-14",
+                "realtime_end": "2013-08-14",
+                "date": "2021-01-02",
+                "value": "200.0"
+            }
+        ]
+    }
 
-#### Add Polars method later
+    # Test valid series ID with polars dataframe method
+    with patch.object(fred_api, '_FredAPI__fred_get_request', return_value=mock_response):
+        observations = fred_api.get_series_observations("GNPCA", dataframe_method='polars')
+        assert isinstance(observations, pl.DataFrame)
+        assert len(observations) == 2
+        assert observations["date"][0] == "2021-01-01"
+        assert observations["date"][1] == "2021-01-02"
+        assert observations["value"][0] == 100.0
+        assert observations["value"][1] == 200.0
+
+    # Test invalid series ID
+    with pytest.raises(ValueError):
+        fred_api.get_series_observations("", dataframe_method='polars')
+
+    # Test invalid API response
+    mock_invalid_response = {}
+    with patch.object(fred_api, '_FredAPI__fred_get_request', return_value=mock_invalid_response):
+        with pytest.raises(ValueError):
+            fred_api.get_series_observations("GNPCA", dataframe_method='polars')
 @pytest.mark.asyncio
 async def test_get_series_release_async(fred_api):
     # Mock the API response

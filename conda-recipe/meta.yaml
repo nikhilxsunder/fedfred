@@ -1,10 +1,10 @@
 package:
   name: fedfred
-  version: 1.2.7
+  version: 1.2.8
 
 source:
-  url: "https://pypi.io/packages/source/f/fedfred/fedfred-1.2.7.tar.gz"
-  sha256: "3eb177f577725aa988e5b370c49668e594479f3bac149bc21b5b4f8d8a1d3f5b"
+  url: "https://pypi.io/packages/source/f/fedfred/fedfred-1.2.8.tar.gz"
+  sha256: "36f807bd0f3f6b167b52ef6598585006b89938cc132cb8185a08b1b044bae268"
 
 build:
   noarch: python
