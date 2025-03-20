@@ -281,16 +281,57 @@
         <article role="main" id="furo-main-content">
           <section id="installation">
 <h1>Installation<a class="headerlink" href="#installation" title="Link to this heading">¶</a></h1>
+<section id="using-pip">
+<h2>Using pip<a class="headerlink" href="#using-pip" title="Link to this heading">¶</a></h2>
 <p>You can install fedfred using pip:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>fedfred
 </pre></div>
 </div>
+</section>
+<section id="using-conda">
+<h2>Using conda<a class="headerlink" href="#using-conda" title="Link to this heading">¶</a></h2>
+<p>FedFred is available on Anaconda through the author’s channel. You can install it with conda:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda<span class="w"> </span>install<span class="w"> </span>nikhil.sunder::fedfred
+</pre></div>
+</div>
+<p>We recommend creating a dedicated environment for your project:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda<span class="w"> </span>create<span class="w"> </span>-n<span class="w"> </span>myenv
+conda<span class="w"> </span>activate<span class="w"> </span>myenv
+conda<span class="w"> </span>install<span class="w"> </span>nikhil.sunder::fedfred
+</pre></div>
+</div>
+<p>Note: FedFred will be submitted to conda-forge in the future for broader distribution.</p>
+</section>
+<section id="optional-type-stubs">
+<h2>Optional Type Stubs<a class="headerlink" href="#optional-type-stubs" title="Link to this heading">¶</a></h2>
+<p>If you need type stubs for development (e.g., for <cite>pandas</cite>, <cite>cachetools</cite>, or <cite>geopandas</cite>), you can install the optional dependencies:</p>
+<p>Using pip:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>fedfred<span class="o">[</span>types<span class="o">]</span>
+</pre></div>
+</div>
+</section>
 <section id="development-installation">
 <h2>Development Installation<a class="headerlink" href="#development-installation" title="Link to this heading">¶</a></h2>
 <p>For development purposes, you can install the package with all development dependencies:</p>
+<p>Using Poetry (recommended):</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/nikhilxsunder/fedfred.git
 <span class="nb">cd</span><span class="w"> </span>fedfred
 poetry<span class="w"> </span>install
+</pre></div>
+</div>
+<p>Using conda:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/nikhilxsunder/fedfred.git
+<span class="nb">cd</span><span class="w"> </span>fedfred
+
+<span class="c1"># Create a conda environment</span>
+conda<span class="w"> </span>create<span class="w"> </span>-n<span class="w"> </span>fedfred-dev<span class="w"> </span><span class="nv">python</span><span class="o">=</span><span class="m">3</span>.9
+conda<span class="w"> </span>activate<span class="w"> </span>fedfred-dev
+
+<span class="c1"># Install in development mode with dev dependencies</span>
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;.[dev,types]&quot;</span>
+
+<span class="c1"># Install pre-commit hooks</span>
+pre-commit<span class="w"> </span>install
 </pre></div>
 </div>
 </section>
@@ -364,6 +405,9 @@ poetry<span class="w"> </span>install
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">Installation</a><ul>
+<li><a class="reference internal" href="#using-pip">Using pip</a></li>
+<li><a class="reference internal" href="#using-conda">Using conda</a></li>
+<li><a class="reference internal" href="#optional-type-stubs">Optional Type Stubs</a></li>
 <li><a class="reference internal" href="#development-installation">Development Installation</a></li>
 </ul>
 </li>

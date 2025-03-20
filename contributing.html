@@ -551,16 +551,39 @@ python<span class="w"> </span>-O<span class="w"> </span>-m<span class="w"> </spa
 <li><p>Git</p></li>
 </ul>
 </li>
-<li><p><strong>Installation</strong></p>
+<li><p><strong>Installation with Poetry</strong></p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Clone the repository</span>
 git<span class="w"> </span>clone<span class="w"> </span>https://github.com/nikhilxsunder/fedfred.git
 <span class="nb">cd</span><span class="w"> </span>fedfred
 
-<span class="c1"># Install dependencies</span>
+<span class="c1"># Install dependencies (including dev dependencies and type stubs)</span>
 poetry<span class="w"> </span>install
+
+<span class="c1"># If you want to install with explicit type stubs</span>
+poetry<span class="w"> </span>install<span class="w"> </span>--extras<span class="w"> </span><span class="s2">&quot;types&quot;</span>
 
 <span class="c1"># Set up pre-commit hooks</span>
 poetry<span class="w"> </span>run<span class="w"> </span>pre-commit<span class="w"> </span>install
+</pre></div>
+</div>
+</li>
+<li><p><strong>Installation with Conda</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Clone the repository</span>
+git<span class="w"> </span>clone<span class="w"> </span>https://github.com/nikhilxsunder/fedfred.git
+<span class="nb">cd</span><span class="w"> </span>fedfred
+
+<span class="c1"># Create conda environment</span>
+conda<span class="w"> </span>create<span class="w"> </span>-n<span class="w"> </span>fedfred-dev<span class="w"> </span><span class="nv">python</span><span class="o">=</span><span class="m">3</span>.9
+conda<span class="w"> </span>activate<span class="w"> </span>fedfred-dev
+
+<span class="c1"># Option 1: Install from the author&#39;s Anaconda channel</span>
+conda<span class="w"> </span>install<span class="w"> </span>nikhil.sunder::fedfred
+
+<span class="c1"># Option 2: Install in development mode with all dependencies</span>
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;.[dev,types]&quot;</span>
+
+<span class="c1"># Set up pre-commit hooks</span>
+pre-commit<span class="w"> </span>install
 </pre></div>
 </div>
 </li>
