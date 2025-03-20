@@ -110,7 +110,6 @@ jobs:
           name: python-package-distributions
           path: dist/
 
-      # Sigstore signing (from main.yml)
       - name: Sign the dists with Sigstore
         uses: sigstore/gh-action-sigstore-python@v3.0.0
         with:
@@ -118,7 +117,6 @@ jobs:
             ./dist/*.tar.gz
             ./dist/*.whl
 
-      # GPG signing (from sign-release.yml)
       - name: Import GPG key
         uses: crazy-max/ghaction-import-gpg@v5
         with:
@@ -128,13 +126,15 @@ jobs:
       - name: GPG sign packages
         run: |
           echo "GPG signing distribution packages..."
-          for file in dist/*; do
-            echo "Signing $file"
-            gpg --detach-sign --armor "$file"
+          for file in dist/*.tar.gz dist/*.whl; do
+            if [ -f "$file" ]; then
+              echo "Signing $file"
+              gpg --detach-sign --armor "$file"
+            fi
           done
+          # List all files for debugging
           ls -la dist/
 
-      # Create Release
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
@@ -143,11 +143,12 @@ jobs:
           draft: false
           prerelease: false
           files: |
-            dist/*
+            dist/*.tar.gz
+            dist/*.whl
             dist/*.asc
+            dist/*.json
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      # This step is just for verification and logging
       - name: Verify GPG signatures
         run: |
           echo "Verifying GPG signatures..."
