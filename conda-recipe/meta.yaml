@@ -1,0 +1,56 @@
+package:
+  name: fedfred
+  version: 1.2.7
+
+source:
+  url: "https://pypi.io/packages/source/f/fedfred/fedfred-1.2.7.tar.gz"
+  sha256: "3eb177f577725aa988e5b370c49668e594479f3bac149bc21b5b4f8d8a1d3f5b"
+
+build:
+  noarch: python
+  number: 0
+  script: |
+    python -m pip install . -vv
+
+requirements:
+  host:
+    - python >=3.9,<4.0
+    - pip
+    - poetry-core >=1.0.0
+  run:
+    - python >=3.9,<4.0
+    - httpx
+    - tenacity
+    - pandas
+    - geopandas
+    - conda-forge::polars
+    - conda-forge::cachetools
+
+test:
+  imports:
+    - fedfred
+  requires:
+    - pip
+  commands:
+    - pip check
+
+about:
+  home: "https://github.com/nikhilxsunder/fedfred"
+  doc_url: "https://nikhilxsunder.github.io/fedfred/"
+  dev_url: "https://github.com/nikhilxsunder/fedfred"
+  license: AGPL-3.0-or-later
+  license_family: AGPL
+  license_file: LICENSE
+  summary: "A feature-rich python package for interacting with the Federal Reserve Bank of St. Louis Economic Database (FRED)"
+  description: |
+    FedFred is a Python package for interacting with the Federal Reserve Bank of St. Louis Economic Database (FRED API).
+    It provides a feature-rich interface with:
+    - Pandas/Polars DataFrame outputs
+    - Native support for asynchronous requests
+    - Local caching for faster execution
+    - GeoPandas outputs for geographical data (FRED-Maps/GeoFRED)
+    - MyPy compatible type stubs
+
+extra:
+  recipe-maintainers:
+    - nikhilxsunder

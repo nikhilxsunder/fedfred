@@ -20,17 +20,27 @@ repos:
           (?x)^(
               docs/.*|
               tests/.*|
+              scripts/.*|
               examples/.*|
               .*\.md|
               .*\.rst
           )$
         args:
           [
-            "--disable=E0401,R0902,R0913,R0917,R0914,R0912,R0904,R1705,C0103,R1710",
+            "--disable=E0401,R0902,R0913,R0917,R0914,R0912,R0904,R1705,C0103,R1710,C2801",
           ]
 
   - repo: local
     hooks:
+      - id: sync-conda-recipe
+        name: Sync conda recipe from pyproject.toml
+        entry: python scripts/sync_conda_recipe.py
+        language: python
+        additional_dependencies: ["tomli>=2.0.1"]
+        files: ^(pyproject\.toml|conda-recipe/meta\.yaml)$
+        pass_filenames: false
+        description: "Synchronizes conda-recipe/meta.yaml with pyproject.toml"
+
       - id: mypy-local
         name: mypy
         entry: mypy
@@ -40,6 +50,7 @@ repos:
           (?x)^(
               docs/.*|
               tests/.*|
+              scripts/.*|
               examples/.*|
               .*\.md|
               .*\.rst|
@@ -51,6 +62,7 @@ repos:
             "--namespace-packages",
             "--explicit-package-bases",
           ]
+
       - id: tox
         name: Run tox
         entry: tox

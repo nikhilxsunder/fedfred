@@ -9,9 +9,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Dynamic Analysis Workflow (hypothesis)
 - [fedfred_property_based_test.py](https://github.com/nikhilxsunder/fedfred/blob/main/tests/fedfred_property_based_test.py)
 - [fred_data_property_based_test.py](https://github.com/nikhilxsunder/fedfred/blob/main/tests/fred_data_property_based_test.py)
+- Added codecov
+- Conda-forge packaging and distribution
+- Documentation for Anaconda
+
+### Changed
+
+- [main.yml](https://github.com/nikhilxsunder/fedfred/blob/main/.github/workflows/main.yml) updated for conda
+
+## [1.2.7] - 2025-03-20
+
+### Added
+
+- [cachetools](https://pypi.org/project/cachetools/) (prepping for conda release)
+- [types-cachetools](https://pypi.org/project/types-cachetools/)
+- scripts/[sync_conda_recipe.py](https://github.com/nikhilxsunder/fedfred/blob/main/scripts/sync_conda_recipe.py)
+
+### Changed
+
+- [test.yml](https://github.com/nikhilxsunder/fedfred/blob/main/.github/workflows/test.yml) dropped linting, type-checking, and security analysis, ([analyze.yml](https://github.com/nikhilxsunder/fedfred/blob/main/.github/workflows/analyze.yml) already does this.)
+- "test-coverage.yml" merged into [test.yml](https://github.com/nikhilxsunder/fedfred/blob/main/.github/workflows/test.yml)
+- [pre-commit-config.yaml](https://github.com/nikhilxsunder/fedfred/blob/main/pre-commit-config.yaml) updated for conda
+
+### Removed
+
+- [cacheout](https://pypi.org/project/cacheout/) dependency due to conda issue
 
 ## [1.2.6] - 2025-03-19
 
@@ -382,7 +406,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - initial directory structure
 - setuptools for build backend
 
-[Unreleased]: https://github.com/nikhilxsunder/fedfred/compare/v1.2.6...HEAD
+[Unreleased]: https://github.com/nikhilxsunder/fedfred/compare/v1.2.7...HEAD
+[1.2.7]: https://github.com/nikhilxsunder/fedfred/compare/v1.2.6...v1.2.7
 [1.2.6]: https://github.com/nikhilxsunder/fedfred/compare/v1.2.5...v1.2.6
 [1.2.5]: https://github.com/nikhilxsunder/fedfred/compare/v1.2.4...v1.2.5
 [1.2.4]: https://github.com/nikhilxsunder/fedfred/compare/v1.2.3...v1.2.4

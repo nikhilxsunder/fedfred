@@ -3,14 +3,14 @@ import asyncio
 import pandas as pd
 import polars as pl
 import geopandas as gpd
-from cacheout import Cache
+from cachetools import TTLCache
 from .fred_data import Category, Series, Tag, Release, ReleaseDate, Source, Element, VintageDate, SeriesGroup
 
 class FredAPI:
     base_url: str
     api_key: str
     cache_mode: bool
-    cache: Cache
+    cache: TTLCache
     max_requests_per_minute: int
     request_times: Deque[float]
     lock: asyncio.Lock
@@ -166,7 +166,7 @@ class FredAPI:
         base_url: str
         parent: FredAPI
         cache_mode: bool
-        cache: Cache
+        cache: TTLCache
         def __init__(self, parent) -> None: ...
         def get_shape_files(self, shape: str) -> gpd.GeoDataFrame: ...
         def get_series_group(self, series_id: str, file_type: str = 'json') -> SeriesGroup: ...
@@ -180,7 +180,7 @@ class FredAPI:
     class AsyncAPI:
         parent: FredAPI
         cache_mode: bool
-        cache: Cache
+        cache: TTLCache
         Maps: 'FredAPI.AsyncAPI.MapsAPI'
         def __init__(self, parent) -> None: ...
         # Category Methods
@@ -332,7 +332,7 @@ class FredAPI:
             parent: FredAPI.AsyncAPI
             grandparent: FredAPI
             cache_mode: bool
-            cache: Cache
+            cache: TTLCache
             def __init__(self, parent) -> None: ...
             def get_shape_files(self, shape: str) -> gpd.GeoDataFrame: ...
             def get_series_group(self, series_id: str, file_type: str = 'json') -> SeriesGroup: ...

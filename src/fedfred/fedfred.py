@@ -10,7 +10,7 @@ import pandas as pd
 import geopandas as gpd
 import polars as pl
 from tenacity import retry, wait_fixed, stop_after_attempt
-from cacheout import Cache
+from cachetools import TTLCache
 from .fred_data import Category, Series, Tag, Release, ReleaseDate, Source, Element, VintageDate, SeriesGroup
 
 class FredAPI:
@@ -40,7 +40,7 @@ class FredAPI:
         self.base_url = 'https://api.stlouisfed.org/fred'
         self.api_key = api_key
         self.cache_mode = cache_mode
-        self.cache = Cache(maxsize=256, ttl=3600) if cache_mode else None
+        self.cache = TTLCache(maxsize=256, ttl=3600) if cache_mode else None
         self.max_requests_per_minute = 120
         self.request_times = deque()
         self.lock = asyncio.Lock()
@@ -90,7 +90,7 @@ class FredAPI:
         Helper method to perform a synchronous GET request to the FRED API.
         """
         key = url_endpoint + str(data) if self.cache_mode else None
-        if self.cache_mode and key and self.cache.has(key):
+        if self.cache_mode and key and key in self.cache.keys():
             return self.cache.get(key)
         self.__rate_limited()
         params = {
@@ -102,7 +102,7 @@ class FredAPI:
             response.raise_for_status()
             response_json = response.json()
         if self.cache_mode and key:
-            self.cache.set(key, response_json)
+            self.cache.__setitem__(key, response_json)
         return response_json
     # Public Methods
     ## Categories
@@ -2025,7 +2025,7 @@ class FredAPI:
             Helper method to perform a synchronous GET request to the FRED Maps API.
             """
             key = url_endpoint + str(data) if self.cache_mode else None
-            if self.cache_mode and key and self.cache.has(key):
+            if self.cache_mode and key and key in self.cache.keys():
                 return self.cache.get(key)
             self.__rate_limited()
             params = {
@@ -2037,7 +2037,7 @@ class FredAPI:
                 response.raise_for_status()
                 response_json = response.json()
             if self.cache_mode and key:
-                self.cache.set(key, response_json)
+                self.cache.__setitem__(key, response_json)
             return response_json
         # Public Methods
         def get_shape_files(self, shape: str):
@@ -2307,8 +2307,8 @@ class FredAPI:
             """
             Helper method to perform an asynchronous GET request to the FRED API.
             """
-            cache_key = f"{url_endpoint}:{str(data)}"
-            if self.cache_mode:
+            cache_key = f"{url_endpoint}:{str(data)}" if self.cache_mode else None
+            if self.cache_mode and cache_key:
                 cached_response = await asyncio.to_thread(self.cache.get, cache_key)
                 if cached_response:
                     return cached_response
@@ -2322,8 +2322,8 @@ class FredAPI:
                     response = await client.get(self._parent.base_url + url_endpoint, params=params, timeout=10)
                     response.raise_for_status()
                     response_json = response.json()
-                    if self.cache_mode:
-                        await asyncio.to_thread(self.cache.set, cache_key, response_json)
+                    if self.cache_mode and cache_key:
+                        await asyncio.to_thread(self.cache.__setitem__, cache_key, response_json)
                     return response_json
                 except httpx.HTTPStatusError as e:
                     raise ValueError(f"HTTP Error occurred: {e}") from e
@@ -4358,8 +4358,8 @@ class FredAPI:
                 """
                 Helper method to perform an asynchronous GET request to the Maps FRED API.
                 """
-                cache_key = f"{url_endpoint}:{str(data)}"
-                if self.cache_mode:
+                cache_key = f"{url_endpoint}:{str(data)}" if self.cache_mode else None
+                if self.cache_mode and cache_key:
                     cached_response = await asyncio.to_thread(self.cache.get, cache_key)
                     if cached_response:
                         return cached_response
@@ -4373,8 +4373,8 @@ class FredAPI:
                         response = await client.get(self._parent.base_url + url_endpoint, params=params, timeout=10)
                         response.raise_for_status()
                         response_json = response.json()
-                        if self.cache_mode:
-                            await asyncio.to_thread(self.cache.set, cache_key, response_json)
+                        if self.cache_mode and cache_key:
+                            await asyncio.to_thread(self.cache.__setitem__, cache_key, response_json)
                         return response_json
                     except httpx.HTTPStatusError as e:
                         raise ValueError(f"HTTP Error occurred: {e}") from e

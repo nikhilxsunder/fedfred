@@ -1,10 +1,11 @@
-name: Tests
+name: Tests and Coverage
 
 on:
   push:
     branches: [main, dev]
   pull_request:
     branches: [main]
+  workflow_dispatch:
 
 jobs:
   test:
@@ -40,26 +41,77 @@ jobs:
         run: |
           poetry install --no-interaction
 
-      - name: Run tests
+      - name: Run tests with coverage
         env:
           FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
         run: |
-          poetry run pytest tests --disable-warnings --cov=src --cov-report=xml
+          poetry run pytest tests --disable-warnings --cov=src --cov-report=xml --cov-report=term > coverage_output.txt
 
-      - name: Upload coverage report
+      - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
         with:
           file: ./coverage.xml
+          token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: false
+          name: fedfred-coverage
+          verbose: true
 
-      - name: Run linting
+      - name: Extract coverage percentage
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         run: |
-          poetry run pylint src tests || echo "Linting issues found"
+          COVERAGE=$(grep "TOTAL" coverage_output.txt | awk '{print $NF}' | sed 's/%//')
+          echo "COVERAGE=$COVERAGE" >> $GITHUB_ENV
 
-      - name: Run type checking
+      - name: Update TEST_COVERAGE.md
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         run: |
-          poetry run mypy src tests || echo "Type checking issues found"
+          # Get the current date
+          DATE=$(date +"%Y-%m-%d")
 
-      - name: Run security analysis
+          # Create or update TEST_COVERAGE.md
+          cat > TEST_COVERAGE.md << EOF
+          # Test Coverage Report
+
+          Last updated: $DATE
+
+          ## Coverage Summary
+
+          Overall coverage: ${COVERAGE}%
+
+          ## Detailed Coverage
+
+          \`\`\`
+          $(cat coverage_output.txt)
+          \`\`\`
+
+          ## Running Test Coverage Locally
+
+          To run the test suite with coverage:
+
+          \`\`\`bash
+          pytest --cov=src/fedfred tests/
+          \`\`\`
+
+          For a detailed HTML report:
+
+          \`\`\`bash
+          pytest --cov=src/fedfred tests/ --cov-report=html
+          \`\`\`
+
+          Then open \`htmlcov/index.html\` in your browser to view the report.
+
+          ## Coverage Goals
+
+          - Maintain at least 80% overall coverage
+          - All public APIs should have 100% coverage
+          - Focus on testing edge cases and error conditions
+          EOF
+
+      - name: Commit changes
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         run: |
-          poetry run bandit -r src || echo "Security issues found"
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add TEST_COVERAGE.md
+          git commit -m "Update test coverage report" || echo "No changes to commit"
+          git push

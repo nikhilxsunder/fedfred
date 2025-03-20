@@ -174,3 +174,7 @@ cython_debug/
 .vscode/settings.json
 .vscode
 /.DS_Store
+.conda
+.conda/
+node_modules/
+.coverage
