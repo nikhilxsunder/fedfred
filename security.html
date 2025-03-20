@@ -498,7 +498,7 @@
 <ol class="arabic simple">
 <li><p>Download our public GPG key: <a class="reference external" href="https://raw.githubusercontent.com/nikhilxsunder/fedfred/main/fedfred_public_key.asc">[LINK_TO_GPG_KEY]</a></p></li>
 <li><p>Import the key: <code class="docutils literal notranslate"><span class="pre">gpg</span> <span class="pre">--import</span> <span class="pre">fedfred_public_key.asc</span></code></p></li>
-<li><p>Verify the release: <code class="docutils literal notranslate"><span class="pre">gpg</span> <span class="pre">--verify</span> <span class="pre">fedfred-1.2.1.tar.gz.asc</span> <span class="pre">fedfred-1.2.5.tar.gz</span></code></p></li>
+<li><p>Verify the release: <code class="docutils literal notranslate"><span class="pre">gpg</span> <span class="pre">--verify</span> <span class="pre">fedfred-1.2.6.tar.gz.asc</span> <span class="pre">fedfred-1.2.6.tar.gz</span></code></p></li>
 </ol>
 </section>
 </section>
@@ -513,15 +513,15 @@
 </div>
 <ol class="arabic simple" start="2">
 <li><p>Download the package and signature:
-Example for version 1.2.5</p></li>
+Example for version 1.2.6</p></li>
 </ol>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>curl<span class="w"> </span>-O<span class="w"> </span>https://github.com/nikhilxsunder/fedfred/releases/download/v1.2.5/fedfred-1.2.5.tar.gz<span class="w"> </span>curl<span class="w"> </span>-O<span class="w"> </span>https://github.com/nikhilxsunder/fedfred/releases/download/v1.2.5/fedfred-1.2.5.tar.gz.asc
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>curl<span class="w"> </span>-O<span class="w"> </span>https://github.com/nikhilxsunder/fedfred/releases/download/v1.2.6/fedfred-1.2.6.tar.gz<span class="w"> </span>curl<span class="w"> </span>-O<span class="w"> </span>https://github.com/nikhilxsunder/fedfred/releases/download/v1.2.6/fedfred-1.2.6.tar.gz.asc
 </pre></div>
 </div>
 <ol class="arabic simple" start="3">
 <li><p>Verify the signature:</p></li>
 </ol>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>gpg<span class="w"> </span>--verify<span class="w"> </span>fedfred-1.2.5.tar.gz.asc<span class="w"> </span>fedfred-1.2.5.tar.gz
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>gpg<span class="w"> </span>--verify<span class="w"> </span>fedfred-1.2.6.tar.gz.asc<span class="w"> </span>fedfred-1.2.6.tar.gz
 </pre></div>
 </div>
 </section>
