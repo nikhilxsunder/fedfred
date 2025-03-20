@@ -11,6 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - [fedfred_property_based_test.py](https://github.com/nikhilxsunder/fedfred/blob/main/tests/fedfred_property_based_test.py)
 - [fred_data_property_based_test.py](https://github.com/nikhilxsunder/fedfred/blob/main/tests/fred_data_property_based_test.py)
+
+## [1.2.9] - 2025-03-20
+
+## Added
+
 - Added codecov
 - Conda-forge packaging and distribution
 - Documentation for Anaconda

@@ -163,6 +163,12 @@ FedFred is distributed through these secure channels to prevent MITM attacks:
 - PyPI implements modern TLS practices to prevent interception
 - Install securely using: `pip install fedfred`
 
+### Anaconda (conda-forge)
+
+- All Anaconda downloads use HTTPS (TLS) by default
+- Conda-forge provides checksums for package verification
+- Install securely using: `conda install nikhil.sunder::fedfred`
+
 ### GitHub Releases
 
 - All GitHub downloads use HTTPS (TLS) by default

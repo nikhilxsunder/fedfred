@@ -1,19 +1,71 @@
 Installation
 ============
 
+Using pip
+---------
+
 You can install fedfred using pip:
 
 .. code-block:: bash
 
    pip install fedfred
 
+Using conda
+-----------
+
+FedFred is available on Anaconda through the author's channel. You can install it with conda:
+
+.. code-block:: bash
+
+   conda install nikhil.sunder::fedfred
+
+We recommend creating a dedicated environment for your project:
+
+.. code-block:: bash
+
+   conda create -n myenv
+   conda activate myenv
+   conda install nikhil.sunder::fedfred
+
+Note: FedFred will be submitted to conda-forge in the future for broader distribution.
+
+Optional Type Stubs
+------------------
+
+If you need type stubs for development (e.g., for `pandas`, `cachetools`, or `geopandas`), you can install the optional dependencies:
+
+Using pip:
+
+.. code-block:: bash
+
+   pip install fedfred[types]
+
 Development Installation
 ------------------------
 
 For development purposes, you can install the package with all development dependencies:
+
+Using Poetry (recommended):
 
 .. code-block:: bash
 
     git clone https://github.com/nikhilxsunder/fedfred.git
     cd fedfred
     poetry install
+
+Using conda:
+
+.. code-block:: bash
+
+    git clone https://github.com/nikhilxsunder/fedfred.git
+    cd fedfred
+
+    # Create a conda environment
+    conda create -n fedfred-dev python=3.9
+    conda activate fedfred-dev
+
+    # Install in development mode with dev dependencies
+    pip install -e ".[dev,types]"
+
+    # Install pre-commit hooks
+    pre-commit install

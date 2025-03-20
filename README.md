@@ -11,13 +11,17 @@
     <a href="https://github.com/nikhilxsunder/fedfred/actions/workflows/analyze.yml"><img src="https://github.com/nikhilxsunder/fedfred/actions/workflows/analyze.yml/badge.svg" alt="Analyze Status"></a>
     <a href="https://github.com/nikhilxsunder/fedfred/actions/workflows/test.yml"><img src="https://github.com/nikhilxsunder/fedfred/actions/workflows/test.yml/badge.svg" alt="Test Status"></a>
     <a href="https://github.com/nikhilxsunder/fedfred/actions/workflows/codeql.yml"><img src="https://github.com/nikhilxsunder/fedfred/actions/workflows/codeql.yml/badge.svg" alt="CodeQL"></a>
+    <a href="https://codecov.io/gh/nikhilxsunder/fedfred"><img src="https://codecov.io/gh/nikhilxsunder/fedfred/graph/badge.svg?token=VVEK415DF6" alt="Code Coverage"></a>
     <a href="https://pypi.org/project/fedfred/"><img src="https://img.shields.io/pypi/v/fedfred.svg" alt="PyPI version"></a>
     <a href="https://pepy.tech/projects/fedfred"><img src="https://static.pepy.tech/badge/fedfred" alt="PyPI Downloads"></a>
+    <a href="https://anaconda.org/nikhil.sunder/fedfred"><img src="https://anaconda.org/nikhil.sunder/fedfred/badges/version.svg" alt="Anaconda version"></a>
+    <a href="https://anaconda.org/nikhil.sunder/fedfred"><img src="https://anaconda.org/nikhil.sunder/fedfred/badges/downloads.svg" alt="Anaconda downloads"></a>
     <a href="https://www.bestpractices.dev/projects/10158"><img src="https://www.bestpractices.dev/projects/10158/badge"></a>
 </div>
 
 ### Features
 
+- Now available on Anaconda!
 - Pandas/Polars DataFrame outputs.
 - Native support for asynchronous requests (async).
 - All method outputs are mapped to dataclasses for better usability.
@@ -33,6 +37,20 @@ You can install the package using pip:
 ```sh
 pip install fedfred
 ```
+
+Or install from conda:
+
+```sh
+conda install nikhil.sunder::fedfred
+```
+
+For type checking support, install with optional type stubs:
+
+```sh
+pip install fedfred[types]
+```
+
+We recommend using a virtual environment with either installation method.
 
 ### Rest API Usage
 
