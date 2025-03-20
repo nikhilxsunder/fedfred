@@ -15,6 +15,11 @@ on:
         required: false
         default: false
         type: boolean
+      publish_to_anaconda:
+        description: "Publish to Anaconda"
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   build:
@@ -45,11 +50,22 @@ jobs:
       - name: Build package
         run: poetry build
 
+      - name: Sync conda recipe
+        run: |
+          pip install tomli
+          python scripts/sync_conda_recipe.py
+
       - name: Store the distribution packages
         uses: actions/upload-artifact@v4
         with:
           name: python-package-distributions
           path: dist/
+
+      - name: Store conda recipe
+        uses: actions/upload-artifact@v4
+        with:
+          name: conda-recipe
+          path: conda-recipe/
 
   publish-to-pypi:
     name: >-
@@ -89,12 +105,79 @@ jobs:
           poetry config pypi-token.pypi $POETRY_PYPI_TOKEN_PYPI
           poetry publish --no-interaction
 
+  publish-to-anaconda:
+    name: >-
+      Publish Python distribution to Anaconda
+    if: startsWith(github.ref, 'refs/tags/') || (github.event_name == 'workflow_dispatch' && github.event.inputs.publish_to_anaconda == 'true')
+    needs:
+      - build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Download all the dists
+        uses: actions/download-artifact@v4
+        with:
+          name: python-package-distributions
+          path: dist/
+
+      - name: Download conda recipe
+        uses: actions/download-artifact@v4
+        with:
+          name: conda-recipe
+          path: conda-recipe/
+
+      - name: Set up Miniconda
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          auto-update-conda: true
+          python-version: "3.9"
+          channels: conda-forge,defaults
+
+      - name: Install conda-build and anaconda-client
+        shell: bash -el {0}
+        run: |
+          conda install -y conda-build anaconda-client conda-verify
+
+      - name: Build conda package
+        shell: bash -el {0}
+        run: |
+          # Update the source URL in meta.yaml to use the local tarball
+          VERSION=$(ls dist/fedfred-*.tar.gz | grep -oP 'fedfred-\K[0-9]+\.[0-9]+\.[0-9]+' | head -n 1)
+          TARBALL_PATH=$(realpath dist/fedfred-${VERSION}.tar.gz)
+
+          # Calculate SHA256 of the tarball
+          SHA256=$(sha256sum $TARBALL_PATH | cut -d ' ' -f 1)
+
+          # Update meta.yaml with the correct info
+          sed -i "s/version:.*/version: $VERSION/" conda-recipe/meta.yaml
+          sed -i "s|url:.*|url: \"file://$TARBALL_PATH\"|" conda-recipe/meta.yaml
+          sed -i "s/sha256:.*/sha256: \"$SHA256\"/" conda-recipe/meta.yaml
+
+          # Build the conda package
+          conda build conda-recipe/
+
+      - name: Publish to Anaconda
+        shell: bash -el {0}
+        env:
+          ANACONDA_API_TOKEN: ${{ secrets.ANACONDA_API_TOKEN }}
+        run: |
+          # Get the built package path
+          CONDA_PACKAGE=$(conda build conda-recipe/ --output)
+
+          # Sign the package with Anaconda
+          anaconda upload --user nikhil.sunder --force $CONDA_PACKAGE
+
   sign-and-release:
     name: >-
       Sign and publish GitHub Release
-    if: startsWith(github.ref, 'refs/tags/') || (github.event_name == 'workflow_dispatch' && github.event.inputs.publish_to_pypi == 'true')
+    if: startsWith(github.ref, 'refs/tags/') || (github.event_name == 'workflow_dispatch' && (github.event.inputs.publish_to_pypi == 'true' || github.event.inputs.publish_to_anaconda == 'true'))
     needs:
       - publish-to-pypi
+      - publish-to-anaconda
     runs-on: ubuntu-latest
 
     permissions:

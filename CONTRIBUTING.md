@@ -226,21 +226,45 @@ To set up your development environment:
    - Poetry (for dependency management)
    - Git
 
-2. **Installation**
+2. **Installation with Poetry**
 
    ```bash
    # Clone the repository
    git clone https://github.com/nikhilxsunder/fedfred.git
    cd fedfred
 
-   # Install dependencies
+   # Install dependencies (including dev dependencies and type stubs)
    poetry install
+
+   # If you want to install with explicit type stubs
+   poetry install --extras "types"
 
    # Set up pre-commit hooks
    poetry run pre-commit install
    ```
 
-3. **Environment Configuration**
+3. **Installation with Conda**
+
+   ```bash
+   # Clone the repository
+   git clone https://github.com/nikhilxsunder/fedfred.git
+   cd fedfred
+
+   # Create conda environment
+   conda create -n fedfred-dev python=3.9
+   conda activate fedfred-dev
+
+   # Option 1: Install from the author's Anaconda channel
+   conda install nikhil.sunder::fedfred
+
+   # Option 2: Install in development mode with all dependencies
+   pip install -e ".[dev,types]"
+
+   # Set up pre-commit hooks
+   pre-commit install
+   ```
+
+4. **Environment Configuration**
    - Create a `.env` file based on `.env.example` if needed
    - Configure any necessary environment variables
 
