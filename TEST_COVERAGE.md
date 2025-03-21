@@ -31,7 +31,7 @@ TOTAL                       1695   1009    40%
 Coverage XML written to file coverage.xml
 
 
-============================== 73 passed in 3.60s ==============================
+============================== 73 passed in 3.63s ==============================
 ```
 
 ## Running Test Coverage Locally
