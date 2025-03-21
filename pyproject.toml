@@ -56,6 +56,7 @@ tox = ">=3.24.0,<=4.24.2"
 pytest-asyncio = "^0.15.1"
 pytest-mock = "^3.6.1"
 tomli = "^2.0.1"
+sphinx-sitemap = "^2.6.0"
 
 [tool.poetry.extras]
 types = ["pandas-stubs", "types-cachetools", "types-geopandas"]
