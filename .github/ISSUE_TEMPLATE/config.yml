@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: FedFred Documentation
+    url: https://nikhilxsunder.github.io/fedfred/
+    about: Check the documentation for answers to common questions
+  - name: GitHub Discussions
+    url: https://github.com/nikhilxsunder/fedfred/discussions
+    about: Please ask and answer questions here
+  - name: Security vulnerabilities
+    url: https://github.com/nikhilxsunder/fedfred/blob/main/SECURITY.md
+    about: Please report security vulnerabilities as described in our security policy
