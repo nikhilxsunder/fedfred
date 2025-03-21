@@ -13,11 +13,11 @@ You can install fedfred using pip:
 Using conda
 -----------
 
-FedFred is available on Anaconda through the author's channel. You can install it with conda:
+FedFred is available on Conda-Forge. You can install it with conda:
 
 .. code-block:: bash
 
-   conda install nikhil.sunder::fedfred
+   conda install -c conda-forge fedfred
 
 We recommend creating a dedicated environment for your project:
 

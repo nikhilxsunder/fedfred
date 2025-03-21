@@ -255,7 +255,7 @@ To set up your development environment:
    conda activate fedfred-dev
 
    # Option 1: Install from the author's Anaconda channel
-   conda install nikhil.sunder::fedfred
+   conda install -c conda-forge fedfred
 
    # Option 2: Install in development mode with all dependencies
    pip install -e ".[dev,types]"
