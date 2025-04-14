@@ -232,6 +232,10 @@ jobs:
       - name: Regenerate the feedstock with conda-smithy
         run: |
           cd feedstock
+          # Configure git first
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          # Then run conda smithy
           conda smithy rerender -c auto
 
       - name: Commit and push changes
