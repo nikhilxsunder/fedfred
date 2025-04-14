@@ -7,14 +7,58 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0] - 2025-04-14
+
 ### Added
 
-- [fedfred_property_based_test.py](https://github.com/nikhilxsunder/fedfred/blob/main/tests/fedfred_property_based_test.py)
-- [fred_data_property_based_test.py](https://github.com/nikhilxsunder/fedfred/blob/main/tests/fred_data_property_based_test.py)
+- [clients_property_based_test.py](https://github.com/nikhilxsunder/fedfred/blob/main/tests/fedfred_property_based_test.py)
+- [objects_property_based_test.py](https://github.com/nikhilxsunder/fedfred/blob/main/tests/fred_data_property_based_test.py)
+- [helpers_test.py](https://github.com/nikhilxsunder/fedfred/blob/main/tests/helpers_test.py)
+- [helpers_property_based_test.py](https://github.com/nikhilxsunder/fedfred/blob/main/tests/helpers_property_based_test.py)
+- Type annotations directly in source code
+- More comprehensive error handling for all methods
+- [asyncache](https://pypi.org/project/asyncache/) dependency for cachetools async decorator
+- [README.md](https://github.com/nikhilxsunder/fedfred/blob/main/README.md) badges for 'in repositories' and 'Socket'
+- Optional DataFrame support for [dask](https://pypi.org/project/dask/)
+- OpenSSF Silver & Gold
+- [DCO.md](https://github.com/nikhilxsunder/fedfred/blob/main/DCO.md)
+- [ROADMAP.md](https://github.com/nikhilxsunder/fedfred/blob/main/ROADMAP.md)
+- helper methods now housed in [helpers.py](https://github.com/nikhilxsunder/fedfred/blob/main/src/fedfred/helpers.py) FredHelpers class
+- polars dependency moved to extra dependency group
+- dunder methods for all classes
+- appropriate dunder modules and corresponding precommit hooks/scripts
+- [polars-st](https://pypi.org/project/polars-st/) added to polars dependency group for polars geodataframes
+- [layout.html](https://github.com/nikhilxsunder/fedfred/blob/main/docs/source/_templates/layout.html)
+- [BingSiteAuth.xml](https://github.com/nikhilxsunder/fedfred/blob/main/docs/source/BingSiteAuth.xml)
+- [/conda-forge/meta.yaml](https://github.com/nikhilxsunder/fedfred/blob/main/conda-forge/meta.yaml)
+
+### Removed
+
+- .pyi type stub files
+- 'file_type' arg for all methods (will only support JSON)
+- update_fedstock.py
+
+### Fixed
+
+- Caching logic rework for better type annotations and execution
+- Cache type changed from TTL to FIFO
+- Error handling logic moved to private helper method.
+- Async helper method logic rework to reduce boilerplate code
+- Date args now accept datetime objects
+- Semicolon-seperated string args now accept list objects
+- Dataclass object outputs simplified and output types adjusted accordingly
+- Dataclass objects now have async methods
+- fedfred.py renamed to [clients.py](https://github.com/nikhilxsunder/fedfred/blob/main/src/fedfred/clients.py)
+- fred_data.py renamed to [objects.py](https://github.com/nikhilxsunder/fedfred/blob/main/src/fedfred/objects.py)
+- fedfred_test.py renamed to [clients_test.py](https://github.com/nikhilxsunder/fedfred/blob/main/tests/clients_test.py)
+- fred_data_test.py renamed to [objects_test.py](https://github.com/nikhilxsunder/fedfred/blob/main/tests/objects_test.py)
+- update_feedstock.yml merged into [main.yml](https://github.com/nikhilxsunder/fedfred/blob/main/.github/workflows/main.yml)
+- [tox.ini](https://github.com/nikhilxsunder/fedfred/blob/main/tox.ini) config fixed
+- [conf.py](https://github.com/nikhilxsunder/fedfred/blob/main/docs/source/conf.py)
 
 ## [1.2.9] - 2025-03-20
 
-## Added
+### Added
 
 - Added codecov
 - Conda-forge packaging and distribution
@@ -419,7 +463,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - initial directory structure
 - setuptools for build backend
 
-[Unreleased]: https://github.com/nikhilxsunder/fedfred/compare/v1.2.8...HEAD
+[Unreleased]: https://github.com/nikhilxsunder/fedfred/compare/v2.0.0...HEAD
+[2.0.0]: https://github.com/nikhilxsunder/fedfred/compare/v1.2.9...v2.0.0
+[1.2.9]: https://github.com/nikhilxsunder/fedfred/compare/v1.2.8...v1.2.9
 [1.2.8]: https://github.com/nikhilxsunder/fedfred/compare/v1.2.7...v1.2.8
 [1.2.7]: https://github.com/nikhilxsunder/fedfred/compare/v1.2.6...v1.2.7
 [1.2.6]: https://github.com/nikhilxsunder/fedfred/compare/v1.2.5...v1.2.6

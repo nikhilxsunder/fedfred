@@ -1,8 +1,26 @@
+# filepath: /src/fedfred/object.py
+#
+# Copyright (c) 2025 Nikhil Sunder
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
 """
 This module defines data classes for the FRED API responses.
 """
-from typing import Optional, List, Dict, Union
+
+from typing import Optional, List, Dict
 from dataclasses import dataclass
+import asyncio
 
 @dataclass
 class Category:
@@ -14,9 +32,9 @@ class Category:
     parent_id: Optional[int] = None
 
     @classmethod
-    def from_api_response(cls, response: Dict) -> Union["Category", List["Category"], None]:
+    def to_object(cls, response: Dict) -> List["Category"]:
         """
-        Parses FRED API response and returns either a single Category or a list of Categories.
+        Parses FRED API response and returns a list of Category objects.
         """
         if "categories" not in response:
             raise ValueError("Invalid API response: Missing 'categories' field")
@@ -29,11 +47,15 @@ class Category:
             for category in response["categories"]
         ]
         if not categories:
-            return None
-        elif len(categories) == 1:
-            return categories[0]
-        else:
-            return categories
+            raise ValueError("No categories found in the response")
+        return categories
+
+    @classmethod
+    async def to_object_async(cls, response: Dict) -> List["Category"]:
+        """
+        Asynchronously parses FRED API response and returns a list of Category Objects.
+        """
+        return await asyncio.to_thread(cls.to_object, response)
 @dataclass
 class Series:
     """
@@ -57,9 +79,9 @@ class Series:
     notes: Optional[str] = None
 
     @classmethod
-    def from_api_response(cls, response: Dict) -> Union["Series", List["Series"], None]:
+    def to_object(cls, response: Dict) -> List["Series"]:
         """
-        Parses the FRED API response and returns a single Series or a list of Series.
+        Parses the FRED API response and returns a list of Series objects.
         """
         if "seriess" not in response:
             raise ValueError("Invalid API response: Missing 'seriess' field")
@@ -85,10 +107,15 @@ class Series:
             for series in response["seriess"]
         ]
         if not series_list:
-            return None
-        if len(series_list) == 1:
-            return series_list[0]
+            raise ValueError("No series found in the response")
         return series_list
+
+    @classmethod
+    async def to_object_async(cls, response: Dict) -> List["Series"]:
+        """
+        Asynchronously parses the FRED API response and returns a list of Series objects.
+        """
+        return await asyncio.to_thread(cls.to_object, response)
 
 @dataclass
 class Tag:
@@ -103,9 +130,9 @@ class Tag:
     notes: Optional[str] = None
 
     @classmethod
-    def from_api_response(cls, response: Dict) -> Union["Tag", List["Tag"], None]:
+    def to_object(cls, response: Dict) -> List["Tag"]:
         """
-        Parses the FRED API response and returns a single Tag or a list of Tags.
+        Parses the FRED API response and returns a  list of Tag objects.
         """
         if "tags" not in response:
             raise ValueError("Invalid API response: Missing 'tags' field")
@@ -121,10 +148,15 @@ class Tag:
             for tag in response["tags"]
         ]
         if not tags:
-            return None
-        if len(tags) == 1:
-            return tags[0]
+            raise ValueError("No tags found in the response")
         return tags
+
+    @classmethod
+    async def to_object_async(cls, response: Dict) -> List["Tag"]:
+        """
+        Asynchronously parses the FRED API response and returns a list of Tags objects.
+        """
+        return await asyncio.to_thread(cls.to_object, response)
 
 @dataclass
 class Release:
@@ -140,9 +172,9 @@ class Release:
     notes: Optional[str] = None
 
     @classmethod
-    def from_api_response(cls, response: Dict) -> Union["Release", List["Release"], None]:
+    def to_object(cls, response: Dict) -> List["Release"]:
         """
-        Parses the FRED API response and returns a single Release or a list of Releases.
+        Parses the FRED API response and returns a list of Release objects.
         """
         if "releases" not in response:
             raise ValueError("Invalid API response: Missing 'releases' field")
@@ -159,10 +191,15 @@ class Release:
             for release in response["releases"]
         ]
         if not releases:
-            return None
-        if len(releases) == 1:
-            return releases[0]
+            raise ValueError("No releases found in the response")
         return releases
+
+    @classmethod
+    async def to_object_async(cls, response: Dict) -> List["Release"]:
+        """
+        Asynchronously parses the FRED API response and returns a list of Release objects.
+        """
+        return await asyncio.to_thread(cls.to_object, response)
 
 @dataclass
 class ReleaseDate:
@@ -174,9 +211,9 @@ class ReleaseDate:
     release_name: Optional[str] = None
 
     @classmethod
-    def from_api_response(cls, response: Dict) -> Union["ReleaseDate", List["ReleaseDate"], None]:
+    def to_object(cls, response: Dict) -> List["ReleaseDate"]:
         """
-        Parses the FRED API response and returns a single ReleaseDate or a list of ReleaseDates.
+        Parses the FRED API response and returns a list of ReleaseDate objects.
         """
         if "release_dates" not in response:
             raise ValueError("Invalid API response: Missing 'release_dates' field")
@@ -189,10 +226,15 @@ class ReleaseDate:
             for release_date in response["release_dates"]
         ]
         if not release_dates:
-            return None
-        if len(release_dates) == 1:
-            return release_dates[0]
+            raise ValueError("No release dates found in the response")
         return release_dates
+
+    @classmethod
+    async def to_object_async(cls, response: Dict) -> List["ReleaseDate"]:
+        """
+        Asynchronously parses the FRED API response and returns a list of ReleaseDate objects.
+        """
+        return await asyncio.to_thread(cls.to_object, response)
 
 @dataclass
 class Source:
@@ -207,9 +249,9 @@ class Source:
     notes: Optional[str] = None
 
     @classmethod
-    def from_api_response(cls, response: Dict) -> Union["Source", List["Source"], None]:
+    def to_object(cls, response: Dict) -> List["Source"]:
         """
-        Parses the FRED API response and returns a single Source or a list of Sources.
+        Parses the FRED API response and returns a list of Source objects.
         """
         if "sources" not in response:
             raise ValueError("Invalid API response: Missing 'sources' field")
@@ -225,10 +267,15 @@ class Source:
             for source in response["sources"]
         ]
         if not sources:
-            return None
-        if len(sources) == 1:
-            return sources[0]
+            raise ValueError("No sources found in the response")
         return sources
+
+    @classmethod
+    async def to_object_async(cls, response: Dict) -> List["Source"]:
+        """
+        Asynchronously parses the FRED API response and returns a list of Source objects.
+        """
+        return await asyncio.to_thread(cls.to_object, response)
 
 @dataclass
 class Element:
@@ -246,9 +293,9 @@ class Element:
     children: Optional[List["Element"]] = None
 
     @classmethod
-    def from_api_response(cls, response: Dict) -> Union["Element", List["Element"], None]:
+    def to_object(cls, response: Dict) -> List["Element"]:
         """
-        Parses the FRED API response and returns a single Element or a list of Elements.
+        Parses the FRED API response and returns a list of Elements objects.
         """
         if "elements" not in response:
             raise ValueError("Invalid API response: Missing 'elements' field")
@@ -257,7 +304,7 @@ class Element:
             children_list = []
             for child_data in element_data.get("children", []):
                 child_resp = {"elements": {str(child_data["element_id"]): child_data}}
-                child_result = cls.from_api_response(child_resp)
+                child_result = cls.to_object(child_resp)
                 if isinstance(child_result, list):
                     children_list.extend(child_result)
                 elif child_result is not None:
@@ -276,10 +323,15 @@ class Element:
         for element_data in response["elements"].values():
             elements.append(process_element(element_data))
         if not elements:
-            return None
-        if len(elements) == 1:
-            return elements[0]
+            raise ValueError("No elements found in the response")
         return elements
+
+    @classmethod
+    async def to_object_async(cls, response: Dict) -> List["Element"]:
+        """
+        Asynchronously parses the FRED API response and returns a list of Element objects.
+        """
+        return await asyncio.to_thread(cls.to_object, response)
 
 @dataclass
 class VintageDate:
@@ -289,9 +341,9 @@ class VintageDate:
     vintage_date: str
 
     @classmethod
-    def from_api_response(cls, response: Dict) -> Union["VintageDate", List["VintageDate"], None]:
+    def to_object(cls, response: Dict) -> List["VintageDate"]:
         """
-        Parses the FRED API response and returns a single VintageDate or a list of VintageDates.
+        Parses the FRED API response and returns a list of VintageDate objects.
         """
         if "vintage_dates" not in response:
             raise ValueError("Invalid API response: Missing 'vintage_dates' field")
@@ -300,10 +352,15 @@ class VintageDate:
             for date in response["vintage_dates"]
         ]
         if not vintage_dates:
-            return None
-        if len(vintage_dates) == 1:
-            return vintage_dates[0]
+            raise ValueError("No vintage dates found in the response")
         return vintage_dates
+
+    @classmethod
+    async def to_object_async(cls, response: Dict) -> List["VintageDate"]:
+        """
+        Asynchronously parses the FRED API response and returns a list of VintageDate objects.
+        """
+        return await asyncio.to_thread(cls.to_object, response)
 
 @dataclass
 class SeriesGroup:
@@ -320,24 +377,16 @@ class SeriesGroup:
     max_date: str
 
     @classmethod
-    def from_api_response(cls, response: Dict) -> Union["SeriesGroup", List["SeriesGroup"], None]:
+    def to_object(cls, response: Dict) -> List["SeriesGroup"]:
         """
-        Parses the FRED API response and returns a single SeriesGroup or a list of SeriesGroups.
+        Parses the FRED API response and returns a list of SeriesGroup objects.
         """
         if "series_group" not in response:
             raise ValueError("Invalid API response: Missing 'series_group' field")
-        if isinstance(response["series_group"], dict):
-            series_group_data = response["series_group"]
-            return cls(
-                title=series_group_data["title"],
-                region_type=series_group_data["region_type"],
-                series_group=series_group_data["series_group"],
-                season=series_group_data["season"],
-                units=series_group_data["units"],
-                frequency=series_group_data["frequency"],
-                min_date=series_group_data["min_date"],
-                max_date=series_group_data["max_date"]
-            )
+        series_group_data = response["series_group"]
+        if isinstance(series_group_data, dict):
+            series_group_data = [series_group_data]
+
         series_groups = [
             cls(
                 title=series_group["title"],
@@ -349,10 +398,13 @@ class SeriesGroup:
                 min_date=series_group["min_date"],
                 max_date=series_group["max_date"]
             )
-            for series_group in response["series_group"]
+            for series_group in series_group_data
         ]
-        if not series_groups:
-            return None
-        if len(series_groups) == 1:
-            return series_groups[0]
         return series_groups
+
+    @classmethod
+    async def to_object_async(cls, response: Dict) -> List["SeriesGroup"]:
+        """
+        Asynchronously parses the FRED API response and returns a list of SeriesGroup objects.
+        """
+        return await asyncio.to_thread(cls.to_object, response)

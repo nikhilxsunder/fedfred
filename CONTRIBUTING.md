@@ -24,6 +24,7 @@ Thank you for your interest in contributing to FedFred! We welcome contributions
   - [Property-Based Testing with Hypothesis](#property-based-testing-with-hypothesis)
   - [Running Dynamic Analysis Tests](#running-dynamic-analysis-tests)
 - [Release Process](#release-process)
+- [Governance Model](#governance-model)
 
 ## How to Contribute
 
@@ -87,7 +88,21 @@ Follow these steps when contributing code:
    - Write clear commit messages explaining your changes
    - Keep commits focused and logical
 
-4. **Submit a Pull Request**
+4. **Sign Your Commits**
+
+   - All commits must be signed off to certify that you have the legal right to contribute the code.
+   - Use the -s flag when making a commit:
+     ```bash
+     git commit -s -m "Your commit message"
+     ```
+   - This will append a Signed-off-by line to your commit message, indicating your agreement to the [Developer Certificate of Origin (DCO)](https://github.com/nikhilxsunder/fedfred/blob/main/DCO.md).
+   - Example:
+     ```bash
+     Signed-off-by: Your Name <your.email@example.com>
+     ```
+   - Pull requests with unsigned commits will not be merged.
+
+5. **Submit a Pull Request**
    - Ensure all tests pass locally
    - Create a PR against the `main` branch
    - Use the PR template to describe your changes
@@ -371,3 +386,9 @@ Release Procedure:
 2. Label the PR as "release-candidate" to trigger dynamic analysis
 3. Review test results including property-based tests
 4. After merging, tag the release and publish to PyPI
+
+## Governance Model
+
+FedFred follows a centralized governance model. The project owner and lead, Nikhil Sunder, has the final authority on all decisions regarding the project's direction, contributions, and dispute resolution. Contributors are encouraged to participate in discussions and submit pull requests, but the project owner retains the right to approve or reject changes.
+
+For questions or concerns, contributors can reach out via GitHub Issues or email at nsunder724@gmail.com.

@@ -11,24 +11,24 @@
     <a href="https://github.com/nikhilxsunder/fedfred/actions/workflows/analyze.yml"><img src="https://github.com/nikhilxsunder/fedfred/actions/workflows/analyze.yml/badge.svg" alt="Analyze Status"></a>
     <a href="https://github.com/nikhilxsunder/fedfred/actions/workflows/test.yml"><img src="https://github.com/nikhilxsunder/fedfred/actions/workflows/test.yml/badge.svg" alt="Test Status"></a>
     <a href="https://github.com/nikhilxsunder/fedfred/actions/workflows/codeql.yml"><img src="https://github.com/nikhilxsunder/fedfred/actions/workflows/codeql.yml/badge.svg" alt="CodeQL"></a>
+    <a href="https://www.bestpractices.dev/projects/10158"><img src="https://www.bestpractices.dev/projects/10158/badge"></a>
     <a href="https://codecov.io/gh/nikhilxsunder/fedfred"><img src="https://codecov.io/gh/nikhilxsunder/fedfred/graph/badge.svg?token=VVEK415DF6" alt="Code Coverage"></a>
+    <a href="https://socket.dev/pypi/package/fedfred/overview/1.2.9/tar-gz"><img src="https://socket.dev/api/badge/pypi/package/fedfred/1.2.9?artifact_id=tar-gz"></a>
+    <a href="https://repology.org/project/python%3Afedfred/versions"><img src="https://repology.org/badge/tiny-repos/python%3Afedfred.svg" alt="Packaging status"></a>
     <a href="https://pypi.org/project/fedfred/"><img src="https://img.shields.io/pypi/v/fedfred.svg" alt="PyPI version"></a>
     <a href="https://pepy.tech/projects/fedfred"><img src="https://static.pepy.tech/badge/fedfred" alt="PyPI Downloads"></a>
     <a href="https://anaconda.org/conda-forge/fedfred"><img src="https://anaconda.org/conda-forge/fedfred/badges/version.svg" alt="Conda-Forge version"></a>
     <a href="https://anaconda.org/conda-forge/fedfred"><img src="https://anaconda.org/conda-forge/fedfred/badges/downloads.svg" alt="Conda-Forge downloads"></a>
-    <a href="https://www.bestpractices.dev/projects/10158"><img src="https://www.bestpractices.dev/projects/10158/badge"></a>
 </div>
 
 ### Features
 
 - Now available on Conda-Forge!
-- Pandas/Polars DataFrame outputs.
+- Pandas/Polars/Dask DataFrame native support.
+- GeoPandas/Polars-ST/Geopandas-Dask GeoDataframe native support
 - Native support for asynchronous requests (async).
-- All method outputs are mapped to dataclasses for better usability.
-- Local cacheing for easier data access and faster execution times.
+- Local caching for easier data access and faster execution times.
 - Built-in rate limiter that doesn't exceed 120 calls per minute (ignores local caching).
-- GeoPandas outputs for geographical data (FRED-Maps/GeoFRED)
-- MyPy compatible type stubs.
 
 ### Installation
 
@@ -48,6 +48,18 @@ For type checking support, install with optional type stubs:
 
 ```sh
 pip install fedfred[types]
+```
+
+For use with Polars DataFrames and GeoDataFrames, install with:
+
+```sh
+pip install fedfred[polars]
+```
+
+For use with Dask DataFrames and GeoDataFrames, install with:
+
+```sh
+pip install fedfred[dask]
 ```
 
 We recommend using a virtual environment with either installation method.

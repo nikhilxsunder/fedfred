@@ -114,7 +114,7 @@ This example demonstrates how to visualize geographic data using GeoPandas.
     import fedfred as fd
 
     # Fetch geographic data for unemployment rates by state
-    fred_maps = fd.FredMapsAPI(api_key="your_api_key_here")
+    fred_maps = fd.MapsAPI(api_key="your_api_key_here")
     unemployment_by_state = fred_maps.get_regional_data(
         series_group="unemployment",
         region_type="state",

@@ -25,12 +25,10 @@ We recommend creating a dedicated environment for your project:
 
    conda create -n myenv
    conda activate myenv
-   conda install nikhil.sunder::fedfred
-
-Note: FedFred will be submitted to conda-forge in the future for broader distribution.
+   conda install conda-forge::fedfred
 
 Optional Type Stubs
-------------------
+-------------------
 
 If you need type stubs for development (e.g., for `pandas`, `cachetools`, or `geopandas`), you can install the optional dependencies:
 
@@ -39,6 +37,19 @@ Using pip:
 .. code-block:: bash
 
    pip install fedfred[types]
+
+Optional DataFrame Dependencies
+-------------------------------
+
+FedFred uses `pandas` and `geopandas` natively but also supports `polars` and `dask` for DataFrames as well as `polars-st` and `dask-geopandas` for GeoDataFrames. You can install the optional dependencies for either library:
+
+Using pip:
+
+.. code-block:: bash
+
+   pip install fedfred[pandas]
+   pip install fedfred[polars]
+   pip install fedfred[dask]
 
 Development Installation
 ------------------------

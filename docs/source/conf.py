@@ -10,7 +10,7 @@
 project = 'fedfred'
 copyright = '2025, Nikhil Sunder'
 author = 'Nikhil Sunder'
-release = '1.2.9'
+release = '2.0.0'
 
 # -- General configuration ---------------------------------------------------
 extensions = [
@@ -21,6 +21,13 @@ extensions = [
     'myst_parser',
     'sphinxcontrib.googleanalytics',
     'sphinx_sitemap',
+    'sphinxext.opengraph',
+    'sphinx.ext.intersphinx',
+    'sphinx.ext.autosummary',
+    'sphinx.ext.inheritance_diagram',
+    'sphinx.ext.graphviz',
+    'sphinx.ext.extlinks',
+    'sphinx.ext.doctest',
 ]
 
 # myst
@@ -50,6 +57,7 @@ googleanalytics_enabled = True
 
 # html
 html_baseurl = 'https://nikhilxsunder.github.io/fedfred/'
+html_extra_path = ['robots.txt']
 html_theme = 'furo'
 html_theme_options = {
     "sidebar_hide_name": False,
@@ -87,6 +95,37 @@ html_static_path = ['_static']
 html_title = "fedfred"
 html_favicon = "_static/fedfred_favicon.ico"
 html_logo = "_static/fedfred-logo.png"
+html_meta ={
+    "description": "A feature-rich python package for interacting with the Federal Reserve Bank of St. Louis Economic Database: FRED",
+    "keywords": "fred, federal reserve, api, economics, finance, economic data, financial data, fred pandas, fred polars, fred dask, fred geopandas, async, pandas, polars, dask, geopandas, cache, financial analysis, economic analysis, data analysis, data science, data visualization, data mining, data wrangling, data cleaning"
+}
+html_context = {
+    "json_ld": """
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "FedFred",
+        "url": "https://nikhilxsunder.github.io/fedfred/",
+        "description": "A feature-rich Python package for interacting with the Federal Reserve Bank of St. Louis Economic Database (FRED).",
+        "applicationCategory": "FinanceApplication",
+        "operatingSystem": "Linux, MacOS, Windows",
+        "softwareVersion": "1.3.0",
+        "author": {
+            "@type": "Person",
+            "name": "Nikhil Sunder"
+        },
+        "license": "https://www.gnu.org/licenses/agpl-3.0.html",
+        "programmingLanguage": "Python",
+        "downloadUrl": "https://pypi.org/project/fedfred/",
+        "sourceCode": "https://github.com/nikhilxsunder/fedfred",
+        "documentation": "https://nikhilxsunder.github.io/fedfred/"
+    }
+    </script>
+    """
+}
+templates_path = ['_templates']
+html_static_path = ['_static']
 
 # autodocs
 autodoc_default_options = {
@@ -94,6 +133,8 @@ autodoc_default_options = {
     'undoc-members': True,
     'show-inheritance': True,
 }
+autodoc_typehints = "description"
+autodoc_typehints_format = "short"
 
 # md/rst
 source_suffix = {
@@ -101,5 +142,37 @@ source_suffix = {
     '.md': 'markdown',
 }
 
-templates_path = ['_templates']
-html_static_path = ['_static']
+# opengraph
+ogp_site_url = "https://nikhilxsunder.github.io/fedfred/"
+ogp_image = "_static/fedfred-logo.png"
+ogp_description_length = 300
+ogp_type = "website"
+ogp_custom_meta_tags = [
+    '<meta property="og:locale" content="en_US" />',
+    '<meta property="og:site_name" content="FedFred Documentation" />',
+    '<meta property="og:url" content="https://nikhilxsunder.github.io/fedfred/" />',
+    '<meta property="og:image:alt" content="FedFred Logo" />',
+]
+ogp_enable_meta_description = True
+
+# intersphinx
+intersphinx_mapping = {
+    'python': ('https://docs.python.org/3', None),
+    'pandas': ('https://pandas.pydata.org/pandas-docs/stable/', None),
+    'geopandas': ('https://geopandas.org/en/stable/', None),
+    'httpx': ('https://www.python-httpx.org/en/stable/', None),
+    'polars': ('https://pola-rs.github.io/polars/py-polars/html/', None),
+    'dask': ('https://docs.dask.org/en/stable/', None),
+}
+
+# autosummary
+autosummary_generate = True
+
+# extlinks
+extlinks = {
+    'python-doc': ('https://docs.python.org/3/library/%s', 'Python Docs: %s'),
+    'pandas-doc': ('https://pandas.pydata.org/pandas-docs/stable/reference/%s', 'Pandas Docs: %s'),
+    'geopandas-doc': ('https://geopandas.org/en/stable/docs/reference/%s', 'GeoPandas Docs: %s'),
+    'fred-api': ('https://fred.stlouisfed.org/docs/api/fred/%s', 'FRED API Docs: %s'),
+    'github': ('https://github.com/nikhilxsunder/fedfred/%s', 'GitHub: %s'),
+}

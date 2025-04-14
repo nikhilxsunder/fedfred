@@ -5,12 +5,14 @@ repos:
       - id: trailing-whitespace
       - id: end-of-file-fixer
       - id: check-yaml
+        exclude: ^conda-forge/meta\.yaml$
       - id: check-added-large-files
 
   - repo: https://github.com/pre-commit/mirrors-prettier
     rev: v4.0.0-alpha.8
     hooks:
       - id: prettier
+        exclude: ^conda-forge/meta\.yaml$
 
   - repo: https://github.com/pycqa/pylint
     rev: v3.3.5
@@ -27,7 +29,7 @@ repos:
           )$
         args:
           [
-            "--disable=E0401,R0902,R0913,R0917,R0914,R0912,R0904,R1705,C0103,R1710,C2801",
+            "--disable=E0401,R0902,R0913,R0917,R0914,R0912,R0904,R1705,C0103,R1710,C2801,C0415,R1720,R1711,R0915",
           ]
 
   - repo: local
@@ -40,6 +42,31 @@ repos:
         files: ^(pyproject\.toml|conda-recipe/meta\.yaml)$
         pass_filenames: false
         description: "Synchronizes conda-recipe/meta.yaml with pyproject.toml"
+
+      - id: sync-conf-version
+        name: Sync conf.py release with pyproject.toml version
+        entry: python scripts/sync_conf_version.py
+        language: python
+        files: ^docs/source/conf\.py$
+        stages: [pre-commit]
+        additional_dependencies: ["toml"]
+
+      - id: sync-about-version
+        name: Sync __about__.py __version__ with pyproject.toml version
+        entry: python scripts/sync_about_version.py
+        language: python
+        files: ^src/fedfred/__about__\.py$
+        stages: [pre-commit]
+        additional_dependencies: ["toml"]
+
+      - id: sync-conda-recipe-version
+        name: Sync conda-recipe/meta.yaml version with pyproject.toml
+        entry: python scripts/sync_conda_forge_version.py
+        language: python
+        files: ^(pyproject\.toml|conda-recipe/meta\.yaml)$
+        pass_filenames: false
+        description: "Synchronizes the version in conda-recipe/meta.yaml with pyproject.toml"
+        additional_dependencies: ["tomli"]
 
       - id: mypy-local
         name: mypy

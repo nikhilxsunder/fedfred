@@ -22,7 +22,7 @@
 
 ## Current Vulnerability Status
 
-As of March 2025, there are no unpatched vulnerabilities of medium or higher severity that have been publicly known for more than 60 days in the FedFred codebase.
+As of April 2025, there are no unpatched vulnerabilities of medium or higher severity that have been publicly known for more than 60 days in the FedFred codebase.
 
 We monitor for vulnerabilities through:
 
@@ -68,10 +68,10 @@ When you report a vulnerability, you can expect:
 
 ## Supported Versions
 
-| Version | Supported          |
-| ------- | ------------------ |
-| 1.0.x   | :white_check_mark: |
-| < 1.0   | :x:                |
+| Version | Supported |
+| ------- | --------- |
+| 2.0.x   | Yes       |
+| < 2.0   | No        |
 
 Only the latest minor release within each supported major version will receive security updates.
 
