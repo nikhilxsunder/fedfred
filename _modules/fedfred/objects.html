@@ -12,12 +12,13 @@
         gtag('config', 'G-Q7LK34R0CV');
     </script>
     <link rel="index" title="Index" href="../../genindex.html" /><link rel="search" title="Search" href="../../search.html" />
-        <link rel="canonical" href="https://nikhilxsunder.github.io/fedfred/_modules/fedfred/fred_data.html" />
+        <link rel="canonical" href="https://nikhilxsunder.github.io/fedfred/_modules/fedfred/objects.html" />
 
-    <link rel="shortcut icon" href="../../_static/fedfred_favicon.ico"/><!-- Generated with Sphinx 7.4.7 and Furo 2024.08.06 -->
-        <title>fedfred.fred_data - fedfred</title>
+    <link rel="shortcut icon" href="../../_static/fedfred_favicon.ico"/><!-- Generated with Sphinx 8.1.3 and Furo 2024.08.06 -->
+        <title>fedfred.objects - fedfred</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/furo.css?v=354aac6f" />
+    <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=4ae1632d" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/furo-extensions.css?v=302659d7" />
     
     
@@ -227,11 +228,12 @@
 </ul>
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../api/index.html">API Reference</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of API Reference</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../api/fredapi.html">FredAPI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/fredapi.html">FredAPI Class</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/mapsapi.html">MapsAPI Class</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/asyncapi.html">AsyncAPI Class</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/asyncmapsapi.html">AsyncMapsAPI Class</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../api/data_classes.html">Data Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/objects.html">Objects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/helpers.html">Helpers</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../contributing.html">Contributing to FedFred</a></li>
@@ -273,15 +275,33 @@
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <h1>Source code for fedfred.fred_data</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;</span>
+          <h1>Source code for fedfred.objects</h1><div class="highlight"><pre>
+<span></span><span class="c1"># filepath: /src/fedfred/object.py</span>
+<span class="c1">#</span>
+<span class="c1"># Copyright (c) 2025 Nikhil Sunder</span>
+<span class="c1">#</span>
+<span class="c1"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c1"># it under the terms of the GNU Affero General Public License as published by</span>
+<span class="c1"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c1"># (at your option) any later version.</span>
+<span class="c1">#</span>
+<span class="c1"># This program is distributed in the hope that it will be useful,</span>
+<span class="c1"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c1"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the</span>
+<span class="c1"># GNU Affero General Public License for more details.</span>
+<span class="c1">#</span>
+<span class="c1"># You should have received a copy of the GNU Affero General Public License</span>
+<span class="c1"># along with this program. If not, see &lt;https://www.gnu.org/licenses/&gt;.</span>
+<span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">This module defines data classes for the FRED API responses.</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Union</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
 
 <div class="viewcode-block" id="Category">
-<a class="viewcode-back" href="../../api/data_classes.html#fedfred.fred_data.Category">[docs]</a>
+<a class="viewcode-back" href="../../api/objects.html#fedfred.objects.Category">[docs]</a>
 <span class="nd">@dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">Category</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -291,12 +311,12 @@
     <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">parent_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
 
-<div class="viewcode-block" id="Category.from_api_response">
-<a class="viewcode-back" href="../../api/data_classes.html#fedfred.fred_data.Category.from_api_response">[docs]</a>
+<div class="viewcode-block" id="Category.to_object">
+<a class="viewcode-back" href="../../api/objects.html#fedfred.objects.Category.to_object">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">from_api_response</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">response</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="s2">&quot;Category&quot;</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;Category&quot;</span><span class="p">],</span> <span class="kc">None</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_object</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">response</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;Category&quot;</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Parses FRED API response and returns either a single Category or a list of Categories.</span>
+<span class="sd">        Parses FRED API response and returns a list of Category objects.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="s2">&quot;categories&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">response</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid API response: Missing &#39;categories&#39; field&quot;</span><span class="p">)</span>
@@ -309,15 +329,22 @@
             <span class="k">for</span> <span class="n">category</span> <span class="ow">in</span> <span class="n">response</span><span class="p">[</span><span class="s2">&quot;categories&quot;</span><span class="p">]</span>
         <span class="p">]</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">categories</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">None</span>
-        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">categories</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">categories</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">categories</span></div>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No categories found in the response&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">categories</span></div>
+
+
+<div class="viewcode-block" id="Category.to_object_async">
+<a class="viewcode-back" href="../../api/objects.html#fedfred.objects.Category.to_object_async">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">to_object_async</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">response</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;Category&quot;</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Asynchronously parses FRED API response and returns a list of Category Objects.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">to_thread</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">to_object</span><span class="p">,</span> <span class="n">response</span><span class="p">)</span></div>
 </div>
 
 <div class="viewcode-block" id="Series">
-<a class="viewcode-back" href="../../api/data_classes.html#fedfred.fred_data.Series">[docs]</a>
+<a class="viewcode-back" href="../../api/objects.html#fedfred.objects.Series">[docs]</a>
 <span class="nd">@dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">Series</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -340,12 +367,12 @@
     <span class="n">group_popularity</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">notes</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
 
-<div class="viewcode-block" id="Series.from_api_response">
-<a class="viewcode-back" href="../../api/data_classes.html#fedfred.fred_data.Series.from_api_response">[docs]</a>
+<div class="viewcode-block" id="Series.to_object">
+<a class="viewcode-back" href="../../api/objects.html#fedfred.objects.Series.to_object">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">from_api_response</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">response</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="s2">&quot;Series&quot;</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;Series&quot;</span><span class="p">],</span> <span class="kc">None</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_object</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">response</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;Series&quot;</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Parses the FRED API response and returns a single Series or a list of Series.</span>
+<span class="sd">        Parses the FRED API response and returns a list of Series objects.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="s2">&quot;seriess&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">response</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid API response: Missing &#39;seriess&#39; field&quot;</span><span class="p">)</span>
@@ -371,15 +398,23 @@
             <span class="k">for</span> <span class="n">series</span> <span class="ow">in</span> <span class="n">response</span><span class="p">[</span><span class="s2">&quot;seriess&quot;</span><span class="p">]</span>
         <span class="p">]</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">series_list</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">None</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">series_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">series_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No series found in the response&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">series_list</span></div>
+
+
+<div class="viewcode-block" id="Series.to_object_async">
+<a class="viewcode-back" href="../../api/objects.html#fedfred.objects.Series.to_object_async">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">to_object_async</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">response</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;Series&quot;</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Asynchronously parses the FRED API response and returns a list of Series objects.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">to_thread</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">to_object</span><span class="p">,</span> <span class="n">response</span><span class="p">)</span></div>
 </div>
 
 
 <div class="viewcode-block" id="Tag">
-<a class="viewcode-back" href="../../api/data_classes.html#fedfred.fred_data.Tag">[docs]</a>
+<a class="viewcode-back" href="../../api/objects.html#fedfred.objects.Tag">[docs]</a>
 <span class="nd">@dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">Tag</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -392,12 +427,12 @@
     <span class="n">series_count</span><span class="p">:</span> <span class="nb">int</span>
     <span class="n">notes</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
 
-<div class="viewcode-block" id="Tag.from_api_response">
-<a class="viewcode-back" href="../../api/data_classes.html#fedfred.fred_data.Tag.from_api_response">[docs]</a>
+<div class="viewcode-block" id="Tag.to_object">
+<a class="viewcode-back" href="../../api/objects.html#fedfred.objects.Tag.to_object">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">from_api_response</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">response</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="s2">&quot;Tag&quot;</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;Tag&quot;</span><span class="p">],</span> <span class="kc">None</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_object</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">response</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;Tag&quot;</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Parses the FRED API response and returns a single Tag or a list of Tags.</span>
+<span class="sd">        Parses the FRED API response and returns a  list of Tag objects.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="s2">&quot;tags&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">response</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid API response: Missing &#39;tags&#39; field&quot;</span><span class="p">)</span>
@@ -413,15 +448,23 @@
             <span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">response</span><span class="p">[</span><span class="s2">&quot;tags&quot;</span><span class="p">]</span>
         <span class="p">]</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">tags</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">None</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tags</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">tags</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No tags found in the response&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">tags</span></div>
+
+
+<div class="viewcode-block" id="Tag.to_object_async">
+<a class="viewcode-back" href="../../api/objects.html#fedfred.objects.Tag.to_object_async">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">to_object_async</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">response</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;Tag&quot;</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Asynchronously parses the FRED API response and returns a list of Tags objects.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">to_thread</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">to_object</span><span class="p">,</span> <span class="n">response</span><span class="p">)</span></div>
 </div>
 
 
 <div class="viewcode-block" id="Release">
-<a class="viewcode-back" href="../../api/data_classes.html#fedfred.fred_data.Release">[docs]</a>
+<a class="viewcode-back" href="../../api/objects.html#fedfred.objects.Release">[docs]</a>
 <span class="nd">@dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">Release</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -435,12 +478,12 @@
     <span class="n">link</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">notes</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
 
-<div class="viewcode-block" id="Release.from_api_response">
-<a class="viewcode-back" href="../../api/data_classes.html#fedfred.fred_data.Release.from_api_response">[docs]</a>
+<div class="viewcode-block" id="Release.to_object">
+<a class="viewcode-back" href="../../api/objects.html#fedfred.objects.Release.to_object">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">from_api_response</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">response</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="s2">&quot;Release&quot;</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;Release&quot;</span><span class="p">],</span> <span class="kc">None</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_object</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">response</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;Release&quot;</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Parses the FRED API response and returns a single Release or a list of Releases.</span>
+<span class="sd">        Parses the FRED API response and returns a list of Release objects.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="s2">&quot;releases&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">response</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid API response: Missing &#39;releases&#39; field&quot;</span><span class="p">)</span>
@@ -457,15 +500,23 @@
             <span class="k">for</span> <span class="n">release</span> <span class="ow">in</span> <span class="n">response</span><span class="p">[</span><span class="s2">&quot;releases&quot;</span><span class="p">]</span>
         <span class="p">]</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">releases</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">None</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">releases</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">releases</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No releases found in the response&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">releases</span></div>
+
+
+<div class="viewcode-block" id="Release.to_object_async">
+<a class="viewcode-back" href="../../api/objects.html#fedfred.objects.Release.to_object_async">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">to_object_async</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">response</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;Release&quot;</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Asynchronously parses the FRED API response and returns a list of Release objects.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">to_thread</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">to_object</span><span class="p">,</span> <span class="n">response</span><span class="p">)</span></div>
 </div>
 
 
 <div class="viewcode-block" id="ReleaseDate">
-<a class="viewcode-back" href="../../api/data_classes.html#fedfred.fred_data.ReleaseDate">[docs]</a>
+<a class="viewcode-back" href="../../api/objects.html#fedfred.objects.ReleaseDate">[docs]</a>
 <span class="nd">@dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">ReleaseDate</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -475,12 +526,12 @@
     <span class="n">date</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">release_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
 
-<div class="viewcode-block" id="ReleaseDate.from_api_response">
-<a class="viewcode-back" href="../../api/data_classes.html#fedfred.fred_data.ReleaseDate.from_api_response">[docs]</a>
+<div class="viewcode-block" id="ReleaseDate.to_object">
+<a class="viewcode-back" href="../../api/objects.html#fedfred.objects.ReleaseDate.to_object">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">from_api_response</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">response</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="s2">&quot;ReleaseDate&quot;</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;ReleaseDate&quot;</span><span class="p">],</span> <span class="kc">None</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_object</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">response</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;ReleaseDate&quot;</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Parses the FRED API response and returns a single ReleaseDate or a list of ReleaseDates.</span>
+<span class="sd">        Parses the FRED API response and returns a list of ReleaseDate objects.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="s2">&quot;release_dates&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">response</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid API response: Missing &#39;release_dates&#39; field&quot;</span><span class="p">)</span>
@@ -493,15 +544,23 @@
             <span class="k">for</span> <span class="n">release_date</span> <span class="ow">in</span> <span class="n">response</span><span class="p">[</span><span class="s2">&quot;release_dates&quot;</span><span class="p">]</span>
         <span class="p">]</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">release_dates</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">None</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">release_dates</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">release_dates</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No release dates found in the response&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">release_dates</span></div>
+
+
+<div class="viewcode-block" id="ReleaseDate.to_object_async">
+<a class="viewcode-back" href="../../api/objects.html#fedfred.objects.ReleaseDate.to_object_async">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">to_object_async</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">response</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;ReleaseDate&quot;</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Asynchronously parses the FRED API response and returns a list of ReleaseDate objects.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">to_thread</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">to_object</span><span class="p">,</span> <span class="n">response</span><span class="p">)</span></div>
 </div>
 
 
 <div class="viewcode-block" id="Source">
-<a class="viewcode-back" href="../../api/data_classes.html#fedfred.fred_data.Source">[docs]</a>
+<a class="viewcode-back" href="../../api/objects.html#fedfred.objects.Source">[docs]</a>
 <span class="nd">@dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">Source</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -514,12 +573,12 @@
     <span class="n">link</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">notes</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
 
-<div class="viewcode-block" id="Source.from_api_response">
-<a class="viewcode-back" href="../../api/data_classes.html#fedfred.fred_data.Source.from_api_response">[docs]</a>
+<div class="viewcode-block" id="Source.to_object">
+<a class="viewcode-back" href="../../api/objects.html#fedfred.objects.Source.to_object">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">from_api_response</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">response</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="s2">&quot;Source&quot;</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;Source&quot;</span><span class="p">],</span> <span class="kc">None</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_object</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">response</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;Source&quot;</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Parses the FRED API response and returns a single Source or a list of Sources.</span>
+<span class="sd">        Parses the FRED API response and returns a list of Source objects.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="s2">&quot;sources&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">response</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid API response: Missing &#39;sources&#39; field&quot;</span><span class="p">)</span>
@@ -535,15 +594,23 @@
             <span class="k">for</span> <span class="n">source</span> <span class="ow">in</span> <span class="n">response</span><span class="p">[</span><span class="s2">&quot;sources&quot;</span><span class="p">]</span>
         <span class="p">]</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">sources</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">None</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sources</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">sources</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No sources found in the response&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">sources</span></div>
+
+
+<div class="viewcode-block" id="Source.to_object_async">
+<a class="viewcode-back" href="../../api/objects.html#fedfred.objects.Source.to_object_async">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">to_object_async</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">response</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;Source&quot;</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Asynchronously parses the FRED API response and returns a list of Source objects.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">to_thread</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">to_object</span><span class="p">,</span> <span class="n">response</span><span class="p">)</span></div>
 </div>
 
 
 <div class="viewcode-block" id="Element">
-<a class="viewcode-back" href="../../api/data_classes.html#fedfred.fred_data.Element">[docs]</a>
+<a class="viewcode-back" href="../../api/objects.html#fedfred.objects.Element">[docs]</a>
 <span class="nd">@dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">Element</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -559,12 +626,12 @@
     <span class="n">level</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">children</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="s2">&quot;Element&quot;</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
 
-<div class="viewcode-block" id="Element.from_api_response">
-<a class="viewcode-back" href="../../api/data_classes.html#fedfred.fred_data.Element.from_api_response">[docs]</a>
+<div class="viewcode-block" id="Element.to_object">
+<a class="viewcode-back" href="../../api/objects.html#fedfred.objects.Element.to_object">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">from_api_response</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">response</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="s2">&quot;Element&quot;</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;Element&quot;</span><span class="p">],</span> <span class="kc">None</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_object</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">response</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;Element&quot;</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Parses the FRED API response and returns a single Element or a list of Elements.</span>
+<span class="sd">        Parses the FRED API response and returns a list of Elements objects.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="s2">&quot;elements&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">response</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid API response: Missing &#39;elements&#39; field&quot;</span><span class="p">)</span>
@@ -573,7 +640,7 @@
             <span class="n">children_list</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">for</span> <span class="n">child_data</span> <span class="ow">in</span> <span class="n">element_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;children&quot;</span><span class="p">,</span> <span class="p">[]):</span>
                 <span class="n">child_resp</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;elements&quot;</span><span class="p">:</span> <span class="p">{</span><span class="nb">str</span><span class="p">(</span><span class="n">child_data</span><span class="p">[</span><span class="s2">&quot;element_id&quot;</span><span class="p">]):</span> <span class="n">child_data</span><span class="p">}}</span>
-                <span class="n">child_result</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_api_response</span><span class="p">(</span><span class="n">child_resp</span><span class="p">)</span>
+                <span class="n">child_result</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">to_object</span><span class="p">(</span><span class="n">child_resp</span><span class="p">)</span>
                 <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">child_result</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
                     <span class="n">children_list</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">child_result</span><span class="p">)</span>
                 <span class="k">elif</span> <span class="n">child_result</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -592,15 +659,23 @@
         <span class="k">for</span> <span class="n">element_data</span> <span class="ow">in</span> <span class="n">response</span><span class="p">[</span><span class="s2">&quot;elements&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
             <span class="n">elements</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">process_element</span><span class="p">(</span><span class="n">element_data</span><span class="p">))</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">elements</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">None</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">elements</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">elements</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No elements found in the response&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">elements</span></div>
+
+
+<div class="viewcode-block" id="Element.to_object_async">
+<a class="viewcode-back" href="../../api/objects.html#fedfred.objects.Element.to_object_async">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">to_object_async</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">response</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;Element&quot;</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Asynchronously parses the FRED API response and returns a list of Element objects.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">to_thread</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">to_object</span><span class="p">,</span> <span class="n">response</span><span class="p">)</span></div>
 </div>
 
 
 <div class="viewcode-block" id="VintageDate">
-<a class="viewcode-back" href="../../api/data_classes.html#fedfred.fred_data.VintageDate">[docs]</a>
+<a class="viewcode-back" href="../../api/objects.html#fedfred.objects.VintageDate">[docs]</a>
 <span class="nd">@dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">VintageDate</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -608,12 +683,12 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">vintage_date</span><span class="p">:</span> <span class="nb">str</span>
 
-<div class="viewcode-block" id="VintageDate.from_api_response">
-<a class="viewcode-back" href="../../api/data_classes.html#fedfred.fred_data.VintageDate.from_api_response">[docs]</a>
+<div class="viewcode-block" id="VintageDate.to_object">
+<a class="viewcode-back" href="../../api/objects.html#fedfred.objects.VintageDate.to_object">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">from_api_response</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">response</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="s2">&quot;VintageDate&quot;</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;VintageDate&quot;</span><span class="p">],</span> <span class="kc">None</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_object</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">response</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;VintageDate&quot;</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Parses the FRED API response and returns a single VintageDate or a list of VintageDates.</span>
+<span class="sd">        Parses the FRED API response and returns a list of VintageDate objects.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="s2">&quot;vintage_dates&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">response</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid API response: Missing &#39;vintage_dates&#39; field&quot;</span><span class="p">)</span>
@@ -622,15 +697,23 @@
             <span class="k">for</span> <span class="n">date</span> <span class="ow">in</span> <span class="n">response</span><span class="p">[</span><span class="s2">&quot;vintage_dates&quot;</span><span class="p">]</span>
         <span class="p">]</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">vintage_dates</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">None</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">vintage_dates</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">vintage_dates</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No vintage dates found in the response&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">vintage_dates</span></div>
+
+
+<div class="viewcode-block" id="VintageDate.to_object_async">
+<a class="viewcode-back" href="../../api/objects.html#fedfred.objects.VintageDate.to_object_async">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">to_object_async</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">response</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;VintageDate&quot;</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Asynchronously parses the FRED API response and returns a list of VintageDate objects.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">to_thread</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">to_object</span><span class="p">,</span> <span class="n">response</span><span class="p">)</span></div>
 </div>
 
 
 <div class="viewcode-block" id="SeriesGroup">
-<a class="viewcode-back" href="../../api/data_classes.html#fedfred.fred_data.SeriesGroup">[docs]</a>
+<a class="viewcode-back" href="../../api/objects.html#fedfred.objects.SeriesGroup">[docs]</a>
 <span class="nd">@dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">SeriesGroup</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -645,27 +728,19 @@
     <span class="n">min_date</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">max_date</span><span class="p">:</span> <span class="nb">str</span>
 
-<div class="viewcode-block" id="SeriesGroup.from_api_response">
-<a class="viewcode-back" href="../../api/data_classes.html#fedfred.fred_data.SeriesGroup.from_api_response">[docs]</a>
+<div class="viewcode-block" id="SeriesGroup.to_object">
+<a class="viewcode-back" href="../../api/objects.html#fedfred.objects.SeriesGroup.to_object">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">from_api_response</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">response</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="s2">&quot;SeriesGroup&quot;</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;SeriesGroup&quot;</span><span class="p">],</span> <span class="kc">None</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_object</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">response</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;SeriesGroup&quot;</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Parses the FRED API response and returns a single SeriesGroup or a list of SeriesGroups.</span>
+<span class="sd">        Parses the FRED API response and returns a list of SeriesGroup objects.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="s2">&quot;series_group&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">response</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid API response: Missing &#39;series_group&#39; field&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">response</span><span class="p">[</span><span class="s2">&quot;series_group&quot;</span><span class="p">],</span> <span class="nb">dict</span><span class="p">):</span>
-            <span class="n">series_group_data</span> <span class="o">=</span> <span class="n">response</span><span class="p">[</span><span class="s2">&quot;series_group&quot;</span><span class="p">]</span>
-            <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span>
-                <span class="n">title</span><span class="o">=</span><span class="n">series_group_data</span><span class="p">[</span><span class="s2">&quot;title&quot;</span><span class="p">],</span>
-                <span class="n">region_type</span><span class="o">=</span><span class="n">series_group_data</span><span class="p">[</span><span class="s2">&quot;region_type&quot;</span><span class="p">],</span>
-                <span class="n">series_group</span><span class="o">=</span><span class="n">series_group_data</span><span class="p">[</span><span class="s2">&quot;series_group&quot;</span><span class="p">],</span>
-                <span class="n">season</span><span class="o">=</span><span class="n">series_group_data</span><span class="p">[</span><span class="s2">&quot;season&quot;</span><span class="p">],</span>
-                <span class="n">units</span><span class="o">=</span><span class="n">series_group_data</span><span class="p">[</span><span class="s2">&quot;units&quot;</span><span class="p">],</span>
-                <span class="n">frequency</span><span class="o">=</span><span class="n">series_group_data</span><span class="p">[</span><span class="s2">&quot;frequency&quot;</span><span class="p">],</span>
-                <span class="n">min_date</span><span class="o">=</span><span class="n">series_group_data</span><span class="p">[</span><span class="s2">&quot;min_date&quot;</span><span class="p">],</span>
-                <span class="n">max_date</span><span class="o">=</span><span class="n">series_group_data</span><span class="p">[</span><span class="s2">&quot;max_date&quot;</span><span class="p">]</span>
-            <span class="p">)</span>
+        <span class="n">series_group_data</span> <span class="o">=</span> <span class="n">response</span><span class="p">[</span><span class="s2">&quot;series_group&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">series_group_data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="n">series_group_data</span> <span class="o">=</span> <span class="p">[</span><span class="n">series_group_data</span><span class="p">]</span>
+
         <span class="n">series_groups</span> <span class="o">=</span> <span class="p">[</span>
             <span class="bp">cls</span><span class="p">(</span>
                 <span class="n">title</span><span class="o">=</span><span class="n">series_group</span><span class="p">[</span><span class="s2">&quot;title&quot;</span><span class="p">],</span>
@@ -677,13 +752,19 @@
                 <span class="n">min_date</span><span class="o">=</span><span class="n">series_group</span><span class="p">[</span><span class="s2">&quot;min_date&quot;</span><span class="p">],</span>
                 <span class="n">max_date</span><span class="o">=</span><span class="n">series_group</span><span class="p">[</span><span class="s2">&quot;max_date&quot;</span><span class="p">]</span>
             <span class="p">)</span>
-            <span class="k">for</span> <span class="n">series_group</span> <span class="ow">in</span> <span class="n">response</span><span class="p">[</span><span class="s2">&quot;series_group&quot;</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">series_group</span> <span class="ow">in</span> <span class="n">series_group_data</span>
         <span class="p">]</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">series_groups</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">None</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">series_groups</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">series_groups</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">series_groups</span></div>
+
+
+<div class="viewcode-block" id="SeriesGroup.to_object_async">
+<a class="viewcode-back" href="../../api/objects.html#fedfred.objects.SeriesGroup.to_object_async">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">to_object_async</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">response</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;SeriesGroup&quot;</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Asynchronously parses the FRED API response and returns a list of SeriesGroup objects.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">to_thread</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">to_object</span><span class="p">,</span> <span class="n">response</span><span class="p">)</span></div>
 </div>
 
 </pre></div>
@@ -730,8 +811,8 @@
       
     </aside>
   </div>
-</div><script src="../../_static/documentation_options.js?v=e917149c"></script>
-    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+</div><script src="../../_static/documentation_options.js?v=51b770b3"></script>
+    <script src="../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/scripts/furo.js?v=5fa4622c"></script>
     </body>

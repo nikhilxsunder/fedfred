@@ -1,0 +1,7 @@
+# Allow all user agents
+User-agent: *
+Disallow: /_static/
+Disallow: /_templates/
+
+# Sitemap location
+Sitemap: https://nikhilxsunder.github.io/fedfred/sitemap.xml

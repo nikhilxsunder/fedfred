@@ -13,7 +13,7 @@ The `fedfred` library includes built-in support for caching and rate limiting to
     import fedfred as fd
 
     # Initialize the API client with caching enabled
-    fred = fd.FredAPI(api_key="your_api_key_here", enable_cache=True)
+    fred = fd.FredAPI(api_key="your_api_key_here", cache_mode=True)
 
     # Fetch a time series (cached locally for faster subsequent access)
     data = fred.get_series_observations("GDPC1")
@@ -62,7 +62,7 @@ The `FredMapsAPI` allows you to fetch and analyze geographic data, such as unemp
     import fedfred as fd
 
     # Initialize the FredMapsAPI client
-    fred_maps = fd.FredMapsAPI(api_key="your_api_key_here")
+    fred_maps = fd.MapsAPI(api_key="your_api_key_here")
 
     # Fetch regional data for unemployment rates by state
     unemployment_by_state = fred_maps.get_regional_data(

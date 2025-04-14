@@ -12,13 +12,26 @@
         gtag('js', new Date());
         gtag('config', 'G-Q7LK34R0CV');
     </script>
-    <link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="Changelog" href="changelog.html" /><link rel="prev" title="Data Classes" href="api/data_classes.html" />
+    <meta property="og:title" content="Contributing to FedFred" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://nikhilxsunder.github.io/fedfred/contributing.html" />
+<meta property="og:site_name" content="fedfred" />
+<meta property="og:description" content="Thank you for your interest in contributing to FedFred! We welcome contributions of all kinds, including bug reports, feature requests, documentation improvements, and code contributions. This document provides guidelines and instructions to help you get started. Table of Contents: How to Contrib..." />
+<meta property="og:image" content="https://nikhilxsunder.github.io/fedfred/_static/fedfred-logo.png" />
+<meta property="og:image:alt" content="fedfred" />
+<meta name="description" content="Thank you for your interest in contributing to FedFred! We welcome contributions of all kinds, including bug reports, feature requests, documentation improvements, and code contributions. This document provides guidelines and instructions to help you get started. Table of Contents: How to Contrib..." />
+<meta property="og:locale" content="en_US" />
+<meta property="og:site_name" content="FedFred Documentation" />
+<meta property="og:url" content="https://nikhilxsunder.github.io/fedfred/" />
+<meta property="og:image:alt" content="FedFred Logo" />
+<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="Changelog" href="changelog.html" /><link rel="prev" title="Helpers" href="api/helpers.html" />
         <link rel="canonical" href="https://nikhilxsunder.github.io/fedfred/contributing.html" />
 
-    <link rel="shortcut icon" href="_static/fedfred_favicon.ico"/><!-- Generated with Sphinx 7.4.7 and Furo 2024.08.06 -->
+    <link rel="shortcut icon" href="_static/fedfred_favicon.ico"/><!-- Generated with Sphinx 8.1.3 and Furo 2024.08.06 -->
         <title>Contributing to FedFred - fedfred</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=354aac6f" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=302659d7" />
     
     
@@ -228,11 +241,12 @@
 </ul>
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="api/index.html">API Reference</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of API Reference</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="api/fredapi.html">FredAPI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/fredapi.html">FredAPI Class</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/mapsapi.html">MapsAPI Class</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/asyncapi.html">AsyncAPI Class</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/asyncmapsapi.html">AsyncMapsAPI Class</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/data_classes.html">Data Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/objects.html">Objects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/helpers.html">Helpers</a></li>
 </ul>
 </li>
 <li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Contributing to FedFred</a></li>
@@ -315,6 +329,7 @@
 </ul>
 </li>
 <li><p><a class="reference internal" href="#release-process">Release Process</a></p></li>
+<li><p><a class="reference internal" href="#governance-model">Governance Model</a></p></li>
 </ul>
 </section>
 <section id="how-to-contribute">
@@ -371,7 +386,7 @@
 <section id="submitting-code-changes">
 <h3>Submitting Code Changes<a class="headerlink" href="#submitting-code-changes" title="Link to this heading">¶</a></h3>
 <p>Follow these steps when contributing code:</p>
-<ol class="arabic simple">
+<ol class="arabic">
 <li><p><strong>Fork the Repository</strong></p>
 <ul class="simple">
 <li><p>Create your own fork of the repository on GitHub</p></li>
@@ -389,6 +404,23 @@
 <li><p>Follow the coding standards outlined below</p></li>
 <li><p>Write clear commit messages explaining your changes</p></li>
 <li><p>Keep commits focused and logical</p></li>
+</ul>
+</li>
+<li><p><strong>Sign Your Commits</strong></p>
+<ul>
+<li><p>All commits must be signed off to certify that you have the legal right to contribute the code.</p></li>
+<li><p>Use the -s flag when making a commit:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>commit<span class="w"> </span>-s<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;Your commit message&quot;</span>
+</pre></div>
+</div>
+</li>
+<li><p>This will append a Signed-off-by line to your commit message, indicating your agreement to the <a class="reference external" href="https://github.com/nikhilxsunder/fedfred/blob/main/DCO.md">Developer Certificate of Origin (DCO)</a>.</p></li>
+<li><p>Example:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>Signed-off-by:<span class="w"> </span>Your<span class="w"> </span>Name<span class="w"> </span>&lt;your.email@example.com&gt;
+</pre></div>
+</div>
+</li>
+<li><p>Pull requests with unsigned commits will not be merged.</p></li>
 </ul>
 </li>
 <li><p><strong>Submit a Pull Request</strong></p>
@@ -578,7 +610,7 @@ conda<span class="w"> </span>create<span class="w"> </span>-n<span class="w"> </
 conda<span class="w"> </span>activate<span class="w"> </span>fedfred-dev
 
 <span class="c1"># Option 1: Install from the author&#39;s Anaconda channel</span>
-conda<span class="w"> </span>install<span class="w"> </span>nikhil.sunder::fedfred
+conda<span class="w"> </span>install<span class="w"> </span>-c<span class="w"> </span>conda-forge<span class="w"> </span>fedfred
 
 <span class="c1"># Option 2: Install in development mode with all dependencies</span>
 pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;.[dev,types]&quot;</span>
@@ -706,6 +738,11 @@ python<span class="w"> </span>-B<span class="w"> </span>-m<span class="w"> </spa
 </ol>
 </section>
 </section>
+<section id="governance-model">
+<h2>Governance Model<a class="headerlink" href="#governance-model" title="Link to this heading">¶</a></h2>
+<p>FedFred follows a centralized governance model. The project owner and lead, Nikhil Sunder, has the final authority on all decisions regarding the project’s direction, contributions, and dispute resolution. Contributors are encouraged to participate in discussions and submit pull requests, but the project owner retains the right to approve or reject changes.</p>
+<p>For questions or concerns, contributors can reach out via GitHub Issues or email at <a class="reference external" href="mailto:nsunder724&#37;&#52;&#48;gmail&#46;com">nsunder724<span>&#64;</span>gmail<span>&#46;</span>com</a>.</p>
+</section>
 </section>
 
         </article>
@@ -722,14 +759,14 @@ python<span class="w"> </span>-B<span class="w"> </span>-m<span class="w"> </spa
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="api/data_classes.html">
+          <a class="prev-page" href="api/helpers.html">
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">Data Classes</div>
+                <div class="title">Helpers</div>
                 
               </div>
             </a>
@@ -805,6 +842,7 @@ python<span class="w"> </span>-B<span class="w"> </span>-m<span class="w"> </spa
 <li><a class="reference internal" href="#release-process">Release Process</a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#governance-model">Governance Model</a></li>
 </ul>
 </li>
 </ul>
@@ -816,8 +854,8 @@ python<span class="w"> </span>-B<span class="w"> </span>-m<span class="w"> </spa
       
     </aside>
   </div>
-</div><script src="_static/documentation_options.js?v=e917149c"></script>
-    <script src="_static/doctools.js?v=9a2dae69"></script>
+</div><script src="_static/documentation_options.js?v=51b770b3"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/scripts/furo.js?v=5fa4622c"></script>
     </body>

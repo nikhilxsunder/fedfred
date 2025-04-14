@@ -14,9 +14,10 @@
     <link rel="index" title="Index" href="#" /><link rel="search" title="Search" href="search.html" />
         <link rel="canonical" href="https://nikhilxsunder.github.io/fedfred/genindex.html" />
 
-    <link rel="shortcut icon" href="_static/fedfred_favicon.ico"/><!-- Generated with Sphinx 7.4.7 and Furo 2024.08.06 --><title>Index - fedfred</title>
+    <link rel="shortcut icon" href="_static/fedfred_favicon.ico"/><!-- Generated with Sphinx 8.1.3 and Furo 2024.08.06 --><title>Index - fedfred</title>
 <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=354aac6f" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=302659d7" />
     
     
@@ -226,11 +227,12 @@
 </ul>
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="api/index.html">API Reference</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of API Reference</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="api/fredapi.html">FredAPI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/fredapi.html">FredAPI Class</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/mapsapi.html">MapsAPI Class</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/asyncapi.html">AsyncAPI Class</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/asyncmapsapi.html">AsyncMapsAPI Class</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/data_classes.html">Data Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/objects.html">Objects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/helpers.html">Helpers</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to FedFred</a></li>
@@ -285,8 +287,6 @@
 </li>
     </ul></td>
     <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.AsyncMapsAPI">AsyncAPI.AsyncMapsAPI (class in fedfred.FredAPI)</a>
-</li>
         <li><a href="api/asyncmapsapi.html#fedfred.FredAPI.AsyncAPI.AsyncMapsAPI">AsyncMapsAPI (class in fedfred.FredAPI.AsyncAPI)</a>
 </li>
     </ul></td>
@@ -297,13 +297,13 @@
   <h2>C</h2>
   <table style="width: 100%" class="indextable genindextable"><tr>
     <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="api/data_classes.html#fedfred.fred_data.Category">Category (class in fedfred.fred_data)</a>
+        <li><a href="api/objects.html#fedfred.objects.Category">Category (class in fedfred.objects)</a>
 </li>
     </ul></td>
     <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="api/data_classes.html#fedfred.fred_data.Element.children">children (fedfred.fred_data.Element attribute)</a>
+        <li><a href="api/objects.html#fedfred.objects.Element.children">children (fedfred.objects.Element attribute)</a>
 </li>
-        <li><a href="api/data_classes.html#fedfred.fred_data.Tag.created">created (fedfred.fred_data.Tag attribute)</a>
+        <li><a href="api/objects.html#fedfred.objects.Tag.created">created (fedfred.objects.Tag attribute)</a>
 </li>
     </ul></td>
   </tr></table>
@@ -313,7 +313,17 @@
   <h2>D</h2>
   <table style="width: 100%" class="indextable genindextable"><tr>
     <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="api/data_classes.html#fedfred.fred_data.ReleaseDate.date">date (fedfred.fred_data.ReleaseDate attribute)</a>
+        <li><a href="api/objects.html#fedfred.objects.ReleaseDate.date">date (fedfred.objects.ReleaseDate attribute)</a>
+</li>
+        <li><a href="api/helpers.html#fedfred.helpers.FredHelpers.datetime_conversion">datetime_conversion() (fedfred.helpers.FredHelpers static method)</a>
+</li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="api/helpers.html#fedfred.helpers.FredHelpers.datetime_conversion_async">datetime_conversion_async() (fedfred.helpers.FredHelpers static method)</a>
+</li>
+        <li><a href="api/helpers.html#fedfred.helpers.FredHelpers.datetime_hh_mm_conversion">datetime_hh_mm_conversion() (fedfred.helpers.FredHelpers static method)</a>
+</li>
+        <li><a href="api/helpers.html#fedfred.helpers.FredHelpers.datetime_hh_mm_conversion_async">datetime_hh_mm_conversion_async() (fedfred.helpers.FredHelpers static method)</a>
 </li>
     </ul></td>
   </tr></table>
@@ -323,11 +333,15 @@
   <h2>E</h2>
   <table style="width: 100%" class="indextable genindextable"><tr>
     <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="api/data_classes.html#fedfred.fred_data.Element">Element (class in fedfred.fred_data)</a>
+        <li><a href="api/objects.html#fedfred.objects.Element">Element (class in fedfred.objects)</a>
+</li>
+        <li><a href="api/objects.html#fedfred.objects.Element.element_id">element_id (fedfred.objects.Element attribute)</a>
 </li>
     </ul></td>
     <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="api/data_classes.html#fedfred.fred_data.Element.element_id">element_id (fedfred.fred_data.Element attribute)</a>
+        <li><a href="api/helpers.html#fedfred.helpers.FredHelpers.extract_region_type">extract_region_type() (fedfred.helpers.FredHelpers static method)</a>
+</li>
+        <li><a href="api/helpers.html#fedfred.helpers.FredHelpers.extract_region_type_async">extract_region_type_async() (fedfred.helpers.FredHelpers static method)</a>
 </li>
     </ul></td>
   </tr></table>
@@ -338,50 +352,33 @@
   <table style="width: 100%" class="indextable genindextable"><tr>
     <td style="width: 33%; vertical-align: top;"><ul>
         <li>
-    fedfred.fred_data
+    fedfred.helpers
 
         <ul>
-          <li><a href="api/data_classes.html#module-fedfred.fred_data">module</a>
+          <li><a href="api/helpers.html#module-fedfred.helpers">module</a>
 </li>
         </ul></li>
-        <li><a href="api/fredapi.html#fedfred.FredAPI">FredAPI (class in fedfred)</a>
-</li>
-        <li><a href="api/fredapi.html#fedfred.FredAPI.AsyncAPI">FredAPI.AsyncAPI (class in fedfred)</a>
-</li>
-        <li><a href="api/fredapi.html#fedfred.FredAPI.AsyncAPI.AsyncMapsAPI">FredAPI.AsyncAPI.AsyncMapsAPI (class in fedfred)</a>
-</li>
-        <li><a href="api/fredapi.html#fedfred.FredAPI.MapsAPI">FredAPI.MapsAPI (class in fedfred)</a>
-</li>
-        <li><a href="api/data_classes.html#fedfred.fred_data.Series.frequency">frequency (fedfred.fred_data.Series attribute)</a>
+        <li>
+    fedfred.objects
 
         <ul>
-          <li><a href="api/data_classes.html#fedfred.fred_data.SeriesGroup.frequency">(fedfred.fred_data.SeriesGroup attribute)</a>
+          <li><a href="api/objects.html#module-fedfred.objects">module</a>
 </li>
         </ul></li>
-        <li><a href="api/data_classes.html#fedfred.fred_data.Series.frequency_short">frequency_short (fedfred.fred_data.Series attribute)</a>
-</li>
     </ul></td>
     <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="api/data_classes.html#fedfred.fred_data.Category.from_api_response">from_api_response() (fedfred.fred_data.Category class method)</a>
+        <li><a href="api/fredapi.html#fedfred.FredAPI">FredAPI (class in fedfred)</a>
+</li>
+        <li><a href="api/helpers.html#fedfred.helpers.FredHelpers">FredHelpers (class in fedfred.helpers)</a>
+</li>
+        <li><a href="api/objects.html#fedfred.objects.Series.frequency">frequency (fedfred.objects.Series attribute)</a>
 
         <ul>
-          <li><a href="api/data_classes.html#fedfred.fred_data.Element.from_api_response">(fedfred.fred_data.Element class method)</a>
-</li>
-          <li><a href="api/data_classes.html#fedfred.fred_data.Release.from_api_response">(fedfred.fred_data.Release class method)</a>
-</li>
-          <li><a href="api/data_classes.html#fedfred.fred_data.ReleaseDate.from_api_response">(fedfred.fred_data.ReleaseDate class method)</a>
-</li>
-          <li><a href="api/data_classes.html#fedfred.fred_data.Series.from_api_response">(fedfred.fred_data.Series class method)</a>
-</li>
-          <li><a href="api/data_classes.html#fedfred.fred_data.SeriesGroup.from_api_response">(fedfred.fred_data.SeriesGroup class method)</a>
-</li>
-          <li><a href="api/data_classes.html#fedfred.fred_data.Source.from_api_response">(fedfred.fred_data.Source class method)</a>
-</li>
-          <li><a href="api/data_classes.html#fedfred.fred_data.Tag.from_api_response">(fedfred.fred_data.Tag class method)</a>
-</li>
-          <li><a href="api/data_classes.html#fedfred.fred_data.VintageDate.from_api_response">(fedfred.fred_data.VintageDate class method)</a>
+          <li><a href="api/objects.html#fedfred.objects.SeriesGroup.frequency">(fedfred.objects.SeriesGroup attribute)</a>
 </li>
         </ul></li>
+        <li><a href="api/objects.html#fedfred.objects.Series.frequency_short">frequency_short (fedfred.objects.Series attribute)</a>
+</li>
     </ul></td>
   </tr></table>
 </section>
@@ -393,109 +390,109 @@
         <li><a href="api/fredapi.html#fedfred.FredAPI.get_category">get_category() (fedfred.FredAPI method)</a>
 
         <ul>
-          <li><a href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_category">(fedfred.FredAPI.AsyncAPI method)</a>, <a href="api/fredapi.html#fedfred.FredAPI.AsyncAPI.get_category">[1]</a>
+          <li><a href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_category">(fedfred.FredAPI.AsyncAPI method)</a>
 </li>
         </ul></li>
         <li><a href="api/fredapi.html#fedfred.FredAPI.get_category_children">get_category_children() (fedfred.FredAPI method)</a>
 
         <ul>
-          <li><a href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_category_children">(fedfred.FredAPI.AsyncAPI method)</a>, <a href="api/fredapi.html#fedfred.FredAPI.AsyncAPI.get_category_children">[1]</a>
+          <li><a href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_category_children">(fedfred.FredAPI.AsyncAPI method)</a>
 </li>
         </ul></li>
         <li><a href="api/fredapi.html#fedfred.FredAPI.get_category_related">get_category_related() (fedfred.FredAPI method)</a>
 
         <ul>
-          <li><a href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_category_related">(fedfred.FredAPI.AsyncAPI method)</a>, <a href="api/fredapi.html#fedfred.FredAPI.AsyncAPI.get_category_related">[1]</a>
+          <li><a href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_category_related">(fedfred.FredAPI.AsyncAPI method)</a>
 </li>
         </ul></li>
         <li><a href="api/fredapi.html#fedfred.FredAPI.get_category_related_tags">get_category_related_tags() (fedfred.FredAPI method)</a>
 
         <ul>
-          <li><a href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_category_related_tags">(fedfred.FredAPI.AsyncAPI method)</a>, <a href="api/fredapi.html#fedfred.FredAPI.AsyncAPI.get_category_related_tags">[1]</a>
+          <li><a href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_category_related_tags">(fedfred.FredAPI.AsyncAPI method)</a>
 </li>
         </ul></li>
         <li><a href="api/fredapi.html#fedfred.FredAPI.get_category_series">get_category_series() (fedfred.FredAPI method)</a>
 
         <ul>
-          <li><a href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_category_series">(fedfred.FredAPI.AsyncAPI method)</a>, <a href="api/fredapi.html#fedfred.FredAPI.AsyncAPI.get_category_series">[1]</a>
+          <li><a href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_category_series">(fedfred.FredAPI.AsyncAPI method)</a>
 </li>
         </ul></li>
         <li><a href="api/fredapi.html#fedfred.FredAPI.get_category_tags">get_category_tags() (fedfred.FredAPI method)</a>
 
         <ul>
-          <li><a href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_category_tags">(fedfred.FredAPI.AsyncAPI method)</a>, <a href="api/fredapi.html#fedfred.FredAPI.AsyncAPI.get_category_tags">[1]</a>
+          <li><a href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_category_tags">(fedfred.FredAPI.AsyncAPI method)</a>
 </li>
         </ul></li>
-        <li><a href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.AsyncMapsAPI.get_regional_data">get_regional_data() (fedfred.FredAPI.AsyncAPI.AsyncMapsAPI method)</a>, <a href="api/asyncmapsapi.html#fedfred.FredAPI.AsyncAPI.AsyncMapsAPI.get_regional_data">[1]</a>, <a href="api/fredapi.html#fedfred.FredAPI.AsyncAPI.AsyncMapsAPI.get_regional_data">[2]</a>
+        <li><a href="api/asyncmapsapi.html#fedfred.FredAPI.AsyncAPI.AsyncMapsAPI.get_regional_data">get_regional_data() (fedfred.FredAPI.AsyncAPI.AsyncMapsAPI method)</a>
 
         <ul>
-          <li><a href="api/fredapi.html#fedfred.FredAPI.MapsAPI.get_regional_data">(fedfred.FredAPI.MapsAPI method)</a>, <a href="api/mapsapi.html#fedfred.FredAPI.MapsAPI.get_regional_data">[1]</a>
+          <li><a href="api/mapsapi.html#fedfred.FredAPI.MapsAPI.get_regional_data">(fedfred.FredAPI.MapsAPI method)</a>
 </li>
         </ul></li>
         <li><a href="api/fredapi.html#fedfred.FredAPI.get_related_tags">get_related_tags() (fedfred.FredAPI method)</a>
 
         <ul>
-          <li><a href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_related_tags">(fedfred.FredAPI.AsyncAPI method)</a>, <a href="api/fredapi.html#fedfred.FredAPI.AsyncAPI.get_related_tags">[1]</a>
+          <li><a href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_related_tags">(fedfred.FredAPI.AsyncAPI method)</a>
 </li>
         </ul></li>
         <li><a href="api/fredapi.html#fedfred.FredAPI.get_release">get_release() (fedfred.FredAPI method)</a>
 
         <ul>
-          <li><a href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_release">(fedfred.FredAPI.AsyncAPI method)</a>, <a href="api/fredapi.html#fedfred.FredAPI.AsyncAPI.get_release">[1]</a>
+          <li><a href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_release">(fedfred.FredAPI.AsyncAPI method)</a>
 </li>
         </ul></li>
         <li><a href="api/fredapi.html#fedfred.FredAPI.get_release_dates">get_release_dates() (fedfred.FredAPI method)</a>
 
         <ul>
-          <li><a href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_release_dates">(fedfred.FredAPI.AsyncAPI method)</a>, <a href="api/fredapi.html#fedfred.FredAPI.AsyncAPI.get_release_dates">[1]</a>
+          <li><a href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_release_dates">(fedfred.FredAPI.AsyncAPI method)</a>
 </li>
         </ul></li>
         <li><a href="api/fredapi.html#fedfred.FredAPI.get_release_related_tags">get_release_related_tags() (fedfred.FredAPI method)</a>
 
         <ul>
-          <li><a href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_release_related_tags">(fedfred.FredAPI.AsyncAPI method)</a>, <a href="api/fredapi.html#fedfred.FredAPI.AsyncAPI.get_release_related_tags">[1]</a>
+          <li><a href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_release_related_tags">(fedfred.FredAPI.AsyncAPI method)</a>
 </li>
         </ul></li>
         <li><a href="api/fredapi.html#fedfred.FredAPI.get_release_series">get_release_series() (fedfred.FredAPI method)</a>
 
         <ul>
-          <li><a href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_release_series">(fedfred.FredAPI.AsyncAPI method)</a>, <a href="api/fredapi.html#fedfred.FredAPI.AsyncAPI.get_release_series">[1]</a>
+          <li><a href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_release_series">(fedfred.FredAPI.AsyncAPI method)</a>
 </li>
         </ul></li>
         <li><a href="api/fredapi.html#fedfred.FredAPI.get_release_sources">get_release_sources() (fedfred.FredAPI method)</a>
 
         <ul>
-          <li><a href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_release_sources">(fedfred.FredAPI.AsyncAPI method)</a>, <a href="api/fredapi.html#fedfred.FredAPI.AsyncAPI.get_release_sources">[1]</a>
+          <li><a href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_release_sources">(fedfred.FredAPI.AsyncAPI method)</a>
 </li>
         </ul></li>
         <li><a href="api/fredapi.html#fedfred.FredAPI.get_release_tables">get_release_tables() (fedfred.FredAPI method)</a>
 
         <ul>
-          <li><a href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_release_tables">(fedfred.FredAPI.AsyncAPI method)</a>, <a href="api/fredapi.html#fedfred.FredAPI.AsyncAPI.get_release_tables">[1]</a>
+          <li><a href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_release_tables">(fedfred.FredAPI.AsyncAPI method)</a>
 </li>
         </ul></li>
         <li><a href="api/fredapi.html#fedfred.FredAPI.get_release_tags">get_release_tags() (fedfred.FredAPI method)</a>
 
         <ul>
-          <li><a href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_release_tags">(fedfred.FredAPI.AsyncAPI method)</a>, <a href="api/fredapi.html#fedfred.FredAPI.AsyncAPI.get_release_tags">[1]</a>
+          <li><a href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_release_tags">(fedfred.FredAPI.AsyncAPI method)</a>
 </li>
         </ul></li>
         <li><a href="api/fredapi.html#fedfred.FredAPI.get_releases">get_releases() (fedfred.FredAPI method)</a>
 
         <ul>
-          <li><a href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_releases">(fedfred.FredAPI.AsyncAPI method)</a>, <a href="api/fredapi.html#fedfred.FredAPI.AsyncAPI.get_releases">[1]</a>
+          <li><a href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_releases">(fedfred.FredAPI.AsyncAPI method)</a>
 </li>
         </ul></li>
         <li><a href="api/fredapi.html#fedfred.FredAPI.get_releases_dates">get_releases_dates() (fedfred.FredAPI method)</a>
 
         <ul>
-          <li><a href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_releases_dates">(fedfred.FredAPI.AsyncAPI method)</a>, <a href="api/fredapi.html#fedfred.FredAPI.AsyncAPI.get_releases_dates">[1]</a>
+          <li><a href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_releases_dates">(fedfred.FredAPI.AsyncAPI method)</a>
 </li>
         </ul></li>
         <li><a href="api/fredapi.html#fedfred.FredAPI.get_series">get_series() (fedfred.FredAPI method)</a>
 
         <ul>
-          <li><a href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_series">(fedfred.FredAPI.AsyncAPI method)</a>, <a href="api/fredapi.html#fedfred.FredAPI.AsyncAPI.get_series">[1]</a>
+          <li><a href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_series">(fedfred.FredAPI.AsyncAPI method)</a>
 </li>
         </ul></li>
     </ul></td>
@@ -503,108 +500,108 @@
         <li><a href="api/fredapi.html#fedfred.FredAPI.get_series_categories">get_series_categories() (fedfred.FredAPI method)</a>
 
         <ul>
-          <li><a href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_series_categories">(fedfred.FredAPI.AsyncAPI method)</a>, <a href="api/fredapi.html#fedfred.FredAPI.AsyncAPI.get_series_categories">[1]</a>
+          <li><a href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_series_categories">(fedfred.FredAPI.AsyncAPI method)</a>
 </li>
         </ul></li>
-        <li><a href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.AsyncMapsAPI.get_series_data">get_series_data() (fedfred.FredAPI.AsyncAPI.AsyncMapsAPI method)</a>, <a href="api/asyncmapsapi.html#fedfred.FredAPI.AsyncAPI.AsyncMapsAPI.get_series_data">[1]</a>, <a href="api/fredapi.html#fedfred.FredAPI.AsyncAPI.AsyncMapsAPI.get_series_data">[2]</a>
+        <li><a href="api/asyncmapsapi.html#fedfred.FredAPI.AsyncAPI.AsyncMapsAPI.get_series_data">get_series_data() (fedfred.FredAPI.AsyncAPI.AsyncMapsAPI method)</a>
 
         <ul>
-          <li><a href="api/fredapi.html#fedfred.FredAPI.MapsAPI.get_series_data">(fedfred.FredAPI.MapsAPI method)</a>, <a href="api/mapsapi.html#fedfred.FredAPI.MapsAPI.get_series_data">[1]</a>
+          <li><a href="api/mapsapi.html#fedfred.FredAPI.MapsAPI.get_series_data">(fedfred.FredAPI.MapsAPI method)</a>
 </li>
         </ul></li>
-        <li><a href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.AsyncMapsAPI.get_series_group">get_series_group() (fedfred.FredAPI.AsyncAPI.AsyncMapsAPI method)</a>, <a href="api/asyncmapsapi.html#fedfred.FredAPI.AsyncAPI.AsyncMapsAPI.get_series_group">[1]</a>, <a href="api/fredapi.html#fedfred.FredAPI.AsyncAPI.AsyncMapsAPI.get_series_group">[2]</a>
+        <li><a href="api/asyncmapsapi.html#fedfred.FredAPI.AsyncAPI.AsyncMapsAPI.get_series_group">get_series_group() (fedfred.FredAPI.AsyncAPI.AsyncMapsAPI method)</a>
 
         <ul>
-          <li><a href="api/fredapi.html#fedfred.FredAPI.MapsAPI.get_series_group">(fedfred.FredAPI.MapsAPI method)</a>, <a href="api/mapsapi.html#fedfred.FredAPI.MapsAPI.get_series_group">[1]</a>
+          <li><a href="api/mapsapi.html#fedfred.FredAPI.MapsAPI.get_series_group">(fedfred.FredAPI.MapsAPI method)</a>
 </li>
         </ul></li>
         <li><a href="api/fredapi.html#fedfred.FredAPI.get_series_observations">get_series_observations() (fedfred.FredAPI method)</a>
 
         <ul>
-          <li><a href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_series_observations">(fedfred.FredAPI.AsyncAPI method)</a>, <a href="api/fredapi.html#fedfred.FredAPI.AsyncAPI.get_series_observations">[1]</a>
+          <li><a href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_series_observations">(fedfred.FredAPI.AsyncAPI method)</a>
 </li>
         </ul></li>
         <li><a href="api/fredapi.html#fedfred.FredAPI.get_series_release">get_series_release() (fedfred.FredAPI method)</a>
 
         <ul>
-          <li><a href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_series_release">(fedfred.FredAPI.AsyncAPI method)</a>, <a href="api/fredapi.html#fedfred.FredAPI.AsyncAPI.get_series_release">[1]</a>
+          <li><a href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_series_release">(fedfred.FredAPI.AsyncAPI method)</a>
 </li>
         </ul></li>
         <li><a href="api/fredapi.html#fedfred.FredAPI.get_series_search">get_series_search() (fedfred.FredAPI method)</a>
 
         <ul>
-          <li><a href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_series_search">(fedfred.FredAPI.AsyncAPI method)</a>, <a href="api/fredapi.html#fedfred.FredAPI.AsyncAPI.get_series_search">[1]</a>
+          <li><a href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_series_search">(fedfred.FredAPI.AsyncAPI method)</a>
 </li>
         </ul></li>
         <li><a href="api/fredapi.html#fedfred.FredAPI.get_series_search_related_tags">get_series_search_related_tags() (fedfred.FredAPI method)</a>
 
         <ul>
-          <li><a href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_series_search_related_tags">(fedfred.FredAPI.AsyncAPI method)</a>, <a href="api/fredapi.html#fedfred.FredAPI.AsyncAPI.get_series_search_related_tags">[1]</a>
+          <li><a href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_series_search_related_tags">(fedfred.FredAPI.AsyncAPI method)</a>
 </li>
         </ul></li>
         <li><a href="api/fredapi.html#fedfred.FredAPI.get_series_search_tags">get_series_search_tags() (fedfred.FredAPI method)</a>
 
         <ul>
-          <li><a href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_series_search_tags">(fedfred.FredAPI.AsyncAPI method)</a>, <a href="api/fredapi.html#fedfred.FredAPI.AsyncAPI.get_series_search_tags">[1]</a>
+          <li><a href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_series_search_tags">(fedfred.FredAPI.AsyncAPI method)</a>
 </li>
         </ul></li>
         <li><a href="api/fredapi.html#fedfred.FredAPI.get_series_tags">get_series_tags() (fedfred.FredAPI method)</a>
 
         <ul>
-          <li><a href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_series_tags">(fedfred.FredAPI.AsyncAPI method)</a>, <a href="api/fredapi.html#fedfred.FredAPI.AsyncAPI.get_series_tags">[1]</a>
+          <li><a href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_series_tags">(fedfred.FredAPI.AsyncAPI method)</a>
 </li>
         </ul></li>
         <li><a href="api/fredapi.html#fedfred.FredAPI.get_series_updates">get_series_updates() (fedfred.FredAPI method)</a>
 
         <ul>
-          <li><a href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_series_updates">(fedfred.FredAPI.AsyncAPI method)</a>, <a href="api/fredapi.html#fedfred.FredAPI.AsyncAPI.get_series_updates">[1]</a>
+          <li><a href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_series_updates">(fedfred.FredAPI.AsyncAPI method)</a>
 </li>
         </ul></li>
         <li><a href="api/fredapi.html#fedfred.FredAPI.get_series_vintagedates">get_series_vintagedates() (fedfred.FredAPI method)</a>
 
         <ul>
-          <li><a href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_series_vintagedates">(fedfred.FredAPI.AsyncAPI method)</a>, <a href="api/fredapi.html#fedfred.FredAPI.AsyncAPI.get_series_vintagedates">[1]</a>
+          <li><a href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_series_vintagedates">(fedfred.FredAPI.AsyncAPI method)</a>
 </li>
         </ul></li>
-        <li><a href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.AsyncMapsAPI.get_shape_files">get_shape_files() (fedfred.FredAPI.AsyncAPI.AsyncMapsAPI method)</a>, <a href="api/asyncmapsapi.html#fedfred.FredAPI.AsyncAPI.AsyncMapsAPI.get_shape_files">[1]</a>, <a href="api/fredapi.html#fedfred.FredAPI.AsyncAPI.AsyncMapsAPI.get_shape_files">[2]</a>
+        <li><a href="api/asyncmapsapi.html#fedfred.FredAPI.AsyncAPI.AsyncMapsAPI.get_shape_files">get_shape_files() (fedfred.FredAPI.AsyncAPI.AsyncMapsAPI method)</a>
 
         <ul>
-          <li><a href="api/fredapi.html#fedfred.FredAPI.MapsAPI.get_shape_files">(fedfred.FredAPI.MapsAPI method)</a>, <a href="api/mapsapi.html#fedfred.FredAPI.MapsAPI.get_shape_files">[1]</a>
+          <li><a href="api/mapsapi.html#fedfred.FredAPI.MapsAPI.get_shape_files">(fedfred.FredAPI.MapsAPI method)</a>
 </li>
         </ul></li>
         <li><a href="api/fredapi.html#fedfred.FredAPI.get_source">get_source() (fedfred.FredAPI method)</a>
 
         <ul>
-          <li><a href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_source">(fedfred.FredAPI.AsyncAPI method)</a>, <a href="api/fredapi.html#fedfred.FredAPI.AsyncAPI.get_source">[1]</a>
+          <li><a href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_source">(fedfred.FredAPI.AsyncAPI method)</a>
 </li>
         </ul></li>
         <li><a href="api/fredapi.html#fedfred.FredAPI.get_source_releases">get_source_releases() (fedfred.FredAPI method)</a>
 
         <ul>
-          <li><a href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_source_releases">(fedfred.FredAPI.AsyncAPI method)</a>, <a href="api/fredapi.html#fedfred.FredAPI.AsyncAPI.get_source_releases">[1]</a>
+          <li><a href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_source_releases">(fedfred.FredAPI.AsyncAPI method)</a>
 </li>
         </ul></li>
         <li><a href="api/fredapi.html#fedfred.FredAPI.get_sources">get_sources() (fedfred.FredAPI method)</a>
 
         <ul>
-          <li><a href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_sources">(fedfred.FredAPI.AsyncAPI method)</a>, <a href="api/fredapi.html#fedfred.FredAPI.AsyncAPI.get_sources">[1]</a>
+          <li><a href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_sources">(fedfred.FredAPI.AsyncAPI method)</a>
 </li>
         </ul></li>
         <li><a href="api/fredapi.html#fedfred.FredAPI.get_tags">get_tags() (fedfred.FredAPI method)</a>
 
         <ul>
-          <li><a href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_tags">(fedfred.FredAPI.AsyncAPI method)</a>, <a href="api/fredapi.html#fedfred.FredAPI.AsyncAPI.get_tags">[1]</a>
+          <li><a href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_tags">(fedfred.FredAPI.AsyncAPI method)</a>
 </li>
         </ul></li>
         <li><a href="api/fredapi.html#fedfred.FredAPI.get_tags_series">get_tags_series() (fedfred.FredAPI method)</a>
 
         <ul>
-          <li><a href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_tags_series">(fedfred.FredAPI.AsyncAPI method)</a>, <a href="api/fredapi.html#fedfred.FredAPI.AsyncAPI.get_tags_series">[1]</a>
+          <li><a href="api/asyncapi.html#fedfred.FredAPI.AsyncAPI.get_tags_series">(fedfred.FredAPI.AsyncAPI method)</a>
 </li>
         </ul></li>
-        <li><a href="api/data_classes.html#fedfred.fred_data.Tag.group_id">group_id (fedfred.fred_data.Tag attribute)</a>
+        <li><a href="api/objects.html#fedfred.objects.Tag.group_id">group_id (fedfred.objects.Tag attribute)</a>
 </li>
-        <li><a href="api/data_classes.html#fedfred.fred_data.Series.group_popularity">group_popularity (fedfred.fred_data.Series attribute)</a>
+        <li><a href="api/objects.html#fedfred.objects.Series.group_popularity">group_popularity (fedfred.objects.Series attribute)</a>
 </li>
     </ul></td>
   </tr></table>
@@ -614,14 +611,14 @@
   <h2>I</h2>
   <table style="width: 100%" class="indextable genindextable"><tr>
     <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="api/data_classes.html#fedfred.fred_data.Category.id">id (fedfred.fred_data.Category attribute)</a>
+        <li><a href="api/objects.html#fedfred.objects.Category.id">id (fedfred.objects.Category attribute)</a>
 
         <ul>
-          <li><a href="api/data_classes.html#fedfred.fred_data.Release.id">(fedfred.fred_data.Release attribute)</a>
+          <li><a href="api/objects.html#fedfred.objects.Release.id">(fedfred.objects.Release attribute)</a>
 </li>
-          <li><a href="api/data_classes.html#fedfred.fred_data.Series.id">(fedfred.fred_data.Series attribute)</a>
+          <li><a href="api/objects.html#fedfred.objects.Series.id">(fedfred.objects.Series attribute)</a>
 </li>
-          <li><a href="api/data_classes.html#fedfred.fred_data.Source.id">(fedfred.fred_data.Source attribute)</a>
+          <li><a href="api/objects.html#fedfred.objects.Source.id">(fedfred.objects.Source attribute)</a>
 </li>
         </ul></li>
     </ul></td>
@@ -632,20 +629,24 @@
   <h2>L</h2>
   <table style="width: 100%" class="indextable genindextable"><tr>
     <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="api/data_classes.html#fedfred.fred_data.Series.last_updated">last_updated (fedfred.fred_data.Series attribute)</a>
+        <li><a href="api/objects.html#fedfred.objects.Series.last_updated">last_updated (fedfred.objects.Series attribute)</a>
 </li>
-        <li><a href="api/data_classes.html#fedfred.fred_data.Element.level">level (fedfred.fred_data.Element attribute)</a>
+        <li><a href="api/objects.html#fedfred.objects.Element.level">level (fedfred.objects.Element attribute)</a>
+</li>
+        <li><a href="api/objects.html#fedfred.objects.Element.line">line (fedfred.objects.Element attribute)</a>
 </li>
     </ul></td>
     <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="api/data_classes.html#fedfred.fred_data.Element.line">line (fedfred.fred_data.Element attribute)</a>
-</li>
-        <li><a href="api/data_classes.html#fedfred.fred_data.Release.link">link (fedfred.fred_data.Release attribute)</a>
+        <li><a href="api/objects.html#fedfred.objects.Release.link">link (fedfred.objects.Release attribute)</a>
 
         <ul>
-          <li><a href="api/data_classes.html#fedfred.fred_data.Source.link">(fedfred.fred_data.Source attribute)</a>
+          <li><a href="api/objects.html#fedfred.objects.Source.link">(fedfred.objects.Source attribute)</a>
 </li>
         </ul></li>
+        <li><a href="api/helpers.html#fedfred.helpers.FredHelpers.liststring_conversion">liststring_conversion() (fedfred.helpers.FredHelpers static method)</a>
+</li>
+        <li><a href="api/helpers.html#fedfred.helpers.FredHelpers.liststring_conversion_async">liststring_conversion_async() (fedfred.helpers.FredHelpers static method)</a>
+</li>
     </ul></td>
   </tr></table>
 </section>
@@ -656,17 +657,19 @@
     <td style="width: 33%; vertical-align: top;"><ul>
         <li><a href="api/mapsapi.html#fedfred.FredAPI.MapsAPI">MapsAPI (class in fedfred.FredAPI)</a>
 </li>
-        <li><a href="api/data_classes.html#fedfred.fred_data.SeriesGroup.max_date">max_date (fedfred.fred_data.SeriesGroup attribute)</a>
+        <li><a href="api/objects.html#fedfred.objects.SeriesGroup.max_date">max_date (fedfred.objects.SeriesGroup attribute)</a>
+</li>
+        <li><a href="api/objects.html#fedfred.objects.SeriesGroup.min_date">min_date (fedfred.objects.SeriesGroup attribute)</a>
 </li>
     </ul></td>
     <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="api/data_classes.html#fedfred.fred_data.SeriesGroup.min_date">min_date (fedfred.fred_data.SeriesGroup attribute)</a>
-</li>
         <li>
     module
 
         <ul>
-          <li><a href="api/data_classes.html#module-fedfred.fred_data">fedfred.fred_data</a>
+          <li><a href="api/helpers.html#module-fedfred.helpers">fedfred.helpers</a>
+</li>
+          <li><a href="api/objects.html#module-fedfred.objects">fedfred.objects</a>
 </li>
         </ul></li>
     </ul></td>
@@ -677,28 +680,28 @@
   <h2>N</h2>
   <table style="width: 100%" class="indextable genindextable"><tr>
     <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="api/data_classes.html#fedfred.fred_data.Category.name">name (fedfred.fred_data.Category attribute)</a>
+        <li><a href="api/objects.html#fedfred.objects.Category.name">name (fedfred.objects.Category attribute)</a>
 
         <ul>
-          <li><a href="api/data_classes.html#fedfred.fred_data.Element.name">(fedfred.fred_data.Element attribute)</a>
+          <li><a href="api/objects.html#fedfred.objects.Element.name">(fedfred.objects.Element attribute)</a>
 </li>
-          <li><a href="api/data_classes.html#fedfred.fred_data.Release.name">(fedfred.fred_data.Release attribute)</a>
+          <li><a href="api/objects.html#fedfred.objects.Release.name">(fedfred.objects.Release attribute)</a>
 </li>
-          <li><a href="api/data_classes.html#fedfred.fred_data.Source.name">(fedfred.fred_data.Source attribute)</a>
+          <li><a href="api/objects.html#fedfred.objects.Source.name">(fedfred.objects.Source attribute)</a>
 </li>
-          <li><a href="api/data_classes.html#fedfred.fred_data.Tag.name">(fedfred.fred_data.Tag attribute)</a>
+          <li><a href="api/objects.html#fedfred.objects.Tag.name">(fedfred.objects.Tag attribute)</a>
 </li>
         </ul></li>
     </ul></td>
     <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="api/data_classes.html#fedfred.fred_data.Release.notes">notes (fedfred.fred_data.Release attribute)</a>
+        <li><a href="api/objects.html#fedfred.objects.Release.notes">notes (fedfred.objects.Release attribute)</a>
 
         <ul>
-          <li><a href="api/data_classes.html#fedfred.fred_data.Series.notes">(fedfred.fred_data.Series attribute)</a>
+          <li><a href="api/objects.html#fedfred.objects.Series.notes">(fedfred.objects.Series attribute)</a>
 </li>
-          <li><a href="api/data_classes.html#fedfred.fred_data.Source.notes">(fedfred.fred_data.Source attribute)</a>
+          <li><a href="api/objects.html#fedfred.objects.Source.notes">(fedfred.objects.Source attribute)</a>
 </li>
-          <li><a href="api/data_classes.html#fedfred.fred_data.Tag.notes">(fedfred.fred_data.Tag attribute)</a>
+          <li><a href="api/objects.html#fedfred.objects.Tag.notes">(fedfred.objects.Tag attribute)</a>
 </li>
         </ul></li>
     </ul></td>
@@ -709,11 +712,11 @@
   <h2>O</h2>
   <table style="width: 100%" class="indextable genindextable"><tr>
     <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="api/data_classes.html#fedfred.fred_data.Series.observation_end">observation_end (fedfred.fred_data.Series attribute)</a>
+        <li><a href="api/objects.html#fedfred.objects.Series.observation_end">observation_end (fedfred.objects.Series attribute)</a>
 </li>
     </ul></td>
     <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="api/data_classes.html#fedfred.fred_data.Series.observation_start">observation_start (fedfred.fred_data.Series attribute)</a>
+        <li><a href="api/objects.html#fedfred.objects.Series.observation_start">observation_start (fedfred.objects.Series attribute)</a>
 </li>
     </ul></td>
   </tr></table>
@@ -723,21 +726,25 @@
   <h2>P</h2>
   <table style="width: 100%" class="indextable genindextable"><tr>
     <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="api/data_classes.html#fedfred.fred_data.Category.parent_id">parent_id (fedfred.fred_data.Category attribute)</a>
+        <li><a href="api/helpers.html#fedfred.helpers.FredHelpers.parameter_validation">parameter_validation() (fedfred.helpers.FredHelpers static method)</a>
+</li>
+        <li><a href="api/helpers.html#fedfred.helpers.FredHelpers.parameter_validation_async">parameter_validation_async() (fedfred.helpers.FredHelpers static method)</a>
+</li>
+        <li><a href="api/objects.html#fedfred.objects.Category.parent_id">parent_id (fedfred.objects.Category attribute)</a>
 
         <ul>
-          <li><a href="api/data_classes.html#fedfred.fred_data.Element.parent_id">(fedfred.fred_data.Element attribute)</a>
+          <li><a href="api/objects.html#fedfred.objects.Element.parent_id">(fedfred.objects.Element attribute)</a>
 </li>
         </ul></li>
     </ul></td>
     <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="api/data_classes.html#fedfred.fred_data.Series.popularity">popularity (fedfred.fred_data.Series attribute)</a>
+        <li><a href="api/objects.html#fedfred.objects.Series.popularity">popularity (fedfred.objects.Series attribute)</a>
 
         <ul>
-          <li><a href="api/data_classes.html#fedfred.fred_data.Tag.popularity">(fedfred.fred_data.Tag attribute)</a>
+          <li><a href="api/objects.html#fedfred.objects.Tag.popularity">(fedfred.objects.Tag attribute)</a>
 </li>
         </ul></li>
-        <li><a href="api/data_classes.html#fedfred.fred_data.Release.press_release">press_release (fedfred.fred_data.Release attribute)</a>
+        <li><a href="api/objects.html#fedfred.objects.Release.press_release">press_release (fedfred.objects.Release attribute)</a>
 </li>
     </ul></td>
   </tr></table>
@@ -747,37 +754,37 @@
   <h2>R</h2>
   <table style="width: 100%" class="indextable genindextable"><tr>
     <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="api/data_classes.html#fedfred.fred_data.Release.realtime_end">realtime_end (fedfred.fred_data.Release attribute)</a>
+        <li><a href="api/objects.html#fedfred.objects.Release.realtime_end">realtime_end (fedfred.objects.Release attribute)</a>
 
         <ul>
-          <li><a href="api/data_classes.html#fedfred.fred_data.Series.realtime_end">(fedfred.fred_data.Series attribute)</a>
+          <li><a href="api/objects.html#fedfred.objects.Series.realtime_end">(fedfred.objects.Series attribute)</a>
 </li>
-          <li><a href="api/data_classes.html#fedfred.fred_data.Source.realtime_end">(fedfred.fred_data.Source attribute)</a>
+          <li><a href="api/objects.html#fedfred.objects.Source.realtime_end">(fedfred.objects.Source attribute)</a>
 </li>
         </ul></li>
-        <li><a href="api/data_classes.html#fedfred.fred_data.Release.realtime_start">realtime_start (fedfred.fred_data.Release attribute)</a>
+        <li><a href="api/objects.html#fedfred.objects.Release.realtime_start">realtime_start (fedfred.objects.Release attribute)</a>
 
         <ul>
-          <li><a href="api/data_classes.html#fedfred.fred_data.Series.realtime_start">(fedfred.fred_data.Series attribute)</a>
+          <li><a href="api/objects.html#fedfred.objects.Series.realtime_start">(fedfred.objects.Series attribute)</a>
 </li>
-          <li><a href="api/data_classes.html#fedfred.fred_data.Source.realtime_start">(fedfred.fred_data.Source attribute)</a>
+          <li><a href="api/objects.html#fedfred.objects.Source.realtime_start">(fedfred.objects.Source attribute)</a>
 </li>
         </ul></li>
     </ul></td>
     <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="api/data_classes.html#fedfred.fred_data.SeriesGroup.region_type">region_type (fedfred.fred_data.SeriesGroup attribute)</a>
+        <li><a href="api/objects.html#fedfred.objects.SeriesGroup.region_type">region_type (fedfred.objects.SeriesGroup attribute)</a>
 </li>
-        <li><a href="api/data_classes.html#fedfred.fred_data.Release">Release (class in fedfred.fred_data)</a>
+        <li><a href="api/objects.html#fedfred.objects.Release">Release (class in fedfred.objects)</a>
 </li>
-        <li><a href="api/data_classes.html#fedfred.fred_data.Element.release_id">release_id (fedfred.fred_data.Element attribute)</a>
+        <li><a href="api/objects.html#fedfred.objects.Element.release_id">release_id (fedfred.objects.Element attribute)</a>
 
         <ul>
-          <li><a href="api/data_classes.html#fedfred.fred_data.ReleaseDate.release_id">(fedfred.fred_data.ReleaseDate attribute)</a>
+          <li><a href="api/objects.html#fedfred.objects.ReleaseDate.release_id">(fedfred.objects.ReleaseDate attribute)</a>
 </li>
         </ul></li>
-        <li><a href="api/data_classes.html#fedfred.fred_data.ReleaseDate.release_name">release_name (fedfred.fred_data.ReleaseDate attribute)</a>
+        <li><a href="api/objects.html#fedfred.objects.ReleaseDate.release_name">release_name (fedfred.objects.ReleaseDate attribute)</a>
 </li>
-        <li><a href="api/data_classes.html#fedfred.fred_data.ReleaseDate">ReleaseDate (class in fedfred.fred_data)</a>
+        <li><a href="api/objects.html#fedfred.objects.ReleaseDate">ReleaseDate (class in fedfred.objects)</a>
 </li>
     </ul></td>
   </tr></table>
@@ -787,25 +794,25 @@
   <h2>S</h2>
   <table style="width: 100%" class="indextable genindextable"><tr>
     <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="api/data_classes.html#fedfred.fred_data.SeriesGroup.season">season (fedfred.fred_data.SeriesGroup attribute)</a>
+        <li><a href="api/objects.html#fedfred.objects.SeriesGroup.season">season (fedfred.objects.SeriesGroup attribute)</a>
 </li>
-        <li><a href="api/data_classes.html#fedfred.fred_data.Series.seasonal_adjustment">seasonal_adjustment (fedfred.fred_data.Series attribute)</a>
+        <li><a href="api/objects.html#fedfred.objects.Series.seasonal_adjustment">seasonal_adjustment (fedfred.objects.Series attribute)</a>
 </li>
-        <li><a href="api/data_classes.html#fedfred.fred_data.Series.seasonal_adjustment_short">seasonal_adjustment_short (fedfred.fred_data.Series attribute)</a>
+        <li><a href="api/objects.html#fedfred.objects.Series.seasonal_adjustment_short">seasonal_adjustment_short (fedfred.objects.Series attribute)</a>
 </li>
-        <li><a href="api/data_classes.html#fedfred.fred_data.Series">Series (class in fedfred.fred_data)</a>
+        <li><a href="api/objects.html#fedfred.objects.Series">Series (class in fedfred.objects)</a>
 </li>
     </ul></td>
     <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="api/data_classes.html#fedfred.fred_data.Tag.series_count">series_count (fedfred.fred_data.Tag attribute)</a>
+        <li><a href="api/objects.html#fedfred.objects.Tag.series_count">series_count (fedfred.objects.Tag attribute)</a>
 </li>
-        <li><a href="api/data_classes.html#fedfred.fred_data.SeriesGroup.series_group">series_group (fedfred.fred_data.SeriesGroup attribute)</a>
+        <li><a href="api/objects.html#fedfred.objects.SeriesGroup.series_group">series_group (fedfred.objects.SeriesGroup attribute)</a>
 </li>
-        <li><a href="api/data_classes.html#fedfred.fred_data.Element.series_id">series_id (fedfred.fred_data.Element attribute)</a>
+        <li><a href="api/objects.html#fedfred.objects.Element.series_id">series_id (fedfred.objects.Element attribute)</a>
 </li>
-        <li><a href="api/data_classes.html#fedfred.fred_data.SeriesGroup">SeriesGroup (class in fedfred.fred_data)</a>
+        <li><a href="api/objects.html#fedfred.objects.SeriesGroup">SeriesGroup (class in fedfred.objects)</a>
 </li>
-        <li><a href="api/data_classes.html#fedfred.fred_data.Source">Source (class in fedfred.fred_data)</a>
+        <li><a href="api/objects.html#fedfred.objects.Source">Source (class in fedfred.objects)</a>
 </li>
     </ul></td>
   </tr></table>
@@ -815,17 +822,81 @@
   <h2>T</h2>
   <table style="width: 100%" class="indextable genindextable"><tr>
     <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="api/data_classes.html#fedfred.fred_data.Tag">Tag (class in fedfred.fred_data)</a>
+        <li><a href="api/objects.html#fedfred.objects.Tag">Tag (class in fedfred.objects)</a>
 </li>
-        <li><a href="api/data_classes.html#fedfred.fred_data.Series.title">title (fedfred.fred_data.Series attribute)</a>
+        <li><a href="api/objects.html#fedfred.objects.Series.title">title (fedfred.objects.Series attribute)</a>
 
         <ul>
-          <li><a href="api/data_classes.html#fedfred.fred_data.SeriesGroup.title">(fedfred.fred_data.SeriesGroup attribute)</a>
+          <li><a href="api/objects.html#fedfred.objects.SeriesGroup.title">(fedfred.objects.SeriesGroup attribute)</a>
+</li>
+        </ul></li>
+        <li><a href="api/helpers.html#fedfred.helpers.FredHelpers.to_dd_df">to_dd_df() (fedfred.helpers.FredHelpers static method)</a>
+</li>
+        <li><a href="api/helpers.html#fedfred.helpers.FredHelpers.to_dd_df_async">to_dd_df_async() (fedfred.helpers.FredHelpers static method)</a>
+</li>
+        <li><a href="api/helpers.html#fedfred.helpers.FredHelpers.to_dd_gpd_gdf">to_dd_gpd_gdf() (fedfred.helpers.FredHelpers static method)</a>
+</li>
+        <li><a href="api/helpers.html#fedfred.helpers.FredHelpers.to_dd_gpd_gdf_async">to_dd_gpd_gdf_async() (fedfred.helpers.FredHelpers static method)</a>
+</li>
+        <li><a href="api/helpers.html#fedfred.helpers.FredHelpers.to_gpd_gdf">to_gpd_gdf() (fedfred.helpers.FredHelpers static method)</a>
+</li>
+        <li><a href="api/helpers.html#fedfred.helpers.FredHelpers.to_gpd_gdf_async">to_gpd_gdf_async() (fedfred.helpers.FredHelpers static method)</a>
+</li>
+        <li><a href="api/objects.html#fedfred.objects.Category.to_object">to_object() (fedfred.objects.Category class method)</a>
+
+        <ul>
+          <li><a href="api/objects.html#fedfred.objects.Element.to_object">(fedfred.objects.Element class method)</a>
+</li>
+          <li><a href="api/objects.html#fedfred.objects.Release.to_object">(fedfred.objects.Release class method)</a>
+</li>
+          <li><a href="api/objects.html#fedfred.objects.ReleaseDate.to_object">(fedfred.objects.ReleaseDate class method)</a>
+</li>
+          <li><a href="api/objects.html#fedfred.objects.Series.to_object">(fedfred.objects.Series class method)</a>
+</li>
+          <li><a href="api/objects.html#fedfred.objects.SeriesGroup.to_object">(fedfred.objects.SeriesGroup class method)</a>
+</li>
+          <li><a href="api/objects.html#fedfred.objects.Source.to_object">(fedfred.objects.Source class method)</a>
+</li>
+          <li><a href="api/objects.html#fedfred.objects.Tag.to_object">(fedfred.objects.Tag class method)</a>
+</li>
+          <li><a href="api/objects.html#fedfred.objects.VintageDate.to_object">(fedfred.objects.VintageDate class method)</a>
 </li>
         </ul></li>
     </ul></td>
     <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="api/data_classes.html#fedfred.fred_data.Element.type">type (fedfred.fred_data.Element attribute)</a>
+        <li><a href="api/objects.html#fedfred.objects.Category.to_object_async">to_object_async() (fedfred.objects.Category class method)</a>
+
+        <ul>
+          <li><a href="api/objects.html#fedfred.objects.Element.to_object_async">(fedfred.objects.Element class method)</a>
+</li>
+          <li><a href="api/objects.html#fedfred.objects.Release.to_object_async">(fedfred.objects.Release class method)</a>
+</li>
+          <li><a href="api/objects.html#fedfred.objects.ReleaseDate.to_object_async">(fedfred.objects.ReleaseDate class method)</a>
+</li>
+          <li><a href="api/objects.html#fedfred.objects.Series.to_object_async">(fedfred.objects.Series class method)</a>
+</li>
+          <li><a href="api/objects.html#fedfred.objects.SeriesGroup.to_object_async">(fedfred.objects.SeriesGroup class method)</a>
+</li>
+          <li><a href="api/objects.html#fedfred.objects.Source.to_object_async">(fedfred.objects.Source class method)</a>
+</li>
+          <li><a href="api/objects.html#fedfred.objects.Tag.to_object_async">(fedfred.objects.Tag class method)</a>
+</li>
+          <li><a href="api/objects.html#fedfred.objects.VintageDate.to_object_async">(fedfred.objects.VintageDate class method)</a>
+</li>
+        </ul></li>
+        <li><a href="api/helpers.html#fedfred.helpers.FredHelpers.to_pd_df">to_pd_df() (fedfred.helpers.FredHelpers static method)</a>
+</li>
+        <li><a href="api/helpers.html#fedfred.helpers.FredHelpers.to_pd_df_async">to_pd_df_async() (fedfred.helpers.FredHelpers static method)</a>
+</li>
+        <li><a href="api/helpers.html#fedfred.helpers.FredHelpers.to_pl_df">to_pl_df() (fedfred.helpers.FredHelpers static method)</a>
+</li>
+        <li><a href="api/helpers.html#fedfred.helpers.FredHelpers.to_pl_df_async">to_pl_df_async() (fedfred.helpers.FredHelpers static method)</a>
+</li>
+        <li><a href="api/helpers.html#fedfred.helpers.FredHelpers.to_pl_st_gdf">to_pl_st_gdf() (fedfred.helpers.FredHelpers static method)</a>
+</li>
+        <li><a href="api/helpers.html#fedfred.helpers.FredHelpers.to_pl_st_gdf_async">to_pl_st_gdf_async() (fedfred.helpers.FredHelpers static method)</a>
+</li>
+        <li><a href="api/objects.html#fedfred.objects.Element.type">type (fedfred.objects.Element attribute)</a>
 </li>
     </ul></td>
   </tr></table>
@@ -835,15 +906,15 @@
   <h2>U</h2>
   <table style="width: 100%" class="indextable genindextable"><tr>
     <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="api/data_classes.html#fedfred.fred_data.Series.units">units (fedfred.fred_data.Series attribute)</a>
+        <li><a href="api/objects.html#fedfred.objects.Series.units">units (fedfred.objects.Series attribute)</a>
 
         <ul>
-          <li><a href="api/data_classes.html#fedfred.fred_data.SeriesGroup.units">(fedfred.fred_data.SeriesGroup attribute)</a>
+          <li><a href="api/objects.html#fedfred.objects.SeriesGroup.units">(fedfred.objects.SeriesGroup attribute)</a>
 </li>
         </ul></li>
     </ul></td>
     <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="api/data_classes.html#fedfred.fred_data.Series.units_short">units_short (fedfred.fred_data.Series attribute)</a>
+        <li><a href="api/objects.html#fedfred.objects.Series.units_short">units_short (fedfred.objects.Series attribute)</a>
 </li>
     </ul></td>
   </tr></table>
@@ -853,11 +924,15 @@
   <h2>V</h2>
   <table style="width: 100%" class="indextable genindextable"><tr>
     <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="api/data_classes.html#fedfred.fred_data.VintageDate.vintage_date">vintage_date (fedfred.fred_data.VintageDate attribute)</a>
+        <li><a href="api/objects.html#fedfred.objects.VintageDate.vintage_date">vintage_date (fedfred.objects.VintageDate attribute)</a>
+</li>
+        <li><a href="api/helpers.html#fedfred.helpers.FredHelpers.vintage_dates_type_conversion">vintage_dates_type_conversion() (fedfred.helpers.FredHelpers static method)</a>
 </li>
     </ul></td>
     <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="api/data_classes.html#fedfred.fred_data.VintageDate">VintageDate (class in fedfred.fred_data)</a>
+        <li><a href="api/helpers.html#fedfred.helpers.FredHelpers.vintage_dates_type_conversion_async">vintage_dates_type_conversion_async() (fedfred.helpers.FredHelpers static method)</a>
+</li>
+        <li><a href="api/objects.html#fedfred.objects.VintageDate">VintageDate (class in fedfred.objects)</a>
 </li>
     </ul></td>
   </tr></table>
@@ -907,8 +982,8 @@
       
     </aside>
   </div>
-</div><script src="_static/documentation_options.js?v=e917149c"></script>
-    <script src="_static/doctools.js?v=9a2dae69"></script>
+</div><script src="_static/documentation_options.js?v=51b770b3"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/scripts/furo.js?v=5fa4622c"></script>
     </body>

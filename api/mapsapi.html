@@ -12,13 +12,24 @@
         gtag('js', new Date());
         gtag('config', 'G-Q7LK34R0CV');
     </script>
-    <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="AsyncAPI Class" href="asyncapi.html" /><link rel="prev" title="FredAPI" href="fredapi.html" />
+    <meta property="og:title" content="MapsAPI Class" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://nikhilxsunder.github.io/fedfred/api/mapsapi.html" />
+<meta property="og:site_name" content="fedfred" />
+<meta property="og:image" content="https://nikhilxsunder.github.io/fedfred/_static/fedfred-logo.png" />
+<meta property="og:image:alt" content="fedfred" />
+<meta property="og:locale" content="en_US" />
+<meta property="og:site_name" content="FedFred Documentation" />
+<meta property="og:url" content="https://nikhilxsunder.github.io/fedfred/" />
+<meta property="og:image:alt" content="FedFred Logo" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="AsyncAPI Class" href="asyncapi.html" /><link rel="prev" title="FredAPI Class" href="fredapi.html" />
         <link rel="canonical" href="https://nikhilxsunder.github.io/fedfred/api/mapsapi.html" />
 
-    <link rel="shortcut icon" href="../_static/fedfred_favicon.ico"/><!-- Generated with Sphinx 7.4.7 and Furo 2024.08.06 -->
+    <link rel="shortcut icon" href="../_static/fedfred_favicon.ico"/><!-- Generated with Sphinx 8.1.3 and Furo 2024.08.06 -->
         <title>MapsAPI Class - fedfred</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=354aac6f" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=302659d7" />
     
     
@@ -228,11 +239,12 @@
 </ul>
 </li>
 <li class="toctree-l1 current has-children"><a class="reference internal" href="index.html">API Reference</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of API Reference</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="fredapi.html">FredAPI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fredapi.html">FredAPI Class</a></li>
 <li class="toctree-l2 current current-page"><a class="current reference internal" href="#">MapsAPI Class</a></li>
 <li class="toctree-l2"><a class="reference internal" href="asyncapi.html">AsyncAPI Class</a></li>
 <li class="toctree-l2"><a class="reference internal" href="asyncmapsapi.html">AsyncMapsAPI Class</a></li>
-<li class="toctree-l2"><a class="reference internal" href="data_classes.html">Data Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="objects.html">Objects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="helpers.html">Helpers</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../contributing.html">Contributing to FedFred</a></li>
@@ -285,38 +297,44 @@
 <dl class="py class">
 <dt class="sig sig-object py" id="fedfred.FredAPI.MapsAPI">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">fedfred.FredAPI.</span></span><span class="sig-name descname"><span class="pre">MapsAPI</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fedfred.FredAPI.MapsAPI" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>The Maps sub-class contains methods for interacting with the FRED® Maps API and GeoFRED
 endpoints.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>parent</strong> (<a class="reference internal" href="fredapi.html#fedfred.FredAPI" title="fedfred.FredAPI"><em>FredAPI</em></a>)</p>
+</dd>
+</dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="fedfred.FredAPI.MapsAPI.get_regional_data">
-<span class="sig-name descname"><span class="pre">get_regional_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">series_group</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">region_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">date</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">season</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_date</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transformation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frequency</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aggregation_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'json'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fedfred.FredAPI.MapsAPI.get_regional_data" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_regional_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">series_group</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">region_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">date</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">season</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">geodataframe_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'geopandas'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_date</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transformation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frequency</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aggregation_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fedfred.FredAPI.MapsAPI.get_regional_data" title="Link to this definition">¶</a></dt>
 <dd><p>Get GeoFRED regional data</p>
 <p>Retrieve regional data for a specified series group and date from the FRED Maps API.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>series_group</strong> (<em>str</em>) – The series group for which you want to request regional data.</p></li>
-<li><p><strong>region_type</strong> (<em>str</em>) – The type of region for which you want to request data. Examples include ‘state’, ‘county’, ‘msa’, etc.</p></li>
-<li><p><strong>date</strong> (<em>str</em>) – The date for which you want to request regional data. Format: YYYY-MM-DD.</p></li>
-<li><p><strong>season</strong> (<em>str</em>) – The seasonality of the data. Options include ‘seasonally_adjusted’ or ‘not_seasonally_adjusted’.</p></li>
-<li><p><strong>units</strong> (<em>str</em>) – The units of the data. Examples include ‘lin’, ‘chg’, ‘pch’, etc.</p></li>
-<li><p><strong>start_date</strong> (<em>str</em><em>, </em><em>optional</em>) – The start date for the range of data you want to request. Format: YYYY-MM-DD.</p></li>
-<li><p><strong>transformation</strong> (<em>str</em><em>, </em><em>optional</em>) – The data transformation to apply. Examples include ‘lin’, ‘chg’, ‘pch’, etc.</p></li>
-<li><p><strong>frequency</strong> (<em>str</em><em>, </em><em>optional</em>) – The frequency of the data. Examples include ‘d’, ‘w’, ‘m’, ‘q’, ‘a’.</p></li>
-<li><p><strong>aggregation_method</strong> (<em>str</em><em>, </em><em>optional</em>) – The aggregation method to use. Examples include ‘avg’, ‘sum’, ‘eop’.</p></li>
-<li><p><strong>file_type</strong> (<em>str</em><em>, </em><em>optional</em>) – The format of the response. Options are ‘json’ or ‘xml’. Default is ‘json’.</p></li>
+<li><p><strong>series_group</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – The series group for which you want to request regional data.</p></li>
+<li><p><strong>region_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – The type of region for which you want to request data. Options are ‘bea’, ‘msa’, ‘frb’, ‘necta’, ‘state’, ‘country’, ‘county’, ‘censusregion’, or ‘censusdivision’.</p></li>
+<li><p><strong>date</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em> | </em><em>datetime</em>) – The date for which you want to request regional data. String format: YYYY-MM-DD.</p></li>
+<li><p><strong>season</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – The seasonality of the data. Options include ‘seasonally_adjusted’ or ‘not_seasonally_adjusted’.</p></li>
+<li><p><strong>units</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – The units of the data. Options are ‘lin’, ‘chg’, ‘ch1’, ‘pch’, ‘pc1’, ‘pca’, ‘cch’, ‘cca’ and ‘log’.</p></li>
+<li><p><strong>geodataframe_method</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>optional</em>) – The method to use for creating the GeoDataFrame. Options are ‘geopandas’, ‘dask’ or ‘polars’. Default is ‘geopandas’.</p></li>
+<li><p><strong>start_date</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>optional</em>) – The start date for the range of data you want to request. Format: YYYY-MM-DD.</p></li>
+<li><p><strong>transformation</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>optional</em>) – The data transformation to apply. Options are ‘lin’, ‘chg’, ‘ch1’, ‘pch’, ‘pc1’, ‘pca’, ‘cch’, ‘cca’, and ‘log’.</p></li>
+<li><p><strong>frequency</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>optional</em>) – The frequency of the data. Options are ‘d’, ‘w’, ‘bw’, ‘m’, ‘q’, ‘sa’, ‘a’, ‘wef’, ‘weth’, ‘wew’, ‘wetu’, ‘wem’, ‘wesu’, ‘wesa’, ‘bwew’and ‘bwem’.</p></li>
+<li><p><strong>aggregation_method</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>optional</em>) – The aggregation method to use. Options are ‘avg’, ‘sum’, and ‘eop’.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>If GeoJSON shape file exists.
-None: If no series exist.</p>
+<dd class="field-even"><p>If geodataframe_method is ‘geopandas’.
+Dask GeoPandas GeoDataframe: If geodataframe_method is ‘dask’.
+Polars GeoDataframe: If geodataframe_method is ‘polars’.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>GeoDataframe</p>
+<dd class="field-odd"><p>GeoPandas GeoDataframe</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>ValueError</strong> – If the API request fails or returns an error.</p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.13)"><strong>ValueError</strong></a> – If the API request fails or returns an error.</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
@@ -341,29 +359,28 @@ None: If no series exist.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="fedfred.FredAPI.MapsAPI.get_series_data">
-<span class="sig-name descname"><span class="pre">get_series_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">series_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">date</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_date</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'json'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fedfred.FredAPI.MapsAPI.get_series_data" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_series_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">series_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">geodataframe_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'geopandas'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">date</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_date</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fedfred.FredAPI.MapsAPI.get_series_data" title="Link to this definition">¶</a></dt>
 <dd><p>Get GeoFRED series data</p>
-<p>This request returns a cross section of regional data for a specified release date. If no
-date is specified, the most recent data available are returned.</p>
+<p>This request returns a cross section of regional data for a specified release date. If no date is specified, the most recent data available are returned.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>series_id</strong> (<em>string</em><em>, </em><em>required</em>) – The FRED series_id you want to request maps data for. Not all</p></li>
-<li><p><strong>data.</strong> (<em>series that are in FRED have geographical</em>)</p></li>
-<li><p><strong>date</strong> (<em>string</em><em>, </em><em>optional</em>) – The date you want to request series group data from. Format: YYYY-MM-DD</p></li>
-<li><p><strong>start_date</strong> (<em>string</em><em>, </em><em>optional</em>) – The start date you want to request series group data from. This allows you to pull a range of dataFormat: YYYY-MM-DD</p></li>
-<li><p><strong>file_type</strong> (<em>string</em><em>, </em><em>optional</em>) – A key or file extension that indicates the type of file to send.One of the following values: ‘xml’, ‘json’. Default is ‘json’.</p></li>
+<li><p><strong>series_id</strong> (<em>string</em><em>, </em><em>required</em>) – The FRED series_id you want to request maps data for. Not all series that are in FRED have geographical data.</p></li>
+<li><p><strong>geodataframe_method</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>optional</em>) – The method to use for creating the GeoDataFrame. Options are ‘geopandas’ ‘polars’, or ‘dask’. Default is ‘geopandas’.</p></li>
+<li><p><strong>date</strong> (<em>string</em><em> | </em><em>datetime</em><em>, </em><em>optional</em>) – The date you want to request series group data from. String format: YYYY-MM-DD</p></li>
+<li><p><strong>start_date</strong> (<em>string</em><em> | </em><em>datetime</em><em>, </em><em>optional</em>) – The start date you want to request series group data from. This allows you to pull a range of data. String format: YYYY-MM-DD</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>If GeoJSON shape file exists.
-None: If no series exist.</p>
+<dd class="field-even"><p>If geodataframe_method is ‘geopandas’.
+Dask GeoPandas GeoDataframe: If geodataframe_method is ‘dask’.
+Polars GeoDataframe: If geodataframe_method is ‘polars’.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>GeoDataframe</p>
+<dd class="field-odd"><p>GeoPandas GeoDataframe</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>ValueError</strong> – If the API request fails or returns an error.</p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.13)"><strong>ValueError</strong></a> – If the API request fails or returns an error.</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
@@ -386,34 +403,29 @@ None: If no series exist.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="fedfred.FredAPI.MapsAPI.get_series_group">
-<span class="sig-name descname"><span class="pre">get_series_group</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">series_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'json'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fedfred.FredAPI.MapsAPI.get_series_group" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_series_group</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">series_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fedfred.FredAPI.MapsAPI.get_series_group" title="Link to this definition">¶</a></dt>
 <dd><p>Get a GeoFRED series group</p>
 <p>This request returns the meta information needed to make requests for FRED data. Minimum
 and maximum date are also supplied for the data range available.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>series_id</strong> (<em>str</em><em>, </em><em>required</em>) – The FRED series id you want to request maps meta information for. Not all series that are in FRED have geographical data.</p></li>
-<li><p><strong>filetype</strong> (<em>str</em><em>, </em><em>optional</em>) – A key or file extension that indicates the type of file to send. One of the following values: ‘xml’, ‘json’. Default is ‘json’.</p></li>
-</ul>
+<dd class="field-odd"><p><strong>series_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>required</em>) – The FRED series id you want to request maps meta information for. Not all series that are in FRED have geographical data.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>If only one series group is returned.
-List[SeriesGroup]: If multiple series groups are returned.
-None: If no series groups exist.</p>
+<dd class="field-even"><p>If multiple series groups are returned.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="data_classes.html#fedfred.fred_data.SeriesGroup" title="fedfred.fred_data.SeriesGroup">SeriesGroup</a></p>
+<dd class="field-odd"><p>List[<a class="reference internal" href="objects.html#fedfred.objects.SeriesGroup" title="fedfred.objects.SeriesGroup">SeriesGroup</a>]</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>ValueError</strong> – If the API request fails or returns an error.</p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.13)"><strong>ValueError</strong></a> – If the API request fails or returns an error.</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">fedfred</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">fd</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">fred</span> <span class="o">=</span> <span class="n">fd</span><span class="o">.</span><span class="n">FredAPI</span><span class="p">(</span><span class="s1">&#39;your_api_key&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">Maps</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">series_group</span> <span class="o">=</span> <span class="n">fred</span><span class="o">.</span><span class="n">get_series_group</span><span class="p">(</span><span class="s1">&#39;SMU56000000500000001&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">series_group</span><span class="o">.</span><span class="n">title</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">series_group</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">title</span><span class="p">)</span>
 <span class="go">&#39;State Personal Income&#39;</span>
 </pre></div>
 </div>
@@ -425,22 +437,26 @@ None: If no series groups exist.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="fedfred.FredAPI.MapsAPI.get_shape_files">
-<span class="sig-name descname"><span class="pre">get_shape_files</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shape</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fedfred.FredAPI.MapsAPI.get_shape_files" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_shape_files</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">geodataframe_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'geopandas'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fedfred.FredAPI.MapsAPI.get_shape_files" title="Link to this definition">¶</a></dt>
 <dd><p>Get GeoFRED shape files</p>
 <p>This request returns shape files from FRED in GeoJSON format.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>shape</strong> (<em>str</em><em>, </em><em>required</em>) – The type of shape you want to pull GeoJSON data for. Available Shape Types: ‘bea’ (Bureau of Economic Anaylis Region), ‘msa’ (Metropolitan Statistical Area), ‘frb’ (Federal Reserve Bank Districts), ‘necta’ (New England City and Town Area), ‘state’, ‘country’, ‘county’ (USA Counties), ‘censusregion’ (US Census Regions), ‘censusdivision’ (US Census Divisons).</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>shape</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>required</em>) – The type of shape you want to pull GeoJSON data for. Available Shape Types: ‘bea’ (Bureau of Economic Anaylis Region), ‘msa’ (Metropolitan Statistical Area), ‘frb’ (Federal Reserve Bank Districts), ‘necta’ (New England City and Town Area), ‘state’, ‘country’, ‘county’ (USA Counties), ‘censusregion’ (US Census Regions), ‘censusdivision’ (US Census Divisons).</p></li>
+<li><p><strong>geodataframe_method</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>optional</em>) – The method to use for creating the GeoDataFrame. Options are ‘geopandas’, ‘dask’ or ‘polars’. Default is ‘geopandas’.</p></li>
+</ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>If GeoJSON shape file exists.
-None: If no shapefiles exist.</p>
+<dd class="field-even"><p>If dataframe_method is ‘geopandas’.
+Dask GeoPandas GeoDataframe: If dataframe_method is ‘dask’.
+Polars GeoDataframe: If dataframe_method is ‘polars’.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>GeoDataframe</p>
+<dd class="field-odd"><p>GeoPandas GeoDataframe</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>ValueError</strong> – If the API request fails or returns an error.</p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.13)"><strong>ValueError</strong></a> – If the API request fails or returns an error.</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
@@ -488,7 +504,7 @@ None: If no shapefiles exist.</p>
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">FredAPI</div>
+                <div class="title">FredAPI Class</div>
                 
               </div>
             </a>
@@ -553,8 +569,8 @@ None: If no shapefiles exist.</p>
       
     </aside>
   </div>
-</div><script src="../_static/documentation_options.js?v=e917149c"></script>
-    <script src="../_static/doctools.js?v=9a2dae69"></script>
+</div><script src="../_static/documentation_options.js?v=51b770b3"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/furo.js?v=5fa4622c"></script>
     </body>

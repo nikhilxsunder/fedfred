@@ -10,4 +10,5 @@ This section provides detailed API documentation for fedfred's classes and funct
    mapsapi
    asyncapi
    asyncmapsapi
-   data_classes
+   objects
+   helpers
