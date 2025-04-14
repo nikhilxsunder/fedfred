@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0] - 2025-04-14 (PUBLISHING FIX)
+
+## [2.0.2] - 2025-04-14 (PUBLISHING ERROR)
+
+## [2.0.1] - 2025-04-14 (PUBLISHING ERROR)
+
 ## [2.0.0] - 2025-04-14
 
 ### Added
@@ -463,7 +469,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - initial directory structure
 - setuptools for build backend
 
-[Unreleased]: https://github.com/nikhilxsunder/fedfred/compare/v2.0.0...HEAD
+[Unreleased]: https://github.com/nikhilxsunder/fedfred/compare/v2.0.3...HEAD
+[2.0.3]: https://github.com/nikhilxsunder/fedfred/compare/v2.0.2...v2.0.3
+[2.0.2]: https://github.com/nikhilxsunder/fedfred/compare/v2.0.1...v2.0.2
+[2.0.1]: https://github.com/nikhilxsunder/fedfred/compare/v2.0.0...v2.0.1
 [2.0.0]: https://github.com/nikhilxsunder/fedfred/compare/v1.2.9...v2.0.0
 [1.2.9]: https://github.com/nikhilxsunder/fedfred/compare/v1.2.8...v1.2.9
 [1.2.8]: https://github.com/nikhilxsunder/fedfred/compare/v1.2.7...v1.2.8
