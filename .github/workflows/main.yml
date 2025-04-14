@@ -175,6 +175,8 @@ jobs:
     name: Update Conda-Forge Feedstock
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout the repository
