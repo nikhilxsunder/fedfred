@@ -57,7 +57,7 @@ googleanalytics_enabled = True
 
 # html
 html_baseurl = 'https://nikhilxsunder.github.io/fedfred/'
-html_extra_path = ['robots.txt']
+html_extra_path = ['robots.txt', 'BingSiteAuth.xml']
 html_theme = 'furo'
 html_theme_options = {
     "sidebar_hide_name": False,
