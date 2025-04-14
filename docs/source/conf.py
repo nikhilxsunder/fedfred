@@ -10,7 +10,7 @@
 project = 'fedfred'
 copyright = '2025, Nikhil Sunder'
 author = 'Nikhil Sunder'
-release = '2.0.4'
+release = '2.0.6'
 
 # -- General configuration ---------------------------------------------------
 extensions = [
