@@ -235,7 +235,7 @@ jobs:
           git checkout -b update-${{ github.event.inputs.release_version || github.ref_name }}
           git add recipe/meta.yaml
           git commit -m "Update to version ${{ github.event.inputs.release_version || github.ref_name }}"
-          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }} HEAD:update-${{ github.event.inputs.release_version || github.ref_name }}
+          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/nikhilxsunder/fedfred-feedstock.git HEAD:update-${{ github.event.inputs.release_version || github.ref_name }}
 
       - name: Create a Pull Request
         uses: peter-evans/create-pull-request@v5
