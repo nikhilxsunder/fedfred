@@ -194,14 +194,16 @@ jobs:
           name: conda-recipe
           path: conda-recipe/
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - name: Set up Miniconda
+        uses: conda-incubator/setup-miniconda@v3
         with:
-          python-version: 3.9
+          auto-update-conda: true
+          python-version: "3.9"
+          channels: conda-forge,defaults
 
-      - name: Install dependencies
+      - name: Install conda-smithy and dependencies
         run: |
-          pip install ruamel.yaml gitpython
+          conda install -y conda-smithy conda-build anaconda-client ruamel.yaml gitpython
 
       - name: Clone the feedstock repository
         env:
@@ -227,15 +229,25 @@ jobs:
           # Copy updated meta.yaml to the feedstock repository
           cp conda-recipe/meta.yaml feedstock/recipe/meta.yaml
 
+      - name: Regenerate the feedstock with conda-smithy
+        run: |
+          cd feedstock
+          conda smithy rerender -c auto
+
       - name: Commit and push changes
         run: |
           cd feedstock
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
           git checkout -b update-${{ github.event.inputs.release_version || github.ref_name }}
-          git add recipe/meta.yaml
+          git add .
           git commit -m "Update to version ${{ github.event.inputs.release_version || github.ref_name }}"
-          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/nikhilxsunder/fedfred-feedstock.git HEAD:update-${{ github.event.inputs.release_version || github.ref_name }}
+
+          # Set the remote URL with authentication token
+          git remote set-url origin https://nikhilxsunder:${{ secrets.FEEDSTOCK_TOKEN }}@github.com/nikhilxsunder/fedfred-feedstock.git
+
+          # Push to the remote repository
+          git push origin HEAD:update-${{ github.event.inputs.release_version || github.ref_name }}
 
       - name: Create a Pull Request
         uses: peter-evans/create-pull-request@v5
