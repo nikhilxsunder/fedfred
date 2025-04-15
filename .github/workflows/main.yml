@@ -253,12 +253,18 @@ jobs:
           # Push to the remote repository
           git push origin HEAD:update-${{ github.event.inputs.release_version || github.ref_name }}
 
+      - name: Checkout the repository
+        uses: actions/checkout@v3
+        with:
+          ref: main
+
       - name: Create a Pull Request
         uses: peter-evans/create-pull-request@v5
         with:
           token: ${{ secrets.FEEDSTOCK_TOKEN }}
           commit-message: "Update to version ${{ github.event.inputs.release_version || github.ref_name }}"
           branch: update-${{ github.event.inputs.release_version || github.ref_name }}
+          base: main
           title: "Update to version ${{ github.event.inputs.release_version || github.ref_name }}"
           body: |
             This PR updates the `fedfred-feedstock` to version ${{ github.event.inputs.release_version || github.ref_name }}.

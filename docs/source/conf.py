@@ -10,7 +10,7 @@
 project = 'fedfred'
 copyright = '2025, Nikhil Sunder'
 author = 'Nikhil Sunder'
-release = '2.0.8'
+release = '2.0.9'
 
 # -- General configuration ---------------------------------------------------
 extensions = [
@@ -125,7 +125,6 @@ html_context = {
     """
 }
 templates_path = ['_templates']
-html_static_path = ['_static']
 
 # autodocs
 autodoc_default_options = {

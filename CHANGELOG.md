@@ -7,7 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [2.0.8] - 2025-04-14 (PUBLISHING FIX)
+## [2.0.9] - 2025-04-14 (PUBLISHING FIX)
+
+## [2.0.8] - 2025-04-14 (YANKED)
 
 ## [2.0.7] - 2025-04-14 (YANKED)
 
@@ -479,7 +481,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - initial directory structure
 - setuptools for build backend
 
-[Unreleased]: https://github.com/nikhilxsunder/fedfred/compare/v2.0.7...HEAD
+[Unreleased]: https://github.com/nikhilxsunder/fedfred/compare/v2.0.9...HEAD
+[2.0.9]: https://github.com/nikhilxsunder/fedfred/compare/v2.0.8...v2.0.9
 [2.0.8]: https://github.com/nikhilxsunder/fedfred/compare/v2.0.7...v2.0.8
 [2.0.7]: https://github.com/nikhilxsunder/fedfred/compare/v2.0.6...v2.0.7
 [2.0.6]: https://github.com/nikhilxsunder/fedfred/compare/v2.0.5...v2.0.6
