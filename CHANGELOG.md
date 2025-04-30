@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Complete testing suite
+
+## [2.1.0] - 2025-04-30
+
+### Added
+
+- Added more testing classes (still incomplete) 
+
+### Fixed 
+
+- Rebuilt documentation using pydata sphinx theme
+- Added better documentnation pages with dynamic elements
+- Reindexing with Bing Webmaster, Index Now, annd Google Search Console
+- Logic fixes for parameter validation
+- Nested methods for FredHelpers class refactored
+
 ## [2.0.9] - 2025-04-14 (PUBLISHING FIX)
 
 ## [2.0.8] - 2025-04-14 (YANKED)

@@ -1,0 +1,3 @@
+{{ name | underline }}
+
+.. autoattribute:: {{ fullname }}

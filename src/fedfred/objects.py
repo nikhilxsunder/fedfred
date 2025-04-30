@@ -21,6 +21,7 @@ This module defines data classes for the FRED API responses.
 from typing import Optional, List, Dict
 from dataclasses import dataclass
 import asyncio
+from fedfred.__about__ import __title__, __version__, __author__, __license__, __copyright__, __description__, __url__
 
 @dataclass
 class Category:
@@ -386,7 +387,6 @@ class SeriesGroup:
         series_group_data = response["series_group"]
         if isinstance(series_group_data, dict):
             series_group_data = [series_group_data]
-
         series_groups = [
             cls(
                 title=series_group["title"],
@@ -400,6 +400,8 @@ class SeriesGroup:
             )
             for series_group in series_group_data
         ]
+        if not series_groups:
+            raise ValueError("No series groups found in the response")
         return series_groups
 
     @classmethod

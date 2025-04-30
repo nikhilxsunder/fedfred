@@ -29,6 +29,7 @@ import geopandas as gpd
 from tenacity import retry, wait_fixed, stop_after_attempt
 from cachetools import FIFOCache, cached
 from asyncache import cached as async_cached
+from fedfred.__about__ import __title__, __version__, __author__, __license__, __copyright__, __description__, __url__
 from .helpers import FredHelpers
 from .objects import Category, Series, Tag, Release, ReleaseDate, Source, Element, VintageDate, SeriesGroup
 if TYPE_CHECKING:
@@ -658,7 +659,7 @@ class FredAPI:
 
         Args:
             realtime_start (str | datetime, optional): The start of the real-time period. String format: YYYY-MM-DD.
-            realtime_end (str |datetime, optional): The end of the real-time period. String format: YYYY-MM-DD.
+            realtime_end (str | datetime, optional): The end of the real-time period. String format: YYYY-MM-DD.
             limit (int, optional): The maximum number of results to return. Default is None.
             offset (int, optional): The offset for the results. Default is None.
             order_by (str, optional): Order results by values. Options include 'release_id', 'release_name', 'release_date', 'realtime_start', 'realtime_end'. Default is None.
@@ -1616,13 +1617,13 @@ class FredAPI:
         Retrieves updates for a series from the FRED API.
 
         Args:
-            realtime_start (str |, optional): The start of the real-time period. String format: YYYY-MM-DD.
-            realtime_end (str, optional): The end of the real-time period. String format: YYYY-MM-DD.
+            realtime_start (str | datetime, optional): The start of the real-time period. String format: YYYY-MM-DD.
+            realtime_end (str | datetime, optional): The end of the real-time period. String format: YYYY-MM-DD.
             limit (int, optional): The maximum number of results to return. Default is 1000.
             offset (int, optional): The offset for the results. Used for pagination.
             filter_value (str, optional): Filter results by this value.
-            start_time (str, optional): The start time for the updates. Format: HH:MM.
-            end_time (str, optional): The end time for the updates. Format: HH:MM.
+            start_time (str | datetime, optional): The start time for the updates. String format: HH:MM.
+            end_time (str | datetime, optional): The end time for the updates. String format: HH:MM.
 
         Returns:
             List[Series]: If multiple series are returned.
@@ -2247,7 +2248,7 @@ class FredAPI:
                 """
                 return __get_request(url_endpoint, data)
             if data:
-                FredHelpers.parameter_validation(data)
+                FredHelpers.geo_parameter_validation(data)
             if self.cache_mode:
                 return __cached_get_request(url_endpoint, data)
             else:
@@ -4120,13 +4121,13 @@ class FredAPI:
             Retrieves updates for a series from the FRED API.
 
             Args:
-                realtime_start (str |, optional): The start of the real-time period. String format: YYYY-MM-DD.
-                realtime_end (str, optional): The end of the real-time period. String format: YYYY-MM-DD.
+                realtime_start (str | datetime, optional): The start of the real-time period. String format: YYYY-MM-DD.
+                realtime_end (str | datetime, optional): The end of the real-time period. String format: YYYY-MM-DD.
                 limit (int, optional): The maximum number of results to return. Default is 1000.
                 offset (int, optional): The offset for the results. Used for pagination.
                 filter_value (str, optional): Filter results by this value.
-                start_time (str, optional): The start time for the updates. Format: HH:MM.
-                end_time (str, optional): The end time for the updates. Format: HH:MM.
+                start_time (str| datetime, optional): The start time for the updates. String format: HH:MM.
+                end_time (str | datetime, optional): The end time for the updates. String format: HH:MM.
 
             Returns:
                 List[Series]: If multiple series are returned.
@@ -4615,7 +4616,7 @@ class FredAPI:
             return await Series.to_object_async(response)
         class AsyncMapsAPI:
             """
-            The Async.Maps sub-class contains async methods for interacting with the FRED® Maps API and GeoFRED
+            The AsyncMapsAPI sub-class contains async methods for interacting with the FRED® Maps API and GeoFRED
             endpoints.
             """
             # Dunder Methods
@@ -4800,7 +4801,7 @@ class FredAPI:
                     """
                     return await __get_request(url_endpoint, data)
                 if data:
-                    await FredHelpers.parameter_validation_async(data)
+                    await FredHelpers.geo_parameter_validation_async(data)
                 if self.cache_mode:
                     return await __cached_get_request(url_endpoint, data)
                 else:

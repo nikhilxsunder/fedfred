@@ -30,6 +30,12 @@ Imports:
     VintageDate: A class representing a vintage date in the Fred database.
     SeriesGroup: A class representing a series group in the Fred database.
 """
+from fedfred.__about__ import __title__, __version__, __author__, __license__, __copyright__, __description__, __url__
+
+from . import clients
+from . import helpers
+from . import objects
+
 from .clients import FredAPI
 from .helpers import FredHelpers
 from .objects import (
@@ -44,8 +50,25 @@ from .objects import (
     SeriesGroup
 )
 
+AsyncAPI = FredAPI.AsyncAPI
+AsyncMapsAPI = FredAPI.AsyncAPI.AsyncMapsAPI
+MapsAPI = FredAPI.MapsAPI
+
 __all__ = [
+    "__title__",
+    "__description__",
+    "__version__",
+    "__copyright__",
+    "__author__",
+    "__license__",
+    "__url__",
+    "clients",
+    "helpers",
+    "objects",
     "FredAPI",
+    "AsyncAPI",
+    "AsyncMapsAPI",
+    "MapsAPI",
     "FredHelpers",
     "Category",
     "Series",

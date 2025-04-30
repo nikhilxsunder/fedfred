@@ -23,6 +23,7 @@ from datetime import datetime
 from typing import TYPE_CHECKING, Dict, Optional, Union
 import pandas as pd
 import geopandas as gpd
+from fedfred.__about__ import __title__, __version__, __author__, __license__, __copyright__, __description__, __url__
 if TYPE_CHECKING:
     import dask.dataframe as dd
     import dask_geopandas as dd_gpd
@@ -91,8 +92,8 @@ class FredHelpers:
         data_section = meta_data.get('data', {})
         if not data_section:
             raise ValueError("No data section found in the response")
-        date_key = next(iter(data_section))
-        items = data_section[date_key]
+        data_key = next(iter(data_section))
+        items = data_section[data_key]
         for item in items:
             if item['region'] in shapefile.index:
                 shapefile.loc[item['region'], 'value'] = item['value']
@@ -109,8 +110,8 @@ class FredHelpers:
             raise ImportError(
                 f"{e}: Dask GeoPandas is not installed. Install it with `pip install dask-geopandas` to use this method."
             ) from e
-        shapefile = FredHelpers.to_gpd_gdf(shapefile, meta_data)
-        return dd_gpd.from_geopandas(shapefile, npartitions=1)
+        gdf = FredHelpers.to_gpd_gdf(shapefile, meta_data)
+        return dd_gpd.from_geopandas(gdf, npartitions=1)
     @staticmethod
     def to_pl_st_gdf(shapefile: gpd.GeoDataFrame, meta_data: Dict) -> 'st.GeoDataFrame':
         """
@@ -122,8 +123,8 @@ class FredHelpers:
             raise ImportError(
                 f"{e}: Polars with geospatial support is not installed. Install it with `pip install polars-st` to use this method."
             ) from e
-        shapefile = FredHelpers.to_gpd_gdf(shapefile, meta_data)
-        return st.from_geopandas(shapefile)
+        gdf = FredHelpers.to_gpd_gdf(shapefile, meta_data)
+        return st.from_geopandas(gdf)
     @staticmethod
     def extract_region_type(response: Dict) -> str:
         """
@@ -148,6 +149,9 @@ class FredHelpers:
         return ';'.join(param)
     @staticmethod
     def vintage_dates_type_conversion(param: Union[str, datetime, list[Optional[Union[str, datetime]]]]) -> str:
+        """
+        Helper method to convert a vintage_dates parameter to a string.
+        """
         if isinstance(param, str):
             return param
         elif isinstance(param, datetime):
@@ -180,49 +184,62 @@ class FredHelpers:
             raise ValueError("Parameter must be a datetime object")
         return param.strftime("%H:%M")
     @staticmethod
+    def datestring_validation(param: str) -> Optional[ValueError]:
+        """
+        Helper method to validate date-string formatted parameters.
+        """
+        try:
+            datetime.strptime(param, "%Y-%m-%d")
+            return None
+        except ValueError as e:
+            raise ValueError(f"Value Error: {e}" ) from e
+    @staticmethod
+    def liststring_validation(param: str) -> Optional[ValueError]:
+        """
+        Helper method to validate list-string formatted parameters.
+        """
+        if not isinstance(param, str):
+            raise ValueError("Parameter must be a string")
+        terms = param.split(';')
+        if not all(term.isalnum() for term in terms):
+            raise ValueError("Each term must be alphanumeric and contain no whitespace")
+        if any(term == '' for term in terms):
+            raise ValueError("Semicolon-separated list cannot contain empty terms")
+        else:
+            return None
+    @staticmethod
+    def vintage_dates_validation(param: str) -> Optional[ValueError]:
+        """
+        Helper method to validate vintage_dates parameters.
+        """
+        if not isinstance(param, str):
+            raise ValueError("Parameter must be a string")
+        terms = param.split(',')
+        for term in terms:
+            try:
+                datetime.strptime(term, "%Y-%m-%d")
+                return None
+            except ValueError as e:
+                raise ValueError(f"Value Error: {e}" ) from e
+        if len(param) < 1:
+            raise ValueError("vintage_dates cannot be empty")
+        else:
+            return None
+    @staticmethod
+    def hh_mm_datestring_validation(param: str) -> Optional[ValueError]:
+        """
+        Helper method to validate hh:mm formatted parameters.
+        """
+        try:
+            datetime.strptime(param, "%H:%M")
+            return None
+        except ValueError as e:
+            raise ValueError(f"Value Error: {e}" ) from e
+    @staticmethod
     def parameter_validation(params: Dict[str, Optional[Union[str, int]]]) -> Optional[ValueError]:
         """
         Helper method to validate parameters prior to making a get request.
         """
-        def __datestring_validation(param: str) -> Optional[ValueError]:
-            """
-            Helper method to validate date-string formatted parameters.
-            """
-            try:
-                datetime.strptime(param, "%Y-%m-%d")
-                return None
-            except ValueError as e:
-                raise ValueError(f"Value Error: {e}" ) from e
-        def __liststring_validation(param: str) -> Optional[ValueError]:
-            """
-            Helper method to validate list-string formatted parameters.
-            """
-            if not isinstance(param, str):
-                raise ValueError("Parameter must be a string")
-            terms = param.split(';')
-            if not all(term.isalnum() for term in terms):
-                raise ValueError("Each term must be alphanumeric and contain no whitespace")
-            if any(term == '' for term in terms):
-                raise ValueError("Semicolon-separated list cannot contain empty terms")
-            else:
-                return None
-        def __vintage_dates_validation(param: str) -> Optional[ValueError]:
-            """
-            Helper method to validate vintage_dates parameters.
-            """
-            if not isinstance(param, str):
-                raise ValueError("Parameter must be a string")
-            terms = param.split(',')
-            for term in terms:
-                try:
-                    datetime.strptime(term, "%Y-%m-%d")
-                    return None
-                except ValueError as e:
-                    raise ValueError(f"Value Error: {e}" ) from e
-            if len(param) < 1:
-                raise ValueError("vintage_dates cannot be empty")
-            else:
-                return None
         for k, v in params.items():
             if k == 'category_id':
                 if not isinstance(v, int) or v < 0:
@@ -231,14 +248,14 @@ class FredHelpers:
                 if not isinstance(v, str):
                     raise ValueError("realtime_start must be a string in YYYY-MM-DD format")
                 try:
-                    __datestring_validation(v)
+                    FredHelpers.datestring_validation(v)
                 except ValueError as e:
                     raise ValueError(f"{e}") from e
             elif k == 'realtime_end':
                 if not isinstance(v, str):
                     raise ValueError("realtime_end must be a string in YYYY-MM-DD format")
                 try:
-                    __datestring_validation(v)
+                    FredHelpers.datestring_validation(v)
                 except ValueError as e:
                     raise ValueError(f"{e}") from e
             elif k == 'limit':
@@ -267,14 +284,14 @@ class FredHelpers:
                 if not isinstance(v, str):
                     raise ValueError("tag_names must be a string")
                 try:
-                    __liststring_validation(v)
+                    FredHelpers.liststring_validation(v)
                 except ValueError as e:
                     raise ValueError(f"{e}") from e
             elif k == 'exclude_tag_names':
                 if not isinstance(v, str):
                     raise ValueError("exclude_tag_names must be a string")
                 try:
-                    __liststring_validation(v)
+                    FredHelpers.liststring_validation(v)
                 except ValueError as e:
                     raise ValueError(f"{e}") from e
             elif k == 'tag_group_id':
@@ -328,7 +345,7 @@ class FredHelpers:
                 if not isinstance(v, str):
                     raise ValueError("vintage_dates must be a string")
                 try:
-                    __vintage_dates_validation(v)
+                    FredHelpers.vintage_dates_validation(v)
                 except ValueError as e:
                     raise ValueError(f"{e}") from e
             elif k == 'search_type':
@@ -342,48 +359,94 @@ class FredHelpers:
             elif k == 'tag_search_text':
                 if not isinstance(v, str):
                     raise ValueError("tag_search_text must be a string")
+            elif k == 'start_time':
+                if not isinstance(v, str):
+                    raise ValueError("start_time must be a string")
+                try:
+                    FredHelpers.hh_mm_datestring_validation(v)
+                except ValueError as e:
+                    raise ValueError(f"{e}") from e
+            elif k == 'end_time':
+                if not isinstance(v, str):
+                    raise ValueError("end_time must be a string")
+                try:
+                    FredHelpers.hh_mm_datestring_validation(v)
+                except ValueError as e:
+                    raise ValueError(f"{e}") from e
+            elif k == 'season':
+                if not isinstance(v, str):
+                    raise ValueError("season must be a string")
+                if v not in ['seasonally_adjusted', 'not_seasonally_adjusted']:
+                    raise ValueError("season must be 'seasonally_adjusted' or 'not_seasonally_adjusted'")
+            else:
+                return None
+        return None
+    @staticmethod
+    def geo_parameter_validation(params: Dict[str, Optional[Union[str, int]]]) -> Optional[ValueError]:
+        """
+        Helper method to validate parameters prior to making a get request.
+        """
+        for k, v in params.items():
+            if k == 'api_key':
+                if not isinstance(v, str):
+                    raise ValueError("api_key must be a string")
+            elif k == 'file_type':
+                if not isinstance(v, str) or v != 'json':
+                    raise ValueError("file_type must be 'json'")
             elif k == 'shape':
                 if not isinstance(v, str):
                     raise ValueError("shape must be a string")
                 if v not in ['bea', 'msa', 'frb', 'necta', 'state', 'country', 'county', 'censusregion', 'censusdivision']:
                     raise ValueError("shape must be 'bea', 'msa', 'frb', 'necta', 'state', 'country', 'county', 'censusregion', or 'censusdivision'")
-            elif k == 'series_group':
+            elif k == 'series_id':
                 if not isinstance(v, str):
-                    raise ValueError("series_group must be a string")
+                    raise ValueError("series_id must be a string")
+                if not v.isalnum():
+                    raise ValueError("series_id must be alphanumeric")
+                if ' ' in v:
+                    raise ValueError("series_id cannot contain whitespace")
+                if len(v) < 1:
+                    raise ValueError("series_id cannot be empty")
             elif k == 'date':
                 if not isinstance(v, str):
                     raise ValueError("date must be a string")
                 try:
-                    __datestring_validation(v)
+                    FredHelpers.datestring_validation(v)
                 except ValueError as e:
                     raise ValueError(f"{e}") from e
             elif k == 'start_date':
                 if not isinstance(v, str):
                     raise ValueError("start_date must be a string")
                 try:
-                    __datestring_validation(v)
+                    FredHelpers.datestring_validation(v)
                 except ValueError as e:
                     raise ValueError(f"{e}") from e
+            elif k == 'series_group':
+                if not isinstance(v, str):
+                    raise ValueError("series_group must be a string")
             elif k == 'region_type':
                 if not isinstance(v, str):
                     raise ValueError("region_type must be a string")
                 if v not in ['bea', 'msa', 'frb', 'necta', 'state', 'country', 'county', 'censusregion', 'censusdivision']:
                     raise ValueError("region_type must be 'bea', 'msa', 'frb', 'necta', 'state', 'country', 'county', 'censusregion', or 'censusdivision'")
-            elif k == 'season':
-                if not isinstance(v, str):
-                    raise ValueError("season must be a string")
-                if v not in ['seasonally_adjusted', 'not_seasonally_adjusted']:
-                    raise ValueError("season must be 'seasonally_adjusted' or 'not_seasonally_adjusted'")
-            elif k == 'transformation':
-                if not isinstance(v, str):
-                    raise ValueError("transformation must be a string")
-                if v not in ['lin', 'chg', 'ch1', 'pch', 'pc1', 'pca', 'cch', 'cca', 'log']:
-                    raise ValueError("transformation must be 'lin', 'chg', 'ch1', 'pch', 'pc1', 'pca', 'cch', 'cca', or 'log'")
             elif k == 'aggregation_method':
                 if not isinstance(v, str):
                     raise ValueError("aggregation_method must be a string")
                 if v not in ['sum', 'avg', 'eop']:
                     raise ValueError("aggregation_method must be 'sum', 'avg', or 'eop'")
+            elif k == 'units':
+                if not isinstance(v, str):
+                    raise ValueError("units must be a string")
+            elif k == 'season':
+                if not isinstance(v, str):
+                    raise ValueError("season must be a string")
+                if v not in ['NSA', 'SA', 'SSA', 'SAAR', 'NSAAR']:
+                    raise ValueError("season must be 'NSA', 'SA', 'SSA', 'SAAR', or 'NSAAR'")
+            elif k == 'transformation':
+                if not isinstance(v, str):
+                    raise ValueError("transformation must be a string")
+                if v not in ['lin', 'chg', 'ch1', 'pch', 'pc1', 'pca', 'cch', 'cca', 'log']:
+                    raise ValueError("transformation must be 'lin', 'chg', 'ch1', 'pch', 'pc1', 'pca', 'cch', 'cca', or 'log'")
             else:
                 return None
         return None
@@ -430,8 +493,8 @@ class FredHelpers:
             raise ImportError(
                 f"{e}: Dask GeoPandas is not installed. Install it with `pip install dask-geopandas` to use this method."
             ) from e
-        shapefile = await FredHelpers.to_gpd_gdf_async(shapefile, meta_data)
-        return await asyncio.to_thread(dd_gpd.from_geopandas, shapefile, npartitions=1)
+        gdf = await FredHelpers.to_gpd_gdf_async(shapefile, meta_data)
+        return await asyncio.to_thread(dd_gpd.from_geopandas, gdf, npartitions=1)
     @staticmethod
     async def to_pl_st_gdf_async(shapefile: gpd.GeoDataFrame, meta_data: Dict) -> 'st.GeoDataFrame':
         """
@@ -443,8 +506,8 @@ class FredHelpers:
             raise ImportError(
                 f"{e}: Polars with geospatial support is not installed. Install it with `pip install polars-st` to use this method."
             ) from e
-        shapefile = await FredHelpers.to_gpd_gdf_async(shapefile, meta_data)
-        return await asyncio.to_thread(st.from_geopandas, shapefile)
+        gdf = await FredHelpers.to_gpd_gdf_async(shapefile, meta_data)
+        return await asyncio.to_thread(st.from_geopandas, gdf)
     @staticmethod
     async def extract_region_type_async(response: Dict) -> str:
         """
@@ -476,49 +539,34 @@ class FredHelpers:
         """
         return await asyncio.to_thread(FredHelpers.datetime_hh_mm_conversion, param)
     @staticmethod
+    async def datestring_validation_async(param: str) -> Optional[ValueError]:
+        """
+        Helper method to validate date-string formatted parameter asynchronously.
+        """
+        return await asyncio.to_thread(FredHelpers.datestring_validation, param)
+    @staticmethod
+    async def liststring_validation_async(param: str) -> Optional[ValueError]:
+        """
+        Helper method to validate list-string formatted parameters asynchronously.
+        """
+        return await asyncio.to_thread(FredHelpers.liststring_validation, param)
+    @staticmethod
+    async def vintage_dates_validation_async(param: str) -> Optional[ValueError]:
+        """
+        Helper method to validate vintage_dates parameters asynchronously.
+        """
+        return await asyncio.to_thread(FredHelpers.vintage_dates_validation, param)
+    @staticmethod
+    async def hh_mm_datestring_validation_async(param: str) -> Optional[ValueError]:
+        """
+        Helper method to validate hh:mm formatted parameters asynchronously.
+        """
+        return await asyncio.to_thread(FredHelpers.hh_mm_datestring_validation, param)
+    @staticmethod
     async def parameter_validation_async(params: Dict[str, Optional[Union[str, int]]]) -> Optional[ValueError]:
         """
         Helper method to validate parameters prior to making a get request asynchronously.
         """
-        async def __datestring_validation(param: str) -> Optional[ValueError]:
-            """
-            Helper method to validate date-string formatted parameters asynchronously.
-            """
-            try:
-                datetime.strptime(param, "%Y-%m-%d")
-                return None
-            except ValueError as e:
-                raise ValueError(f"Value Error: {e}" ) from e
-        async def __liststring_validation(param: str) -> Optional[ValueError]:
-            """
-            Helper method to validate list-string formatted parameters asynchronously.
-            """
-            if not isinstance(param, str):
-                raise ValueError("Parameter must be a string")
-            terms = param.split(';')
-            if not all(term.isalnum() for term in terms):
-                raise ValueError("Each term must be alphanumeric and contain no whitespace")
-            if any(term == '' for term in terms):
-                raise ValueError("Semicolon-separated list cannot contain empty terms")
-            else:
-                return None
-        async def __vintage_dates_validation(param: str) -> Optional[ValueError]:
-            """
-            Helper method to validate vintage_dates parameters asynchronously.
-            """
-            if not isinstance(param, str):
-                raise ValueError("Parameter must be a string")
-            terms = param.split(',')
-            for term in terms:
-                try:
-                    datetime.strptime(term, "%Y-%m-%d")
-                    return None
-                except ValueError as e:
-                    raise ValueError(f"Value Error: {e}" ) from e
-            if len(param) < 1:
-                raise ValueError("vintage_dates cannot be empty")
-            else:
-                return None
         for k, v in params.items():
             if k == 'category_id':
                 if not isinstance(v, int) or v < 0:
@@ -527,14 +575,14 @@ class FredHelpers:
                 if not isinstance(v, str):
                     raise ValueError("realtime_start must be a string in YYYY-MM-DD format")
                 try:
-                    await __datestring_validation(v)
+                    await FredHelpers.datestring_validation_async(v)
                 except ValueError as e:
                     raise ValueError(f"{e}") from e
             elif k == 'realtime_end':
                 if not isinstance(v, str):
                     raise ValueError("realtime_end must be a string in YYYY-MM-DD format")
                 try:
-                    await __datestring_validation(v)
+                    await FredHelpers.datestring_validation_async(v)
                 except ValueError as e:
                     raise ValueError(f"{e}") from e
             elif k == 'limit':
@@ -563,14 +611,14 @@ class FredHelpers:
                 if not isinstance(v, str):
                     raise ValueError("tag_names must be a string")
                 try:
-                    await __liststring_validation(v)
+                    await FredHelpers.liststring_validation_async(v)
                 except ValueError as e:
                     raise ValueError(f"{e}") from e
             elif k == 'exclude_tag_names':
                 if not isinstance(v, str):
                     raise ValueError("exclude_tag_names must be a string")
                 try:
-                    await __liststring_validation(v)
+                    await FredHelpers.liststring_validation_async(v)
                 except ValueError as e:
                     raise ValueError(f"{e}") from e
             elif k == 'tag_group_id':
@@ -624,7 +672,7 @@ class FredHelpers:
                 if not isinstance(v, str):
                     raise ValueError("vintage_dates must be a string")
                 try:
-                    await __vintage_dates_validation(v)
+                    await FredHelpers.vintage_dates_validation_async(v)
                 except ValueError as e:
                     raise ValueError(f"{e}") from e
             elif k == 'search_type':
@@ -638,48 +686,94 @@ class FredHelpers:
             elif k == 'tag_search_text':
                 if not isinstance(v, str):
                     raise ValueError("tag_search_text must be a string")
+            elif k == 'start_time':
+                if not isinstance(v, str):
+                    raise ValueError("start_time must be a string")
+                try:
+                    await FredHelpers.hh_mm_datestring_validation_async(v)
+                except ValueError as e:
+                    raise ValueError(f"{e}") from e
+            elif k == 'end_time':
+                if not isinstance(v, str):
+                    raise ValueError("end_time must be a string")
+                try:
+                    await FredHelpers.hh_mm_datestring_validation_async(v)
+                except ValueError as e:
+                    raise ValueError(f"{e}") from e
+            elif k == 'season':
+                if not isinstance(v, str):
+                    raise ValueError("season must be a string")
+                if v not in ['seasonally_adjusted', 'not_seasonally_adjusted']:
+                    raise ValueError("season must be 'seasonally_adjusted' or 'not_seasonally_adjusted'")
+            else:
+                return None
+        return None
+    @staticmethod
+    async def geo_parameter_validation_async(params: Dict[str, Optional[Union[str, int]]]) -> Optional[ValueError]:
+        """
+        Helper method to validate parameters prior to making a get request.
+        """
+        for k, v in params.items():
+            if k == 'api_key':
+                if not isinstance(v, str):
+                    raise ValueError("api_key must be a string")
+            elif k == 'file_type':
+                if not isinstance(v, str) or v != 'json':
+                    raise ValueError("file_type must be 'json'")
             elif k == 'shape':
                 if not isinstance(v, str):
                     raise ValueError("shape must be a string")
                 if v not in ['bea', 'msa', 'frb', 'necta', 'state', 'country', 'county', 'censusregion', 'censusdivision']:
                     raise ValueError("shape must be 'bea', 'msa', 'frb', 'necta', 'state', 'country', 'county', 'censusregion', or 'censusdivision'")
-            elif k == 'series_group':
+            elif k == 'series_id':
                 if not isinstance(v, str):
-                    raise ValueError("series_group must be a string")
+                    raise ValueError("series_id must be a string")
+                if not v.isalnum():
+                    raise ValueError("series_id must be alphanumeric")
+                if ' ' in v:
+                    raise ValueError("series_id cannot contain whitespace")
+                if len(v) < 1:
+                    raise ValueError("series_id cannot be empty")
             elif k == 'date':
                 if not isinstance(v, str):
                     raise ValueError("date must be a string")
                 try:
-                    await __datestring_validation(v)
+                    await FredHelpers.datestring_validation_async(v)
                 except ValueError as e:
                     raise ValueError(f"{e}") from e
             elif k == 'start_date':
                 if not isinstance(v, str):
                     raise ValueError("start_date must be a string")
                 try:
-                    await __datestring_validation(v)
+                    await FredHelpers.datestring_validation_async(v)
                 except ValueError as e:
                     raise ValueError(f"{e}") from e
+            elif k == 'series_group':
+                if not isinstance(v, str):
+                    raise ValueError("series_group must be a string")
             elif k == 'region_type':
                 if not isinstance(v, str):
                     raise ValueError("region_type must be a string")
                 if v not in ['bea', 'msa', 'frb', 'necta', 'state', 'country', 'county', 'censusregion', 'censusdivision']:
                     raise ValueError("region_type must be 'bea', 'msa', 'frb', 'necta', 'state', 'country', 'county', 'censusregion', or 'censusdivision'")
-            elif k == 'season':
-                if not isinstance(v, str):
-                    raise ValueError("season must be a string")
-                if v not in ['seasonally_adjusted', 'not_seasonally_adjusted']:
-                    raise ValueError("season must be 'seasonally_adjusted' or 'not_seasonally_adjusted'")
-            elif k == 'transformation':
-                if not isinstance(v, str):
-                    raise ValueError("transformation must be a string")
-                if v not in ['lin', 'chg', 'ch1', 'pch', 'pc1', 'pca', 'cch', 'cca', 'log']:
-                    raise ValueError("transformation must be 'lin', 'chg', 'ch1', 'pch', 'pc1', 'pca', 'cch', 'cca', or 'log'")
             elif k == 'aggregation_method':
                 if not isinstance(v, str):
                     raise ValueError("aggregation_method must be a string")
                 if v not in ['sum', 'avg', 'eop']:
                     raise ValueError("aggregation_method must be 'sum', 'avg', or 'eop'")
+            elif k == 'units':
+                if not isinstance(v, str):
+                    raise ValueError("units must be a string")
+            elif k == 'season':
+                if not isinstance(v, str):
+                    raise ValueError("season must be a string")
+                if v not in ['NSA', 'SA', 'SSA', 'SAAR', 'NSAAR']:
+                    raise ValueError("season must be 'NSA', 'SA', 'SSA', 'SAAR', or 'NSAAR'")
+            elif k == 'transformation':
+                if not isinstance(v, str):
+                    raise ValueError("transformation must be a string")
+                if v not in ['lin', 'chg', 'ch1', 'pch', 'pc1', 'pca', 'cch', 'cca', 'log']:
+                    raise ValueError("transformation must be 'lin', 'chg', 'ch1', 'pch', 'pc1', 'pca', 'cch', 'cca', or 'log'")
             else:
                 return None
         return None
