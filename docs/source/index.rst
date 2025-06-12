@@ -23,7 +23,7 @@ Install FedFred
 
          conda install -c conda-forge fedfred
 
-See :ref:installation for more options, including conda and optional dependencies.
+See :ref:`installation` for more options, including conda and optional dependencies.
 
 ---
 
