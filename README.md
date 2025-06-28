@@ -104,6 +104,7 @@ FedFred uses GitHub Actions for continuous integration. The following workflows 
 - **Analyze**: Runs static code analysis to identify potential issues
 - **Test**: Comprehensive test suite with coverage reporting
 - **CodeQL**: Security analysis to detect vulnerabilities
+- **Docs**: Deploys Github Pages website for documentation, built off of sphinx docs.
 
 These checks ensure that all contributions maintain code quality and don't introduce regressions.
 
