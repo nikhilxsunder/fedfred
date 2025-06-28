@@ -1,4 +1,4 @@
-# fedfred
+ss# fedfred
 
 ## A feature-rich python package for interacting with the Federal Reserve Bank of St. Louis Economic Database: FRED
 
@@ -92,7 +92,6 @@ asyncio.run(main())
 
 ### Important Notes
 
-- OpenSSF Badge in progress.
 - Store your API keys and secrets in environment variables or secure storage solutions.
 - Do not hardcode your API keys and secrets in your scripts.
 - XML filetype (file_type='xml') is currently not supported but will be in a future update
