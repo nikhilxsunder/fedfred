@@ -1,6 +1,6 @@
 # Test Coverage Report
 
-Last updated: 2025-06-12
+Last updated: 2025-06-28
 
 ## Coverage Summary
 
@@ -10,17 +10,17 @@ Overall coverage: 16%
 
 ```
 ============================= test session starts ==============================
-platform linux -- Python 3.11.12, pytest-8.3.5, pluggy-1.5.0
+platform linux -- Python 3.11.13, pytest-8.3.5, pluggy-1.5.0
 rootdir: /home/runner/work/fedfred/fedfred
 configfile: pyproject.toml
-plugins: mock-3.14.0, anyio-4.9.0, cov-6.1.1, asyncio-0.26.0, hypothesis-6.131.9
+plugins: mock-3.14.0, cov-6.1.1, asyncio-0.26.0, hypothesis-6.131.9, anyio-4.9.0
 asyncio: mode=Mode.STRICT, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
 collected 18 items
 
 tests/objects_test.py ..................                                 [100%]
 
 ================================ tests coverage ================================
-_______________ coverage: platform linux, python 3.11.12-final-0 _______________
+_______________ coverage: platform linux, python 3.11.13-final-0 _______________
 
 Name                       Stmts   Miss  Cover
 ----------------------------------------------
@@ -32,7 +32,7 @@ src/fedfred/objects.py       195     20    90%
 ----------------------------------------------
 TOTAL                       2706   2282    16%
 Coverage XML written to file coverage.xml
-======================== 18 passed, 1 warning in 3.63s =========================
+======================== 18 passed, 1 warning in 3.51s =========================
 ```
 
 ## Running Test Coverage Locally
