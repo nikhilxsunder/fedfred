@@ -33,10 +33,10 @@ from fedfred.__about__ import __title__, __version__, __author__, __license__, _
 from .helpers import FredHelpers
 from .objects import Category, Series, Tag, Release, ReleaseDate, Source, Element, VintageDate, SeriesGroup
 if TYPE_CHECKING:
-    import polars as pl
-    import dask.dataframe as dd
-    import dask_geopandas as dd_gpd
-    import polars_st as st
+    import polars as pl # pragma: no cover
+    import dask.dataframe as dd # pragma: no cover
+    import dask_geopandas as dd_gpd # pragma: no cover
+    import polars_st as st # pragma: no cover
 
 class FredAPI:
     """
@@ -126,7 +126,8 @@ class FredAPI:
         """
         Destructor for the FredAPI class. Clears the cache when the instance is deleted.
         """
-        self.cache.clear()
+        if hasattr(self, "cache"):
+            self.cache.clear()
     def __getitem__(self, key: str) -> Any:
         """
         Get a specific item from the cache.
@@ -217,6 +218,14 @@ class FredAPI:
         """
         Helper method to perform a synchronous GET request to the FRED API.
         """
+        def _make_hashable(data):
+            if data is None:
+                return None
+            return tuple(sorted(data.items()))
+        def _make_dict(hashable_data):
+            if hashable_data is None:
+                return None
+            return dict(hashable_data)
         def __get_request(url_endpoint: str, data: Optional[Dict[str, Optional[Union[str, int]]]]=None) -> Dict[str, Any]:
             """
             Perform a GET request without caching.
@@ -232,15 +241,15 @@ class FredAPI:
                 response.raise_for_status()
                 return response.json()
         @cached(cache=self.cache)
-        def __cached_get_request(url_endpoint: str, data: Optional[Dict[str, Optional[Union[str, int]]]]=None) -> Dict[str, Any]:
+        def __cached_get_request(url_endpoint: str, hashable_data: Optional[Tuple[Tuple[str, Optional[Union[str, int]]], ...]]=None) -> Dict[str, Any]:
             """
             Perform a GET request with caching.
             """
-            return __get_request(url_endpoint, data)
+            return __get_request(url_endpoint, _make_dict(hashable_data))
         if data:
             FredHelpers.parameter_validation(data)
         if self.cache_mode:
-            return __cached_get_request(url_endpoint, data)
+            return __cached_get_request(url_endpoint, _make_hashable(data))
         else:
             return __get_request(url_endpoint, data)
     # Public Methods
@@ -2136,7 +2145,8 @@ class FredAPI:
             """
             Destructor for the MapsAPI instance. Clears the cache when the instance is deleted
             """
-            self.cache.clear()
+            if hasattr(self, "cache"):
+                self.cache.clear()
         def __getitem__(self, key: str) -> Any:
             """
             Get a specific item from the cache.
@@ -2228,6 +2238,14 @@ class FredAPI:
             """
             Helper method to perform a synchronous GET request to the FRED Maps API.
             """
+            def _make_hashable(data):
+                if data is None:
+                    return None
+                return tuple(sorted(data.items()))
+            def _make_dict(hashable_data):
+                if hashable_data is None:
+                    return None
+                return dict(hashable_data)
             def __get_request(url_endpoint: str, data: Optional[Dict[str, Optional[Union[str, int]]]]=None) -> Dict[str, Any]:
                 """
                 Perform a GET request without caching.
@@ -2242,15 +2260,15 @@ class FredAPI:
                     response.raise_for_status()
                     return response.json()
             @cached(cache=self.cache)
-            def __cached_get_request(url_endpoint: str, data: Optional[Dict[str, Optional[Union[str, int]]]]=None) -> Dict[str, Any]:
+            def __cached_get_request(url_endpoint: str, hashable_data: Optional[Tuple[Tuple[str, Optional[Union[str, int]]], ...]]=None) -> Dict[str, Any]:
                 """
                 Perform a GET request with caching.
                 """
-                return __get_request(url_endpoint, data)
+                return __get_request(url_endpoint, _make_dict(hashable_data))
             if data:
                 FredHelpers.geo_parameter_validation(data)
             if self.cache_mode:
-                return __cached_get_request(url_endpoint, data)
+                return __cached_get_request(url_endpoint, _make_hashable(data))
             else:
                 return __get_request(url_endpoint, data)
         # Public Methods
@@ -2540,7 +2558,8 @@ class FredAPI:
             """
             Destructor for the AsyncAPI instance. Clears the cache when the instance is deleted
             """
-            self.cache.clear()
+            if hasattr(self, "cache"):
+                self.cache.clear()
         def __getitem__(self, key: str) -> Any:
             """
             Get a specific item from the cache.
@@ -2649,6 +2668,14 @@ class FredAPI:
             """
             Helper method to perform an asynchronous GET request to the FRED API.
             """
+            async def _make_hashable(data):
+                if data is None:
+                    return None
+                return tuple(sorted(data.items()))
+            async def _make_dict(hashable_data):
+                if hashable_data is None:
+                    return None
+                return dict(hashable_data)
             async def __get_request(url_endpoint: str, data: Optional[Dict[str, Optional[Union[str, int]]]]=None) -> Dict[str, Any]:
                 """
                 Perform a GET request without caching.
@@ -2669,15 +2696,15 @@ class FredAPI:
                     except httpx.RequestError as e:
                         raise ValueError(f"Request Error occurred: {e}") from e
             @async_cached(cache=self.cache)
-            async def __cached_get_request(url_endpoint: str, data: Optional[Dict[str, Optional[Union[str, int]]]]=None) -> Dict[str, Any]:
+            async def __cached_get_request(url_endpoint: str, hashable_data: Optional[Tuple[Tuple[str, Optional[Union[str, int]]], ...]]=None) -> Dict[str, Any]:
                 """
                 Perform a GET request with caching.
                 """
-                return await __get_request(url_endpoint, data)
+                return await __get_request(url_endpoint, await _make_dict(hashable_data))
             if data:
                 await FredHelpers.parameter_validation_async(data)
             if self.cache_mode:
-                return await __cached_get_request(url_endpoint, data)
+                return await __cached_get_request(url_endpoint, await _make_hashable(data))
             else:
                 return await __get_request(url_endpoint, data)
         # Public Methods
@@ -4666,7 +4693,8 @@ class FredAPI:
                 """
                 Destructor for AsyncMapsAPI instances.
                 """
-                self.cache.clear()
+                if hasattr(self, "cache"):
+                    self.cache.clear()
             def __getitem__(self, key: str) -> Any:
                 """
                 Get a specific item from the cache.
@@ -4776,6 +4804,14 @@ class FredAPI:
                 """
                 Helper method to perform an asynchronous GET request to the Maps FRED API.
                 """
+                async def _make_hashable(data):
+                    if data is None:
+                        return None
+                    return tuple(sorted(data.items()))
+                async def _make_dict(hashable_data):
+                    if hashable_data is None:
+                        return None
+                    return dict(hashable_data)
                 async def __get_request(url_endpoint: str, data: Optional[Dict[str, Optional[Union[str, int]]]]=None) -> Dict[str, Any]:
                     """
                     Perform a GET request without caching.
@@ -4795,15 +4831,15 @@ class FredAPI:
                         except httpx.RequestError as e:
                             raise ValueError(f"Request Error occurred: {e}") from e
                 @async_cached(cache=self.cache)
-                async def __cached_get_request(url_endpoint: str, data: Optional[Dict[str, Optional[Union[str, int]]]]=None) -> Dict[str, Any]:
+                async def __cached_get_request(url_endpoint: str, hashable_data: Optional[Tuple[Tuple[str, Optional[Union[str, int]]], ...]]=None) -> Dict[str, Any]:
                     """
                     Perform a GET request with caching.
                     """
-                    return await __get_request(url_endpoint, data)
+                    return await __get_request(url_endpoint, await _make_dict(hashable_data))
                 if data:
                     await FredHelpers.geo_parameter_validation_async(data)
                 if self.cache_mode:
-                    return await __cached_get_request(url_endpoint, data)
+                    return await __cached_get_request(url_endpoint, await _make_hashable(data))
                 else:
                     return await __get_request(url_endpoint, data)
             # Public Methods

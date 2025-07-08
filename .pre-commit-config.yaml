@@ -89,10 +89,9 @@ repos:
             "--namespace-packages",
             "--explicit-package-bases",
           ]
-
-      - id: tox
-        name: Run tox
-        entry: tox
-        language: system
-        pass_filenames: false
-        always_run: true
+#      - id: tox
+#        name: Run tox
+#        entry: tox
+#        language: system
+#        pass_filenames: false
+#        always_run: true

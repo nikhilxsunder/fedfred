@@ -25,10 +25,10 @@ import pandas as pd
 import geopandas as gpd
 from fedfred.__about__ import __title__, __version__, __author__, __license__, __copyright__, __description__, __url__
 if TYPE_CHECKING:
-    import dask.dataframe as dd
-    import dask_geopandas as dd_gpd
-    import polars as pl
-    import polars_st as st
+    import dask.dataframe as dd # pragma: no cover
+    import dask_geopandas as dd_gpd # pragma: no cover
+    import polars as pl # pragma: no cover
+    import polars_st as st # pragma: no cover
 
 class FredHelpers:
     """
@@ -201,10 +201,10 @@ class FredHelpers:
         if not isinstance(param, str):
             raise ValueError("Parameter must be a string")
         terms = param.split(';')
-        if not all(term.isalnum() for term in terms):
-            raise ValueError("Each term must be alphanumeric and contain no whitespace")
         if any(term == '' for term in terms):
             raise ValueError("Semicolon-separated list cannot contain empty terms")
+        if not all(term.isalnum() for term in terms):
+            raise ValueError("Each term must be alphanumeric and contain no whitespace")
         else:
             return None
     @staticmethod
@@ -214,22 +214,22 @@ class FredHelpers:
         """
         if not isinstance(param, str):
             raise ValueError("Parameter must be a string")
+        if param == '':
+            raise ValueError("vintage_dates cannot be empty")
         terms = param.split(',')
         for term in terms:
             try:
                 datetime.strptime(term, "%Y-%m-%d")
-                return None
             except ValueError as e:
                 raise ValueError(f"Value Error: {e}" ) from e
-        if len(param) < 1:
-            raise ValueError("vintage_dates cannot be empty")
-        else:
-            return None
+        return None
     @staticmethod
     def hh_mm_datestring_validation(param: str) -> Optional[ValueError]:
         """
         Helper method to validate hh:mm formatted parameters.
         """
+        if not isinstance(param, str):
+            raise ValueError("Parameter must be a string")
         try:
             datetime.strptime(param, "%H:%M")
             return None
@@ -259,10 +259,10 @@ class FredHelpers:
                 except ValueError as e:
                     raise ValueError(f"{e}") from e
             elif k == 'limit':
-                if not isinstance(k, int) or k < 0:
+                if not isinstance(v, int) or v < 0:
                     raise ValueError("limit must be a non-negative integer")
             elif k == 'offset':
-                if not isinstance(k, int) or k < 0:
+                if not isinstance(v, int) or v < 0:
                     raise ValueError("offset must be a non-negative integer")
             elif k == 'sort_order':
                 if not isinstance(v, str) or v not in ['asc', 'desc']:
@@ -295,8 +295,8 @@ class FredHelpers:
                 except ValueError as e:
                     raise ValueError(f"{e}") from e
             elif k == 'tag_group_id':
-                if not isinstance(v, int) or v < 0:
-                    raise ValueError("tag_group_id must be a non-negative integer")
+                if not (isinstance(v, int) and v >= 0) and not isinstance(v, str):
+                    raise ValueError("tag_group_id must be a non-negative integer or a string")
             elif k == 'search_text':
                 if not isinstance(v, str):
                     raise ValueError("search_text must be a string")
@@ -315,12 +315,12 @@ class FredHelpers:
             elif k == 'series_id':
                 if not isinstance(v, str):
                     raise ValueError("series_id must be a string")
-                if not v.isalnum():
-                    raise ValueError("series_id must be alphanumeric")
+                if v == '':
+                    raise ValueError("series_id cannot be empty")
                 if ' ' in v:
                     raise ValueError("series_id cannot contain whitespace")
-                if len(v) < 1:
-                    raise ValueError("series_id cannot be empty")
+                if not v.isalnum():
+                    raise ValueError("series_id must be alphanumeric")
             elif k == 'frequency':
                 if not isinstance(v, str):
                     raise ValueError("frequency must be a string")
@@ -353,9 +353,6 @@ class FredHelpers:
                     raise ValueError("search_type must be a string")
                 if v not in ['full_text', 'series_id']:
                     raise ValueError("search_type must be 'full_text' or 'series_id'")
-            elif k == 'tag_group_id':
-                if not isinstance(v, str):
-                    raise ValueError("tag_group_id must be a string")
             elif k == 'tag_search_text':
                 if not isinstance(v, str):
                     raise ValueError("tag_search_text must be a string")
@@ -378,8 +375,6 @@ class FredHelpers:
                     raise ValueError("season must be a string")
                 if v not in ['seasonally_adjusted', 'not_seasonally_adjusted']:
                     raise ValueError("season must be 'seasonally_adjusted' or 'not_seasonally_adjusted'")
-            else:
-                return None
         return None
     @staticmethod
     def geo_parameter_validation(params: Dict[str, Optional[Union[str, int]]]) -> Optional[ValueError]:
@@ -401,12 +396,12 @@ class FredHelpers:
             elif k == 'series_id':
                 if not isinstance(v, str):
                     raise ValueError("series_id must be a string")
-                if not v.isalnum():
-                    raise ValueError("series_id must be alphanumeric")
+                if v == '':
+                    raise ValueError("series_id cannot be empty")
                 if ' ' in v:
                     raise ValueError("series_id cannot contain whitespace")
-                if len(v) < 1:
-                    raise ValueError("series_id cannot be empty")
+                if not v.isalnum():
+                    raise ValueError("series_id must be alphanumeric")
             elif k == 'date':
                 if not isinstance(v, str):
                     raise ValueError("date must be a string")
@@ -447,8 +442,6 @@ class FredHelpers:
                     raise ValueError("transformation must be a string")
                 if v not in ['lin', 'chg', 'ch1', 'pch', 'pc1', 'pca', 'cch', 'cca', 'log']:
                     raise ValueError("transformation must be 'lin', 'chg', 'ch1', 'pch', 'pc1', 'pca', 'cch', 'cca', or 'log'")
-            else:
-                return None
         return None
     # Asynchronous methods
     @staticmethod
@@ -586,10 +579,10 @@ class FredHelpers:
                 except ValueError as e:
                     raise ValueError(f"{e}") from e
             elif k == 'limit':
-                if not isinstance(k, int) or k < 0:
+                if not isinstance(v, int) or v < 0:
                     raise ValueError("limit must be a non-negative integer")
             elif k == 'offset':
-                if not isinstance(k, int) or k < 0:
+                if not isinstance(v, int) or v < 0:
                     raise ValueError("offset must be a non-negative integer")
             elif k == 'sort_order':
                 if not isinstance(v, str) or v not in ['asc', 'desc']:
@@ -622,8 +615,8 @@ class FredHelpers:
                 except ValueError as e:
                     raise ValueError(f"{e}") from e
             elif k == 'tag_group_id':
-                if not isinstance(v, int) or v < 0:
-                    raise ValueError("tag_group_id must be a non-negative integer")
+                if not (isinstance(v, int) and v >= 0) and not isinstance(v, str):
+                    raise ValueError("tag_group_id must be a non-negative integer or a string")
             elif k == 'search_text':
                 if not isinstance(v, str):
                     raise ValueError("search_text must be a string")
@@ -642,12 +635,12 @@ class FredHelpers:
             elif k == 'series_id':
                 if not isinstance(v, str):
                     raise ValueError("series_id must be a string")
-                if not v.isalnum():
-                    raise ValueError("series_id must be alphanumeric")
                 if ' ' in v:
                     raise ValueError("series_id cannot contain whitespace")
-                if len(v) < 1:
+                if v == '':
                     raise ValueError("series_id cannot be empty")
+                if not v.isalnum():
+                    raise ValueError("series_id must be alphanumeric")
             elif k == 'frequency':
                 if not isinstance(v, str):
                     raise ValueError("frequency must be a string")
@@ -680,9 +673,6 @@ class FredHelpers:
                     raise ValueError("search_type must be a string")
                 if v not in ['full_text', 'series_id']:
                     raise ValueError("search_type must be 'full_text' or 'series_id'")
-            elif k == 'tag_group_id':
-                if not isinstance(v, str):
-                    raise ValueError("tag_group_id must be a string")
             elif k == 'tag_search_text':
                 if not isinstance(v, str):
                     raise ValueError("tag_search_text must be a string")
@@ -705,8 +695,6 @@ class FredHelpers:
                     raise ValueError("season must be a string")
                 if v not in ['seasonally_adjusted', 'not_seasonally_adjusted']:
                     raise ValueError("season must be 'seasonally_adjusted' or 'not_seasonally_adjusted'")
-            else:
-                return None
         return None
     @staticmethod
     async def geo_parameter_validation_async(params: Dict[str, Optional[Union[str, int]]]) -> Optional[ValueError]:
@@ -728,12 +716,12 @@ class FredHelpers:
             elif k == 'series_id':
                 if not isinstance(v, str):
                     raise ValueError("series_id must be a string")
-                if not v.isalnum():
-                    raise ValueError("series_id must be alphanumeric")
                 if ' ' in v:
                     raise ValueError("series_id cannot contain whitespace")
-                if len(v) < 1:
+                if v == '':
                     raise ValueError("series_id cannot be empty")
+                if not v.isalnum():
+                    raise ValueError("series_id must be alphanumeric")
             elif k == 'date':
                 if not isinstance(v, str):
                     raise ValueError("date must be a string")
@@ -774,6 +762,4 @@ class FredHelpers:
                     raise ValueError("transformation must be a string")
                 if v not in ['lin', 'chg', 'ch1', 'pch', 'pc1', 'pca', 'cch', 'cca', 'log']:
                     raise ValueError("transformation must be 'lin', 'chg', 'ch1', 'pch', 'pc1', 'pca', 'cch', 'cca', or 'log'")
-            else:
-                return None
         return None

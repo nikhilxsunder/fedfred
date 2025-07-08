@@ -18,8 +18,10 @@
 Comprehensive unit tests for the objects module.
 """
 
+from unittest.mock import patch
 import pytest
 from fedfred.objects import Category, Series, Tag, Release, ReleaseDate, Source, Element, VintageDate, SeriesGroup
+from fedfred.__about__ import __title__, __version__, __author__, __license__, __copyright__, __description__, __url__
 
 class TestCategory:
     def test_category_to_object(self):
@@ -52,6 +54,22 @@ class TestCategory:
         assert categories[0].id == 1
         assert categories[0].name == "Category 1"
         assert categories[1].parent_id == 1
+
+    def test_invalid_response(self):
+        response = {
+            "invalid_key": [
+                {"id": 1, "name": "Category 1", "parent_id": None}
+            ]
+        }
+        with pytest.raises(ValueError):
+            Category.to_object(response)
+
+    def test_empty_response(self):
+        response = {
+            "categories": []
+        }
+        with pytest.raises(ValueError):
+            Category.to_object(response)
 
 class TestSeries:
     def test_series_to_object(self):
@@ -119,6 +137,28 @@ class TestSeries:
         assert series[0].group_popularity == 50
         assert series[0].notes == "Notes"
 
+    def test_invalid_response(self):
+        response = {
+            "invalid_key": [
+                {
+                    "id": "S1", "title": "Series 1", "observation_start": "2020-01-01", "observation_end": "2020-12-31",
+                    "frequency": "Monthly", "frequency_short": "M", "units": "Units", "units_short": "U",
+                    "seasonal_adjustment": "None", "seasonal_adjustment_short": "NSA", "last_updated": "2021-01-01",
+                    "popularity": 100, "realtime_start": "2020-01-01", "realtime_end": "2020-12-31",
+                    "group_popularity": 50, "notes": None
+                }
+            ]
+        }
+        with pytest.raises(ValueError):
+            Series.to_object(response)
+
+    def test_empty_response(self):
+        response = {
+            "seriess": []
+        }
+        with pytest.raises(ValueError):
+            Series.to_object(response)
+
 class TestTag:
     def test_tag_to_object(self):
         response = {
@@ -152,6 +192,22 @@ class TestTag:
         assert tag[0].popularity == 10
         assert tag[0].series_count == 5
         assert tag[0].notes == "Notes"
+
+    def test_invalid_response(self):
+        response = {
+            "invalid_key": [
+                {"name": "Tag1", "group_id": "G1", "created": "2020-01-01", "popularity": 10, "series_count": 5, "notes": None}
+            ]
+        }
+        with pytest.raises(ValueError):
+            Tag.to_object(response)
+
+    def test_empty_response(self):
+        response = {
+            "tags": []
+        }
+        with pytest.raises(ValueError):
+            Tag.to_object(response)
 
 class TestRelease:
     def test_release_to_object(self):
@@ -189,6 +245,22 @@ class TestRelease:
         assert release[0].link == "http://example.com"
         assert release[0].notes == "Notes"
 
+    def test_invalid_response(self):
+        response = {
+            "invalid_key": [
+                {"id": 1, "realtime_start": "2020-01-01", "realtime_end": "2020-12-31", "name": "Release 1", "press_release": True, "link": None, "notes": None}
+            ]
+        }
+        with pytest.raises(ValueError):
+            Release.to_object(response)
+
+    def test_empty_response(self):
+        response = {
+            "releases": []
+        }
+        with pytest.raises(ValueError):
+            Release.to_object(response)
+
 class TestReleaseDate:
     def test_release_date_to_object(self):
         response = {
@@ -216,6 +288,22 @@ class TestReleaseDate:
         assert release_date[0].release_id == 1
         assert release_date[0].date == "2020-01-01"
         assert release_date[0].release_name == "Release 1"
+
+    def test_invalid_response(self):
+        response = {
+            "invalid_key": [
+                {"release_id": 1, "date": "2020-01-01", "release_name": None}
+            ]
+        }
+        with pytest.raises(ValueError):
+            ReleaseDate.to_object(response)
+
+    def test_empty_response(self):
+        response = {
+            "release_dates": []
+        }
+        with pytest.raises(ValueError):
+            ReleaseDate.to_object(response)
 
 class TestSource:
     def test_source_to_object(self):
@@ -250,6 +338,22 @@ class TestSource:
         assert source[0].realtime_end == "2020-12-31"
         assert source[0].link == "http://example.com"
         assert source[0].notes == "Notes"
+
+    def test_invalid_response(self):
+        response = {
+            "invalid_key": [
+                {"id": 1, "realtime_start": "2020-01-01", "realtime_end": "2020-12-31", "name": None, "link": None, "notes": None}
+            ]
+        }
+        with pytest.raises(ValueError):
+            Source.to_object(response)
+
+    def test_empty_response(self):
+        response = {
+            "sources": []
+        }
+        with pytest.raises(ValueError):
+            Source.to_object(response)
 
 class TestElement:
     def test_element_to_object(self):
@@ -302,6 +406,46 @@ class TestElement:
         assert element[0].children[0].name == "Element 2"
         assert element[0].children[0].level == "Level 2"
 
+        # Patch only for the child call to return a dummy object (not a list, not None)
+        original_to_object = Element.to_object
+
+        def fake_to_object(child_resp):
+            if "elements" in child_resp and "2" in child_resp["elements"]:
+                return "dummy"
+            return original_to_object(child_resp)
+
+        with patch.object(Element, "to_object", side_effect=fake_to_object):
+            element = Element.to_object(response)
+            assert isinstance(element, list)
+            assert element[0].children == ["dummy"]
+
+        no_children_response = {
+            "elements": {
+                "1": {
+                    "element_id": 1,
+                    "release_id": 1,
+                    "series_id": "S1",
+                    "parent_id": 0,
+                    "line": "Line 1",
+                    "type": "Type 1",
+                    "name": "Element 1",
+                    "level": "Level 1",
+                    "children": []
+                }
+            }
+        }
+        no_children_element = Element.to_object(no_children_response)
+        assert isinstance(no_children_element, list)
+        assert isinstance(no_children_element[0], Element)
+        assert no_children_element[0].element_id == 1
+        assert no_children_element[0].release_id == 1
+        assert no_children_element[0].series_id == "S1"
+        assert no_children_element[0].parent_id == 0
+        assert no_children_element[0].line == "Line 1"
+        assert no_children_element[0].type == "Type 1"
+        assert no_children_element[0].name == "Element 1"
+        assert no_children_element[0].level == "Level 1"
+
     @pytest.mark.asyncio
     async def test_element_to_object_async(self):
         response = {
@@ -353,6 +497,32 @@ class TestElement:
         assert element[0].children[0].name == "Element 2"
         assert element[0].children[0].level == "Level 2"
 
+    def test_invalid_response(self):
+        response = {
+            "invalid_key": {
+                "1": {
+                    "element_id": 1,
+                    "release_id": 1,
+                    "series_id": "S1",
+                    "parent_id": 0,
+                    "line": "Line 1",
+                    "type": None,
+                    "name": None,
+                    "level": None,
+                    "children": []
+                }
+            }
+        }
+        with pytest.raises(ValueError):
+            Element.to_object(response)
+
+    def test_empty_response(self):
+        response = {
+            "elements": {}
+        }
+        with pytest.raises(ValueError):
+            Element.to_object(response)
+
 class TestVintageDate:
     def test_vintage_date_to_object(self):
         response = {
@@ -372,6 +542,20 @@ class TestVintageDate:
         assert isinstance(vintage_date, list)
         assert isinstance(vintage_date[0], VintageDate)
         assert vintage_date[0].vintage_date == "2020-01-01"
+
+    def test_invalid_response(self):
+        response = {
+            "invalid_key": ["2020-01-01"]
+        }
+        with pytest.raises(ValueError):
+            VintageDate.to_object(response)
+
+    def test_empty_response(self):
+        response = {
+            "vintage_dates": []
+        }
+        with pytest.raises(ValueError):
+            VintageDate.to_object(response)
 
 class TestSeriesGroup:
     def test_series_group_to_object(self):
@@ -424,3 +608,31 @@ class TestSeriesGroup:
         assert series_group[0].frequency == "Monthly"
         assert series_group[0].min_date == "2020-01-01"
         assert series_group[0].max_date == "2020-12-31"
+
+    def test_invalid_response(self):
+        response = {
+            "invalid_key": {
+                "title": "Group 1",
+                "region_type": "Region 1",
+                "series_group": None,
+                "season": None,
+                "units": None,
+                "frequency": None,
+                "min_date": None,
+                "max_date": None
+            }
+        }
+        with pytest.raises(ValueError):
+            SeriesGroup.to_object(response)
+
+    def test_empty_response(self):
+        response = {}
+        with pytest.raises(ValueError):
+            SeriesGroup.to_object(response)
+
+    def test_empty_series_group(self):
+        response = {
+            "series_group": []
+        }
+        with pytest.raises(ValueError):
+            SeriesGroup.to_object(response)

@@ -13,7 +13,7 @@ import sys
 project = 'fedfred'
 copyright = '2025, Nikhil Sunder'
 author = 'Nikhil Sunder'
-release = '2.1.0'
+release = '2.1.1'
 
 # -- General configuration ---------------------------------------------------
 extensions = [
@@ -113,7 +113,11 @@ html_theme_options = {
         <div class="sidebar-message">
             Version 2 is now available!
             Please check the
+<<<<<<< Updated upstream
             <a href="resources/notes.html" target="_self">
+=======
+            <a href="resources/notes.html" target="notes.html">
+>>>>>>> Stashed changes
                 special notes page
             </a>
             for more information.
