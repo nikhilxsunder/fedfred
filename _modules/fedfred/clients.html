@@ -48,7 +48,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../../_static/documentation_options.js?v=20623aea"></script>
+    <script src="../../_static/documentation_options.js?v=841abef3"></script>
     <script src="../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/design-tabs.js?v=f930bc37"></script>
@@ -103,7 +103,11 @@
         <div class="sidebar-message">
             Version 2 is now available!
             Please check the
+<<<<<<< Updated upstream
             <a href="resources/notes.html" target="_self">
+=======
+            <a href="resources/notes.html" target="notes.html">
+>>>>>>> Stashed changes
                 special notes page
             </a>
             for more information.
@@ -608,10 +612,10 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">.helpers</span><span class="w"> </span><span class="kn">import</span> <span class="n">FredHelpers</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.objects</span><span class="w"> </span><span class="kn">import</span> <span class="n">Category</span><span class="p">,</span> <span class="n">Series</span><span class="p">,</span> <span class="n">Tag</span><span class="p">,</span> <span class="n">Release</span><span class="p">,</span> <span class="n">ReleaseDate</span><span class="p">,</span> <span class="n">Source</span><span class="p">,</span> <span class="n">Element</span><span class="p">,</span> <span class="n">VintageDate</span><span class="p">,</span> <span class="n">SeriesGroup</span>
 <span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
-    <span class="kn">import</span><span class="w"> </span><span class="nn">polars</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pl</span>
-    <span class="kn">import</span><span class="w"> </span><span class="nn">dask.dataframe</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">dd</span>
-    <span class="kn">import</span><span class="w"> </span><span class="nn">dask_geopandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">dd_gpd</span>
-    <span class="kn">import</span><span class="w"> </span><span class="nn">polars_st</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">st</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">polars</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pl</span> <span class="c1"># pragma: no cover</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">dask.dataframe</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">dd</span> <span class="c1"># pragma: no cover</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">dask_geopandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">dd_gpd</span> <span class="c1"># pragma: no cover</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">polars_st</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">st</span> <span class="c1"># pragma: no cover</span>
 
 <div class="viewcode-block" id="FredAPI">
 <a class="viewcode-back" href="../../api/_autosummary/fedfred.FredAPI.html#fedfred.FredAPI">[docs]</a>
@@ -706,7 +710,8 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Destructor for the FredAPI class. Clears the cache when the instance is deleted.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">cache</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;cache&quot;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cache</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get a specific item from the cache.</span>
@@ -797,6 +802,14 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Helper method to perform a synchronous GET request to the FRED API.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">_make_hashable</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">None</span>
+            <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">()))</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">_make_dict</span><span class="p">(</span><span class="n">hashable_data</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">hashable_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">None</span>
+            <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">hashable_data</span><span class="p">)</span>
         <span class="k">def</span><span class="w"> </span><span class="nf">__get_request</span><span class="p">(</span><span class="n">url_endpoint</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]]]</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            Perform a GET request without caching.</span>
@@ -812,15 +825,15 @@
                 <span class="n">response</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
                 <span class="k">return</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
         <span class="nd">@cached</span><span class="p">(</span><span class="n">cache</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cache</span><span class="p">)</span>
-        <span class="k">def</span><span class="w"> </span><span class="nf">__cached_get_request</span><span class="p">(</span><span class="n">url_endpoint</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]]]</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">__cached_get_request</span><span class="p">(</span><span class="n">url_endpoint</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">hashable_data</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]],</span> <span class="o">...</span><span class="p">]]</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            Perform a GET request with caching.</span>
 <span class="sd">            &quot;&quot;&quot;</span>
-            <span class="k">return</span> <span class="n">__get_request</span><span class="p">(</span><span class="n">url_endpoint</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">__get_request</span><span class="p">(</span><span class="n">url_endpoint</span><span class="p">,</span> <span class="n">_make_dict</span><span class="p">(</span><span class="n">hashable_data</span><span class="p">))</span>
         <span class="k">if</span> <span class="n">data</span><span class="p">:</span>
             <span class="n">FredHelpers</span><span class="o">.</span><span class="n">parameter_validation</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache_mode</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">__cached_get_request</span><span class="p">(</span><span class="n">url_endpoint</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">__cached_get_request</span><span class="p">(</span><span class="n">url_endpoint</span><span class="p">,</span> <span class="n">_make_hashable</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">__get_request</span><span class="p">(</span><span class="n">url_endpoint</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
     <span class="c1"># Public Methods</span>
@@ -2809,7 +2822,8 @@
 <span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            Destructor for the MapsAPI instance. Clears the cache when the instance is deleted</span>
 <span class="sd">            &quot;&quot;&quot;</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">cache</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;cache&quot;</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">cache</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
         <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
 <span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            Get a specific item from the cache.</span>
@@ -2901,6 +2915,14 @@
 <span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            Helper method to perform a synchronous GET request to the FRED Maps API.</span>
 <span class="sd">            &quot;&quot;&quot;</span>
+            <span class="k">def</span><span class="w"> </span><span class="nf">_make_hashable</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="kc">None</span>
+                <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">()))</span>
+            <span class="k">def</span><span class="w"> </span><span class="nf">_make_dict</span><span class="p">(</span><span class="n">hashable_data</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">hashable_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="kc">None</span>
+                <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">hashable_data</span><span class="p">)</span>
             <span class="k">def</span><span class="w"> </span><span class="nf">__get_request</span><span class="p">(</span><span class="n">url_endpoint</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]]]</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">                </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">                Perform a GET request without caching.</span>
@@ -2915,15 +2937,15 @@
                     <span class="n">response</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
                     <span class="k">return</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
             <span class="nd">@cached</span><span class="p">(</span><span class="n">cache</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cache</span><span class="p">)</span>
-            <span class="k">def</span><span class="w"> </span><span class="nf">__cached_get_request</span><span class="p">(</span><span class="n">url_endpoint</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]]]</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+            <span class="k">def</span><span class="w"> </span><span class="nf">__cached_get_request</span><span class="p">(</span><span class="n">url_endpoint</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">hashable_data</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]],</span> <span class="o">...</span><span class="p">]]</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">                </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">                Perform a GET request with caching.</span>
 <span class="sd">                &quot;&quot;&quot;</span>
-                <span class="k">return</span> <span class="n">__get_request</span><span class="p">(</span><span class="n">url_endpoint</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">__get_request</span><span class="p">(</span><span class="n">url_endpoint</span><span class="p">,</span> <span class="n">_make_dict</span><span class="p">(</span><span class="n">hashable_data</span><span class="p">))</span>
             <span class="k">if</span> <span class="n">data</span><span class="p">:</span>
                 <span class="n">FredHelpers</span><span class="o">.</span><span class="n">geo_parameter_validation</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache_mode</span><span class="p">:</span>
-                <span class="k">return</span> <span class="n">__cached_get_request</span><span class="p">(</span><span class="n">url_endpoint</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">__cached_get_request</span><span class="p">(</span><span class="n">url_endpoint</span><span class="p">,</span> <span class="n">_make_hashable</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">return</span> <span class="n">__get_request</span><span class="p">(</span><span class="n">url_endpoint</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
         <span class="c1"># Public Methods</span>
@@ -3213,7 +3235,8 @@
 <span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            Destructor for the AsyncAPI instance. Clears the cache when the instance is deleted</span>
 <span class="sd">            &quot;&quot;&quot;</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">cache</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;cache&quot;</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">cache</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
         <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
 <span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            Get a specific item from the cache.</span>
@@ -3322,6 +3345,14 @@
 <span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            Helper method to perform an asynchronous GET request to the FRED API.</span>
 <span class="sd">            &quot;&quot;&quot;</span>
+            <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">_make_hashable</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="kc">None</span>
+                <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">()))</span>
+            <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">_make_dict</span><span class="p">(</span><span class="n">hashable_data</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">hashable_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="kc">None</span>
+                <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">hashable_data</span><span class="p">)</span>
             <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">__get_request</span><span class="p">(</span><span class="n">url_endpoint</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]]]</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">                </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">                Perform a GET request without caching.</span>
@@ -3342,15 +3373,15 @@
                     <span class="k">except</span> <span class="n">httpx</span><span class="o">.</span><span class="n">RequestError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
                         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Request Error occurred: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
             <span class="nd">@async_cached</span><span class="p">(</span><span class="n">cache</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cache</span><span class="p">)</span>
-            <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">__cached_get_request</span><span class="p">(</span><span class="n">url_endpoint</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]]]</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+            <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">__cached_get_request</span><span class="p">(</span><span class="n">url_endpoint</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">hashable_data</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]],</span> <span class="o">...</span><span class="p">]]</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">                </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">                Perform a GET request with caching.</span>
 <span class="sd">                &quot;&quot;&quot;</span>
-                <span class="k">return</span> <span class="k">await</span> <span class="n">__get_request</span><span class="p">(</span><span class="n">url_endpoint</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+                <span class="k">return</span> <span class="k">await</span> <span class="n">__get_request</span><span class="p">(</span><span class="n">url_endpoint</span><span class="p">,</span> <span class="k">await</span> <span class="n">_make_dict</span><span class="p">(</span><span class="n">hashable_data</span><span class="p">))</span>
             <span class="k">if</span> <span class="n">data</span><span class="p">:</span>
                 <span class="k">await</span> <span class="n">FredHelpers</span><span class="o">.</span><span class="n">parameter_validation_async</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache_mode</span><span class="p">:</span>
-                <span class="k">return</span> <span class="k">await</span> <span class="n">__cached_get_request</span><span class="p">(</span><span class="n">url_endpoint</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+                <span class="k">return</span> <span class="k">await</span> <span class="n">__cached_get_request</span><span class="p">(</span><span class="n">url_endpoint</span><span class="p">,</span> <span class="k">await</span> <span class="n">_make_hashable</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">return</span> <span class="k">await</span> <span class="n">__get_request</span><span class="p">(</span><span class="n">url_endpoint</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
         <span class="c1"># Public Methods</span>
@@ -5339,7 +5370,8 @@
 <span class="w">                </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">                Destructor for AsyncMapsAPI instances.</span>
 <span class="sd">                &quot;&quot;&quot;</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">cache</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;cache&quot;</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">cache</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
             <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
 <span class="w">                </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">                Get a specific item from the cache.</span>
@@ -5449,6 +5481,14 @@
 <span class="w">                </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">                Helper method to perform an asynchronous GET request to the Maps FRED API.</span>
 <span class="sd">                &quot;&quot;&quot;</span>
+                <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">_make_hashable</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="k">return</span> <span class="kc">None</span>
+                    <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">()))</span>
+                <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">_make_dict</span><span class="p">(</span><span class="n">hashable_data</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">hashable_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="k">return</span> <span class="kc">None</span>
+                    <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">hashable_data</span><span class="p">)</span>
                 <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">__get_request</span><span class="p">(</span><span class="n">url_endpoint</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]]]</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">                    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">                    Perform a GET request without caching.</span>
@@ -5468,15 +5508,15 @@
                         <span class="k">except</span> <span class="n">httpx</span><span class="o">.</span><span class="n">RequestError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
                             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Request Error occurred: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
                 <span class="nd">@async_cached</span><span class="p">(</span><span class="n">cache</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cache</span><span class="p">)</span>
-                <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">__cached_get_request</span><span class="p">(</span><span class="n">url_endpoint</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]]]</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+                <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">__cached_get_request</span><span class="p">(</span><span class="n">url_endpoint</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">hashable_data</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]],</span> <span class="o">...</span><span class="p">]]</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">                    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">                    Perform a GET request with caching.</span>
 <span class="sd">                    &quot;&quot;&quot;</span>
-                    <span class="k">return</span> <span class="k">await</span> <span class="n">__get_request</span><span class="p">(</span><span class="n">url_endpoint</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="k">await</span> <span class="n">__get_request</span><span class="p">(</span><span class="n">url_endpoint</span><span class="p">,</span> <span class="k">await</span> <span class="n">_make_dict</span><span class="p">(</span><span class="n">hashable_data</span><span class="p">))</span>
                 <span class="k">if</span> <span class="n">data</span><span class="p">:</span>
                     <span class="k">await</span> <span class="n">FredHelpers</span><span class="o">.</span><span class="n">geo_parameter_validation_async</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache_mode</span><span class="p">:</span>
-                    <span class="k">return</span> <span class="k">await</span> <span class="n">__cached_get_request</span><span class="p">(</span><span class="n">url_endpoint</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="k">await</span> <span class="n">__cached_get_request</span><span class="p">(</span><span class="n">url_endpoint</span><span class="p">,</span> <span class="k">await</span> <span class="n">_make_hashable</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">return</span> <span class="k">await</span> <span class="n">__get_request</span><span class="p">(</span><span class="n">url_endpoint</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
             <span class="c1"># Public Methods</span>
