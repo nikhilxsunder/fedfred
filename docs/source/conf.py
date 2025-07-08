@@ -113,11 +113,7 @@ html_theme_options = {
         <div class="sidebar-message">
             Version 2 is now available!
             Please check the
-<<<<<<< Updated upstream
             <a href="resources/notes.html" target="_self">
-=======
-            <a href="resources/notes.html" target="notes.html">
->>>>>>> Stashed changes
                 special notes page
             </a>
             for more information.
