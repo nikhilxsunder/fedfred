@@ -1,23 +1,28 @@
 # Test Coverage Report
 
-Last updated: 2025-07-04
+Last updated: 2025-07-08
 
 ## Coverage Summary
 
-Overall coverage: 16%
+Overall coverage: 100%
 
 ## Detailed Coverage
 
 ```
 ============================= test session starts ==============================
-platform linux -- Python 3.11.13, pytest-8.3.5, pluggy-1.5.0
+platform linux -- Python 3.11.13, pytest-8.4.1, pluggy-1.6.0
 rootdir: /home/runner/work/fedfred/fedfred
 configfile: pyproject.toml
-plugins: mock-3.14.0, cov-6.1.1, asyncio-0.26.0, hypothesis-6.131.9, anyio-4.9.0
+plugins: asyncio-1.0.0, anyio-4.9.0, mock-3.14.1, cov-6.2.1, hypothesis-6.135.26
 asyncio: mode=Mode.STRICT, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
-collected 18 items
+collected 240 items
 
-tests/objects_test.py ..................                                 [100%]
+tests/clients_test.py .................................................. [ 20%]
+........................................................................ [ 50%]
+..............................                                           [ 63%]
+tests/helpers_test.py ..........................................         [ 80%]
+tests/objects_property_based_test.py .........                           [ 84%]
+tests/objects_test.py .....................................              [100%]
 
 ================================ tests coverage ================================
 _______________ coverage: platform linux, python 3.11.13-final-0 _______________
@@ -26,13 +31,13 @@ Name                       Stmts   Miss  Cover
 ----------------------------------------------
 src/fedfred/__about__.py       7      0   100%
 src/fedfred/__init__.py       11      0   100%
-src/fedfred/clients.py      1880   1725     8%
-src/fedfred/helpers.py       613    537    12%
-src/fedfred/objects.py       195     20    90%
+src/fedfred/clients.py      1912      0   100%
+src/fedfred/helpers.py       600      0   100%
+src/fedfred/objects.py       195      0   100%
 ----------------------------------------------
-TOTAL                       2706   2282    16%
+TOTAL                       2725      0   100%
 Coverage XML written to file coverage.xml
-======================== 18 passed, 1 warning in 4.01s =========================
+====================== 240 passed, 15 warnings in 49.76s =======================
 ```
 
 ## Running Test Coverage Locally
