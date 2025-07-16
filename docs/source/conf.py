@@ -93,7 +93,7 @@ html_theme_options = {
         },
         {
             "name": "Socket",
-            "url": "https://socket.dev/pypi/package/fedfred/overview/2.0.9/tar-gz",
+            "url": "https://socket.dev/pypi/package/fedfred/overview/2.1.1/tar-gz",
             "icon": "fas fa-shield",
         },
         {
