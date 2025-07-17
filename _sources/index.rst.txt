@@ -101,12 +101,12 @@ Badges
 
     .. grid-item-card:: Socket Security Score
         :columns: 4
-        :link: https://socket.dev/pypi/package/fedfred/overview/2.0.9/tar-gz
+        :link: https://socket.dev/pypi/package/fedfred/overview/2.1.1/tar-gz
         :link-alt: Socket Security Analysis
 
         Security risk analysis via Socket.dev.
 
-        .. image:: https://socket.dev/api/badge/pypi/package/fedfred/2.0.9?artifact_id=tar-gz
+        .. image:: https://socket.dev/api/badge/pypi/package/fedfred/2.1.1?artifact_id=tar-gz
            :alt: Socket Security Score
            :align: center
 
