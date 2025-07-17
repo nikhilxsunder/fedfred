@@ -115,7 +115,7 @@ Developer Quick Setup
          git clone https://github.com/nikhilxsunder/fedfred.git
          cd fedfred
 
-         conda create -n fedfred-dev python=3.9
+         conda create -n fedfred-dev python=3.10
          conda activate fedfred-dev
 
          pip install -e ".[dev,types]"
