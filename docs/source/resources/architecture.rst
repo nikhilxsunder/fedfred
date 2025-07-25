@@ -22,7 +22,7 @@ Class Hierarchy Overview
     
       - :class:`fedfred.clients.FredAPI.MapsAPI` (synchronous Maps API client)
 
-    ➤ Nested clients are accessible via attributes like ``fred.Async``, ``fred.Maps``, and ``fred.Async.Maps``.
+    ➤ Nested clients are accessible via attributes like :class:`fedfred.FredAPI.Async`, :class:`fred.FredAPI.Maps`, and :class:`fedfred.AsyncAPI.Maps`.
 
     See :ref:`api-overview` for a full breakdown.
 
