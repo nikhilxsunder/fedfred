@@ -1,4 +1,4 @@
-ss# fedfred
+# fedfred
 
 ## A feature-rich python package for interacting with the Federal Reserve Bank of St. Louis Economic Database: FRED
 
