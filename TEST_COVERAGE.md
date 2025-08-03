@@ -37,7 +37,7 @@ src/fedfred/objects.py       195      0   100%
 ----------------------------------------------
 TOTAL                       2725      0   100%
 Coverage XML written to file coverage.xml
-====================== 240 passed, 15 warnings in 49.33s =======================
+====================== 240 passed, 15 warnings in 50.77s =======================
 ```
 
 ## Running Test Coverage Locally
