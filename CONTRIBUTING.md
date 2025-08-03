@@ -266,7 +266,7 @@ To set up your development environment:
    cd fedfred
 
    # Create conda environment
-   conda create -n fedfred-dev python=3.9
+   conda create -n fedfred-dev python=3.10
    conda activate fedfred-dev
 
    # Option 1: Install from the author's Anaconda channel
