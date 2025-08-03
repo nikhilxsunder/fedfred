@@ -164,7 +164,7 @@ We take testing seriously to maintain code quality:
 When adding tests:
 
 - Place tests in the `tests/` directory
-- Name test files with a `test_` prefix
+- Name test files with a `_test` suffix
 - Follow the existing test patterns
 - Test both success and error conditions
 - Include comments explaining complex test scenarios
