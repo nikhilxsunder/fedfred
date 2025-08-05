@@ -22,7 +22,7 @@
 
 ## Current Vulnerability Status
 
-As of April 2025, there are no unpatched vulnerabilities of medium or higher severity that have been publicly known for more than 60 days in the FedFred codebase.
+As of August 2025, there are no unpatched vulnerabilities of medium or higher severity that have been publicly known for more than 60 days in the FedFred codebase.
 
 We monitor for vulnerabilities through:
 
