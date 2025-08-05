@@ -190,7 +190,7 @@ For maximum security, you can also verify our release signatures:
 
 1. Download our public GPG key: [\[LINK_TO_GPG_KEY\]](https://raw.githubusercontent.com/nikhilxsunder/fedfred/main/fedfred_public_key.asc)
 2. Import the key: `gpg --import fedfred_public_key.asc`
-3. Verify the release: `gpg --verify fedfred-1.2.6.tar.gz.asc fedfred-1.2.6.tar.gz`
+3. Verify the release: `gpg --verify fedfred-2.1.1.tar.gz.asc fedfred-2.1.1.tar.gz`
 
 ## Verifying Package Signatures
 
@@ -203,16 +203,16 @@ curl -s https://raw.githubusercontent.com/nikhilxsunder/fedfred/main/fedfred_pub
 ```
 
 2. Download the package and signature:
-   Example for version 1.2.6
+   Example for version 2.1.1
 
 ```sh
-curl -O https://github.com/nikhilxsunder/fedfred/releases/download/v1.2.6/fedfred-1.2.6.tar.gz curl -O https://github.com/nikhilxsunder/fedfred/releases/download/v1.2.6/fedfred-1.2.6.tar.gz.asc
+curl -O https://github.com/nikhilxsunder/fedfred/releases/download/v2.1.1/fedfred-2.1.1.tar.gz curl -O https://github.com/nikhilxsunder/fedfred/releases/download/v2.1.1/fedfred-2.1.1.tar.gz.asc
 ```
 
 3. Verify the signature:
 
 ```sh
-gpg --verify fedfred-1.2.6.tar.gz.asc fedfred-1.2.6.tar.gz
+gpg --verify fedfred-2.1.1.tar.gz.asc fedfred-2.1.1.tar.gz
 ```
 
 ## Security Updates and Announcements
