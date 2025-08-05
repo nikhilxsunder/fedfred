@@ -802,13 +802,23 @@
 <li><p>Install securely using: <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">fedfred</span></code></p></li>
 </ul>
 </section>
-<section id="anaconda-conda-forge">
-<h3>Anaconda (conda-forge)<a class="headerlink" href="#anaconda-conda-forge" title="Link to this heading">#</a></h3>
+<section id="anaconda">
+<h3>Anaconda<a class="headerlink" href="#anaconda" title="Link to this heading">#</a></h3>
 <ul class="simple">
-<li><p>All Anaconda downloads use HTTPS (TLS) by default</p></li>
-<li><p>Conda-forge provides checksums for package verification</p></li>
-<li><p>Install securely using: <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">install</span> <span class="pre">-c</span> <span class="pre">conda-forge</span> <span class="pre">fedfred</span></code></p></li>
+<li><p>All Anaconda packages are distributed through secure HTTPS connections</p></li>
+<li><p>Packages are hosted on the authenticated nikhilxsunder channel</p></li>
+<li><p>Package integrity is verified through SHA256 checksums</p></li>
+<li><p>Install securely using: <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">install</span> <span class="pre">-c</span> <span class="pre">nikhilxsunder</span> <span class="pre">edgar-sec</span></code></p></li>
 </ul>
+<p>For maximum security with conda packages:</p>
+<ol class="arabic">
+<li><p>Verify the package integrity with conda’s built-in verification:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>conda<span class="w"> </span>list<span class="w"> </span>--explicit
+</pre></div>
+</div>
+</li>
+<li><p>Compare the SHA256 checksum with the one published in our release notes</p></li>
+</ol>
 </section>
 <section id="github-releases">
 <h3>GitHub Releases<a class="headerlink" href="#github-releases" title="Link to this heading">#</a></h3>
@@ -939,7 +949,7 @@ Example for version 1.2.6</p></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#third-party-security-dependencies">Third-Party Security Dependencies</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#secure-software-delivery">Secure Software Delivery</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pypi-python-package-index">PyPI (Python Package Index)</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#anaconda-conda-forge">Anaconda (conda-forge)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#anaconda">Anaconda</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#github-releases">GitHub Releases</a></li>
 </ul>
 </li>
