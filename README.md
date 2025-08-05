@@ -154,7 +154,7 @@ poetry run pytest --cov=fedfred tests/
 To run a specific test file:
 
 ```sh
-poetry run pytest tests/test_specific_module.py
+poetry run pytest tests/specific_module_test.py
 ```
 
 #### Test Coverage
