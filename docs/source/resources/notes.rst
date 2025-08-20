@@ -3,7 +3,7 @@
 Special Notes: Parameter Conversion and Nested Classes (FedFred 2.0+)
 =====================================================================
 
-Starting from **version 2.0**, the :mod:`fedfred` library introduces **automatic parameter conversion** and **nested class access**.  
+Starting from **version 2.0**, the :mod:`fedfred` library introduces **automatic parameter conversion** and **nested class access**.
 These enhancements make it easier to interact with the **FRED® API** while ensuring full compatibility and clean code design.
 
 This page details these important features.
@@ -19,7 +19,7 @@ Supported Conversions
 ^^^^^^^^^^^^^^^^^^^^^
 
 - :class:`datetime.datetime` **objects**:
-  
+
   Automatically converted to `YYYY-MM-DD` formatted strings.
 
   Example:
@@ -34,7 +34,7 @@ Supported Conversions
       # Converts to: "2020-01-01"
 
 - :class:`list` **of** :class:`str` **or** :class:`str`:
-  
+
   Lists are converted into semicolon-delimited strings.
 
   Example:
@@ -45,7 +45,7 @@ Supported Conversions
       # Converts to: "nation;usa;economy"
 
 - :class:`Optional[Union[str, list[str]]]`:
-  
+
   Accepts either a string or a list of strings seamlessly.
 
   Example:
@@ -56,7 +56,7 @@ Supported Conversions
       fred.get_related_tags(tag_names=["nation", "usa"])
 
 - :class:`Optional[Union[str, datetime.datetime]]`:
-  
+
   Accepts either a string date or a datetime object.
 
   Example:
@@ -100,7 +100,7 @@ Examples of Parameter Conversion
 
   .. code-block:: python
 
-      fred.get_tags(tag_names=["nation", "usa", "economy"])
+      fred.get_tags(tag_names=["sticky", "price", "nation"])
 
 - **Mixing** :class:`str` **and** :class:`list` **parameters**:
 

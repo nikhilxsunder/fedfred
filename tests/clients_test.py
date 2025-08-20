@@ -2150,10 +2150,10 @@ class TestFredAPI:
 
         with patch.object(api, "_FredAPI__fred_get_request", return_value=fake_response) as mock_get, \
             patch("fedfred.clients.Tag.to_object", return_value=fake_tags) as mock_to_object:
-            result = api.get_series_search_related_tags("mortgage rate")
+            result = api.get_series_search_related_tags("mortgage rate", tag_names="")
             mock_get.assert_called_once_with(
                 "/series/search/related_tags",
-                {"series_search_text": "mortgage rate"}
+                {"series_search_text": "mortgage rate", "tag_names": ""}
             )
             mock_to_object.assert_called_once_with(fake_response)
             assert result == fake_tags
@@ -3860,6 +3860,7 @@ class TestMapsAPI:
                     date="2013-01-01",
                     season="NSA",
                     units="Dollars",
+                    frequency="a",
                     geodataframe_method="geopandas"
                 )
                 mock_get.assert_called_once_with(
@@ -3870,6 +3871,7 @@ class TestMapsAPI:
                         "date": "2013-01-01",
                         "season": "NSA",
                         "units": "Dollars",
+                        "frequency": "a",
                         "file_type": "json"
                     }
                 )
@@ -3887,6 +3889,7 @@ class TestMapsAPI:
                     date="2013-01-01",
                     season="NSA",
                     units="Dollars",
+                    frequency="a",
                     geodataframe_method="dask"
                 )
                 mock_get.assert_called_once()
@@ -3904,6 +3907,7 @@ class TestMapsAPI:
                     date="2013-01-01",
                     season="NSA",
                     units="Dollars",
+                    frequency="a",
                     geodataframe_method="polars"
                 )
                 mock_get.assert_called_once()
@@ -3921,6 +3925,7 @@ class TestMapsAPI:
                     date="2013-01-01",
                     season="NSA",
                     units="Dollars",
+                    frequency="a",
                     geodataframe_method="invalid"
                 )
 
@@ -3934,6 +3939,7 @@ class TestMapsAPI:
                         date="2013-01-01",
                         season="NSA",
                         units="Dollars",
+                        frequency="a",
                         geodataframe_method="geopandas"
                     )
 
@@ -6354,10 +6360,10 @@ class TestAsyncAPI:
 
         with patch.object(async_api, "_AsyncAPI__fred_get_request", AsyncMock(return_value=fake_response)) as mock_get, \
             patch("fedfred.clients.Tag.to_object_async", AsyncMock(return_value=fake_tags)) as mock_to_object:
-            result = await async_api.get_series_search_related_tags("mortgage rate")
+            result = await async_api.get_series_search_related_tags("mortgage rate", tag_names="")
             mock_get.assert_called_once_with(
                 "/series/search/related_tags",
-                {"series_search_text": "mortgage rate"}
+                {"series_search_text": "mortgage rate", "tag_names": ""}
             )
             mock_to_object.assert_called_once_with(fake_response)
             assert result == fake_tags
@@ -8194,6 +8200,7 @@ class TestAsyncMapsAPI:
                     date="2013-01-01",
                     season="NSA",
                     units="Dollars",
+                    frequency="a",
                     geodataframe_method="geopandas"
                 )
                 mock_gpd.assert_awaited_once_with(fake_gdf, meta_data)
@@ -8207,6 +8214,7 @@ class TestAsyncMapsAPI:
                     date="2013-01-01",
                     season="NSA",
                     units="Dollars",
+                    frequency="a",
                     geodataframe_method="dask"
                 )
                 mock_dd.assert_awaited_once_with(fake_gdf, meta_data)
@@ -8220,6 +8228,7 @@ class TestAsyncMapsAPI:
                     date="2013-01-01",
                     season="NSA",
                     units="Dollars",
+                    frequency="a",
                     geodataframe_method="polars"
                 )
                 mock_pl.assert_awaited_once_with(fake_gdf, meta_data)
@@ -8233,6 +8242,7 @@ class TestAsyncMapsAPI:
                     date="2013-01-01",
                     season="NSA",
                     units="Dollars",
+                    frequency="a",
                     geodataframe_method="invalid"
                 )
 
@@ -8246,7 +8256,8 @@ class TestAsyncMapsAPI:
                     region_type="state",
                     date="2013-01-01",
                     season="NSA",
-                    units="Dollars"
+                    units="Dollars",
+                    frequency="a"
                 )
 
         # Test with date and start_date as datetime

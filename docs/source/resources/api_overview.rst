@@ -23,7 +23,7 @@ Client Architecture
       - :class:`fedfred.clients.FredAPI.MapsAPI`: Synchronous GeoFRED client
 
     Each class is accessed as an attribute:
-    
+
     - ``FredAPI.Async`` → async core
     - ``FredAPI.Maps`` → sync Maps API
     - ``FredAPI.Async.Maps`` → async Maps API

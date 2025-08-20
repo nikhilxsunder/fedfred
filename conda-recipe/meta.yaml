@@ -1,9 +1,9 @@
 package:
   name: fedfred
-  version: 2.1.1
+  version: 2.1.2
 
 source:
-  url: "https://pypi.io/packages/source/f/fedfred/fedfred-2.1.1.tar.gz"
+  url: "https://pypi.io/packages/source/f/fedfred/fedfred-2.1.2.tar.gz"
   sha256: "df2156a15971186d01ade494919eaa4e898a55a865ecd34bdac3e6adedc24578"
 
 build:

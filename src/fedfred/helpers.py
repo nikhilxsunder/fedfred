@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 """
-This module defines data classes for the FRED API responses.
+This module defines helper methods for the fedfred package.
 """
 
 import asyncio

@@ -3,7 +3,7 @@
 Quick Start Guide
 =================
 
-Get started with **FedFred**, a modern Python client for the **FRED® API**.  
+Get started with **FedFred**, a modern Python client for the **FRED® API**.
 This guide shows you how to install, initialize, fetch time series data, handle async operations, and work with :term:`DataFrame` and geographic data.
 
 ---
@@ -11,7 +11,7 @@ This guide shows you how to install, initialize, fetch time series data, handle 
 Getting Started
 ---------------
 
-First, obtain a free **FRED API key** from the official website:  
+First, obtain a free **FRED API key** from the official website:
 `FRED API Key Request <https://fred.stlouisfed.org/docs/api/api_key.html>`_
 
 Install FedFred using pip or conda (see :ref:`installation` for more options).
@@ -148,7 +148,7 @@ FedFred simplifies search operations:
     results = fred.get_series_search("unemployment rate", limit=5)
 
     # Category Search
-    results = fred.get_category_series(category_id=32991)
+    results = fred.get_category_series(category_id=3)
 
     # Tag Search
     results = fred.get_tags_series(tag_names="inflation")
@@ -158,7 +158,7 @@ FedFred simplifies search operations:
 Caching and Rate Limiting
 -------------------------
 
-FedFred automatically respects **rate limits** (~120 calls/minute).  
+FedFred automatically respects **rate limits** (~120 calls/minute).
 You can enable **local caching** to boost performance:
 
 .. code-block:: python
@@ -183,14 +183,15 @@ Access **regional economic indicators** easily.
     fred_maps = fd.FredAPI(api_key="your_api_key_here").Maps
 
     unemployment_by_state = fred_maps.get_regional_data(
-        series_group="unemployment",
+        series_group="882",
         region_type="state",
-        date="2023-01-01",
-        season="nsa",
-        units="percent"
+        date="2013-01-01",
+        season="NSA",
+        units="Dollars",
+        frequency="a"
     )
 
-Result is a :term:`GeoDataFrame` ready for plotting.  
+Result is a :term:`GeoDataFrame` ready for plotting.
 See :ref:`data-visualization` for mapping examples.
 
 ---

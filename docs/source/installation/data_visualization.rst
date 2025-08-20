@@ -3,7 +3,7 @@
 Data Visualization Examples
 ============================
 
-This page shows how to **visualize economic data retrieved with FedFred** using popular Python libraries like **Matplotlib**, **Seaborn**, and **GeoPandas**.  
+This page shows how to **visualize economic data retrieved with FedFred** using popular Python libraries like **Matplotlib**, **Seaborn**, and **GeoPandas**.
 FedFred integrates seamlessly with visualization tools, enabling clear insights from FRED® data.
 
 ---
@@ -24,7 +24,7 @@ FedFred integrates seamlessly with visualization tools, enabling clear insights 
             data = fred.get_series_observations("GDP")
 
             plt.figure(figsize=(10, 6))
-            plt.plot(data.index, data.values, 'b-', linewidth=2)
+            plt.plot(data.index, data['value'], 'b-', linewidth=2)
             plt.title("GDP Time Series")
             plt.xlabel("Date")
             plt.ylabel("Value")
@@ -78,7 +78,7 @@ Advanced Visualizations
 
             fred = fd.FredAPI(api_key="your_api_key_here")
             ids = ["GDP", "UNRATE", "CPIAUCSL"]
-            dfs = [fred.get_series_observations(sid) for sid in ids]
+            dfs = [fred.get_series_observations(sid)[['value']] for sid in ids]
 
             df = pd.concat(dfs, axis=1)
             df.columns = ids
@@ -103,11 +103,12 @@ Advanced Visualizations
             fred_maps = fd.FredAPI(api_key="your_api_key_here").Maps
 
             gdf = fred_maps.get_regional_data(
-                series_group="unemployment",
+                series_group="882",
                 region_type="state",
-                date="2023-01-01",
-                season="nsa",
-                units="percent"
+                date="2013-01-01",
+                season="NSA",
+                units="Dollars",
+                frequency="a"
             )
 
             gdf.plot(
@@ -118,7 +119,7 @@ Advanced Visualizations
                 edgecolor="black"
             )
 
-            plt.title("Unemployment Rates by State (January 2023)")
+            plt.title("2013 Per Capita Personal Income by State (Dollars)")
             plt.show()
 
 ---

@@ -218,11 +218,11 @@ class FredAPI:
         """
         Helper method to perform a synchronous GET request to the FRED API.
         """
-        def _make_hashable(data):
+        def _make_hashable(data: Optional[Dict[str, Optional[Union[str, int]]]]) -> Optional[Tuple[Tuple[str, Optional[Union[str, int]]], ...]]:
             if data is None:
                 return None
             return tuple(sorted(data.items()))
-        def _make_dict(hashable_data):
+        def _make_dict(hashable_data: Optional[Tuple[Tuple[str, Optional[Union[str, int]]], ...]]) -> Optional[Dict[str, Optional[Union[str, int]]]]:
             if hashable_data is None:
                 return None
             return dict(hashable_data)
@@ -1490,8 +1490,8 @@ class FredAPI:
             data['sort_order'] = sort_order
         response = self.__fred_get_request(url_endpoint, data)
         return Tag.to_object(response)
-    def get_series_search_related_tags(self, series_search_text: str, realtime_start: Optional[Union[str, datetime]]=None,
-                                       realtime_end: Optional[Union[str,datetime]]=None, tag_names: Optional[Union[str,list[str]]]=None,
+    def get_series_search_related_tags(self, series_search_text: str, tag_names: Union[str,list[str]],
+                                       realtime_start: Optional[Union[str, datetime]]=None, realtime_end: Optional[Union[str,datetime]]=None,
                                        exclude_tag_names: Optional[Union[str, list[str]]]=None,tag_group_id: Optional[str]=None,
                                        tag_search_text: Optional[str]=None, limit: Optional[int]=None,
                                        offset: Optional[int]=None, order_by: Optional[str]=None,
@@ -1502,9 +1502,9 @@ class FredAPI:
 
         Args:
             series_search_text (str): The text to search for series.
+            tag_names (str | list): A semicolon-delimited list of tag names to include.
             realtime_start (str | datetime, optional): The start of the real-time period. String format: YYYY-MM-DD.
             realtime_end (str | datetime, optional): The end of the real-time period. String format: YYYY-MM-DD.
-            tag_names (str | list, optional): A semicolon-delimited list of tag names to include.
             exclude_tag_names (str | list, optional): A semicolon-delimited list of tag names to exclude.
             tag_group_id (str, optional): The tag group id to filter tags by type.
             tag_search_text (str, optional): The text to search for tags.
@@ -1533,8 +1533,11 @@ class FredAPI:
             https://fred.stlouisfed.org/docs/api/fred/series_search_related_tags.html
         """
         url_endpoint = '/series/search/related_tags'
+        if isinstance(tag_names, list):
+            tag_names = FredHelpers.liststring_conversion(tag_names)
         data: Dict[str, Optional[Union[str, int]]] = {
-            'series_search_text': series_search_text
+            'series_search_text': series_search_text,
+            'tag_names': tag_names
         }
         if realtime_start:
             if isinstance(realtime_start, datetime):
@@ -1544,10 +1547,6 @@ class FredAPI:
             if isinstance(realtime_end, datetime):
                 realtime_end = FredHelpers.datetime_conversion(realtime_end)
             data['realtime_end'] = realtime_end
-        if tag_names:
-            if isinstance(tag_names, list):
-                tag_names = FredHelpers.liststring_conversion(tag_names)
-            data['tag_names'] = tag_names
         if exclude_tag_names:
             if isinstance(exclude_tag_names, list):
                 exclude_tag_names = FredHelpers.liststring_conversion(exclude_tag_names)
@@ -2427,8 +2426,8 @@ class FredAPI:
             else:
                 raise ValueError("shapefile type error")
         def get_regional_data(self, series_group: str, region_type: str, date: Union[str, datetime], season: str,
-                              units: str, geodataframe_method: str='geopandas', start_date: Optional[Union[str, datetime]]=None,
-                              transformation: Optional[str]=None, frequency: Optional[str]=None,
+                              units: str, frequency: str, geodataframe_method: str='geopandas',
+                              start_date: Optional[Union[str, datetime]]=None, transformation: Optional[str]=None,
                               aggregation_method: Optional[str]=None) -> Union[gpd.GeoDataFrame, 'dd_gpd.GeoDataFrame', 'st.GeoDataFrame']:
             """Get GeoFRED regional data
 
@@ -2440,10 +2439,10 @@ class FredAPI:
                 date (str | datetime): The date for which you want to request regional data. String format: YYYY-MM-DD.
                 season (str): The seasonality of the data. Options include 'seasonally_adjusted' or 'not_seasonally_adjusted'.
                 units (str): The units of the data. Options are 'lin', 'chg', 'ch1', 'pch', 'pc1', 'pca', 'cch', 'cca' and 'log'.
+                frequency (str): The frequency of the data. Options are 'd', 'w', 'bw', 'm', 'q', 'sa', 'a', 'wef', 'weth', 'wew', 'wetu', 'wem', 'wesu', 'wesa', 'bwew'and 'bwem'.
                 geodataframe_method (str, optional): The method to use for creating the GeoDataFrame. Options are 'geopandas', 'dask' or 'polars'. Default is 'geopandas'.
                 start_date (str, optional): The start date for the range of data you want to request. Format: YYYY-MM-DD.
                 transformation (str, optional): The data transformation to apply. Options are 'lin', 'chg', 'ch1', 'pch', 'pc1', 'pca', 'cch', 'cca', and 'log'.
-                frequency (str, optional): The frequency of the data. Options are 'd', 'w', 'bw', 'm', 'q', 'sa', 'a', 'wef', 'weth', 'wew', 'wetu', 'wem', 'wesu', 'wesa', 'bwew'and 'bwem'.
                 aggregation_method (str, optional): The aggregation method to use. Options are 'avg', 'sum', and 'eop'.
 
             Returns:
@@ -2479,6 +2478,7 @@ class FredAPI:
                 'date': date,
                 'season': season,
                 'units': units,
+                'frequency': frequency,
                 'file_type': 'json'
             }
             if start_date:
@@ -2487,8 +2487,6 @@ class FredAPI:
                 data['start_date'] = start_date
             if transformation:
                 data['transformation'] = transformation
-            if frequency:
-                data['frequency'] = frequency
             if aggregation_method:
                 data['aggregation_method'] = aggregation_method
             response = self.__fred_get_request(url_endpoint, data)
@@ -4006,8 +4004,8 @@ class FredAPI:
                 data['sort_order'] = sort_order
             response = await self.__fred_get_request(url_endpoint, data)
             return await Tag.to_object_async(response)
-        async def get_series_search_related_tags(self, series_search_text: str, realtime_start: Optional[Union[str, datetime]]=None,
-                                                 realtime_end: Optional[Union[str,datetime]]=None, tag_names: Optional[Union[str,list[str]]]=None,
+        async def get_series_search_related_tags(self, series_search_text: str, tag_names: Union[str, list[str]],
+                                                 realtime_start: Optional[Union[str, datetime]]=None, realtime_end: Optional[Union[str,datetime]]=None,
                                                  exclude_tag_names: Optional[Union[str, list[str]]]=None,tag_group_id: Optional[str]=None,
                                                  tag_search_text: Optional[str]=None, limit: Optional[int]=None,
                                                  offset: Optional[int]=None, order_by: Optional[str]=None,
@@ -4018,9 +4016,9 @@ class FredAPI:
 
             Args:
                 series_search_text (str): The text to search for series.
+                tag_names (str | list): A semicolon-delimited list of tag names to include.
                 realtime_start (str | datetime, optional): The start of the real-time period. String format: YYYY-MM-DD.
                 realtime_end (str | datetime, optional): The end of the real-time period. String format: YYYY-MM-DD.
-                tag_names (str | list, optional): A semicolon-delimited list of tag names to include.
                 exclude_tag_names (str | list, optional): A semicolon-delimited list of tag names to exclude.
                 tag_group_id (str, optional): The tag group id to filter tags by type.
                 tag_search_text (str, optional): The text to search for tags.
@@ -4052,8 +4050,11 @@ class FredAPI:
                 https://fred.stlouisfed.org/docs/api/fred/series_search_related_tags.html
             """
             url_endpoint = '/series/search/related_tags'
+            if isinstance(tag_names, list):
+                tag_names = await FredHelpers.liststring_conversion_async(tag_names)
             data: Dict[str, Optional[Union[str, int]]] = {
-                'series_search_text': series_search_text
+                'series_search_text': series_search_text,
+                'tag_names': tag_names
             }
             if realtime_start:
                 if isinstance(realtime_start, datetime):
@@ -4063,10 +4064,6 @@ class FredAPI:
                 if isinstance(realtime_end, datetime):
                     realtime_end = await FredHelpers.datetime_conversion_async(realtime_end)
                 data['realtime_end'] = realtime_end
-            if tag_names:
-                if isinstance(tag_names, list):
-                    tag_names = await FredHelpers.liststring_conversion_async(tag_names)
-                data['tag_names'] = tag_names
             if exclude_tag_names:
                 if isinstance(exclude_tag_names, list):
                     exclude_tag_names = await FredHelpers.liststring_conversion_async(exclude_tag_names)
@@ -5010,9 +5007,8 @@ class FredAPI:
                 else:
                     raise ValueError("shapefile type error")
             async def get_regional_data(self, series_group: str, region_type: str, date: Union[str, datetime], season: str,
-                                        units: str, geodataframe_method: str='geopandas', start_date: Optional[Union[str, datetime]]=None,
-                                        transformation: Optional[str]=None, frequency: Optional[str]=None,
-                                        aggregation_method: Optional[str]=None) -> Union[gpd.GeoDataFrame, 'dd_gpd.GeoDataFrame', 'st.GeoDataFrame']:
+                                        units: str, frequency: str, geodataframe_method: str='geopandas', start_date: Optional[Union[str, datetime]]=None,
+                                        transformation: Optional[str]=None, aggregation_method: Optional[str]=None) -> Union[gpd.GeoDataFrame, 'dd_gpd.GeoDataFrame', 'st.GeoDataFrame']:
                 """Get GeoFRED regional data
 
                 Retrieve regional data for a specified series group and date from the FRED Maps API.
@@ -5023,10 +5019,10 @@ class FredAPI:
                     date (str | datetime): The date for which you want to request regional data. String format: YYYY-MM-DD.
                     season (str): The seasonality of the data. Options include 'seasonally_adjusted' or 'not_seasonally_adjusted'.
                     units (str): The units of the data. Options are 'lin', 'chg', 'ch1', 'pch', 'pc1', 'pca', 'cch', 'cca' and 'log'.
+                    frequency (str): The frequency of the data. Options are 'd', 'w', 'bw', 'm', 'q', 'sa', 'a', 'wef', 'weth', 'wew', 'wetu', 'wem', 'wesu', 'wesa', 'bwew'and 'bwem'.
                     geodataframe_method (str, optional): The method to use for creating the GeoDataFrame. Options are 'geopandas', 'dask' or 'polars'. Default is 'geopandas'.
                     start_date (str, optional): The start date for the range of data you want to request. Format: YYYY-MM-DD.
                     transformation (str, optional): The data transformation to apply. Options are 'lin', 'chg', 'ch1', 'pch', 'pc1', 'pca', 'cch', 'cca', and 'log'.
-                    frequency (str, optional): The frequency of the data. Options are 'd', 'w', 'bw', 'm', 'q', 'sa', 'a', 'wef', 'weth', 'wew', 'wetu', 'wem', 'wesu', 'wesa', 'bwew'and 'bwem'.
                     aggregation_method (str, optional): The aggregation method to use. Options are 'avg', 'sum', and 'eop'.
 
                 Returns:
@@ -5065,6 +5061,7 @@ class FredAPI:
                     'date': date,
                     'season': season,
                     'units': units,
+                    'frequency': frequency,
                     'file_type': 'json'
                 }
                 if start_date:
@@ -5073,8 +5070,6 @@ class FredAPI:
                     data['start_date'] = start_date
                 if transformation:
                     data['transformation'] = transformation
-                if frequency:
-                    data['frequency'] = frequency
                 if aggregation_method:
                     data['aggregation_method'] = aggregation_method
                 response = await self.__fred_get_request(url_endpoint, data)
