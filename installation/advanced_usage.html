@@ -61,7 +61,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=841abef3"></script>
+    <script src="../_static/documentation_options.js?v=b3e23499"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/design-tabs.js?v=f930bc37"></script>
@@ -744,11 +744,12 @@ GeoPandas (Default)</label><div class="sd-tab-content docutils">
 <span class="n">fred_maps</span> <span class="o">=</span> <span class="n">fd</span><span class="o">.</span><span class="n">FredAPI</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="s2">&quot;your_api_key_here&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">Maps</span>
 
 <span class="n">unemployment_by_state</span> <span class="o">=</span> <span class="n">fred_maps</span><span class="o">.</span><span class="n">get_regional_data</span><span class="p">(</span>
-    <span class="n">series_group</span><span class="o">=</span><span class="s2">&quot;unemployment&quot;</span><span class="p">,</span>
+    <span class="n">series_group</span><span class="o">=</span><span class="s2">&quot;882&quot;</span><span class="p">,</span>
     <span class="n">region_type</span><span class="o">=</span><span class="s2">&quot;state&quot;</span><span class="p">,</span>
-    <span class="n">date</span><span class="o">=</span><span class="s2">&quot;2023-01-01&quot;</span><span class="p">,</span>
-    <span class="n">season</span><span class="o">=</span><span class="s2">&quot;nsa&quot;</span><span class="p">,</span>
-    <span class="n">units</span><span class="o">=</span><span class="s2">&quot;percent&quot;</span><span class="p">,</span>
+    <span class="n">date</span><span class="o">=</span><span class="s2">&quot;2013-01-01&quot;</span><span class="p">,</span>
+    <span class="n">season</span><span class="o">=</span><span class="s2">&quot;NSA&quot;</span><span class="p">,</span>
+    <span class="n">units</span><span class="o">=</span><span class="s2">&quot;Dollars&quot;</span><span class="p">,</span>
+    <span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;a&quot;</span><span class="p">,</span>
     <span class="n">geodataframe_method</span><span class="o">=</span><span class="s2">&quot;geopandas&quot;</span>  <span class="c1"># Default</span>
 <span class="p">)</span>
 
@@ -764,11 +765,12 @@ Polars-ST (Faster)</label><div class="sd-tab-content docutils">
 <span class="n">fred_maps</span> <span class="o">=</span> <span class="n">fd</span><span class="o">.</span><span class="n">FredAPI</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="s2">&quot;your_api_key_here&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">Maps</span>
 
 <span class="n">unemployment_by_state</span> <span class="o">=</span> <span class="n">fred_maps</span><span class="o">.</span><span class="n">get_regional_data</span><span class="p">(</span>
-    <span class="n">series_group</span><span class="o">=</span><span class="s2">&quot;unemployment&quot;</span><span class="p">,</span>
+    <span class="n">series_group</span><span class="o">=</span><span class="s2">&quot;882&quot;</span><span class="p">,</span>
     <span class="n">region_type</span><span class="o">=</span><span class="s2">&quot;state&quot;</span><span class="p">,</span>
-    <span class="n">date</span><span class="o">=</span><span class="s2">&quot;2023-01-01&quot;</span><span class="p">,</span>
-    <span class="n">season</span><span class="o">=</span><span class="s2">&quot;nsa&quot;</span><span class="p">,</span>
-    <span class="n">units</span><span class="o">=</span><span class="s2">&quot;percent&quot;</span><span class="p">,</span>
+    <span class="n">date</span><span class="o">=</span><span class="s2">&quot;2013-01-01&quot;</span><span class="p">,</span>
+    <span class="n">season</span><span class="o">=</span><span class="s2">&quot;NSA&quot;</span><span class="p">,</span>
+    <span class="n">units</span><span class="o">=</span><span class="s2">&quot;Dollars&quot;</span><span class="p">,</span>
+    <span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;a&quot;</span><span class="p">,</span>
     <span class="n">geodataframe_method</span><span class="o">=</span><span class="s2">&quot;polars&quot;</span>  <span class="c1"># Use Polars-ST</span>
 <span class="p">)</span>
 
@@ -784,11 +786,12 @@ Dask-GeoPandas (Parallel)</label><div class="sd-tab-content docutils">
 <span class="n">fred_maps</span> <span class="o">=</span> <span class="n">fd</span><span class="o">.</span><span class="n">FredAPI</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="s2">&quot;your_api_key_here&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">Maps</span>
 
 <span class="n">unemployment_by_state</span> <span class="o">=</span> <span class="n">fred_maps</span><span class="o">.</span><span class="n">get_regional_data</span><span class="p">(</span>
-    <span class="n">series_group</span><span class="o">=</span><span class="s2">&quot;unemployment&quot;</span><span class="p">,</span>
+    <span class="n">series_group</span><span class="o">=</span><span class="s2">&quot;882&quot;</span><span class="p">,</span>
     <span class="n">region_type</span><span class="o">=</span><span class="s2">&quot;state&quot;</span><span class="p">,</span>
-    <span class="n">date</span><span class="o">=</span><span class="s2">&quot;2023-01-01&quot;</span><span class="p">,</span>
-    <span class="n">season</span><span class="o">=</span><span class="s2">&quot;nsa&quot;</span><span class="p">,</span>
-    <span class="n">units</span><span class="o">=</span><span class="s2">&quot;percent&quot;</span><span class="p">,</span>
+    <span class="n">date</span><span class="o">=</span><span class="s2">&quot;2013-01-01&quot;</span><span class="p">,</span>
+    <span class="n">season</span><span class="o">=</span><span class="s2">&quot;NSA&quot;</span><span class="p">,</span>
+    <span class="n">units</span><span class="o">=</span><span class="s2">&quot;Dollars&quot;</span><span class="p">,</span>
+    <span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;a&quot;</span><span class="p">,</span>
     <span class="n">geodataframe_method</span><span class="o">=</span><span class="s2">&quot;dask&quot;</span>  <span class="c1"># Use Dask-GeoPandas</span>
 <span class="p">)</span>
 
@@ -853,17 +856,18 @@ Dask-GeoPandas (Parallel)</label><div class="sd-tab-content docutils">
 <summary class="sd-summary-title sd-card-header sd-bg-danger sd-bg-text-danger">
 <span class="sd-summary-text">See Example</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">fedfred</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">fd</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tenacity</span><span class="w"> </span><span class="kn">import</span> <span class="n">RetryError</span>
 
 <span class="n">fred</span> <span class="o">=</span> <span class="n">fd</span><span class="o">.</span><span class="n">FredAPI</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="s2">&quot;your_api_key_here&quot;</span><span class="p">)</span>
 
 <span class="k">try</span><span class="p">:</span>
     <span class="n">data</span> <span class="o">=</span> <span class="n">fred</span><span class="o">.</span><span class="n">get_series_observations</span><span class="p">(</span><span class="s2">&quot;INVALID_SERIES_ID&quot;</span><span class="p">)</span>
-<span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+<span class="k">except</span> <span class="n">RetryError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
 <span class="k">try</span><span class="p">:</span>
     <span class="n">data</span> <span class="o">=</span> <span class="n">fred</span><span class="o">.</span><span class="n">get_series_observations</span><span class="p">(</span><span class="n">series_id</span><span class="o">=</span><span class="s2">&quot;GDPC1&quot;</span><span class="p">,</span> <span class="n">observation_start</span><span class="o">=</span><span class="s2">&quot;invalid_date&quot;</span><span class="p">)</span>
-<span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+<span class="k">except</span> <span class="n">RetryError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>

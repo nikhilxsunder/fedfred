@@ -3,7 +3,7 @@
 Basic Usage Examples
 =====================
 
-This page shows how to quickly start using the :mod:`fedfred` package to interact with the **FRED® API**.  
+This page shows how to quickly start using the :mod:`fedfred` package to interact with the **FRED® API**.
 You'll learn how to **initialize a client**, **fetch time series**, **retrieve metadata**, and **explore categories and tags**.
 
 If you're new to FedFred, start here!
@@ -24,7 +24,7 @@ Getting Started
 
          fred = fd.FredAPI(api_key="your_api_key_here")
 
-      Initialize with your **FRED API key**.  
+      Initialize with your **FRED API key**.
       See :ref:`advanced-usage` for async and caching options.
 
    .. grid-item-card:: Fetch Time Series Observations
@@ -64,7 +64,7 @@ Getting Started
                 # Dask DataFrame
                 print(data.head())
 
-      Fetch historical observations for a series.  
+      Fetch historical observations for a series.
       Output is a :term:`DataFrame` (or Polars/Dask — see :ref:`api-overview`).
 
    .. grid-item-card:: Retrieve Series Metadata
@@ -72,9 +72,9 @@ Getting Started
       .. code-block:: python
 
          metadata = fred.get_series("GDP")
-         print(metadata.title)
-         print(metadata.frequency)
-         print(metadata.units)
+         print(metadata[0].title)
+         print(metadata[0].frequency)
+         print(metadata[0].units)
 
       Get structured metadata using :class:`fedfred.objects.Series`.
 
@@ -115,13 +115,13 @@ Exploring FRED® Data
    :color: secondary
    :open:
 
-   Discover similar series using tag-based relevance search.
+   Discover related tags using text-based series search.
 
    .. code-block:: python
 
-      related_series = fred.get_series_search_related_tags("GDP")
-      for series in related_series:
-          print(f"Related Series: {series.title}")
+      related_tags = fred.get_series_search_related_tags("mortgage rate", tag_names="frb")
+      for tag in related_tags:
+         print(f"Related Tag: {tag.name}")
 
    Great for exploratory **economic research** and **model-building**.
 

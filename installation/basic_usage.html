@@ -61,7 +61,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=841abef3"></script>
+    <script src="../_static/documentation_options.js?v=b3e23499"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/design-tabs.js?v=f930bc37"></script>
@@ -691,9 +691,9 @@ Output is a <a class="reference internal" href="../glossary.html#term-DataFrame"
 <div class="sd-card-title sd-font-weight-bold docutils">
 Retrieve Series Metadata</div>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">metadata</span> <span class="o">=</span> <span class="n">fred</span><span class="o">.</span><span class="n">get_series</span><span class="p">(</span><span class="s2">&quot;GDP&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">metadata</span><span class="o">.</span><span class="n">title</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">metadata</span><span class="o">.</span><span class="n">frequency</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">metadata</span><span class="o">.</span><span class="n">units</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">metadata</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">title</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">metadata</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">frequency</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">metadata</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">units</span><span class="p">)</span>
 </pre></div>
 </div>
 <p class="sd-card-text">Get structured metadata using <a class="reference internal" href="../api/_autosummary/fedfred.objects.Series.html#fedfred.objects.Series" title="fedfred.objects.Series"><code class="xref py py-class docutils literal notranslate"><span class="pre">fedfred.objects.Series</span></code></a>.</p>
@@ -731,10 +731,10 @@ Retrieve Series Metadata</div>
 </details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3" open="open">
 <summary class="sd-summary-title sd-card-header sd-bg-secondary sd-bg-text-secondary">
 <span class="sd-summary-text">Find Related Series</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
-<p class="sd-card-text">Discover similar series using tag-based relevance search.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">related_series</span> <span class="o">=</span> <span class="n">fred</span><span class="o">.</span><span class="n">get_series_search_related_tags</span><span class="p">(</span><span class="s2">&quot;GDP&quot;</span><span class="p">)</span>
-<span class="k">for</span> <span class="n">series</span> <span class="ow">in</span> <span class="n">related_series</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Related Series: </span><span class="si">{</span><span class="n">series</span><span class="o">.</span><span class="n">title</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<p class="sd-card-text">Discover related tags using text-based series search.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">related_tags</span> <span class="o">=</span> <span class="n">fred</span><span class="o">.</span><span class="n">get_series_search_related_tags</span><span class="p">(</span><span class="s2">&quot;mortgage rate&quot;</span><span class="p">,</span> <span class="n">tag_names</span><span class="o">=</span><span class="s2">&quot;frb&quot;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">related_tags</span><span class="p">:</span>
+   <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Related Tag: </span><span class="si">{</span><span class="n">tag</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p class="sd-card-text">Great for exploratory <strong>economic research</strong> and <strong>model-building</strong>.</p>

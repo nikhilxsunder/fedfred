@@ -61,7 +61,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=841abef3"></script>
+    <script src="../_static/documentation_options.js?v=b3e23499"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/design-tabs.js?v=f930bc37"></script>
@@ -632,7 +632,7 @@ Line Plot with Matplotlib</div>
 <span class="n">data</span> <span class="o">=</span> <span class="n">fred</span><span class="o">.</span><span class="n">get_series_observations</span><span class="p">(</span><span class="s2">&quot;GDP&quot;</span><span class="p">)</span>
 
 <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="s1">&#39;b-&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">],</span> <span class="s1">&#39;b-&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;GDP Time Series&quot;</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;Date&quot;</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;Value&quot;</span><span class="p">)</span>
@@ -693,7 +693,7 @@ Correlation Heatmap (Seaborn)</div>
 
 <span class="n">fred</span> <span class="o">=</span> <span class="n">fd</span><span class="o">.</span><span class="n">FredAPI</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="s2">&quot;your_api_key_here&quot;</span><span class="p">)</span>
 <span class="n">ids</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;GDP&quot;</span><span class="p">,</span> <span class="s2">&quot;UNRATE&quot;</span><span class="p">,</span> <span class="s2">&quot;CPIAUCSL&quot;</span><span class="p">]</span>
-<span class="n">dfs</span> <span class="o">=</span> <span class="p">[</span><span class="n">fred</span><span class="o">.</span><span class="n">get_series_observations</span><span class="p">(</span><span class="n">sid</span><span class="p">)</span> <span class="k">for</span> <span class="n">sid</span> <span class="ow">in</span> <span class="n">ids</span><span class="p">]</span>
+<span class="n">dfs</span> <span class="o">=</span> <span class="p">[</span><span class="n">fred</span><span class="o">.</span><span class="n">get_series_observations</span><span class="p">(</span><span class="n">sid</span><span class="p">)[[</span><span class="s1">&#39;value&#39;</span><span class="p">]]</span> <span class="k">for</span> <span class="n">sid</span> <span class="ow">in</span> <span class="n">ids</span><span class="p">]</span>
 
 <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">dfs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 <span class="n">df</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="n">ids</span>
@@ -722,11 +722,12 @@ Geographic Visualization (GeoPandas)</div>
 <span class="n">fred_maps</span> <span class="o">=</span> <span class="n">fd</span><span class="o">.</span><span class="n">FredAPI</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="s2">&quot;your_api_key_here&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">Maps</span>
 
 <span class="n">gdf</span> <span class="o">=</span> <span class="n">fred_maps</span><span class="o">.</span><span class="n">get_regional_data</span><span class="p">(</span>
-    <span class="n">series_group</span><span class="o">=</span><span class="s2">&quot;unemployment&quot;</span><span class="p">,</span>
+    <span class="n">series_group</span><span class="o">=</span><span class="s2">&quot;882&quot;</span><span class="p">,</span>
     <span class="n">region_type</span><span class="o">=</span><span class="s2">&quot;state&quot;</span><span class="p">,</span>
-    <span class="n">date</span><span class="o">=</span><span class="s2">&quot;2023-01-01&quot;</span><span class="p">,</span>
-    <span class="n">season</span><span class="o">=</span><span class="s2">&quot;nsa&quot;</span><span class="p">,</span>
-    <span class="n">units</span><span class="o">=</span><span class="s2">&quot;percent&quot;</span>
+    <span class="n">date</span><span class="o">=</span><span class="s2">&quot;2013-01-01&quot;</span><span class="p">,</span>
+    <span class="n">season</span><span class="o">=</span><span class="s2">&quot;NSA&quot;</span><span class="p">,</span>
+    <span class="n">units</span><span class="o">=</span><span class="s2">&quot;Dollars&quot;</span><span class="p">,</span>
+    <span class="n">frequency</span><span class="o">=</span><span class="s2">&quot;a&quot;</span>
 <span class="p">)</span>
 
 <span class="n">gdf</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
@@ -737,7 +738,7 @@ Geographic Visualization (GeoPandas)</div>
     <span class="n">edgecolor</span><span class="o">=</span><span class="s2">&quot;black&quot;</span>
 <span class="p">)</span>
 
-<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;Unemployment Rates by State (January 2023)&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;2013 Per Capita Personal Income by State (Dollars)&quot;</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>

@@ -3,7 +3,7 @@
 Advanced Usage Examples
 =======================
 
-FedFred enables **high-performance**, **resilient** FRED® data pipelines.  
+FedFred enables **high-performance**, **resilient** FRED® data pipelines.
 This page covers **caching**, **rate limiting**, **async concurrent requests**, **geo-data access**, **custom queries**, and **error handling**.
 
 ---
@@ -133,11 +133,12 @@ FedFred supports **GeoPandas**, **Polars-ST**, and **Dask-GeoPandas** for geogra
              fred_maps = fd.FredAPI(api_key="your_api_key_here").Maps
 
              unemployment_by_state = fred_maps.get_regional_data(
-                 series_group="unemployment",
+                 series_group="882",
                  region_type="state",
-                 date="2023-01-01",
-                 season="nsa",
-                 units="percent",
+                 date="2013-01-01",
+                 season="NSA",
+                 units="Dollars",
+                 frequency="a",
                  geodataframe_method="geopandas"  # Default
              )
 
@@ -152,11 +153,12 @@ FedFred supports **GeoPandas**, **Polars-ST**, and **Dask-GeoPandas** for geogra
              fred_maps = fd.FredAPI(api_key="your_api_key_here").Maps
 
              unemployment_by_state = fred_maps.get_regional_data(
-                 series_group="unemployment",
+                 series_group="882",
                  region_type="state",
-                 date="2023-01-01",
-                 season="nsa",
-                 units="percent",
+                 date="2013-01-01",
+                 season="NSA",
+                 units="Dollars",
+                 frequency="a",
                  geodataframe_method="polars"  # Use Polars-ST
              )
 
@@ -171,11 +173,12 @@ FedFred supports **GeoPandas**, **Polars-ST**, and **Dask-GeoPandas** for geogra
              fred_maps = fd.FredAPI(api_key="your_api_key_here").Maps
 
              unemployment_by_state = fred_maps.get_regional_data(
-                 series_group="unemployment",
+                 series_group="882",
                  region_type="state",
-                 date="2023-01-01",
-                 season="nsa",
-                 units="percent",
+                 date="2013-01-01",
+                 season="NSA",
+                 units="Dollars",
+                 frequency="a",
                  geodataframe_method="dask"  # Use Dask-GeoPandas
              )
 
@@ -244,17 +247,18 @@ Error Handling and Validation
     .. code-block:: python
 
         import fedfred as fd
+        from tenacity import RetryError
 
         fred = fd.FredAPI(api_key="your_api_key_here")
 
         try:
             data = fred.get_series_observations("INVALID_SERIES_ID")
-        except ValueError as e:
+        except RetryError as e:
             print(f"Error: {e}")
 
         try:
             data = fred.get_series_observations(series_id="GDPC1", observation_start="invalid_date")
-        except ValueError as e:
+        except RetryError as e:
             print(f"Error: {e}")
 
 FedFred **validates parameters** and **raises descriptive errors** to help debug mistakes quickly.
