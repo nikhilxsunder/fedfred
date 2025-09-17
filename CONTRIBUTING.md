@@ -47,12 +47,10 @@ Before opening a new issue:
 Before major releases, all code undergoes static analysis using multiple tools:
 
 - **pylint**: General code quality and adherence to PEP 8
-
   - Configured with strict settings (9.0+ score required)
   - `poetry run pylint src/fedfred/`
 
 - **mypy**: Static type checking
-
   - Configured with strict type checking rules
   - `poetry run mypy src/fedfred/`
 
@@ -73,23 +71,19 @@ All identified issues must be addressed before release, either by fixing the cod
 Follow these steps when contributing code:
 
 1. **Fork the Repository**
-
    - Create your own fork of the repository on GitHub
    - Clone your fork locally
 
 2. **Create a Branch**
-
    - Create a new branch from `main` with a descriptive name
    - Use a prefix like `feature/`, `fix/`, or `docs/` (e.g., `feature/add-logging`)
 
 3. **Make Your Changes**
-
    - Follow the coding standards outlined below
    - Write clear commit messages explaining your changes
    - Keep commits focused and logical
 
 4. **Sign Your Commits**
-
    - All commits must be signed off to certify that you have the legal right to contribute the code.
    - Use the -s flag when making a commit:
      ```bash
@@ -208,7 +202,7 @@ Good documentation is essential:
 
 ### License
 
-- By contributing to FedFred, you agree that your contributions will be licensed under the same license as the project (GNU Affero General Public License v3.0).
+- By contributing to FedFred, you agree that your contributions will be licensed under the same license as the project (MIT License).
 
 ### Contact
 
@@ -236,7 +230,6 @@ This project adheres to our [CODE_OF_CONDUCT](https://github.com/nikhilxsunder/f
 To set up your development environment:
 
 1. **Prerequisites**
-
    - Python 3.9+
    - Poetry (for dependency management)
    - Git
@@ -286,13 +279,11 @@ To set up your development environment:
 ### Pull Request Process
 
 1. **Submission**
-
    - Create a PR against the `main` branch
    - Fill out the PR template completely
    - Link any related issues
 
 2. **Review Process**
-
    - At least one maintainer will review your PR
    - Expect initial feedback within 1-2 weeks
    - Address any requested changes and push updates

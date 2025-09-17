@@ -22,7 +22,7 @@
 
 ## Current Vulnerability Status
 
-As of August 2025, there are no unpatched vulnerabilities of medium or higher severity that have been publicly known for more than 60 days in the FedFred codebase.
+As of September 2025, there are no unpatched vulnerabilities of medium or higher severity that have been publicly known for more than 60 days in the FedFred codebase.
 
 We monitor for vulnerabilities through:
 
@@ -82,22 +82,18 @@ As an API client library, FedFred's primary developer is knowledgeable about the
 ### API Client-Specific Vulnerabilities
 
 1. **Insecure API Key Handling**
-
    - **Vulnerability**: Hardcoded API keys, keys in source code, or improper storage
    - **Mitigation**: FedFred never stores API keys, recommends environment variables, and provides clear documentation on secure key management
 
 2. **Injection in API Parameters**
-
    - **Vulnerability**: Unvalidated user inputs passed directly to API calls
    - **Mitigation**: All parameters are validated against allowlists before being sent to the API
 
 3. **Certificate Verification Bypass**
-
    - **Vulnerability**: Disabling SSL/TLS verification to make HTTPS requests work
    - **Mitigation**: FedFred always enforces certificate verification in all HTTP clients
 
 4. **Insecure Deserialization**
-
    - **Vulnerability**: Unsafe parsing of API responses
    - **Mitigation**: Strict type validation of all API responses before further processing
 
@@ -108,22 +104,18 @@ As an API client library, FedFred's primary developer is knowledgeable about the
 ### General Python Vulnerabilities
 
 1. **Dependency-Chain Vulnerabilities**
-
    - **Vulnerability**: Security issues in dependencies
    - **Mitigation**: Regular dependency scanning with Dependabot, minimal dependency philosophy
 
 2. **XML External Entity (XXE) Processing**
-
    - **Vulnerability**: When parsing XML from API responses
    - **Mitigation**: Disabling external entity processing in XML parsers
 
 3. **Path Traversal in File Operations**
-
    - **Vulnerability**: For cached data storage
    - **Mitigation**: Strict validation of file paths and names
 
 4. **Regular Expression Denial of Service (ReDoS)**
-
    - **Vulnerability**: Unsafe regular expressions for input validation
    - **Mitigation**: Careful design of regular expressions, usage of timeout mechanisms
 
