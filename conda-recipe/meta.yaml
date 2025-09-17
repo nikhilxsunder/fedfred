@@ -1,9 +1,9 @@
 package:
   name: fedfred
-  version: 2.1.3
+  version: 2.1.4
 
 source:
-  url: "https://pypi.io/packages/source/f/fedfred/fedfred-2.1.3.tar.gz"
+  url: "https://pypi.io/packages/source/f/fedfred/fedfred-2.1.4.tar.gz"
   sha256: "df2156a15971186d01ade494919eaa4e898a55a865ecd34bdac3e6adedc24578"
 
 build:
@@ -41,8 +41,8 @@ about:
   home: "https://github.com/nikhilxsunder/fedfred"
   doc_url: "https://nikhilxsunder.github.io/fedfred"
   dev_url: "https://github.com/nikhilxsunder/fedfred"
-  license: AGPL-3.0-or-later
-  license_family: AGPL
+  license: MIT
+  license_family: MIT
   license_file: LICENSE
   summary: "A feature-rich python package for interacting with the Federal Reserve Bank of St. Louis Economic Database (FRED)"
   description: |

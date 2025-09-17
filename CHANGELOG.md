@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.4] - 2025-09-17
+
+### Changed
+
+- Switched license from AGPL 3.0 to MIT License
+
 ## [2.1.3] - 2025-08-19 (RE-PUBLISHED 2.1.2)
 
 ## [2.1.2] - 2025-08-19 (PUBLISHING ERROR)
@@ -513,7 +519,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - initial directory structure
 - setuptools for build backend
 
-[Unreleased]: https://github.com/nikhilxsunder/fedfred/compare/v2.1.3...HEAD
+[Unreleased]: https://github.com/nikhilxsunder/fedfred/compare/v2.1.4...HEAD
+[2.1.4]: https://github.com/nikhilxsunder/fedfred/compare/v2.1.3...v2.1.4
 [2.1.3]: https://github.com/nikhilxsunder/fedfred/compare/v2.1.2...v2.1.3
 [2.1.2]: https://github.com/nikhilxsunder/fedfred/compare/v2.1.1...v2.1.2
 [2.1.1]: https://github.com/nikhilxsunder/fedfred/compare/v2.1.0...v2.1.1
