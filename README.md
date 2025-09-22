@@ -190,8 +190,8 @@ If you use fedfred in your research, projects, or publications, please cite it a
 **Plain Text**:
 
 ```
-Sunder, Nikhil. (2025). fedfred: A Python client for the Federal Reserve Economic Data (FRED) API. 
-Version 2.1.1. Available at: https://github.com/nikhilxsunder/fedfred
+Sunder, Nikhil. (2025). fedfred: A Python client for the Federal Reserve Economic Database (FRED) API. 
+Version 2.1.4. Available at: https://github.com/nikhilxsunder/fedfred
 ```
 
 **BibTeX**:
