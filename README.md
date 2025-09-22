@@ -183,6 +183,32 @@ For information about reporting security vulnerabilities in FedFred, please see 
 
 Contributions are welcome! Please open an issue or submit a pull request.
 
+### Citation
+
+If you use fedfred in your research, projects, or publications, please cite it as follows:
+
+**Plain Text**:
+
+```
+Sunder, Nikhil. (2025). fedfred: A Python client for the Federal Reserve Economic Data (FRED) API. 
+Version 2.1.1. Available at: https://github.com/nikhilxsunder/fedfred
+```
+
+**BibTeX**:
+
+```bibtex
+@software{fedfred,
+  author       = {Nikhil Sunder},
+  title        = {fedfred: A Python client for the Federal Reserve Economic Database (FRED) API},
+  year         = {2025},
+  publisher    = {GitHub},
+  version      = {2.1.4},
+  url          = {https://github.com/nikhilxsunder/fedfred}
+}
+```
+
+You can also download a ready-made citation file from the GitHub repository
+
 ### License
 
 This project is licensed under the MIT License - see the [LICENSE](https://github.com/nikhilxsunder/fedfred/blob/main/LICENSE) file for details.
