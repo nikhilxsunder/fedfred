@@ -180,7 +180,7 @@ For maximum security with conda packages:
 
 For maximum security, you can also verify our release signatures:
 
-1. Download our public GPG key: [\[LINK_TO_GPG_KEY\]](https://raw.githubusercontent.com/nikhilxsunder/fedfred/main/fedfred_public_key.asc)
+1. Download our public GPG key: [Here](https://raw.githubusercontent.com/nikhilxsunder/fedfred/main/fedfred_public_key.asc)
 2. Import the key: `gpg --import fedfred_public_key.asc`
 3. Verify the release: `gpg --verify fedfred-2.1.1.tar.gz.asc fedfred-2.1.1.tar.gz`
 
