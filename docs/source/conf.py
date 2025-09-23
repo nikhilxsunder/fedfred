@@ -13,7 +13,7 @@ import sys
 project = 'fedfred'
 copyright = '2025, Nikhil Sunder'
 author = 'Nikhil Sunder'
-release = '2.1.4'
+release = '2.1.5'
 
 # -- General configuration ---------------------------------------------------
 extensions = [

@@ -190,8 +190,8 @@ If you use fedfred in your research, projects, or publications, please cite it a
 **Plain Text**:
 
 ```
-Sunder, Nikhil. (2025). fedfred: A Python client for the Federal Reserve Economic Database (FRED) API. 
-Version 2.1.4. Available at: https://github.com/nikhilxsunder/fedfred
+Sunder, Nikhil. (2025). fedfred: A Python client for the Federal Reserve Economic Database (FRED) API.
+Version 2.1.5. Available at: https://github.com/nikhilxsunder/fedfred
 ```
 
 **BibTeX**:
@@ -202,8 +202,10 @@ Version 2.1.4. Available at: https://github.com/nikhilxsunder/fedfred
   title        = {fedfred: A Python client for the Federal Reserve Economic Database (FRED) API},
   year         = {2025},
   publisher    = {GitHub},
-  version      = {2.1.4},
-  url          = {https://github.com/nikhilxsunder/fedfred}
+  version      = {2.1.5},
+  doi          = {},
+  url          = {https://github.com/nikhilxsunder/fedfred},
+  orcid        = {https://orcid.org/0009-0007-3323-1760}
 }
 ```
 

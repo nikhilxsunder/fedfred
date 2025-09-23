@@ -1,8 +1,8 @@
 cff-version: 1.2.0
 message: "If you use fedfred in your research, please cite it as below."
 title: "fedfred: A Python client for the Federal Reserve Economic Database (FRED) API"
-version: "2.1.4"
-date-released: 2025-09-17
+version: "2.1.5"
+date-released: 2025-09-22
 doi: ""
 url: "https://github.com/nikhilxsunder/fedfred"
 authors:
@@ -17,6 +17,6 @@ preferred-citation:
     - family-names: "Sunder"
       given-names: "Nikhil"
   title: "fedfred: A Python client for the Federal Reserve Economic Database (FRED) API"
-  version: "2.1.4"
+  version: "2.1.5"
   year: 2025
   url: "https://github.com/nikhilxsunder/fedfred"
