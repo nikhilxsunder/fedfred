@@ -13,7 +13,7 @@ authors:
     orcid: "https://orcid.org/0009-0007-3323-1760"
 preferred-citation:
   type: software
-  title: "fedfred: A Python client for the Federal Reserve Economic Data (FRED) API"
+  title: "fedfred: A Python client for the Federal Reserve Economic Database (FRED) API"
   version: "2.1.5"
   year: 2025
   doi: "10.5281/zenodo.17180397"
