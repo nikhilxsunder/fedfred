@@ -19,6 +19,7 @@
     <a href="https://pepy.tech/projects/fedfred"><img src="https://static.pepy.tech/badge/fedfred" alt="PyPI Downloads"></a>
     <a href="https://anaconda.org/conda-forge/fedfred"><img src="https://anaconda.org/conda-forge/fedfred/badges/version.svg" alt="Conda-Forge version"></a>
     <a href="https://anaconda.org/conda-forge/fedfred"><img src="https://anaconda.org/conda-forge/fedfred/badges/downloads.svg" alt="Conda-Forge downloads"></a>
+    <a href="https://doi.org/10.5281/zenodo.17180397"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.17180397.svg" alt="DOI"></a>
 </div>
 
 ### Features
@@ -203,7 +204,7 @@ Version 2.1.5. Available at: https://github.com/nikhilxsunder/fedfred
   year         = {2025},
   publisher    = {GitHub},
   version      = {2.1.5},
-  doi          = {},
+  doi          = {10.5281/zenodo.17180397},
   url          = {https://github.com/nikhilxsunder/fedfred},
   orcid        = {https://orcid.org/0009-0007-3323-1760}
 }
