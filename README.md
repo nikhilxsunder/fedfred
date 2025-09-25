@@ -13,7 +13,7 @@
     <a href="https://github.com/nikhilxsunder/fedfred/actions/workflows/codeql.yml"><img src="https://github.com/nikhilxsunder/fedfred/actions/workflows/codeql.yml/badge.svg" alt="CodeQL"></a>
     <a href="https://www.bestpractices.dev/projects/10158"><img src="https://www.bestpractices.dev/projects/10158/badge"></a>
     <a href="https://codecov.io/gh/nikhilxsunder/fedfred"><img src="https://codecov.io/gh/nikhilxsunder/fedfred/graph/badge.svg?token=VVEK415DF6" alt="Code Coverage"></a>
-    <a href="https://socket.dev/pypi/package/fedfred/overview/2.1.1/tar-gz"><img src="https://socket.dev/api/badge/pypi/package/fedfred/2.1.1?artifact_id=tar-gz"></a>
+    <a href="https://socket.dev/pypi/package/fedfred/overview/2.1.5/tar-gz"><img src="https://socket.dev/api/badge/pypi/package/fedfred/2.1.5?artifact_id=tar-gz"></a>
     <a href="https://repology.org/project/python%3Afedfred/versions"><img src="https://repology.org/badge/tiny-repos/python%3Afedfred.svg" alt="Packaging status"></a>
     <a href="https://pypi.org/project/fedfred/"><img src="https://img.shields.io/pypi/v/fedfred.svg" alt="PyPI version"></a>
     <a href="https://pepy.tech/projects/fedfred"><img src="https://static.pepy.tech/badge/fedfred" alt="PyPI Downloads"></a>
