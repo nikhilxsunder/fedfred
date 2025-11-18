@@ -13,13 +13,13 @@
     <a href="https://github.com/nikhilxsunder/fedfred/actions/workflows/codeql.yml"><img src="https://github.com/nikhilxsunder/fedfred/actions/workflows/codeql.yml/badge.svg" alt="CodeQL"></a>
     <a href="https://www.bestpractices.dev/projects/10158"><img src="https://www.bestpractices.dev/projects/10158/badge"></a>
     <a href="https://codecov.io/gh/nikhilxsunder/fedfred"><img src="https://codecov.io/gh/nikhilxsunder/fedfred/graph/badge.svg?token=VVEK415DF6" alt="Code Coverage"></a>
-    <a href="https://socket.dev/pypi/package/fedfred/overview/2.1.5/tar-gz"><img src="https://socket.dev/api/badge/pypi/package/fedfred/2.1.5?artifact_id=tar-gz"></a>
+    <a href="https://socket.dev/pypi/package/fedfred/overview/3.0.0/tar-gz"><img src="https://socket.dev/api/badge/pypi/package/fedfred/3.0.0?artifact_id=tar-gz"></a>
     <a href="https://repology.org/project/python%3Afedfred/versions"><img src="https://repology.org/badge/tiny-repos/python%3Afedfred.svg" alt="Packaging status"></a>
     <a href="https://pypi.org/project/fedfred/"><img src="https://img.shields.io/pypi/v/fedfred.svg" alt="PyPI version"></a>
     <a href="https://pepy.tech/projects/fedfred"><img src="https://static.pepy.tech/badge/fedfred" alt="PyPI Downloads"></a>
     <a href="https://anaconda.org/conda-forge/fedfred"><img src="https://anaconda.org/conda-forge/fedfred/badges/version.svg" alt="Conda-Forge version"></a>
     <a href="https://anaconda.org/conda-forge/fedfred"><img src="https://anaconda.org/conda-forge/fedfred/badges/downloads.svg" alt="Conda-Forge downloads"></a>
-    <a href="https://doi.org/10.5281/zenodo.17180397"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.17180397.svg" alt="DOI"></a>
+    <a href="https://doi.org/10.5281/zenodo.17635942"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.17635942.svg" alt="DOI"></a>
 </div>
 
 ### Features
