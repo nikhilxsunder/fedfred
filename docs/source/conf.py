@@ -113,7 +113,7 @@ html_theme_options = {
         <div class="sidebar-message">
             Version 3 is now available!
             Please check the
-            <a href="resources/notes.html" target="_self">
+            <a href="https://nikhilxsunder.github.io/fedfred/resources/notes.html" target="_self">
                 special notes page
             </a>
             for more information.
