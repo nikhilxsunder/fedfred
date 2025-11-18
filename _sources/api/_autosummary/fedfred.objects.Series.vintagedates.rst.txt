@@ -1,0 +1,4 @@
+vintagedates
+============
+
+.. autoattribute:: fedfred.objects.Series.vintagedates

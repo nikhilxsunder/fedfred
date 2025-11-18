@@ -1,0 +1,4 @@
+dates
+=====
+
+.. autoattribute:: fedfred.objects.Release.dates

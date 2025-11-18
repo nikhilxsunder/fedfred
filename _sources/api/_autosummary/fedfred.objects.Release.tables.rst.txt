@@ -1,0 +1,4 @@
+tables
+======
+
+.. autoattribute:: fedfred.objects.Release.tables

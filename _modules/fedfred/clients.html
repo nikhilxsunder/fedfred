@@ -48,7 +48,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../../_static/documentation_options.js?v=786ba454"></script>
+    <script src="../../_static/documentation_options.js?v=acc74ff5"></script>
     <script src="../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/design-tabs.js?v=f930bc37"></script>
@@ -101,7 +101,7 @@
 <aside class="bd-header-announcement" aria-label="Announcement">
   <div class="bd-header-announcement__content">
         <div class="sidebar-message">
-            Version 2 is now available!
+            Version 3 is now available!
             Please check the
             <a href="resources/notes.html" target="_self">
                 special notes page
@@ -595,9 +595,10 @@
 <span class="c1"># OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
 <span class="c1"># SOFTWARE.</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">fedfred: A feature-rich python package for interacting with the Federal Reserve Bank of St. Louis Economic Database: FRED® API.</span>
+<span class="sd">This module defines base clients for the fedfred package</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
@@ -609,7 +610,8 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">tenacity</span><span class="w"> </span><span class="kn">import</span> <span class="n">retry</span><span class="p">,</span> <span class="n">wait_fixed</span><span class="p">,</span> <span class="n">stop_after_attempt</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cachetools</span><span class="w"> </span><span class="kn">import</span> <span class="n">FIFOCache</span><span class="p">,</span> <span class="n">cached</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">asyncache</span><span class="w"> </span><span class="kn">import</span> <span class="n">cached</span> <span class="k">as</span> <span class="n">async_cached</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">fedfred.__about__</span><span class="w"> </span><span class="kn">import</span> <span class="n">__title__</span><span class="p">,</span> <span class="n">__version__</span><span class="p">,</span> <span class="n">__author__</span><span class="p">,</span> <span class="n">__license__</span><span class="p">,</span> <span class="n">__copyright__</span><span class="p">,</span> <span class="n">__description__</span><span class="p">,</span> <span class="n">__url__</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.__about__</span><span class="w"> </span><span class="kn">import</span> <span class="n">__title__</span><span class="p">,</span> <span class="n">__version__</span><span class="p">,</span> <span class="n">__author__</span><span class="p">,</span> <span class="n">__email__</span><span class="p">,</span> <span class="n">__license__</span><span class="p">,</span> <span class="n">__copyright__</span><span class="p">,</span> <span class="n">__description__</span><span class="p">,</span> <span class="n">__docs__</span><span class="p">,</span> <span class="n">__repository__</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">resolve_api_key</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.helpers</span><span class="w"> </span><span class="kn">import</span> <span class="n">FredHelpers</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.objects</span><span class="w"> </span><span class="kn">import</span> <span class="n">Category</span><span class="p">,</span> <span class="n">Series</span><span class="p">,</span> <span class="n">Tag</span><span class="p">,</span> <span class="n">Release</span><span class="p">,</span> <span class="n">ReleaseDate</span><span class="p">,</span> <span class="n">Source</span><span class="p">,</span> <span class="n">Element</span><span class="p">,</span> <span class="n">VintageDate</span><span class="p">,</span> <span class="n">SeriesGroup</span>
 <span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
@@ -628,12 +630,12 @@
     <span class="c1"># Dunder Methods</span>
 <div class="viewcode-block" id="FredAPI.__init__">
 <a class="viewcode-back" href="../../api/_autosummary/fedfred.FredAPI.__init__.html#fedfred.FredAPI.__init__">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">api_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">cache_mode</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">cache_size</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">256</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">api_key</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cache_mode</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">cache_size</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">256</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initialize the FredAPI class that provides functions which query FRED data.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            api_key (str): Your FRED API key.</span>
+<span class="sd">            api_key (Optional[str]): Your FRED API key.</span>
 <span class="sd">            cache_mode (bool, optional): Whether to enable caching for API responses. Defaults to False.</span>
 <span class="sd">            cache_size (int, optional): The maximum number of items to store in the cache if caching is enabled. Defaults to 256.</span>
 
@@ -641,14 +643,20 @@
 <span class="sd">            FredAPI: An instance of the FredAPI class.</span>
 
 <span class="sd">        Raises:</span>
-<span class="sd">            ValueError: If the API key is not provided.</span>
+<span class="sd">            RuntimeError: If no API key can be resolved from the explicit argument,</span>
+<span class="sd">                global setting, or environment variable.</span>
 
 <span class="sd">        Example:</span>
 <span class="sd">            &gt;&gt;&gt; import fedfred as fd</span>
-<span class="sd">            &gt;&gt;&gt; fred = fd.FredAPI(&#39;your_api_key&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; fd.set_api_key(&quot;your_api_key&quot;)  # optional global</span>
+<span class="sd">            &gt;&gt;&gt; fred = fd.FredAPI()             # uses global/env key</span>
+
+<span class="sd">            Or explicitly:</span>
+
+<span class="sd">            &gt;&gt;&gt; fred = fd.FredAPI(api_key=&quot;your_api_key&quot;)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;https://api.stlouisfed.org/fred&#39;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">api_key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">api_key</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">api_key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">resolve_api_key</span><span class="p">(</span><span class="n">api_key</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cache_mode</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">cache_mode</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cache_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">cache_size</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cache</span><span class="p">:</span> <span class="n">FIFOCache</span> <span class="o">=</span> <span class="n">FIFOCache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="n">cache_size</span><span class="p">)</span>
@@ -787,7 +795,6 @@
             <span class="sa">f</span><span class="s2">&quot;  API Key: </span><span class="si">{</span><span class="s1">&#39;****&#39;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="bp">self</span><span class="o">.</span><span class="n">api_key</span><span class="p">[</span><span class="o">-</span><span class="mi">4</span><span class="p">:]</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="bp">self</span><span class="o">.</span><span class="n">api_key</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">&#39;Not Set&#39;</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
         <span class="p">)</span>
     <span class="c1"># Private Methods</span>
-    <span class="nd">@retry</span><span class="p">(</span><span class="n">wait</span><span class="o">=</span><span class="n">wait_fixed</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">stop</span><span class="o">=</span><span class="n">stop_after_attempt</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">__rate_limited</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Ensures synchronous requests comply with rate limits.</span>
@@ -870,7 +877,10 @@
             <span class="s1">&#39;category_id&#39;</span><span class="p">:</span> <span class="n">category_id</span><span class="p">,</span>
         <span class="p">}</span>
         <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__fred_get_request</span><span class="p">(</span><span class="n">url_endpoint</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">Category</span><span class="o">.</span><span class="n">to_object</span><span class="p">(</span><span class="n">response</span><span class="p">)</span></div>
+        <span class="n">categories</span> <span class="o">=</span> <span class="n">Category</span><span class="o">.</span><span class="n">to_object</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">category</span> <span class="ow">in</span> <span class="n">categories</span><span class="p">:</span>
+            <span class="n">category</span><span class="o">.</span><span class="n">client</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="k">return</span> <span class="n">categories</span></div>
 
 <div class="viewcode-block" id="FredAPI.get_category_children">
 <a class="viewcode-back" href="../../api/_autosummary/fedfred.FredAPI.get_category_children.html#fedfred.FredAPI.get_category_children">[docs]</a>
@@ -900,7 +910,7 @@
 <span class="sd">            &#39;Exports&#39;</span>
 <span class="sd">            &#39;Imports&#39;</span>
 <span class="sd">            &#39;Income Payments &amp; Receipts&#39;</span>
-<span class="sd">            &#39;U.S. International Finance</span>
+<span class="sd">            &#39;U.S. International Finance&#39;</span>
 
 <span class="sd">        FRED API Documentation:</span>
 <span class="sd">            https://fred.stlouisfed.org/docs/api/fred/category_children.html</span>
@@ -918,7 +928,10 @@
                 <span class="n">realtime_end</span> <span class="o">=</span> <span class="n">FredHelpers</span><span class="o">.</span><span class="n">datetime_conversion</span><span class="p">(</span><span class="n">realtime_end</span><span class="p">)</span>
             <span class="n">data</span><span class="p">[</span><span class="s1">&#39;realtime_end&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">realtime_end</span>
         <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__fred_get_request</span><span class="p">(</span><span class="n">url_endpoint</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">Category</span><span class="o">.</span><span class="n">to_object</span><span class="p">(</span><span class="n">response</span><span class="p">)</span></div>
+        <span class="n">categories</span> <span class="o">=</span> <span class="n">Category</span><span class="o">.</span><span class="n">to_object</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">category</span> <span class="ow">in</span> <span class="n">categories</span><span class="p">:</span>
+            <span class="n">category</span><span class="o">.</span><span class="n">client</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="k">return</span> <span class="n">categories</span></div>
 
 <div class="viewcode-block" id="FredAPI.get_category_related">
 <a class="viewcode-back" href="../../api/_autosummary/fedfred.FredAPI.get_category_related.html#fedfred.FredAPI.get_category_related">[docs]</a>
@@ -969,7 +982,10 @@
                 <span class="n">realtime_end</span> <span class="o">=</span> <span class="n">FredHelpers</span><span class="o">.</span><span class="n">datetime_conversion</span><span class="p">(</span><span class="n">realtime_end</span><span class="p">)</span>
             <span class="n">data</span><span class="p">[</span><span class="s1">&#39;realtime_end&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">realtime_end</span>
         <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__fred_get_request</span><span class="p">(</span><span class="n">url_endpoint</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">Category</span><span class="o">.</span><span class="n">to_object</span><span class="p">(</span><span class="n">response</span><span class="p">)</span></div>
+        <span class="n">categories</span> <span class="o">=</span> <span class="n">Category</span><span class="o">.</span><span class="n">to_object</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">category</span> <span class="ow">in</span> <span class="n">categories</span><span class="p">:</span>
+            <span class="n">category</span><span class="o">.</span><span class="n">client</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="k">return</span> <span class="n">categories</span></div>
 
 <div class="viewcode-block" id="FredAPI.get_category_series">
 <a class="viewcode-back" href="../../api/_autosummary/fedfred.FredAPI.get_category_series.html#fedfred.FredAPI.get_category_series">[docs]</a>
@@ -1050,7 +1066,10 @@
                 <span class="n">exclude_tag_names</span> <span class="o">=</span> <span class="n">FredHelpers</span><span class="o">.</span><span class="n">liststring_conversion</span><span class="p">(</span><span class="n">exclude_tag_names</span><span class="p">)</span>
             <span class="n">data</span><span class="p">[</span><span class="s1">&#39;exclude_tag_names&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">exclude_tag_names</span>
         <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__fred_get_request</span><span class="p">(</span><span class="n">url_endpoint</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">Series</span><span class="o">.</span><span class="n">to_object</span><span class="p">(</span><span class="n">response</span><span class="p">)</span></div>
+        <span class="n">seriess</span> <span class="o">=</span> <span class="n">Series</span><span class="o">.</span><span class="n">to_object</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">series</span> <span class="ow">in</span> <span class="n">seriess</span><span class="p">:</span>
+            <span class="n">series</span><span class="o">.</span><span class="n">client</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="k">return</span> <span class="n">seriess</span></div>
 
 <div class="viewcode-block" id="FredAPI.get_category_tags">
 <a class="viewcode-back" href="../../api/_autosummary/fedfred.FredAPI.get_category_tags.html#fedfred.FredAPI.get_category_tags">[docs]</a>
@@ -1123,7 +1142,10 @@
         <span class="k">if</span> <span class="n">sort_order</span><span class="p">:</span>
             <span class="n">data</span><span class="p">[</span><span class="s1">&#39;sort_order&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sort_order</span>
         <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__fred_get_request</span><span class="p">(</span><span class="n">url_endpoint</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">Tag</span><span class="o">.</span><span class="n">to_object</span><span class="p">(</span><span class="n">response</span><span class="p">)</span></div>
+        <span class="n">tags</span> <span class="o">=</span> <span class="n">Tag</span><span class="o">.</span><span class="n">to_object</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">tags</span><span class="p">:</span>
+            <span class="n">tag</span><span class="o">.</span><span class="n">client</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="k">return</span> <span class="n">tags</span></div>
 
 <div class="viewcode-block" id="FredAPI.get_category_related_tags">
 <a class="viewcode-back" href="../../api/_autosummary/fedfred.FredAPI.get_category_related_tags.html#fedfred.FredAPI.get_category_related_tags">[docs]</a>
@@ -1203,7 +1225,10 @@
         <span class="k">if</span> <span class="n">sort_order</span><span class="p">:</span>
             <span class="n">data</span><span class="p">[</span><span class="s1">&#39;sort_order&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sort_order</span>
         <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__fred_get_request</span><span class="p">(</span><span class="n">url_endpoint</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">Tag</span><span class="o">.</span><span class="n">to_object</span><span class="p">(</span><span class="n">response</span><span class="p">)</span></div>
+        <span class="n">tags</span> <span class="o">=</span> <span class="n">Tag</span><span class="o">.</span><span class="n">to_object</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">tags</span><span class="p">:</span>
+            <span class="n">tag</span><span class="o">.</span><span class="n">client</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="k">return</span> <span class="n">tags</span></div>
 
     <span class="c1">## Releases</span>
 <div class="viewcode-block" id="FredAPI.get_releases">
@@ -1261,7 +1286,10 @@
         <span class="k">if</span> <span class="n">sort_order</span><span class="p">:</span>
             <span class="n">data</span><span class="p">[</span><span class="s1">&#39;sort_order&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sort_order</span>
         <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__fred_get_request</span><span class="p">(</span><span class="n">url_endpoint</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">Release</span><span class="o">.</span><span class="n">to_object</span><span class="p">(</span><span class="n">response</span><span class="p">)</span></div>
+        <span class="n">releases</span> <span class="o">=</span> <span class="n">Release</span><span class="o">.</span><span class="n">to_object</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">release</span> <span class="ow">in</span> <span class="n">releases</span><span class="p">:</span>
+            <span class="n">release</span><span class="o">.</span><span class="n">client</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="k">return</span> <span class="n">releases</span></div>
 
 <div class="viewcode-block" id="FredAPI.get_releases_dates">
 <a class="viewcode-back" href="../../api/_autosummary/fedfred.FredAPI.get_releases_dates.html#fedfred.FredAPI.get_releases_dates">[docs]</a>
@@ -1367,7 +1395,10 @@
                 <span class="n">realtime_end</span> <span class="o">=</span> <span class="n">FredHelpers</span><span class="o">.</span><span class="n">datetime_conversion</span><span class="p">(</span><span class="n">realtime_end</span><span class="p">)</span>
             <span class="n">data</span><span class="p">[</span><span class="s1">&#39;realtime_end&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">realtime_end</span>
         <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__fred_get_request</span><span class="p">(</span><span class="n">url_endpoint</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">Release</span><span class="o">.</span><span class="n">to_object</span><span class="p">(</span><span class="n">response</span><span class="p">)</span></div>
+        <span class="n">releases</span> <span class="o">=</span> <span class="n">Release</span><span class="o">.</span><span class="n">to_object</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">release</span> <span class="ow">in</span> <span class="n">releases</span><span class="p">:</span>
+            <span class="n">release</span><span class="o">.</span><span class="n">client</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="k">return</span> <span class="n">releases</span></div>
 
 <div class="viewcode-block" id="FredAPI.get_release_dates">
 <a class="viewcode-back" href="../../api/_autosummary/fedfred.FredAPI.get_release_dates.html#fedfred.FredAPI.get_release_dates">[docs]</a>
@@ -1500,7 +1531,10 @@
                 <span class="n">exclude_tag_names</span> <span class="o">=</span> <span class="n">FredHelpers</span><span class="o">.</span><span class="n">liststring_conversion</span><span class="p">(</span><span class="n">exclude_tag_names</span><span class="p">)</span>
             <span class="n">data</span><span class="p">[</span><span class="s1">&#39;exclude_tag_names&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">exclude_tag_names</span>
         <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__fred_get_request</span><span class="p">(</span><span class="n">url_endpoint</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">Series</span><span class="o">.</span><span class="n">to_object</span><span class="p">(</span><span class="n">response</span><span class="p">)</span></div>
+        <span class="n">seriess</span> <span class="o">=</span> <span class="n">Series</span><span class="o">.</span><span class="n">to_object</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">series</span> <span class="ow">in</span> <span class="n">seriess</span><span class="p">:</span>
+            <span class="n">series</span><span class="o">.</span><span class="n">client</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="k">return</span> <span class="n">seriess</span></div>
 
 <div class="viewcode-block" id="FredAPI.get_release_sources">
 <a class="viewcode-back" href="../../api/_autosummary/fedfred.FredAPI.get_release_sources.html#fedfred.FredAPI.get_release_sources">[docs]</a>
@@ -1546,7 +1580,10 @@
                 <span class="n">realtime_end</span> <span class="o">=</span> <span class="n">FredHelpers</span><span class="o">.</span><span class="n">datetime_conversion</span><span class="p">(</span><span class="n">realtime_end</span><span class="p">)</span>
             <span class="n">data</span><span class="p">[</span><span class="s1">&#39;realtime_end&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">realtime_end</span>
         <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__fred_get_request</span><span class="p">(</span><span class="n">url_endpoint</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">Source</span><span class="o">.</span><span class="n">to_object</span><span class="p">(</span><span class="n">response</span><span class="p">)</span></div>
+        <span class="n">sources</span> <span class="o">=</span> <span class="n">Source</span><span class="o">.</span><span class="n">to_object</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">source</span> <span class="ow">in</span> <span class="n">sources</span><span class="p">:</span>
+            <span class="n">source</span><span class="o">.</span><span class="n">client</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="k">return</span> <span class="n">sources</span></div>
 
 <div class="viewcode-block" id="FredAPI.get_release_tags">
 <a class="viewcode-back" href="../../api/_autosummary/fedfred.FredAPI.get_release_tags.html#fedfred.FredAPI.get_release_tags">[docs]</a>
@@ -1616,7 +1653,10 @@
         <span class="k">if</span> <span class="n">order_by</span><span class="p">:</span>
             <span class="n">data</span><span class="p">[</span><span class="s1">&#39;order_by&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">order_by</span>
         <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__fred_get_request</span><span class="p">(</span><span class="n">url_endpoint</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">Tag</span><span class="o">.</span><span class="n">to_object</span><span class="p">(</span><span class="n">response</span><span class="p">)</span></div>
+        <span class="n">tags</span> <span class="o">=</span> <span class="n">Tag</span><span class="o">.</span><span class="n">to_object</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">tags</span><span class="p">:</span>
+            <span class="n">tag</span><span class="o">.</span><span class="n">client</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="k">return</span> <span class="n">tags</span></div>
 
 <div class="viewcode-block" id="FredAPI.get_release_related_tags">
 <a class="viewcode-back" href="../../api/_autosummary/fedfred.FredAPI.get_release_related_tags.html#fedfred.FredAPI.get_release_related_tags">[docs]</a>
@@ -1695,7 +1735,10 @@
         <span class="k">if</span> <span class="n">sort_order</span><span class="p">:</span>
             <span class="n">data</span><span class="p">[</span><span class="s1">&#39;sort_order&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sort_order</span>
         <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__fred_get_request</span><span class="p">(</span><span class="n">url_endpoint</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">Tag</span><span class="o">.</span><span class="n">to_object</span><span class="p">(</span><span class="n">response</span><span class="p">)</span></div>
+        <span class="n">tags</span> <span class="o">=</span> <span class="n">Tag</span><span class="o">.</span><span class="n">to_object</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">tags</span><span class="p">:</span>
+            <span class="n">tag</span><span class="o">.</span><span class="n">client</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="k">return</span> <span class="n">tags</span></div>
 
 <div class="viewcode-block" id="FredAPI.get_release_tables">
 <a class="viewcode-back" href="../../api/_autosummary/fedfred.FredAPI.get_release_tables.html#fedfred.FredAPI.get_release_tables">[docs]</a>
@@ -1744,7 +1787,7 @@
                 <span class="n">observation_date</span> <span class="o">=</span> <span class="n">FredHelpers</span><span class="o">.</span><span class="n">datetime_conversion</span><span class="p">(</span><span class="n">observation_date</span><span class="p">)</span>
             <span class="n">data</span><span class="p">[</span><span class="s1">&#39;observation_date&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">observation_date</span>
         <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__fred_get_request</span><span class="p">(</span><span class="n">url_endpoint</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">Element</span><span class="o">.</span><span class="n">to_object</span><span class="p">(</span><span class="n">response</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">Element</span><span class="o">.</span><span class="n">to_object</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span></div>
 
     <span class="c1">## Series</span>
 <div class="viewcode-block" id="FredAPI.get_series">
@@ -1789,7 +1832,10 @@
                 <span class="n">realtime_end</span> <span class="o">=</span> <span class="n">FredHelpers</span><span class="o">.</span><span class="n">datetime_conversion</span><span class="p">(</span><span class="n">realtime_end</span><span class="p">)</span>
             <span class="n">data</span><span class="p">[</span><span class="s1">&#39;realtime_end&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">realtime_end</span>
         <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__fred_get_request</span><span class="p">(</span><span class="n">url_endpoint</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">Series</span><span class="o">.</span><span class="n">to_object</span><span class="p">(</span><span class="n">response</span><span class="p">)</span></div>
+        <span class="n">seriess</span> <span class="o">=</span> <span class="n">Series</span><span class="o">.</span><span class="n">to_object</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">series</span> <span class="ow">in</span> <span class="n">seriess</span><span class="p">:</span>
+            <span class="n">series</span><span class="o">.</span><span class="n">client</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="k">return</span> <span class="n">seriess</span></div>
 
 <div class="viewcode-block" id="FredAPI.get_series_categories">
 <a class="viewcode-back" href="../../api/_autosummary/fedfred.FredAPI.get_series_categories.html#fedfred.FredAPI.get_series_categories">[docs]</a>
@@ -1816,8 +1862,8 @@
 <span class="sd">            &gt;&gt;&gt; categories = fred.get_series_categories(&#39;EXJPUS&#39;)</span>
 <span class="sd">            &gt;&gt;&gt; for category in categories:</span>
 <span class="sd">            &gt;&gt;&gt;     print(category.id)</span>
-<span class="sd">            95</span>
-<span class="sd">            275</span>
+<span class="sd">            &#39;95&#39;</span>
+<span class="sd">            &#39;275&#39;</span>
 
 <span class="sd">        FRED API Documentation:</span>
 <span class="sd">            https://fred.stlouisfed.org/docs/api/fred/series_categories.html</span>
@@ -1835,7 +1881,10 @@
                 <span class="n">realtime_end</span> <span class="o">=</span> <span class="n">FredHelpers</span><span class="o">.</span><span class="n">datetime_conversion</span><span class="p">(</span><span class="n">realtime_end</span><span class="p">)</span>
             <span class="n">data</span><span class="p">[</span><span class="s1">&#39;realtime_end&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">realtime_end</span>
         <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__fred_get_request</span><span class="p">(</span><span class="n">url_endpoint</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">Category</span><span class="o">.</span><span class="n">to_object</span><span class="p">(</span><span class="n">response</span><span class="p">)</span></div>
+        <span class="n">categories</span> <span class="o">=</span> <span class="n">Category</span><span class="o">.</span><span class="n">to_object</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">category</span> <span class="ow">in</span> <span class="n">categories</span><span class="p">:</span>
+            <span class="n">category</span><span class="o">.</span><span class="n">client</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="k">return</span> <span class="n">categories</span></div>
 
 <div class="viewcode-block" id="FredAPI.get_series_observations">
 <a class="viewcode-back" href="../../api/_autosummary/fedfred.FredAPI.get_series_observations.html#fedfred.FredAPI.get_series_observations">[docs]</a>
@@ -1869,9 +1918,9 @@
 <span class="sd">            vintage_dates (str | list, optional): A comma-separated string of vintage dates. String format: YYYY-MM-DD.</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            Pandas DataFrame: If dataframe_method=&#39;pandas&#39; or is left blank.</span>
-<span class="sd">            Polars DataFrame: If dataframe_method=&#39;polars&#39;.</span>
-<span class="sd">            Dask DataFrame: If dataframe_method=&#39;dask&#39;.</span>
+<span class="sd">            pandas.DataFrame: If dataframe_method=&#39;pandas&#39; or is left blank.</span>
+<span class="sd">            polars.DataFrame: If dataframe_method=&#39;polars&#39;.</span>
+<span class="sd">            dask.DataFrame: If dataframe_method=&#39;dask&#39;.</span>
 
 <span class="sd">        Raises:</span>
 <span class="sd">            ValueError: If the API request fails or returns an error.</span>
@@ -1980,7 +2029,10 @@
                 <span class="n">realtime_end</span> <span class="o">=</span> <span class="n">FredHelpers</span><span class="o">.</span><span class="n">datetime_conversion</span><span class="p">(</span><span class="n">realtime_end</span><span class="p">)</span>
             <span class="n">data</span><span class="p">[</span><span class="s1">&#39;realtime_end&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">realtime_end</span>
         <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__fred_get_request</span><span class="p">(</span><span class="n">url_endpoint</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">Release</span><span class="o">.</span><span class="n">to_object</span><span class="p">(</span><span class="n">response</span><span class="p">)</span></div>
+        <span class="n">releases</span> <span class="o">=</span> <span class="n">Release</span><span class="o">.</span><span class="n">to_object</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">release</span> <span class="ow">in</span> <span class="n">releases</span><span class="p">:</span>
+            <span class="n">release</span><span class="o">.</span><span class="n">client</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="k">return</span> <span class="n">releases</span></div>
 
 <div class="viewcode-block" id="FredAPI.get_series_search">
 <a class="viewcode-back" href="../../api/_autosummary/fedfred.FredAPI.get_series_search.html#fedfred.FredAPI.get_series_search">[docs]</a>
@@ -2062,7 +2114,10 @@
                 <span class="n">exclude_tag_names</span> <span class="o">=</span> <span class="n">FredHelpers</span><span class="o">.</span><span class="n">liststring_conversion</span><span class="p">(</span><span class="n">exclude_tag_names</span><span class="p">)</span>
             <span class="n">data</span><span class="p">[</span><span class="s1">&#39;exclude_tag_names&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">exclude_tag_names</span>
         <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__fred_get_request</span><span class="p">(</span><span class="n">url_endpoint</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">Series</span><span class="o">.</span><span class="n">to_object</span><span class="p">(</span><span class="n">response</span><span class="p">)</span></div>
+        <span class="n">seriess</span> <span class="o">=</span> <span class="n">Series</span><span class="o">.</span><span class="n">to_object</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">series</span> <span class="ow">in</span> <span class="n">seriess</span><span class="p">:</span>
+            <span class="n">series</span><span class="o">.</span><span class="n">client</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="k">return</span> <span class="n">seriess</span></div>
 
 <div class="viewcode-block" id="FredAPI.get_series_search_tags">
 <a class="viewcode-back" href="../../api/_autosummary/fedfred.FredAPI.get_series_search_tags.html#fedfred.FredAPI.get_series_search_tags">[docs]</a>
@@ -2136,7 +2191,10 @@
         <span class="k">if</span> <span class="n">sort_order</span><span class="p">:</span>
             <span class="n">data</span><span class="p">[</span><span class="s1">&#39;sort_order&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sort_order</span>
         <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__fred_get_request</span><span class="p">(</span><span class="n">url_endpoint</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">Tag</span><span class="o">.</span><span class="n">to_object</span><span class="p">(</span><span class="n">response</span><span class="p">)</span></div>
+        <span class="n">tags</span> <span class="o">=</span> <span class="n">Tag</span><span class="o">.</span><span class="n">to_object</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">tags</span><span class="p">:</span>
+            <span class="n">tag</span><span class="o">.</span><span class="n">client</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="k">return</span> <span class="n">tags</span></div>
 
 <div class="viewcode-block" id="FredAPI.get_series_search_related_tags">
 <a class="viewcode-back" href="../../api/_autosummary/fedfred.FredAPI.get_series_search_related_tags.html#fedfred.FredAPI.get_series_search_related_tags">[docs]</a>
@@ -2214,7 +2272,10 @@
         <span class="k">if</span> <span class="n">sort_order</span><span class="p">:</span>
             <span class="n">data</span><span class="p">[</span><span class="s1">&#39;sort_order&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sort_order</span>
         <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__fred_get_request</span><span class="p">(</span><span class="n">url_endpoint</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">Tag</span><span class="o">.</span><span class="n">to_object</span><span class="p">(</span><span class="n">response</span><span class="p">)</span></div>
+        <span class="n">tags</span> <span class="o">=</span> <span class="n">Tag</span><span class="o">.</span><span class="n">to_object</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">tags</span><span class="p">:</span>
+            <span class="n">tag</span><span class="o">.</span><span class="n">client</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="k">return</span> <span class="n">tags</span></div>
 
 <div class="viewcode-block" id="FredAPI.get_series_tags">
 <a class="viewcode-back" href="../../api/_autosummary/fedfred.FredAPI.get_series_tags.html#fedfred.FredAPI.get_series_tags">[docs]</a>
@@ -2268,7 +2329,10 @@
         <span class="k">if</span> <span class="n">sort_order</span><span class="p">:</span>
             <span class="n">data</span><span class="p">[</span><span class="s1">&#39;sort_order&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sort_order</span>
         <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__fred_get_request</span><span class="p">(</span><span class="n">url_endpoint</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">Tag</span><span class="o">.</span><span class="n">to_object</span><span class="p">(</span><span class="n">response</span><span class="p">)</span></div>
+        <span class="n">tags</span> <span class="o">=</span> <span class="n">Tag</span><span class="o">.</span><span class="n">to_object</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">tags</span><span class="p">:</span>
+            <span class="n">tag</span><span class="o">.</span><span class="n">client</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="k">return</span> <span class="n">tags</span></div>
 
 <div class="viewcode-block" id="FredAPI.get_series_updates">
 <a class="viewcode-back" href="../../api/_autosummary/fedfred.FredAPI.get_series_updates.html#fedfred.FredAPI.get_series_updates">[docs]</a>
@@ -2333,7 +2397,10 @@
                 <span class="n">end_time</span> <span class="o">=</span> <span class="n">FredHelpers</span><span class="o">.</span><span class="n">datetime_hh_mm_conversion</span><span class="p">(</span><span class="n">end_time</span><span class="p">)</span>
             <span class="n">data</span><span class="p">[</span><span class="s1">&#39;end_time&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">end_time</span>
         <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__fred_get_request</span><span class="p">(</span><span class="n">url_endpoint</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">Series</span><span class="o">.</span><span class="n">to_object</span><span class="p">(</span><span class="n">response</span><span class="p">)</span></div>
+        <span class="n">seriess</span> <span class="o">=</span> <span class="n">Series</span><span class="o">.</span><span class="n">to_object</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">series</span> <span class="ow">in</span> <span class="n">seriess</span><span class="p">:</span>
+            <span class="n">series</span><span class="o">.</span><span class="n">client</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="k">return</span> <span class="n">seriess</span></div>
 
 <div class="viewcode-block" id="FredAPI.get_series_vintagedates">
 <a class="viewcode-back" href="../../api/_autosummary/fedfred.FredAPI.get_series_vintagedates.html#fedfred.FredAPI.get_series_vintagedates">[docs]</a>
@@ -2450,7 +2517,10 @@
         <span class="k">if</span> <span class="n">sort_order</span><span class="p">:</span>
             <span class="n">data</span><span class="p">[</span><span class="s1">&#39;sort_order&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sort_order</span>
         <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__fred_get_request</span><span class="p">(</span><span class="n">url_endpoint</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">Source</span><span class="o">.</span><span class="n">to_object</span><span class="p">(</span><span class="n">response</span><span class="p">)</span></div>
+        <span class="n">sources</span> <span class="o">=</span> <span class="n">Source</span><span class="o">.</span><span class="n">to_object</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">source</span> <span class="ow">in</span> <span class="n">sources</span><span class="p">:</span>
+            <span class="n">source</span><span class="o">.</span><span class="n">client</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="k">return</span> <span class="n">sources</span></div>
 
 <div class="viewcode-block" id="FredAPI.get_source">
 <a class="viewcode-back" href="../../api/_autosummary/fedfred.FredAPI.get_source.html#fedfred.FredAPI.get_source">[docs]</a>
@@ -2494,7 +2564,10 @@
                 <span class="n">realtime_end</span> <span class="o">=</span> <span class="n">FredHelpers</span><span class="o">.</span><span class="n">datetime_conversion</span><span class="p">(</span><span class="n">realtime_end</span><span class="p">)</span>
             <span class="n">data</span><span class="p">[</span><span class="s1">&#39;realtime_end&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">realtime_end</span>
         <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__fred_get_request</span><span class="p">(</span><span class="n">url_endpoint</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">Source</span><span class="o">.</span><span class="n">to_object</span><span class="p">(</span><span class="n">response</span><span class="p">)</span></div>
+        <span class="n">sources</span> <span class="o">=</span> <span class="n">Source</span><span class="o">.</span><span class="n">to_object</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">source</span> <span class="ow">in</span> <span class="n">sources</span><span class="p">:</span>
+            <span class="n">source</span><span class="o">.</span><span class="n">client</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="k">return</span> <span class="n">sources</span></div>
 
 <div class="viewcode-block" id="FredAPI.get_source_releases">
 <a class="viewcode-back" href="../../api/_autosummary/fedfred.FredAPI.get_source_releases.html#fedfred.FredAPI.get_source_releases">[docs]</a>
@@ -2555,7 +2628,10 @@
         <span class="k">if</span> <span class="n">sort_order</span><span class="p">:</span>
             <span class="n">data</span><span class="p">[</span><span class="s1">&#39;sort_order&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sort_order</span>
         <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__fred_get_request</span><span class="p">(</span><span class="n">url_endpoint</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">Release</span><span class="o">.</span><span class="n">to_object</span><span class="p">(</span><span class="n">response</span><span class="p">)</span></div>
+        <span class="n">releases</span> <span class="o">=</span> <span class="n">Release</span><span class="o">.</span><span class="n">to_object</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">release</span> <span class="ow">in</span> <span class="n">releases</span><span class="p">:</span>
+            <span class="n">release</span><span class="o">.</span><span class="n">client</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="k">return</span> <span class="n">releases</span></div>
 
     <span class="c1">## Tags</span>
 <div class="viewcode-block" id="FredAPI.get_tags">
@@ -2626,12 +2702,15 @@
         <span class="k">if</span> <span class="n">sort_order</span><span class="p">:</span>
             <span class="n">data</span><span class="p">[</span><span class="s1">&#39;sort_order&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sort_order</span>
         <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__fred_get_request</span><span class="p">(</span><span class="n">url_endpoint</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">Tag</span><span class="o">.</span><span class="n">to_object</span><span class="p">(</span><span class="n">response</span><span class="p">)</span></div>
+        <span class="n">tags</span> <span class="o">=</span> <span class="n">Tag</span><span class="o">.</span><span class="n">to_object</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">tags</span><span class="p">:</span>
+            <span class="n">tag</span><span class="o">.</span><span class="n">client</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="k">return</span> <span class="n">tags</span></div>
 
 <div class="viewcode-block" id="FredAPI.get_related_tags">
 <a class="viewcode-back" href="../../api/_autosummary/fedfred.FredAPI.get_related_tags.html#fedfred.FredAPI.get_related_tags">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_related_tags</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">realtime_start</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">datetime</span><span class="p">]]</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">realtime_end</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">datetime</span><span class="p">]]</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                         <span class="n">tag_names</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]]</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">exclude_tag_names</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]]</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_related_tags</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tag_names</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]],</span> <span class="n">realtime_start</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">datetime</span><span class="p">]]</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                         <span class="n">realtime_end</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">datetime</span><span class="p">]]</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">exclude_tag_names</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]]</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                          <span class="n">tag_group_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">search_text</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                          <span class="n">limit</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">offset</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                          <span class="n">order_by</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sort_order</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Tag</span><span class="p">]:</span>
@@ -2640,9 +2719,9 @@
 <span class="sd">        Retrieve related tags for a given set of tags from the FRED API.</span>
 
 <span class="sd">        Args:</span>
+<span class="sd">            tag_names (str | list): A semicolon-delimited list of tag names to include in the search.</span>
 <span class="sd">            realtime_start (str | datetime, optional): The start of the real-time period. Strinng format: YYYY-MM-DD.</span>
 <span class="sd">            realtime_end (str | datetime, optional): The end of the real-time period. String format: YYYY-MM-DD.</span>
-<span class="sd">            tag_names (str | list, optional): A semicolon-delimited list of tag names to include in the search.</span>
 <span class="sd">            exclude_tag_names (str | list, optional): A semicolon-delimited list of tag names to exclude from the search.</span>
 <span class="sd">            tag_group_id (str, optional): A tag group ID to filter tags by group.</span>
 <span class="sd">            search_text (str, optional): The words to match against tag names and descriptions.</span>
@@ -2672,6 +2751,9 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">url_endpoint</span> <span class="o">=</span> <span class="s1">&#39;/related_tags&#39;</span>
         <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tag_names</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">tag_names</span> <span class="o">=</span> <span class="n">FredHelpers</span><span class="o">.</span><span class="n">liststring_conversion</span><span class="p">(</span><span class="n">tag_names</span><span class="p">)</span>
+        <span class="n">data</span><span class="p">[</span><span class="s1">&#39;tag_names&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tag_names</span>
         <span class="k">if</span> <span class="n">realtime_start</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">realtime_start</span><span class="p">,</span> <span class="n">datetime</span><span class="p">):</span>
                 <span class="n">realtime_start</span> <span class="o">=</span> <span class="n">FredHelpers</span><span class="o">.</span><span class="n">datetime_conversion</span><span class="p">(</span><span class="n">realtime_start</span><span class="p">)</span>
@@ -2680,10 +2762,6 @@
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">realtime_end</span><span class="p">,</span> <span class="n">datetime</span><span class="p">):</span>
                 <span class="n">realtime_end</span> <span class="o">=</span> <span class="n">FredHelpers</span><span class="o">.</span><span class="n">datetime_conversion</span><span class="p">(</span><span class="n">realtime_end</span><span class="p">)</span>
             <span class="n">data</span><span class="p">[</span><span class="s1">&#39;realtime_end&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">realtime_end</span>
-        <span class="k">if</span> <span class="n">tag_names</span><span class="p">:</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tag_names</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
-                <span class="n">tag_names</span> <span class="o">=</span> <span class="n">FredHelpers</span><span class="o">.</span><span class="n">liststring_conversion</span><span class="p">(</span><span class="n">tag_names</span><span class="p">)</span>
-            <span class="n">data</span><span class="p">[</span><span class="s1">&#39;tag_names&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tag_names</span>
         <span class="k">if</span> <span class="n">exclude_tag_names</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">exclude_tag_names</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
                 <span class="n">exclude_tag_names</span> <span class="o">=</span> <span class="n">FredHelpers</span><span class="o">.</span><span class="n">liststring_conversion</span><span class="p">(</span><span class="n">exclude_tag_names</span><span class="p">)</span>
@@ -2701,11 +2779,14 @@
         <span class="k">if</span> <span class="n">sort_order</span><span class="p">:</span>
             <span class="n">data</span><span class="p">[</span><span class="s1">&#39;sort_order&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sort_order</span>
         <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__fred_get_request</span><span class="p">(</span><span class="n">url_endpoint</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">Tag</span><span class="o">.</span><span class="n">to_object</span><span class="p">(</span><span class="n">response</span><span class="p">)</span></div>
+        <span class="n">tags</span> <span class="o">=</span> <span class="n">Tag</span><span class="o">.</span><span class="n">to_object</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">tags</span><span class="p">:</span>
+            <span class="n">tag</span><span class="o">.</span><span class="n">client</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="k">return</span> <span class="n">tags</span></div>
 
 <div class="viewcode-block" id="FredAPI.get_tags_series">
 <a class="viewcode-back" href="../../api/_autosummary/fedfred.FredAPI.get_tags_series.html#fedfred.FredAPI.get_tags_series">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_tags_series</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tag_names</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]]</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">exclude_tag_names</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]]</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_tags_series</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tag_names</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]],</span> <span class="n">exclude_tag_names</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]]</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                         <span class="n">realtime_start</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">datetime</span><span class="p">]]</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">realtime_end</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">datetime</span><span class="p">]]</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                         <span class="n">limit</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">offset</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                         <span class="n">order_by</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sort_order</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Series</span><span class="p">]:</span>
@@ -2714,8 +2795,8 @@
 <span class="sd">        Get the series matching tags.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            tag_names (str, optional): A semicolon delimited list of tag names to include in the search.</span>
-<span class="sd">            exclude_tag_names (str, optional): A semicolon delimited list of tag names to exclude in the search.</span>
+<span class="sd">            tag_names (str | list): A semicolon delimited list of tag names to include in the search.</span>
+<span class="sd">            exclude_tag_names (str | list, optional): A semicolon delimited list of tag names to exclude in the search.</span>
 <span class="sd">            realtime_start (str, optional): The start of the real-time period. String format: YYYY-MM-DD.</span>
 <span class="sd">            realtime_end (str, optional): The end of the real-time period. String format: YYYY-MM-DD.</span>
 <span class="sd">            limit (int, optional): The maximum number of results to return. Default is 1000.</span>
@@ -2744,10 +2825,9 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">url_endpoint</span> <span class="o">=</span> <span class="s1">&#39;/tags/series&#39;</span>
         <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="k">if</span> <span class="n">tag_names</span><span class="p">:</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tag_names</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
-                <span class="n">tag_names</span> <span class="o">=</span> <span class="n">FredHelpers</span><span class="o">.</span><span class="n">liststring_conversion</span><span class="p">(</span><span class="n">tag_names</span><span class="p">)</span>
-            <span class="n">data</span><span class="p">[</span><span class="s1">&#39;tag_names&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tag_names</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tag_names</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">tag_names</span> <span class="o">=</span> <span class="n">FredHelpers</span><span class="o">.</span><span class="n">liststring_conversion</span><span class="p">(</span><span class="n">tag_names</span><span class="p">)</span>
+        <span class="n">data</span><span class="p">[</span><span class="s1">&#39;tag_names&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tag_names</span>
         <span class="k">if</span> <span class="n">exclude_tag_names</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">exclude_tag_names</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
                 <span class="n">exclude_tag_names</span> <span class="o">=</span> <span class="n">FredHelpers</span><span class="o">.</span><span class="n">liststring_conversion</span><span class="p">(</span><span class="n">exclude_tag_names</span><span class="p">)</span>
@@ -2769,7 +2849,10 @@
         <span class="k">if</span> <span class="n">sort_order</span><span class="p">:</span>
             <span class="n">data</span><span class="p">[</span><span class="s1">&#39;sort_order&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sort_order</span>
         <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__fred_get_request</span><span class="p">(</span><span class="n">url_endpoint</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">Series</span><span class="o">.</span><span class="n">to_object</span><span class="p">(</span><span class="n">response</span><span class="p">)</span></div>
+        <span class="n">seriess</span> <span class="o">=</span> <span class="n">Series</span><span class="o">.</span><span class="n">to_object</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">series</span> <span class="ow">in</span> <span class="n">seriess</span><span class="p">:</span>
+            <span class="n">series</span><span class="o">.</span><span class="n">client</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="k">return</span> <span class="n">seriess</span></div>
 
     <span class="k">class</span><span class="w"> </span><span class="nc">MapsAPI</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -2899,7 +2982,6 @@
                 <span class="sa">f</span><span class="s2">&quot;      API Key: </span><span class="si">{</span><span class="s1">&#39;****&#39;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">api_key</span><span class="p">[</span><span class="o">-</span><span class="mi">4</span><span class="p">:]</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">api_key</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">&#39;Not Set&#39;</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
             <span class="p">)</span>
         <span class="c1"># Private Methods</span>
-        <span class="nd">@retry</span><span class="p">(</span><span class="n">wait</span><span class="o">=</span><span class="n">wait_fixed</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">stop</span><span class="o">=</span><span class="n">stop_after_attempt</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>
         <span class="k">def</span><span class="w"> </span><span class="nf">__rate_limited</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            Ensures synchronous requests comply with rate limits.</span>
@@ -3325,7 +3407,6 @@
                 <span class="n">new_limit</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">max_requests_per_minute</span> <span class="o">//</span> <span class="mi">10</span><span class="p">,</span> <span class="n">requests_left</span> <span class="o">//</span> <span class="mi">2</span><span class="p">))</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">semaphore</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Semaphore</span><span class="p">(</span><span class="n">new_limit</span><span class="p">)</span>
                 <span class="k">return</span> <span class="n">requests_left</span><span class="p">,</span> <span class="n">time_left</span>
-        <span class="nd">@retry</span><span class="p">(</span><span class="n">wait</span><span class="o">=</span><span class="n">wait_fixed</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">stop</span><span class="o">=</span><span class="n">stop_after_attempt</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>
         <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">__rate_limited</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            Enforces the rate limit dynamically based on requests left.</span>
@@ -5460,7 +5541,6 @@
                     <span class="n">new_limit</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_grandparent</span><span class="o">.</span><span class="n">max_requests_per_minute</span> <span class="o">//</span> <span class="mi">10</span><span class="p">,</span> <span class="n">requests_left</span> <span class="o">//</span> <span class="mi">2</span><span class="p">))</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_grandparent</span><span class="o">.</span><span class="n">semaphore</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Semaphore</span><span class="p">(</span><span class="n">new_limit</span><span class="p">)</span>
                     <span class="k">return</span> <span class="n">requests_left</span><span class="p">,</span> <span class="n">time_left</span>
-            <span class="nd">@retry</span><span class="p">(</span><span class="n">wait</span><span class="o">=</span><span class="n">wait_fixed</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">stop</span><span class="o">=</span><span class="n">stop_after_attempt</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>
             <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">__rate_limited</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">                </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">                Enforces the rate limit dynamically based on requests left.</span>

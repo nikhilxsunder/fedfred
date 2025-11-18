@@ -55,6 +55,10 @@ Methods
    
    FredHelpers.parameter_validation_async
    
+   FredHelpers.pd_frequency_conversion
+   
+   FredHelpers.pd_frequency_conversion_async
+   
    FredHelpers.to_dd_df
    
    FredHelpers.to_dd_df_async
@@ -70,6 +74,10 @@ Methods
    FredHelpers.to_pd_df
    
    FredHelpers.to_pd_df_async
+   
+   FredHelpers.to_pd_series
+   
+   FredHelpers.to_pd_series_async
    
    FredHelpers.to_pl_df
    

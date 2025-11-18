@@ -48,7 +48,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../../_static/documentation_options.js?v=786ba454"></script>
+    <script src="../../_static/documentation_options.js?v=acc74ff5"></script>
     <script src="../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/design-tabs.js?v=f930bc37"></script>
@@ -101,7 +101,7 @@
 <aside class="bd-header-announcement" aria-label="Announcement">
   <div class="bd-header-announcement__content">
         <div class="sidebar-message">
-            Version 2 is now available!
+            Version 3 is now available!
             Please check the
             <a href="resources/notes.html" target="_self">
                 special notes page
@@ -603,7 +603,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">geopandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gpd</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">fedfred.__about__</span><span class="w"> </span><span class="kn">import</span> <span class="n">__title__</span><span class="p">,</span> <span class="n">__version__</span><span class="p">,</span> <span class="n">__author__</span><span class="p">,</span> <span class="n">__license__</span><span class="p">,</span> <span class="n">__copyright__</span><span class="p">,</span> <span class="n">__description__</span><span class="p">,</span> <span class="n">__url__</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.__about__</span><span class="w"> </span><span class="kn">import</span> <span class="n">__title__</span><span class="p">,</span> <span class="n">__version__</span><span class="p">,</span> <span class="n">__author__</span><span class="p">,</span> <span class="n">__email__</span><span class="p">,</span> <span class="n">__license__</span><span class="p">,</span> <span class="n">__copyright__</span><span class="p">,</span> <span class="n">__description__</span><span class="p">,</span> <span class="n">__docs__</span><span class="p">,</span> <span class="n">__repository__</span>
 <span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
     <span class="kn">import</span><span class="w"> </span><span class="nn">dask.dataframe</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">dd</span> <span class="c1"># pragma: no cover</span>
     <span class="kn">import</span><span class="w"> </span><span class="nn">dask_geopandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">dd_gpd</span> <span class="c1"># pragma: no cover</span>
@@ -623,6 +623,15 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">to_pd_df</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Helper method to convert a fred observation dictionary to a Pandas DataFrame.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            data (Dict[str, list]): FRED observation dictionary.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            pandas.DataFrame: Converted Pandas DataFrame.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If &#39;observations&#39; key is not in the data.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="s1">&#39;observations&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Data must contain &#39;observations&#39; key&quot;</span><span class="p">)</span>
@@ -638,6 +647,16 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">to_pl_df</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s1">&#39;pl.DataFrame&#39;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Helper method to convert a fred observation dictionary to a Polars DataFrame.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            data (Dict[str, list]): FRED observation dictionary.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            polars.DataFrame: Converted Polars DataFrame.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ImportError: If Polars is not installed.</span>
+<span class="sd">            ValueError: If &#39;observations&#39; key is not in the data.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="kn">import</span><span class="w"> </span><span class="nn">polars</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pl</span>
@@ -662,6 +681,16 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">to_dd_df</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s1">&#39;dd.DataFrame&#39;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Helper method to convert a FRED observation dictionary to a Dask DataFrame.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            data (Dict[str, list]): FRED observation dictionary.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            dask.dataframe.DataFrame: Converted Dask DataFrame.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ImportError: If Dask is not installed.</span>
+<span class="sd">            ValueError: If &#39;observations&#39; key is not in the data.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="kn">import</span><span class="w"> </span><span class="nn">dask.dataframe</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">dd</span>
@@ -678,6 +707,16 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">to_gpd_gdf</span><span class="p">(</span><span class="n">shapefile</span><span class="p">:</span> <span class="n">gpd</span><span class="o">.</span><span class="n">GeoDataFrame</span><span class="p">,</span> <span class="n">meta_data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">gpd</span><span class="o">.</span><span class="n">GeoDataFrame</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Helper method to convert a fred observation dictionary to a GeoPandas GeoDataFrame.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            shapefile (gpd.GeoDataFrame): FRED shapefile GeoDataFrame.</span>
+<span class="sd">            meta_data (Dict): FRED response metadata dictionary.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            gpd.GeoDataFrame: Converted GeoPandas GeoDataFrame.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If no data section is found in the response.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">shapefile</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">shapefile</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
@@ -699,6 +738,17 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">to_dd_gpd_gdf</span><span class="p">(</span><span class="n">shapefile</span><span class="p">:</span> <span class="n">gpd</span><span class="o">.</span><span class="n">GeoDataFrame</span><span class="p">,</span> <span class="n">meta_data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;dd_gpd.GeoDataFrame&#39;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Helper method to convert a FRED observation dictionary to a Dask GeoPandas GeoDataFrame.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            shapefile (gpd.GeoDataFrame): FRED shapefile GeoDataFrame.</span>
+<span class="sd">            meta_data (Dict): FRED response metadata dictionary.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            dask_geopandas.GeoDataFrame: Converted Dask GeoPandas GeoDataFrame.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ImportError: If Dask GeoPandas is not installed.</span>
+<span class="sd">            ValueError: If no data section is found in the response.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="kn">import</span><span class="w"> </span><span class="nn">dask_geopandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">dd_gpd</span>
@@ -715,6 +765,17 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">to_pl_st_gdf</span><span class="p">(</span><span class="n">shapefile</span><span class="p">:</span> <span class="n">gpd</span><span class="o">.</span><span class="n">GeoDataFrame</span><span class="p">,</span> <span class="n">meta_data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;st.GeoDataFrame&#39;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Helper method to convert a FRED observation dictionary to a Polars GeoDataFrame.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            shapefile (gpd.GeoDataFrame): FRED shapefile GeoDataFrame.</span>
+<span class="sd">            meta_data (Dict): FRED response metadata dictionary.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            polars_st.GeoDataFrame: Converted Polars GeoDataFrame.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ImportError: If Polars with geospatial support is not installed.</span>
+<span class="sd">            ValueError: If no data section is found in the response.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="kn">import</span><span class="w"> </span><span class="nn">polars_st</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">st</span>
@@ -730,7 +791,16 @@
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">extract_region_type</span><span class="p">(</span><span class="n">response</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Helper method to extract the region type from a GeoFred response dictr.</span>
+<span class="sd">        Helper method to extract the region type from a GeoFred response dict.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            response (Dict): FRED GeoFred response dictionary.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            str: Extracted region type.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If no meta data or region type is found in the response.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">meta_data</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;meta&#39;</span><span class="p">,</span> <span class="p">{})</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">meta_data</span><span class="p">:</span>
@@ -746,6 +816,15 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">liststring_conversion</span><span class="p">(</span><span class="n">param</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Helper method to convert a list of strings to a semicolon-separated string.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            param (list[str]): List of strings to convert.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            str: Semicolon-separated string.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If param is not a list of strings.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Parameter must be a list&quot;</span><span class="p">)</span>
@@ -759,6 +838,15 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">vintage_dates_type_conversion</span><span class="p">(</span><span class="n">param</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">datetime</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">datetime</span><span class="p">]]]])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Helper method to convert a vintage_dates parameter to a string.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            param (str | datetime | list[Optional[str | datetime]]]): vintage_dates parameter to convert.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            str: Converted vintage_dates string.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If param is not a string, datetime object, or list of strings/datetime objects.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">param</span>
@@ -782,6 +870,15 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">datetime_conversion</span><span class="p">(</span><span class="n">param</span><span class="p">:</span> <span class="n">datetime</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Helper method to convert a datetime object to a string in YYYY-MM-DD format.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            param (datetime): Datetime object to convert.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            str: Formatted date string.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If param is not a datetime object.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="n">datetime</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Parameter must be a datetime object&quot;</span><span class="p">)</span>
@@ -793,6 +890,15 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">datetime_hh_mm_conversion</span><span class="p">(</span><span class="n">param</span><span class="p">:</span> <span class="n">datetime</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Helper method to convert a datetime object to a string in HH:MM format.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            param (datetime): Datetime object to convert.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            str: Formatted time string.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If param is not a datetime object.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="n">datetime</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Parameter must be a datetime object&quot;</span><span class="p">)</span>
@@ -804,6 +910,15 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">datestring_validation</span><span class="p">(</span><span class="n">param</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="ne">ValueError</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Helper method to validate date-string formatted parameters.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            param (str): Date string to validate.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            None</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If param is not a valid date string in YYYY-MM-DD format.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -817,6 +932,15 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">liststring_validation</span><span class="p">(</span><span class="n">param</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="ne">ValueError</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Helper method to validate list-string formatted parameters.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            param (str): Semicolon-separated string to validate.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            None</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If param is not a valid semicolon-separated string.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Parameter must be a string&quot;</span><span class="p">)</span>
@@ -834,6 +958,15 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">vintage_dates_validation</span><span class="p">(</span><span class="n">param</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="ne">ValueError</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Helper method to validate vintage_dates parameters.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            param (str): Comma-separated string of vintage dates.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            None</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If param is not a valid vintage_dates string.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Parameter must be a string&quot;</span><span class="p">)</span>
@@ -853,6 +986,15 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">hh_mm_datestring_validation</span><span class="p">(</span><span class="n">param</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="ne">ValueError</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Helper method to validate hh:mm formatted parameters.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            param (str): Time string to validate.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            None</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If param is not a valid time string in HH:MM format.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Parameter must be a string&quot;</span><span class="p">)</span>
@@ -868,6 +1010,15 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">parameter_validation</span><span class="p">(</span><span class="n">params</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]])</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="ne">ValueError</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Helper method to validate parameters prior to making a get request.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            params (Dict[str, Optional[str | int]]): Dictionary of parameters to validate.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            None</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If any parameter is invalid.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">params</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">k</span> <span class="o">==</span> <span class="s1">&#39;category_id&#39;</span><span class="p">:</span>
@@ -1012,6 +1163,15 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">geo_parameter_validation</span><span class="p">(</span><span class="n">params</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]])</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="ne">ValueError</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Helper method to validate parameters prior to making a get request.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            params (Dict[str, Optional[str | int]]): Dictionary of parameters to validate</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            None</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If any parameter is invalid.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">params</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">k</span> <span class="o">==</span> <span class="s1">&#39;api_key&#39;</span><span class="p">:</span>
@@ -1076,6 +1236,111 @@
                     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;transformation must be &#39;lin&#39;, &#39;chg&#39;, &#39;ch1&#39;, &#39;pch&#39;, &#39;pc1&#39;, &#39;pca&#39;, &#39;cch&#39;, &#39;cca&#39;, or &#39;log&#39;&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">None</span></div>
 
+<div class="viewcode-block" id="FredHelpers.pd_frequency_conversion">
+<a class="viewcode-back" href="../../api/_autosummary/fedfred.helpers.FredHelpers.pd_frequency_conversion.html#fedfred.helpers.FredHelpers.pd_frequency_conversion">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">pd_frequency_conversion</span><span class="p">(</span><span class="n">frequency</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Convert fedfred native frequency strings to pandas compatible ones.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            frequency (str): Input frequency string.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            str: Coerced frequency string compatible with pandas.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">frequency</span> <span class="o">=</span> <span class="n">frequency</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+        <span class="c1"># Passthrough compatible frequencies</span>
+        <span class="k">if</span> <span class="n">frequency</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;D&#39;</span><span class="p">,</span> <span class="s1">&#39;M&#39;</span><span class="p">,</span> <span class="s1">&#39;Q&#39;</span><span class="p">,</span> <span class="s1">&#39;W&#39;</span><span class="p">}:</span>
+            <span class="k">return</span> <span class="n">frequency</span>
+        <span class="c1"># Annual -&gt; Yearly</span>
+        <span class="k">elif</span> <span class="n">frequency</span> <span class="o">==</span> <span class="s1">&#39;A&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;Y&#39;</span>
+        <span class="c1"># Weekly End variants</span>
+        <span class="k">elif</span> <span class="n">frequency</span> <span class="o">==</span> <span class="s1">&#39;WEF&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;W-FRI&#39;</span>
+        <span class="k">elif</span> <span class="n">frequency</span> <span class="o">==</span> <span class="s1">&#39;WETH&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;W-THU&#39;</span>
+        <span class="k">elif</span> <span class="n">frequency</span> <span class="o">==</span> <span class="s1">&#39;WEW&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;W-WED&#39;</span>
+        <span class="k">elif</span> <span class="n">frequency</span> <span class="o">==</span> <span class="s1">&#39;WETU&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;W-TUE&#39;</span>
+        <span class="k">elif</span> <span class="n">frequency</span> <span class="o">==</span> <span class="s1">&#39;WEM&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;W-MON&#39;</span>
+        <span class="k">elif</span> <span class="n">frequency</span> <span class="o">==</span> <span class="s1">&#39;WESU&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;W-SUN&#39;</span>
+        <span class="k">elif</span> <span class="n">frequency</span> <span class="o">==</span> <span class="s1">&#39;WESA&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;W-SAT&#39;</span>
+        <span class="c1"># Biweekly -&gt; 2 x Weekly</span>
+        <span class="k">elif</span> <span class="n">frequency</span> <span class="o">==</span> <span class="s1">&#39;BW&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;2W&#39;</span>
+        <span class="c1"># Biweekly End variants</span>
+        <span class="k">elif</span> <span class="n">frequency</span> <span class="o">==</span> <span class="s1">&#39;BWEW&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;2W-WED&#39;</span>
+        <span class="k">elif</span> <span class="n">frequency</span> <span class="o">==</span> <span class="s1">&#39;BWEM&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;2W-MON&#39;</span>
+        <span class="c1"># Semiannual -&gt; 2 x Quarterly</span>
+        <span class="k">elif</span> <span class="n">frequency</span> <span class="o">==</span> <span class="s1">&#39;SA&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;2Q&#39;</span>
+        <span class="c1"># Logically unreachable but prevents mypy warning</span>
+        <span class="k">return</span> <span class="n">frequency</span></div>
+
+<div class="viewcode-block" id="FredHelpers.to_pd_series">
+<a class="viewcode-back" href="../../api/_autosummary/fedfred.helpers.FredHelpers.to_pd_series.html#fedfred.helpers.FredHelpers.to_pd_series">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_pd_series</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">],</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Accepts a Series or a DataFrame with &#39;date&#39; and &#39;value&#39; columns and returns a float Series with DatetimeIndex and the given name.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            data (pd.Series | pd.DataFrame): Input data to be converted.</span>
+<span class="sd">            name (str): Name to assign to the resulting Series.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            pandas.Series: A float Series with DatetimeIndex and the given `name`.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            TypeError: If the input is neither a pd.Series nor a pd.DataFrame.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">):</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">s</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+            <span class="n">s</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+            <span class="k">return</span> <span class="n">s</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Input must be a pd.Series or pd.DataFrame&quot;</span><span class="p">)</span>
+
+        <span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="ow">and</span> <span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;date&quot;</span><span class="p">:</span>
+            <span class="n">idx</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">DatetimeIndex</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="s2">&quot;date&quot;</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="n">idx</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;date&quot;</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">cand</span> <span class="o">=</span> <span class="nb">next</span><span class="p">((</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="s2">&quot;date&quot;</span> <span class="ow">in</span> <span class="n">c</span><span class="o">.</span><span class="n">lower</span><span class="p">()),</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">cand</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">idx</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">cand</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">idx</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s2">&quot;value&quot;</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="n">vals</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">],</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;coerce&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">num_cols</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="n">pd</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">types</span><span class="o">.</span><span class="n">is_numeric_dtype</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">c</span><span class="p">])]</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">num_cols</span><span class="p">:</span>
+                <span class="n">vals</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;coerce&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">vals</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">num_cols</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;coerce&quot;</span><span class="p">)</span>
+
+        <span class="n">s</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">vals</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">idx</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="p">[</span><span class="o">~</span><span class="n">s</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">duplicated</span><span class="p">(</span><span class="n">keep</span><span class="o">=</span><span class="s2">&quot;last&quot;</span><span class="p">)]</span><span class="o">.</span><span class="n">sort_index</span><span class="p">()</span>
+        <span class="n">s</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">s</span></div>
+
     <span class="c1"># Asynchronous methods</span>
 <div class="viewcode-block" id="FredHelpers.to_pd_df_async">
 <a class="viewcode-back" href="../../api/_autosummary/fedfred.helpers.FredHelpers.to_pd_df_async.html#fedfred.helpers.FredHelpers.to_pd_df_async">[docs]</a>
@@ -1083,6 +1348,15 @@
     <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">to_pd_df_async</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Helper method to convert a FRED observation dictionary to a Pandas DataFrame asynchronously.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            data (Dict[str, list]): FRED observation dictionary.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            pandas.DataFrame: Converted Pandas DataFrame.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If &#39;observations&#39; key is not in the data.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">to_thread</span><span class="p">(</span><span class="n">FredHelpers</span><span class="o">.</span><span class="n">to_pd_df</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span></div>
 
@@ -1092,6 +1366,16 @@
     <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">to_pl_df_async</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s1">&#39;pl.DataFrame&#39;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Helper method to convert a FRED observation dictionary to a Polars DataFrame asynchronously.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            data (Dict[str, list]): FRED observation dictionary.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            pandas.DataFrame: Converted Polars DataFrame.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ImportError: If Polars is not installed.</span>
+<span class="sd">            ValueError: If &#39;observations&#39; key is not in the data.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">to_thread</span><span class="p">(</span><span class="n">FredHelpers</span><span class="o">.</span><span class="n">to_pl_df</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span></div>
 
@@ -1101,6 +1385,16 @@
     <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">to_dd_df_async</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s1">&#39;dd.DataFrame&#39;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Helper method to convert a FRED observation dictionary to a Dask DataFrame asynchronously.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            data (Dict[str, list]): FRED observation dictionary.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            dask.dataframe.DataFrame: Converted Dask DataFrame.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ImportError: If Dask is not installed.</span>
+<span class="sd">            ValueError: If &#39;observations&#39; key is not in the data.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="kn">import</span><span class="w"> </span><span class="nn">dask.dataframe</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">dd</span>
@@ -1117,6 +1411,16 @@
     <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">to_gpd_gdf_async</span><span class="p">(</span><span class="n">shapefile</span><span class="p">:</span> <span class="n">gpd</span><span class="o">.</span><span class="n">GeoDataFrame</span><span class="p">,</span> <span class="n">meta_data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">gpd</span><span class="o">.</span><span class="n">GeoDataFrame</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Helper method to convert a FRED observation dictionary to a GeoPandas GeoDataFrame asynchronously.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            shapefile (gpd.GeoDataFrame): FRED shapefile GeoDataFrame.</span>
+<span class="sd">            meta_data (Dict): FRED response metadata dictionary.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            gpd.GeoDataFrame: Converted GeoPandas GeoDataFrame.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If no data section is found in the response.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">to_thread</span><span class="p">(</span><span class="n">FredHelpers</span><span class="o">.</span><span class="n">to_gpd_gdf</span><span class="p">,</span> <span class="n">shapefile</span><span class="p">,</span> <span class="n">meta_data</span><span class="p">)</span></div>
 
@@ -1126,6 +1430,17 @@
     <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">to_dd_gpd_gdf_async</span><span class="p">(</span><span class="n">shapefile</span><span class="p">:</span> <span class="n">gpd</span><span class="o">.</span><span class="n">GeoDataFrame</span><span class="p">,</span> <span class="n">meta_data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;dd_gpd.GeoDataFrame&#39;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Helper method to convert a FRED observation dictionary to a Dask GeoPandas GeoDataFrame asynchronously.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            shapefile (gpd.GeoDataFrame): FRED shapefile GeoDataFrame.</span>
+<span class="sd">            meta_data (Dict): FRED response metadata dictionary.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            dask_geopandas.GeoDataFrame: Converted Dask GeoPandas GeoDataFrame</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ImportError: If Dask GeoPandas is not installed.</span>
+<span class="sd">            ValueError: If no data section is found in the response.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="kn">import</span><span class="w"> </span><span class="nn">dask_geopandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">dd_gpd</span>
@@ -1142,6 +1457,17 @@
     <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">to_pl_st_gdf_async</span><span class="p">(</span><span class="n">shapefile</span><span class="p">:</span> <span class="n">gpd</span><span class="o">.</span><span class="n">GeoDataFrame</span><span class="p">,</span> <span class="n">meta_data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;st.GeoDataFrame&#39;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Helper method to convert a FRED observation dictionary to a Polars GeoDataFrame asynchronously.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            shapefile (gpd.GeoDataFrame): FRED shapefile GeoDataFrame.</span>
+<span class="sd">            meta_data (Dict): FRED response metadata dictionary.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            polars_st.GeoDataFrame: Converted Polars GeoDataFrame.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ImportError: If Polars with geospatial support is not installed.</span>
+<span class="sd">            ValueError: If no data section is found in the response.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="kn">import</span><span class="w"> </span><span class="nn">polars_st</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">st</span>
@@ -1158,6 +1484,15 @@
     <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">extract_region_type_async</span><span class="p">(</span><span class="n">response</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Helper method to extract the region type from a GeoFred response dictionary asynchronously.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            response (Dict): FRED GeoFred response dictionary.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            str: Extracted region type.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If no meta data or region type is found in the response.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">to_thread</span><span class="p">(</span><span class="n">FredHelpers</span><span class="o">.</span><span class="n">extract_region_type</span><span class="p">,</span> <span class="n">response</span><span class="p">)</span></div>
 
@@ -1167,6 +1502,15 @@
     <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">liststring_conversion_async</span><span class="p">(</span><span class="n">param</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Helper method to convert a list of strings to a semicolon-separated string asynchronously.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            param (list[str]): List of strings to convert.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            str: Semicolon-separated string.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If param is not a list of strings.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">to_thread</span><span class="p">(</span><span class="n">FredHelpers</span><span class="o">.</span><span class="n">liststring_conversion</span><span class="p">,</span> <span class="n">param</span><span class="p">)</span></div>
 
@@ -1176,6 +1520,15 @@
     <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">vintage_dates_type_conversion_async</span><span class="p">(</span><span class="n">param</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">datetime</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">datetime</span><span class="p">]]]])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Helper method to convert a vintage_dates parameter to a string asynchronously.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            param (str | datetime | list[Optional[str | datetime]]]): vintage_dates parameter to convert.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            str: Converted vintage_dates string.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If param is not a string, datetime object, or list of strings/datetime objects.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">to_thread</span><span class="p">(</span><span class="n">FredHelpers</span><span class="o">.</span><span class="n">vintage_dates_type_conversion</span><span class="p">,</span> <span class="n">param</span><span class="p">)</span></div>
 
@@ -1185,6 +1538,15 @@
     <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">datetime_conversion_async</span><span class="p">(</span><span class="n">param</span><span class="p">:</span> <span class="n">datetime</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Helper method to convert a datetime object to a string in YYYY-MM-DD format asynchronously.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            param (datetime): Datetime object to convert.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            str: Formatted date string.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If param is not a datetime object.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">to_thread</span><span class="p">(</span><span class="n">FredHelpers</span><span class="o">.</span><span class="n">datetime_conversion</span><span class="p">,</span> <span class="n">param</span><span class="p">)</span></div>
 
@@ -1194,6 +1556,15 @@
     <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">datetime_hh_mm_conversion_async</span><span class="p">(</span><span class="n">param</span><span class="p">:</span> <span class="n">datetime</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Helper method to convert a datetime object to a string in HH:MM format asynchronously.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            param (datetime): Datetime object to convert.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            str: Formatted time string.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If param is not a datetime object.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">to_thread</span><span class="p">(</span><span class="n">FredHelpers</span><span class="o">.</span><span class="n">datetime_hh_mm_conversion</span><span class="p">,</span> <span class="n">param</span><span class="p">)</span></div>
 
@@ -1203,6 +1574,15 @@
     <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">datestring_validation_async</span><span class="p">(</span><span class="n">param</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="ne">ValueError</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Helper method to validate date-string formatted parameter asynchronously.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            param (str): Date string to validate.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            None</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If param is not a valid date string in YYYY-MM-DD format.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">to_thread</span><span class="p">(</span><span class="n">FredHelpers</span><span class="o">.</span><span class="n">datestring_validation</span><span class="p">,</span> <span class="n">param</span><span class="p">)</span></div>
 
@@ -1212,6 +1592,15 @@
     <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">liststring_validation_async</span><span class="p">(</span><span class="n">param</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="ne">ValueError</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Helper method to validate list-string formatted parameters asynchronously.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            param (str): Semicolon-separated string to validate.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            None</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If param is not a valid semicolon-separated string.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">to_thread</span><span class="p">(</span><span class="n">FredHelpers</span><span class="o">.</span><span class="n">liststring_validation</span><span class="p">,</span> <span class="n">param</span><span class="p">)</span></div>
 
@@ -1221,6 +1610,15 @@
     <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">vintage_dates_validation_async</span><span class="p">(</span><span class="n">param</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="ne">ValueError</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Helper method to validate vintage_dates parameters asynchronously.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            param (str): Comma-separated string of vintage dates.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            None</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If param is not a valid vintage_dates string.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">to_thread</span><span class="p">(</span><span class="n">FredHelpers</span><span class="o">.</span><span class="n">vintage_dates_validation</span><span class="p">,</span> <span class="n">param</span><span class="p">)</span></div>
 
@@ -1230,6 +1628,15 @@
     <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">hh_mm_datestring_validation_async</span><span class="p">(</span><span class="n">param</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="ne">ValueError</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Helper method to validate hh:mm formatted parameters asynchronously.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            param (str): Time string to validate.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            None</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If param is not a valid time string in HH:MM format.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">to_thread</span><span class="p">(</span><span class="n">FredHelpers</span><span class="o">.</span><span class="n">hh_mm_datestring_validation</span><span class="p">,</span> <span class="n">param</span><span class="p">)</span></div>
 
@@ -1239,6 +1646,15 @@
     <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">parameter_validation_async</span><span class="p">(</span><span class="n">params</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]])</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="ne">ValueError</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Helper method to validate parameters prior to making a get request asynchronously.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            params (Dict[str, Optional[str | int]]): Dictionary of parameters to validate.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            None</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If any parameter is invalid.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">params</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">k</span> <span class="o">==</span> <span class="s1">&#39;category_id&#39;</span><span class="p">:</span>
@@ -1383,6 +1799,15 @@
     <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">geo_parameter_validation_async</span><span class="p">(</span><span class="n">params</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]])</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="ne">ValueError</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Helper method to validate parameters prior to making a get request.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            params (Dict[str, Optional[str | int]]): Dictionary of parameters to validate</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            None</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If any parameter is invalid.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">params</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">k</span> <span class="o">==</span> <span class="s1">&#39;api_key&#39;</span><span class="p">:</span>
@@ -1446,6 +1871,43 @@
                 <span class="k">if</span> <span class="n">v</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;lin&#39;</span><span class="p">,</span> <span class="s1">&#39;chg&#39;</span><span class="p">,</span> <span class="s1">&#39;ch1&#39;</span><span class="p">,</span> <span class="s1">&#39;pch&#39;</span><span class="p">,</span> <span class="s1">&#39;pc1&#39;</span><span class="p">,</span> <span class="s1">&#39;pca&#39;</span><span class="p">,</span> <span class="s1">&#39;cch&#39;</span><span class="p">,</span> <span class="s1">&#39;cca&#39;</span><span class="p">,</span> <span class="s1">&#39;log&#39;</span><span class="p">]:</span>
                     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;transformation must be &#39;lin&#39;, &#39;chg&#39;, &#39;ch1&#39;, &#39;pch&#39;, &#39;pc1&#39;, &#39;pca&#39;, &#39;cch&#39;, &#39;cca&#39;, or &#39;log&#39;&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="FredHelpers.pd_frequency_conversion_async">
+<a class="viewcode-back" href="../../api/_autosummary/fedfred.helpers.FredHelpers.pd_frequency_conversion_async.html#fedfred.helpers.FredHelpers.pd_frequency_conversion_async">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">pd_frequency_conversion_async</span><span class="p">(</span><span class="n">frequency</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Asynchronously convert fedfred native frequency strings to pandas compatible ones.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            frequency (str): Input frequency string.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            str: Coerced frequency string compatible with pandas.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">to_thread</span><span class="p">(</span><span class="n">FredHelpers</span><span class="o">.</span><span class="n">pd_frequency_conversion</span><span class="p">,</span> <span class="n">frequency</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="FredHelpers.to_pd_series_async">
+<a class="viewcode-back" href="../../api/_autosummary/fedfred.helpers.FredHelpers.to_pd_series_async.html#fedfred.helpers.FredHelpers.to_pd_series_async">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">to_pd_series_async</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">],</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Asynchronously accepts a Series or a DataFrame with &#39;date&#39; and &#39;value&#39; columns (fedfred style) and returns a float Series with DatetimeIndex and the given name.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            data (pd.Series | pd.DataFrame): Input data to be converted.</span>
+<span class="sd">            name (str): Name to assign to the resulting Series.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            pd.Series: A float Series with DatetimeIndex and the given `name`.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            TypeError: If the input is neither a pd.Series nor a pd.DataFrame.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">to_thread</span><span class="p">(</span><span class="n">FredHelpers</span><span class="o">.</span><span class="n">to_pd_series</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span></div>
 </div>
 
 </pre></div>

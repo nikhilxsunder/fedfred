@@ -34,7 +34,19 @@ Attributes
    :template: autosummary/attribute.rst
    :nosignatures:
    
+   Category.children
+   
+   Category.client
+   
    Category.parent_id
+   
+   Category.related
+   
+   Category.related_tags
+   
+   Category.series
+   
+   Category.tags
    
    Category.id
    

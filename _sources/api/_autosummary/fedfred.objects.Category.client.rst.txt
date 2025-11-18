@@ -1,0 +1,4 @@
+client
+======
+
+.. autoattribute:: fedfred.objects.Category.client

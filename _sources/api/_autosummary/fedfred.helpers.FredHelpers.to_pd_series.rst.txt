@@ -1,0 +1,4 @@
+to_pd_series
+============
+
+.. automethod:: fedfred.helpers.FredHelpers.to_pd_series

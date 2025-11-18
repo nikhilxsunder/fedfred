@@ -48,7 +48,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../../_static/documentation_options.js?v=786ba454"></script>
+    <script src="../../_static/documentation_options.js?v=acc74ff5"></script>
     <script src="../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/design-tabs.js?v=f930bc37"></script>
@@ -101,7 +101,7 @@
 <aside class="bd-header-announcement" aria-label="Announcement">
   <div class="bd-header-announcement__content">
         <div class="sidebar-message">
-            Version 2 is now available!
+            Version 3 is now available!
             Please check the
             <a href="resources/notes.html" target="_self">
                 special notes page
@@ -598,10 +598,14 @@
 <span class="sd">This module defines data classes for the FRED API responses.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">TYPE_CHECKING</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">fedfred.__about__</span><span class="w"> </span><span class="kn">import</span> <span class="n">__title__</span><span class="p">,</span> <span class="n">__version__</span><span class="p">,</span> <span class="n">__author__</span><span class="p">,</span> <span class="n">__license__</span><span class="p">,</span> <span class="n">__copyright__</span><span class="p">,</span> <span class="n">__description__</span><span class="p">,</span> <span class="n">__url__</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.__about__</span><span class="w"> </span><span class="kn">import</span> <span class="n">__title__</span><span class="p">,</span> <span class="n">__version__</span><span class="p">,</span> <span class="n">__author__</span><span class="p">,</span> <span class="n">__email__</span><span class="p">,</span> <span class="n">__license__</span><span class="p">,</span> <span class="n">__copyright__</span><span class="p">,</span> <span class="n">__description__</span><span class="p">,</span> <span class="n">__docs__</span><span class="p">,</span> <span class="n">__repository__</span>
+<span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">.clients</span><span class="w"> </span><span class="kn">import</span> <span class="n">FredAPI</span> <span class="c1"># pragma: no cover</span>
 
 <div class="viewcode-block" id="Category">
 <a class="viewcode-back" href="../../api/_autosummary/fedfred.objects.Category.html#fedfred.objects.Category">[docs]</a>
@@ -613,13 +617,27 @@
     <span class="nb">id</span><span class="p">:</span> <span class="nb">int</span>
     <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">parent_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
-
+    <span class="n">client</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;FredAPI&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="nb">repr</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">compare</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="c1"># Class Methods</span>
 <div class="viewcode-block" id="Category.to_object">
 <a class="viewcode-back" href="../../api/_autosummary/fedfred.objects.Category.to_object.html#fedfred.objects.Category.to_object">[docs]</a>
     <span class="nd">@classmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">to_object</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">response</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;Category&quot;</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parses FRED API response and returns a list of Category objects.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            response (Dict): The FRED API response.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[Category]: A list of Category objects.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If the response does not contain the expected data.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="s2">&quot;categories&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">response</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid API response: Missing &#39;categories&#39; field&quot;</span><span class="p">)</span>
@@ -641,10 +659,158 @@
     <span class="nd">@classmethod</span>
     <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">to_object_async</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">response</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;Category&quot;</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Asynchronously parses FRED API response and returns a list of Category Objects.</span>
+<span class="sd">        Asynchronously parses FRED API response and returns a list of Category objects.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            response (Dict): The FRED API response.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[Category]: A list of Category objects.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If the response does not contain the expected data.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">to_thread</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">to_object</span><span class="p">,</span> <span class="n">response</span><span class="p">)</span></div>
-</div>
+
+
+    <span class="c1"># Properties</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">children</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;Category&quot;</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the child categories of this category.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[Category]: A list of child Category objects.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            RuntimeError: If the client is not set for this Category.</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; categories = fred_client.get_category(13)</span>
+<span class="sd">            &gt;&gt;&gt; for category in categories:</span>
+<span class="sd">            &gt;&gt;&gt;     children = category.children</span>
+<span class="sd">            &gt;&gt;&gt;     for child in children:</span>
+<span class="sd">            &gt;&gt;&gt;         print(child.name)</span>
+<span class="sd">            &#39;Exports&#39;</span>
+<span class="sd">            &#39;Imports&#39;</span>
+<span class="sd">            &#39;Income Payments &amp; Receipts&#39;</span>
+<span class="sd">            &#39;U.S. International Finance&#39;</span>
+
+<span class="sd">        Note: This property is meant for simple relational requests, for more complex queries use the client methods directly.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Client not set for this Category instance.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get_category_children</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">related</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;Category&quot;</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the related categories of this category.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[Category]: A list of related Category objects.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            RuntimeError: If the client is not set for this Category.</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; categories = fred_client.get_category(32073)</span>
+<span class="sd">            &gt;&gt;&gt; for category in categories:</span>
+<span class="sd">            &gt;&gt;&gt;     for related in category.related:</span>
+<span class="sd">            &gt;&gt;&gt;         print(related.name)</span>
+<span class="sd">            &#39;Arkansas&#39;</span>
+<span class="sd">            &#39;Illinois&#39;</span>
+<span class="sd">            &#39;Indiana&#39;</span>
+<span class="sd">            &#39;Kentucky&#39;</span>
+<span class="sd">            &#39;Mississippi&#39;</span>
+<span class="sd">            &#39;Missouri&#39;</span>
+<span class="sd">            &#39;Tennessee&#39;</span>
+
+<span class="sd">        Note: This property is meant for simple relational requests, for more complex queries use the client methods directly.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Client not set for this Category instance.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get_category_related</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">series</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;Series&quot;</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the series in this category.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[Series]: A list of Series objects in this category.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            RuntimeError: If the client is not set for this Category.</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; categories = fred_client.get_category(125)</span>
+<span class="sd">            &gt;&gt;&gt; for category in categories:</span>
+<span class="sd">            &gt;&gt;&gt;     for series in category.series:</span>
+<span class="sd">            &gt;&gt;&gt;         print(series.frequency)</span>
+<span class="sd">            &#39;Quarterly&#39;</span>
+<span class="sd">            &#39;Annual&#39;</span>
+<span class="sd">            &#39;Quarterly&#39;...</span>
+
+<span class="sd">        Note: This property is meant for simple relational requests, for more complex queries use the client methods directly.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Client not set for this Category instance.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get_category_series</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">tags</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;Tag&quot;</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the tags associated with this category.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[Tag]: A list of Tag objects associated with this category.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            RuntimeError: If the client is not set for this Category.</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; categories = fred_client.get_category(125)</span>
+<span class="sd">            &gt;&gt;&gt; for category in categories:</span>
+<span class="sd">            &gt;&gt;&gt;     for tag in category.tags:</span>
+<span class="sd">            &gt;&gt;&gt;         print(tag.notes)</span>
+<span class="sd">            &#39;U.S. Department of Commerce: Bureau of Economic Analysis&#39;</span>
+<span class="sd">            &#39;Country Level&#39;</span>
+<span class="sd">            &#39;United States of America&#39;...</span>
+
+<span class="sd">        Note: This property is meant for simple relational requests, for more complex queries use the client methods directly.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Client not set for this Category instance.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get_category_tags</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">related_tags</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;Tag&quot;</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the related tags associated with this category.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[Tag]: A list of related Tag objects associated with this category.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            RuntimeError: If the client is not set for this Category.</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; categories = fred_client.get_category(125)</span>
+<span class="sd">            &gt;&gt;&gt; for category in categories:</span>
+<span class="sd">            &gt;&gt;&gt;     for tag in category.related_tags:</span>
+<span class="sd">            &gt;&gt;&gt;         print(tag.name)</span>
+<span class="sd">            &#39;balance&#39;</span>
+<span class="sd">            &#39;bea&#39;</span>
+<span class="sd">            &#39;nation&#39;</span>
+<span class="sd">            &#39;usa&#39;...</span>
+
+<span class="sd">        Note: This property is meant for simple relational requests, for more complex queries use the client methods directly.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Client not set for this Category instance.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get_category_related_tags</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">)</span></div>
+
 
 <div class="viewcode-block" id="Series">
 <a class="viewcode-back" href="../../api/_autosummary/fedfred.objects.Series.html#fedfred.objects.Series">[docs]</a>
@@ -669,13 +835,27 @@
     <span class="n">realtime_end</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">group_popularity</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">notes</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
-
+    <span class="n">client</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;FredAPI&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="nb">repr</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">compare</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="c1"># Class Methods</span>
 <div class="viewcode-block" id="Series.to_object">
 <a class="viewcode-back" href="../../api/_autosummary/fedfred.objects.Series.to_object.html#fedfred.objects.Series.to_object">[docs]</a>
     <span class="nd">@classmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">to_object</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">response</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;Series&quot;</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parses the FRED API response and returns a list of Series objects.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            response (Dict): The FRED API response.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[Series]: A list of Series objects.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If the response does not contain the expected data.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="s2">&quot;seriess&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">response</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid API response: Missing &#39;seriess&#39; field&quot;</span><span class="p">)</span>
@@ -711,9 +891,151 @@
     <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">to_object_async</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">response</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;Series&quot;</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Asynchronously parses the FRED API response and returns a list of Series objects.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            response (Dict): The FRED API response.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[Series]: A list of Series objects.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If the response does not contain the expected data.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">to_thread</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">to_object</span><span class="p">,</span> <span class="n">response</span><span class="p">)</span></div>
-</div>
+
+
+    <span class="c1"># Properties</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">categories</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;Category&quot;</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the categories associated with this series.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[Category]: A list of Category objects associated with this series.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            RuntimeError: If the client is not set for this Series.</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; seriess = fred_client.get_series(&quot;EXJPUS&quot;)</span>
+<span class="sd">            &gt;&gt;&gt; for series in seriess:</span>
+<span class="sd">            &gt;&gt;&gt;     for category in series.categories:</span>
+<span class="sd">            &gt;&gt;&gt;         print(category.id)</span>
+<span class="sd">            &#39;95&#39;</span>
+<span class="sd">            &#39;275&#39;</span>
+
+<span class="sd">        Note: This property is meant for simple relational requests, for more complex queries use the client methods directly.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Client is not set for this Series&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get_series_categories</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">observations</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the observations associated with this series.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            pd.DataFrame: A DataFrame containing the observations for this series.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            RuntimeError: If the client is not set for this Series.</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; seriess = fred_client.get_series(&quot;GNPCA&quot;)</span>
+<span class="sd">            &gt;&gt;&gt; for series in seriess:</span>
+<span class="sd">            &gt;&gt;&gt;     observations = series.observations</span>
+<span class="sd">            &gt;&gt;&gt;     print(observations.head())</span>
+<span class="sd">            date       realtime_start realtime_end     value</span>
+<span class="sd">            1929-01-01     2025-02-13   2025-02-13  1202.659</span>
+<span class="sd">            1930-01-01     2025-02-13   2025-02-13  1100.670</span>
+<span class="sd">            1931-01-01     2025-02-13   2025-02-13  1029.038</span>
+<span class="sd">            1932-01-01     2025-02-13   2025-02-13   895.802</span>
+<span class="sd">            1933-01-01     2025-02-13   2025-02-13   883.847</span>
+
+<span class="sd">        Note: This property is meant for simple relational requests, for more complex queries use the client methods directly.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Client is not set for this Series&quot;</span><span class="p">)</span>
+        <span class="n">frame</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get_series_observations</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">frame</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">release</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;Release&quot;</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the release associated with this series.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[Release]: A list of Release objects associated with this series.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            RuntimeError: If the client is not set for this Series.</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; seriess = fred_client.get_series(&quot;GNPCA&quot;)</span>
+<span class="sd">            &gt;&gt;&gt; for series in seriess:</span>
+<span class="sd">            &gt;&gt;&gt;     for release in series.release:</span>
+<span class="sd">            &gt;&gt;&gt;         print(release.name)</span>
+<span class="sd">            &#39;Gross National Product&#39;</span>
+
+<span class="sd">        Note: This property is meant for simple relational requests, for more complex queries use the client methods directly.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Client is not set for this Series&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get_series_release</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">tags</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;Tag&quot;</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the tags associated with this series.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[Tag]: A list of Tag objects associated with this series.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            RuntimeError: If the client is not set for this Series.</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; seriess = fred_client.get_series(&quot;GNPCA&quot;)</span>
+<span class="sd">            &gt;&gt;&gt; for series in seriess:</span>
+<span class="sd">            &gt;&gt;&gt;     for tag in series.tags:</span>
+<span class="sd">            &gt;&gt;&gt;         print(tag.name)</span>
+<span class="sd">            &#39;nation&#39;</span>
+<span class="sd">            &#39;nsa&#39;</span>
+<span class="sd">            &#39;usa&#39;...</span>
+
+<span class="sd">        Note: This property is meant for simple relational requests, for more complex queries use the client methods directly.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Client is not set for this Series&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get_series_tags</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">vintagedates</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s1">&#39;VintageDate&#39;</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the vintage dates associated with this series.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[str]: A list of vintage date strings associated with this series.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            RuntimeError: If the client is not set for this Series.</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; seriess = fred_client.get_series(&quot;GNPCA&quot;)</span>
+<span class="sd">            &gt;&gt;&gt; for series in seriess:</span>
+<span class="sd">            &gt;&gt;&gt;     for date in series.vintagedates:</span>
+<span class="sd">            &gt;&gt;&gt;         print(date.vintage_date)</span>
+<span class="sd">            &#39;2025-02-13&#39;</span>
+<span class="sd">            &#39;2025-01-15&#39;</span>
+<span class="sd">            &#39;2024-12-13&#39;...</span>
+
+<span class="sd">        Note: This property is meant for simple relational requests, for more complex queries use the client methods directly.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Client is not set for this Series&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get_series_vintagedates</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="Tag">
@@ -729,13 +1051,27 @@
     <span class="n">popularity</span><span class="p">:</span> <span class="nb">int</span>
     <span class="n">series_count</span><span class="p">:</span> <span class="nb">int</span>
     <span class="n">notes</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
-
+    <span class="n">client</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;FredAPI&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="nb">repr</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">compare</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="c1"># Class Methods</span>
 <div class="viewcode-block" id="Tag.to_object">
 <a class="viewcode-back" href="../../api/_autosummary/fedfred.objects.Tag.to_object.html#fedfred.objects.Tag.to_object">[docs]</a>
     <span class="nd">@classmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">to_object</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">response</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;Tag&quot;</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parses the FRED API response and returns a  list of Tag objects.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            response (Dict): The FRED API response.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[Tag]: A list of Tag objects.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If the response does not contain the expected data.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="s2">&quot;tags&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">response</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid API response: Missing &#39;tags&#39; field&quot;</span><span class="p">)</span>
@@ -761,9 +1097,71 @@
     <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">to_object_async</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">response</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;Tag&quot;</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Asynchronously parses the FRED API response and returns a list of Tags objects.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            response (Dict): The FRED API response.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[Tag]: A list of Tag objects.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If the response does not contain the expected data.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">to_thread</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">to_object</span><span class="p">,</span> <span class="n">response</span><span class="p">)</span></div>
-</div>
+
+
+    <span class="c1"># Properties</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">related_tags</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;Tag&quot;</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the related tags associated with this tag.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[Tag]: A list of related Tag objects associated with this tag.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            RuntimeError: If the client is not set for this Tag.</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; tags = fred_client.get_tags()</span>
+<span class="sd">            &gt;&gt;&gt; for tag in tags:</span>
+<span class="sd">            &gt;&gt;&gt;     for related_tag in tag.related_tags:</span>
+<span class="sd">            &gt;&gt;&gt;         print(related_tag.name)</span>
+<span class="sd">            &#39;nation&#39;</span>
+<span class="sd">            &#39;usa&#39;</span>
+<span class="sd">            &#39;frb&#39;...</span>
+
+<span class="sd">        Note: This property is meant for simple relational requests, for more complex queries use the client methods directly.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Client is not set for this Tag&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get_related_tags</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">series</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;Series&quot;</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the series associated with this tag.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[Series]: A list of Series objects associated with this tag.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            RuntimeError: If the client is not set for this Tag.</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; tags = fred_client.get_tags()</span>
+<span class="sd">            &gt;&gt;&gt; for tag in tags:</span>
+<span class="sd">            &gt;&gt;&gt;     for series in tag.series:</span>
+<span class="sd">            &gt;&gt;&gt;         print(series.id)</span>
+<span class="sd">            &#39;CPGDFD02SIA657N&#39;</span>
+<span class="sd">            &#39;CPGDFD02SIA659N&#39;</span>
+<span class="sd">            &#39;CPGDFD02SIM657N&#39;...</span>
+
+<span class="sd">        Note: This property is meant for simple relational requests, for more complex queries use the client methods directly.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Client is not set for this Tag&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get_tags_series</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="Release">
@@ -780,13 +1178,27 @@
     <span class="n">press_release</span><span class="p">:</span> <span class="nb">bool</span>
     <span class="n">link</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">notes</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
-
+    <span class="n">client</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;FredAPI&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="nb">repr</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">compare</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="c1"># Class Methods</span>
 <div class="viewcode-block" id="Release.to_object">
 <a class="viewcode-back" href="../../api/_autosummary/fedfred.objects.Release.to_object.html#fedfred.objects.Release.to_object">[docs]</a>
     <span class="nd">@classmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">to_object</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">response</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;Release&quot;</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parses the FRED API response and returns a list of Release objects.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            response (Dict): The FRED API response.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[Release]: A list of Release objects.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If the response does not contain the expected data.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="s2">&quot;releases&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">response</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid API response: Missing &#39;releases&#39; field&quot;</span><span class="p">)</span>
@@ -813,9 +1225,174 @@
     <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">to_object_async</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">response</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;Release&quot;</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Asynchronously parses the FRED API response and returns a list of Release objects.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            response (Dict): The FRED API response.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[Release]: A list of Release objects.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If the response does not contain the expected data.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">to_thread</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">to_object</span><span class="p">,</span> <span class="n">response</span><span class="p">)</span></div>
-</div>
+
+
+    <span class="c1"># Properties</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">dates</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;ReleaseDate&quot;</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the release dates associated with this release.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[ReleaseDate]: A list of ReleaseDate objects associated with this release.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            RuntimeError: If the client is not set for this Release.</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; releases = fred_client.get_release(82)</span>
+<span class="sd">            &gt;&gt;&gt; for release in releases:</span>
+<span class="sd">            &gt;&gt;&gt;     for date in release.dates:</span>
+<span class="sd">            &gt;&gt;&gt;         print(date.date)</span>
+<span class="sd">            &#39;1997-02-10&#39;</span>
+<span class="sd">            &#39;1998-02-10&#39;</span>
+<span class="sd">            &#39;1999-02-04&#39;...</span>
+
+<span class="sd">        Note: This property is meant for simple relational requests, for more complex queries use the client methods directly.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Client is not set for this Release&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get_release_dates</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">series</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;Series&quot;</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the series associated with this release.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[Series]: A list of Series objects associated with this release.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            RuntimeError: If the client is not set for this Release.</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; releases = fred_client.get_release(51)</span>
+<span class="sd">            &gt;&gt;&gt; for release in releases:</span>
+<span class="sd">            &gt;&gt;&gt;     for series in release.series:</span>
+<span class="sd">            &gt;&gt;&gt;         print(series.id)</span>
+<span class="sd">            &#39;BOMTVLM133S&#39;</span>
+<span class="sd">            &#39;BOMVGMM133S&#39;</span>
+<span class="sd">            &#39;BOMVJMM133S&#39;...</span>
+
+<span class="sd">        Note: This property is meant for simple relational requests, for more complex queries use the client methods directly.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Client is not set for this Release&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get_release_series</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">sources</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;Source&quot;</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the sources associated with this release.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[Source]: A list of Source objects associated with this release.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            RuntimeError: If the client is not set for this Release.</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; releases = fred_client.get_release(51)</span>
+<span class="sd">            &gt;&gt;&gt; for release in releases:</span>
+<span class="sd">            &gt;&gt;&gt;     for source in release.sources:</span>
+<span class="sd">            &gt;&gt;&gt;         print(source.name)</span>
+<span class="sd">            &#39;U.S. Department of Commerce: Bureau of Economic Analysis&#39;</span>
+<span class="sd">            &#39;U.S. Department of Commerce: Census Bureau&#39;...</span>
+
+<span class="sd">        Note: This property is meant for simple relational requests, for more complex queries use the client methods directly.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Client is not set for this Release&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get_release_sources</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">tags</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;Tag&quot;</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the tags associated with this release.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[Tag]: A list of Tag objects associated with this release.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            RuntimeError: If the client is not set for this Release.</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; releases = fred_client.get_release(86)</span>
+<span class="sd">            &gt;&gt;&gt; for release in releases:</span>
+<span class="sd">            &gt;&gt;&gt;     for tag in release.tags:</span>
+<span class="sd">            &gt;&gt;&gt;         print(tag.name)</span>
+<span class="sd">            &#39;commercial paper&#39;</span>
+<span class="sd">            &#39;frb&#39;</span>
+<span class="sd">            &#39;nation&#39;...</span>
+
+<span class="sd">        Note: This property is meant for simple relational requests, for more complex queries use the client methods directly.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Client is not set for this Release&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get_release_tags</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">related_tags</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;Tag&quot;</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the related tags associated with this release.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[Tag]: A list of related Tag objects associated with this release.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            RuntimeError: If the client is not set for this Release.</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; releases = fred_client.get_release(86)</span>
+<span class="sd">            &gt;&gt;&gt; for release in releases:</span>
+<span class="sd">            &gt;&gt;&gt;     for tag in release.related_tags:</span>
+<span class="sd">            &gt;&gt;&gt;         print(tag.name)</span>
+<span class="sd">            &#39;commercial paper&#39;</span>
+<span class="sd">            &#39;frb&#39;</span>
+<span class="sd">            &#39;nation&#39;...</span>
+
+<span class="sd">        Note: This property is meant for simple relational requests, for more complex queries use the client methods directly.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Client is not set for this Release&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get_release_related_tags</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">tables</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;Element&quot;</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the tables associated with this release.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[Element]: A list of Element objects associated with this release.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            RuntimeError: If the client is not set for this Release.</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; releases = fred_client.get_release(53)</span>
+<span class="sd">            &gt;&gt;&gt; for release in releases:</span>
+<span class="sd">            &gt;&gt;&gt;     for element in release.tables:</span>
+<span class="sd">            &gt;&gt;&gt;         print(element.series_id)</span>
+<span class="sd">            &#39;DGDSRL1A225NBEA&#39;</span>
+<span class="sd">            &#39;DDURRL1A225NBEA&#39;</span>
+<span class="sd">            &#39;DNDGRL1A225NBEA&#39;...</span>
+
+<span class="sd">        Note: This property is meant for simple relational requests, for more complex queries use the client methods directly.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Client is not set for this Release&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get_release_tables</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="ReleaseDate">
@@ -828,13 +1405,22 @@
     <span class="n">release_id</span><span class="p">:</span> <span class="nb">int</span>
     <span class="n">date</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">release_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
-
+    <span class="c1"># Class Methods</span>
 <div class="viewcode-block" id="ReleaseDate.to_object">
 <a class="viewcode-back" href="../../api/_autosummary/fedfred.objects.ReleaseDate.to_object.html#fedfred.objects.ReleaseDate.to_object">[docs]</a>
     <span class="nd">@classmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">to_object</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">response</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;ReleaseDate&quot;</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parses the FRED API response and returns a list of ReleaseDate objects.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            response (Dict): The FRED API response.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[ReleaseDate]: A list of ReleaseDate objects.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If the response does not contain the expected data.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="s2">&quot;release_dates&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">response</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid API response: Missing &#39;release_dates&#39; field&quot;</span><span class="p">)</span>
@@ -857,6 +1443,15 @@
     <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">to_object_async</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">response</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;ReleaseDate&quot;</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Asynchronously parses the FRED API response and returns a list of ReleaseDate objects.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            response (Dict): The FRED API response.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[ReleaseDate]: A list of ReleaseDate objects.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If the response does not contain the expected data.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">to_thread</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">to_object</span><span class="p">,</span> <span class="n">response</span><span class="p">)</span></div>
 </div>
@@ -875,13 +1470,27 @@
     <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">link</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">notes</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
-
+    <span class="n">client</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;FredAPI&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="nb">repr</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">compare</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="c1"># Class Methods</span>
 <div class="viewcode-block" id="Source.to_object">
 <a class="viewcode-back" href="../../api/_autosummary/fedfred.objects.Source.to_object.html#fedfred.objects.Source.to_object">[docs]</a>
     <span class="nd">@classmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">to_object</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">response</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;Source&quot;</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parses the FRED API response and returns a list of Source objects.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            response (Dict): The FRED API response.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[Source]: A list of Source objects.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If the response does not contain the expected data.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="s2">&quot;sources&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">response</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid API response: Missing &#39;sources&#39; field&quot;</span><span class="p">)</span>
@@ -907,9 +1516,45 @@
     <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">to_object_async</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">response</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;Source&quot;</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Asynchronously parses the FRED API response and returns a list of Source objects.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            response (Dict): The FRED API response.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[Source]: A list of Source objects.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If the response does not contain the expected data.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">to_thread</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">to_object</span><span class="p">,</span> <span class="n">response</span><span class="p">)</span></div>
-</div>
+
+
+    <span class="c1"># Properties</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">releases</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;Release&quot;</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the releases associated with this source.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[Release]: A list of Release objects associated with this source.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            RuntimeError: If the client is not set for this Source.</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; sources = fred_client.get_source(1)</span>
+<span class="sd">            &gt;&gt;&gt; for source in sources:</span>
+<span class="sd">            &gt;&gt;&gt;     for release in source.releases:</span>
+<span class="sd">            &gt;&gt;&gt;         print(release.name)</span>
+<span class="sd">            &#39;G.17 Industrial Production and Capacity Utilization&#39;</span>
+<span class="sd">            &#39;G.19 Consumer Credit&#39;</span>
+<span class="sd">            &#39;G.5 Foreign Exchange Rates&#39;...</span>
+
+<span class="sd">        Note: This property is meant for simple relational requests, for more complex queries use the client methods directly.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Client is not set for this Source&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get_source_releases</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="Element">
@@ -928,26 +1573,36 @@
     <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">level</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">children</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="s2">&quot;Element&quot;</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
-
+    <span class="n">client</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;FredAPI&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="nb">repr</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">compare</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="c1"># Class Methods</span>
 <div class="viewcode-block" id="Element.to_object">
 <a class="viewcode-back" href="../../api/_autosummary/fedfred.objects.Element.to_object.html#fedfred.objects.Element.to_object">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">to_object</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">response</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;Element&quot;</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_object</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">response</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">client</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;FredAPI&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;Element&quot;</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parses the FRED API response and returns a list of Elements objects.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            response (Dict): The FRED API response.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[Element]: A list of Element objects.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If the response does not contain the expected data.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="s2">&quot;elements&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">response</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid API response: Missing &#39;elements&#39; field&quot;</span><span class="p">)</span>
-        <span class="n">elements</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">elements</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Element</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">def</span><span class="w"> </span><span class="nf">process_element</span><span class="p">(</span><span class="n">element_data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Element&quot;</span><span class="p">:</span>
-            <span class="n">children_list</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">children_list</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Element</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">for</span> <span class="n">child_data</span> <span class="ow">in</span> <span class="n">element_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;children&quot;</span><span class="p">,</span> <span class="p">[]):</span>
-                <span class="n">child_resp</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;elements&quot;</span><span class="p">:</span> <span class="p">{</span><span class="nb">str</span><span class="p">(</span><span class="n">child_data</span><span class="p">[</span><span class="s2">&quot;element_id&quot;</span><span class="p">]):</span> <span class="n">child_data</span><span class="p">}}</span>
-                <span class="n">child_result</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">to_object</span><span class="p">(</span><span class="n">child_resp</span><span class="p">)</span>
-                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">child_result</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
-                    <span class="n">children_list</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">child_result</span><span class="p">)</span>
-                <span class="k">elif</span> <span class="n">child_result</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="n">children_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">child_result</span><span class="p">)</span>
+                <span class="n">child_element</span> <span class="o">=</span> <span class="n">process_element</span><span class="p">(</span><span class="n">child_data</span><span class="p">)</span>
+                <span class="n">children_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">child_element</span><span class="p">)</span>
             <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span>
                 <span class="n">element_id</span><span class="o">=</span><span class="n">element_data</span><span class="p">[</span><span class="s2">&quot;element_id&quot;</span><span class="p">],</span>
                 <span class="n">release_id</span><span class="o">=</span><span class="n">element_data</span><span class="p">[</span><span class="s2">&quot;release_id&quot;</span><span class="p">],</span>
@@ -957,7 +1612,8 @@
                 <span class="nb">type</span><span class="o">=</span><span class="n">element_data</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">],</span>
                 <span class="n">name</span><span class="o">=</span><span class="n">element_data</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">],</span>
                 <span class="n">level</span><span class="o">=</span><span class="n">element_data</span><span class="p">[</span><span class="s2">&quot;level&quot;</span><span class="p">],</span>
-                <span class="n">children</span><span class="o">=</span><span class="n">children_list</span> <span class="k">if</span> <span class="n">children_list</span> <span class="k">else</span> <span class="kc">None</span>
+                <span class="n">children</span><span class="o">=</span><span class="n">children_list</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="n">client</span><span class="o">=</span><span class="n">client</span><span class="p">,</span>
             <span class="p">)</span>
         <span class="k">for</span> <span class="n">element_data</span> <span class="ow">in</span> <span class="n">response</span><span class="p">[</span><span class="s2">&quot;elements&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
             <span class="n">elements</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">process_element</span><span class="p">(</span><span class="n">element_data</span><span class="p">))</span>
@@ -972,9 +1628,71 @@
     <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">to_object_async</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">response</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;Element&quot;</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Asynchronously parses the FRED API response and returns a list of Element objects.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            response (Dict): The FRED API response.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[Element]: A list of Element objects.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If the response does not contain the expected data.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">to_thread</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">to_object</span><span class="p">,</span> <span class="n">response</span><span class="p">)</span></div>
-</div>
+
+
+    <span class="c1"># Properties</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">release</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;Release&quot;</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the release associated with this element.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[Release]: A list of Release objects associated with this element.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            RuntimeError: If the client is not set for this Element.</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; elements = fred_client.get_release_tables(53)</span>
+<span class="sd">            &gt;&gt;&gt; for element in elements:</span>
+<span class="sd">            &gt;&gt;&gt;     for release in element.release:</span>
+<span class="sd">            &gt;&gt;&gt;         print(release.name)</span>
+<span class="sd">            &#39;Real Gross Domestic Product&#39;</span>
+<span class="sd">            &#39;Gross Domestic Product&#39;</span>
+<span class="sd">            &#39;Personal Income and Outlays&#39;...</span>
+
+<span class="sd">        Note: This property is meant for simple relational requests, for more complex queries use the client methods directly.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Client is not set for this Element&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get_release</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">release_id</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">series</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;Series&quot;</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the series associated with this element.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[Series]: A list of Series objects associated with this element.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            RuntimeError: If the client is not set for this Element.</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; elements = fred_client.get_release_tables(53)</span>
+<span class="sd">            &gt;&gt;&gt; for element in elements:</span>
+<span class="sd">            &gt;&gt;&gt;     for series in element.series:</span>
+<span class="sd">            &gt;&gt;&gt;         print(series.id)</span>
+<span class="sd">            &#39;DGDSRL1A225NBEA&#39;</span>
+<span class="sd">            &#39;DDURRL1A225NBEA&#39;</span>
+<span class="sd">            &#39;DNDGRL1A225NBEA&#39;...</span>
+
+<span class="sd">        Note: This property is meant for simple relational requests, for more complex queries use the client methods directly.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Client is not set for this Element&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get_series</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">series_id</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="VintageDate">
@@ -992,6 +1710,15 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">to_object</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">response</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;VintageDate&quot;</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parses the FRED API response and returns a list of VintageDate objects.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            response (Dict): The FRED API response.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[VintageDate]: A list of VintageDate objects.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If the response does not contain the expected data.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="s2">&quot;vintage_dates&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">response</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid API response: Missing &#39;vintage_dates&#39; field&quot;</span><span class="p">)</span>
@@ -1010,6 +1737,15 @@
     <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">to_object_async</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">response</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;VintageDate&quot;</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Asynchronously parses the FRED API response and returns a list of VintageDate objects.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            response (Dict): The FRED API response.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[VintageDate]: A list of VintageDate objects.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If the response does not contain the expected data.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">to_thread</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">to_object</span><span class="p">,</span> <span class="n">response</span><span class="p">)</span></div>
 </div>
@@ -1037,6 +1773,15 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">to_object</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">response</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;SeriesGroup&quot;</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parses the FRED API response and returns a list of SeriesGroup objects.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            response (Dict): The FRED API response.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[SeriesGroup]: A list of SeriesGroup objects.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If the response does not contain the expected data.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="s2">&quot;series_group&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">response</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid API response: Missing &#39;series_group&#39; field&quot;</span><span class="p">)</span>
@@ -1067,6 +1812,15 @@
     <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">to_object_async</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">response</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;SeriesGroup&quot;</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Asynchronously parses the FRED API response and returns a list of SeriesGroup objects.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            response (Dict): The FRED API response.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[SeriesGroup]: A list of SeriesGroup objects.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If the response does not contain the expected data.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">to_thread</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">to_object</span><span class="p">,</span> <span class="n">response</span><span class="p">)</span></div>
 </div>

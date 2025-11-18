@@ -1,0 +1,4 @@
+releases
+========
+
+.. autoattribute:: fedfred.objects.Source.releases

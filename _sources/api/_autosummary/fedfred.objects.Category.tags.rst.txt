@@ -1,0 +1,4 @@
+tags
+====
+
+.. autoattribute:: fedfred.objects.Category.tags

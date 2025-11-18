@@ -1,0 +1,4 @@
+sources
+=======
+
+.. autoattribute:: fedfred.objects.Release.sources

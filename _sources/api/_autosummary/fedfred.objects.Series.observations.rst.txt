@@ -1,0 +1,4 @@
+observations
+============
+
+.. autoattribute:: fedfred.objects.Series.observations

@@ -1,0 +1,4 @@
+categories
+==========
+
+.. autoattribute:: fedfred.objects.Series.categories

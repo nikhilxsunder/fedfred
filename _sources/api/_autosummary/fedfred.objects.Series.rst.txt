@@ -34,13 +34,25 @@ Attributes
    :template: autosummary/attribute.rst
    :nosignatures:
    
+   Series.categories
+   
+   Series.client
+   
    Series.group_popularity
    
    Series.notes
    
+   Series.observations
+   
    Series.realtime_end
    
    Series.realtime_start
+   
+   Series.release
+   
+   Series.tags
+   
+   Series.vintagedates
    
    Series.id
    

@@ -34,9 +34,23 @@ Attributes
    :template: autosummary/attribute.rst
    :nosignatures:
    
+   Release.client
+   
+   Release.dates
+   
    Release.link
    
    Release.notes
+   
+   Release.related_tags
+   
+   Release.series
+   
+   Release.sources
+   
+   Release.tables
+   
+   Release.tags
    
    Release.id
    

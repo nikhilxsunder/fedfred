@@ -1,0 +1,4 @@
+related
+=======
+
+.. autoattribute:: fedfred.objects.Category.related

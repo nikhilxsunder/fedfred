@@ -1,0 +1,4 @@
+release
+=======
+
+.. autoattribute:: fedfred.objects.Element.release

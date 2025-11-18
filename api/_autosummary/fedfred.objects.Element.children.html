@@ -59,7 +59,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../../_static/documentation_options.js?v=786ba454"></script>
+    <script src="../../_static/documentation_options.js?v=acc74ff5"></script>
     <script src="../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/design-tabs.js?v=f930bc37"></script>
@@ -69,7 +69,7 @@
     <link rel="icon" href="../../_static/fedfred_favicon.ico"/>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="element_id" href="fedfred.objects.Element.element_id.html" />
+    <link rel="next" title="client" href="fedfred.objects.Element.client.html" />
     <link rel="prev" title="to_object_async" href="fedfred.objects.Element.to_object_async.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -114,7 +114,7 @@
 <aside class="bd-header-announcement" aria-label="Announcement">
   <div class="bd-header-announcement__content">
         <div class="sidebar-message">
-            Version 2 is now available!
+            Version 3 is now available!
             Please check the
             <a href="resources/notes.html" target="_self">
                 special notes page
@@ -646,6 +646,8 @@
 <li class="toctree-l2"><a class="reference internal" href="fedfred.helpers.FredHelpers.liststring_validation_async.html">liststring_validation_async</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fedfred.helpers.FredHelpers.parameter_validation.html">parameter_validation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fedfred.helpers.FredHelpers.parameter_validation_async.html">parameter_validation_async</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fedfred.helpers.FredHelpers.pd_frequency_conversion.html">pd_frequency_conversion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fedfred.helpers.FredHelpers.pd_frequency_conversion_async.html">pd_frequency_conversion_async</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fedfred.helpers.FredHelpers.to_dd_df.html">to_dd_df</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fedfred.helpers.FredHelpers.to_dd_df_async.html">to_dd_df_async</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fedfred.helpers.FredHelpers.to_dd_gpd_gdf.html">to_dd_gpd_gdf</a></li>
@@ -654,6 +656,8 @@
 <li class="toctree-l2"><a class="reference internal" href="fedfred.helpers.FredHelpers.to_gpd_gdf_async.html">to_gpd_gdf_async</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fedfred.helpers.FredHelpers.to_pd_df.html">to_pd_df</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fedfred.helpers.FredHelpers.to_pd_df_async.html">to_pd_df_async</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fedfred.helpers.FredHelpers.to_pd_series.html">to_pd_series</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fedfred.helpers.FredHelpers.to_pd_series_async.html">to_pd_series_async</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fedfred.helpers.FredHelpers.to_pl_df.html">to_pl_df</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fedfred.helpers.FredHelpers.to_pl_df_async.html">to_pl_df_async</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fedfred.helpers.FredHelpers.to_pl_st_gdf.html">to_pl_st_gdf</a></li>
@@ -670,7 +674,13 @@
 <li class="toctree-l2"><a class="reference internal" href="fedfred.objects.Category.__init__.html">__init__</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fedfred.objects.Category.to_object.html">to_object</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fedfred.objects.Category.to_object_async.html">to_object_async</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fedfred.objects.Category.children.html">children</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fedfred.objects.Category.client.html">client</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fedfred.objects.Category.parent_id.html">parent_id</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fedfred.objects.Category.related.html">related</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fedfred.objects.Category.related_tags.html">related_tags</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fedfred.objects.Category.series.html">series</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fedfred.objects.Category.tags.html">tags</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fedfred.objects.Category.id.html">id</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fedfred.objects.Category.name.html">name</a></li>
 </ul>
@@ -679,10 +689,16 @@
 <li class="toctree-l2"><a class="reference internal" href="fedfred.objects.Series.__init__.html">__init__</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fedfred.objects.Series.to_object.html">to_object</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fedfred.objects.Series.to_object_async.html">to_object_async</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fedfred.objects.Series.categories.html">categories</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fedfred.objects.Series.client.html">client</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fedfred.objects.Series.group_popularity.html">group_popularity</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fedfred.objects.Series.notes.html">notes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fedfred.objects.Series.observations.html">observations</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fedfred.objects.Series.realtime_end.html">realtime_end</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fedfred.objects.Series.realtime_start.html">realtime_start</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fedfred.objects.Series.release.html">release</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fedfred.objects.Series.tags.html">tags</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fedfred.objects.Series.vintagedates.html">vintagedates</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fedfred.objects.Series.id.html">id</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fedfred.objects.Series.title.html">title</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fedfred.objects.Series.observation_start.html">observation_start</a></li>
@@ -701,7 +717,10 @@
 <li class="toctree-l2"><a class="reference internal" href="fedfred.objects.Tag.__init__.html">__init__</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fedfred.objects.Tag.to_object.html">to_object</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fedfred.objects.Tag.to_object_async.html">to_object_async</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fedfred.objects.Tag.client.html">client</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fedfred.objects.Tag.notes.html">notes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fedfred.objects.Tag.related_tags.html">related_tags</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fedfred.objects.Tag.series.html">series</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fedfred.objects.Tag.name.html">name</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fedfred.objects.Tag.group_id.html">group_id</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fedfred.objects.Tag.created.html">created</a></li>
@@ -713,8 +732,15 @@
 <li class="toctree-l2"><a class="reference internal" href="fedfred.objects.Release.__init__.html">__init__</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fedfred.objects.Release.to_object.html">to_object</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fedfred.objects.Release.to_object_async.html">to_object_async</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fedfred.objects.Release.client.html">client</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fedfred.objects.Release.dates.html">dates</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fedfred.objects.Release.link.html">link</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fedfred.objects.Release.notes.html">notes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fedfred.objects.Release.related_tags.html">related_tags</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fedfred.objects.Release.series.html">series</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fedfred.objects.Release.sources.html">sources</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fedfred.objects.Release.tables.html">tables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fedfred.objects.Release.tags.html">tags</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fedfred.objects.Release.id.html">id</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fedfred.objects.Release.realtime_start.html">realtime_start</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fedfred.objects.Release.realtime_end.html">realtime_end</a></li>
@@ -735,8 +761,10 @@
 <li class="toctree-l2"><a class="reference internal" href="fedfred.objects.Source.__init__.html">__init__</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fedfred.objects.Source.to_object.html">to_object</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fedfred.objects.Source.to_object_async.html">to_object_async</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fedfred.objects.Source.client.html">client</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fedfred.objects.Source.link.html">link</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fedfred.objects.Source.notes.html">notes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fedfred.objects.Source.releases.html">releases</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fedfred.objects.Source.id.html">id</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fedfred.objects.Source.realtime_start.html">realtime_start</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fedfred.objects.Source.realtime_end.html">realtime_end</a></li>
@@ -748,6 +776,9 @@
 <li class="toctree-l2"><a class="reference internal" href="fedfred.objects.Element.to_object.html">to_object</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fedfred.objects.Element.to_object_async.html">to_object_async</a></li>
 <li class="toctree-l2 current active"><a class="current reference internal" href="#">children</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fedfred.objects.Element.client.html">client</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fedfred.objects.Element.release.html">release</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fedfred.objects.Element.series.html">series</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fedfred.objects.Element.element_id.html">element_id</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fedfred.objects.Element.release_id.html">release_id</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fedfred.objects.Element.series_id.html">series_id</a></li>
@@ -846,7 +877,7 @@
 <h1>children<a class="headerlink" href="#children" title="Link to this heading">#</a></h1>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="fedfred.objects.Element.children">
-<span class="sig-prename descclassname"><span class="pre">Element.</span></span><span class="sig-name descname"><span class="pre">children</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.13)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a><span class="pre">[</span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a><span class="pre">[</span><a class="reference internal" href="fedfred.objects.Element.html#fedfred.objects.Element" title="fedfred.objects.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></a><span class="pre">]]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#fedfred.objects.Element.children" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Element.</span></span><span class="sig-name descname"><span class="pre">children</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a><span class="pre">[</span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a><span class="pre">[</span><a class="reference internal" href="fedfred.objects.Element.html#fedfred.objects.Element" title="fedfred.objects.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></a><span class="pre">]]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#fedfred.objects.Element.children" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 </section>
@@ -871,11 +902,11 @@
       </div>
     </a>
     <a class="right-next"
-       href="fedfred.objects.Element.element_id.html"
+       href="fedfred.objects.Element.client.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">element_id</p>
+        <p class="prev-next-title">client</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>

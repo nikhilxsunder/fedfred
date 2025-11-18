@@ -34,7 +34,13 @@ Attributes
    :template: autosummary/attribute.rst
    :nosignatures:
    
+   Tag.client
+   
    Tag.notes
+   
+   Tag.related_tags
+   
+   Tag.series
    
    Tag.name
    

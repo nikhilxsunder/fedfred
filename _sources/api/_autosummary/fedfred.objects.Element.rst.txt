@@ -36,6 +36,12 @@ Attributes
    
    Element.children
    
+   Element.client
+   
+   Element.release
+   
+   Element.series
+   
    Element.element_id
    
    Element.release_id

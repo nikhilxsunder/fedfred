@@ -1,5 +1,137 @@
 .. _api-notes:
 
+Special Notes: Added Helpers and Return Object Properties (FedFred 3.0+)
+========================================================================
+
+Starting from **version 3.0**, the :mod:`fedfred` library introduces **new helper methods** and **additional properties** in return objects.
+These enhancements make it easier to interact with the **FRED® API** while ensuring full compatibility and clean code design.
+
+This page details these important features.
+
+---
+
+New Helper Methods in FedFred
+--------------------------------
+The :mod:`fedfred.helpers` module now includes additional helper methods to facilitate data handling and conversion.
+
+Added Helper Methods
+^^^^^^^^^^^^^^^^^^^^
+
+- :meth:`fedfred.helpers.FredHelpers.pd_frequency_conversion`: Converts fedfred native frequency strings to pandas compatible ones.
+- :meth:`fedfred.helpers.FredHelpers.to_pd_series`: Converts a :class:`pd.DataFrame` into a :class:`pd.Series`.
+
+Examples of New Helper Methods
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- **Using** :meth:`fedfred.helpers.FredHelpers.pd_frequency_conversion` **to convert frequency strings**:
+
+  .. code-block:: python
+
+      from fedfred.helpers import FredHelpers
+
+      freq_str = "BW" # FedFred frequency string for "Biweekly"
+      pd_freq = FredHelpers.pd_frequency_conversion(freq_str)
+      print(pd_freq)  # Output: '2W'
+
+- **Using** :meth:`fedfred.helpers.FredHelpers.to_pd_series` **to convert DataFrame to Series**:
+
+    .. code-block:: python
+
+        from fedfred.helpers import FredHelpers
+        import pandas as pd
+
+        # Sample DataFrame
+        df = pd.DataFrame({
+            'date': ['2020-01-01', '2020-02-01', '2020-03-01'],
+            'value': [100, 200, 300]
+        }).set_index('date')
+
+        series = FredHelpers.to_pd_series(df, "value")
+        print(series)
+        # Output:
+        # date
+        # 2020-01-01    100
+        # 2020-02-01    200
+        # 2020-03-01    300
+        # Name: value, dtype: int64
+
+---
+
+Additional Properties in Return Objects
+---------------------------------------
+
+Several return objects in the :mod:`fedfred.objects` module have been enhanced with additional properties to provide more context and information.
+
+Enhanced Return Object Properties
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**New Properties**:
+
+- :class:`fedfred.objects.Category`:
+  - :attr:`fedfred.objects.Category.children` - List of child categories.
+  - :attr:`fedfred.objects.Category.related` - List of related categories.
+  - :attr:`fedfred.objects.Category.series` - List of series in the category.
+  - :attr:`fedfred.objects.Category.tags` - List of tags associated with the category.
+  - :attr:`fedfred.objects.Category.related_tags` - List of related tags.
+
+- :class:`fedfred.objects.Series`:
+  - :attr:`fedfred.objects.Series.categories` - List of categories for the series.
+  - :attr:`fedfred.objects.Series.observations` - DataFrame of observations for the series.
+  - :attr:`fedfred.objects.Series.release` - List of releases for the series.
+  - :attr:`fedfred.objects.Series.tags` - List of tags for the series.
+  - :attr:`fedfred.objects.Series.vintagedates` - List of vintage dates for the series.
+
+- :class:`fedfred.objects.Tag`:
+  - :attr:`fedfred.objects.Tag.related_tags` - List of related tags.
+  - :attr:`fedfred.objects.Tag.series` - List of series associated with the tag.
+
+- :class:`fedfred.objects.Release`:
+  - :attr:`fedfred.objects.Release.dates` - List of release dates for the release.
+  - :attr:`fedfred.objects.Release.series` - List of series associated with the release.
+  - :attr:`fedfred.objects.Release.sources` - List of sources associated with the release.
+  - :attr:`fedfred.objects.Release.tags` - List of tags associated with the release.
+  - :attr:`fedfred.objects.Release.related_tags` - List of related tags for the release.
+  - :attr:`fedfred.objects.Release.tables` - List of elements for the release.
+
+- :class:`fedfred.objects.Source`:
+  - :attr:`fedfred.objects.Source.releases` - List of releases for the source.
+
+- :class:`fedfred.objects.Element`:
+  - :attr:`fedfred.objects.Element.release` - List of releases for the element.
+  - :attr:`fedfred.objects.Element.series` - List of series for the element.
+
+---
+
+Global API Key Configuration
+----------------------------
+
+To simplify API key management, FedFred now supports setting a **global API key** that will be used across all instances of :class:`fedfred.clients.FredAPI`.
+
+Setting a Global API Key
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+You can set a global API key using the :function:`fedfred.config.set_api_key(api_key)` function:
+
+.. code-block:: python
+
+    import fedfred as fd
+    fd.set_api_key("your_global_api_key")
+
+Overriding the Global API Key
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+You can still override the global API key by providing an `api_key` parameter when instantiating :class:`fedfred.clients.FredAPI`:
+
+.. code-block:: python
+
+    from fedfred.clients import FredAPI
+
+    # This instance uses the global API key
+    fred_global = FredAPI()
+
+    # This instance uses a specific API key
+    fred_specific = FredAPI(api_key="your_specific_api_key")
+
 Special Notes: Parameter Conversion and Nested Classes (FedFred 2.0+)
 =====================================================================
 

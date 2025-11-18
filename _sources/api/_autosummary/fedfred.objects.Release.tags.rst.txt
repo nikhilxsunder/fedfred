@@ -1,0 +1,4 @@
+tags
+====
+
+.. autoattribute:: fedfred.objects.Release.tags

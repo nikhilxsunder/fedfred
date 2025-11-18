@@ -1,0 +1,4 @@
+pd_frequency_conversion
+=======================
+
+.. automethod:: fedfred.helpers.FredHelpers.pd_frequency_conversion

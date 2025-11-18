@@ -16,20 +16,20 @@
         gtag('js', new Date());
         gtag('config', 'G-Q7LK34R0CV');
     </script>
-    <meta property="og:title" content="Special Notes: Parameter Conversion and Nested Classes (FedFred 2.0+)" />
+    <meta property="og:title" content="Special Notes: Added Helpers and Return Object Properties (FedFred 3.0+)" />
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://nikhilxsunder.github.io/fedfred/resources/notes.html" />
 <meta property="og:site_name" content="fedfred" />
-<meta property="og:description" content="Starting from version 2.0, the fedfred library introduces automatic parameter conversion and nested class access. These enhancements make it easier to interact with the FRED® API while ensuring full compatibility and clean code design. This page details these important features. — Parameter Conve..." />
+<meta property="og:description" content="Starting from version 3.0, the fedfred library introduces new helper methods and additional properties in return objects. These enhancements make it easier to interact with the FRED® API while ensuring full compatibility and clean code design. This page details these important features. — New Hel..." />
 <meta property="og:image" content="https://nikhilxsunder.github.io/fedfred/_static/fedfred-logo.png" />
 <meta property="og:image:alt" content="fedfred" />
-<meta name="description" content="Starting from version 2.0, the fedfred library introduces automatic parameter conversion and nested class access. These enhancements make it easier to interact with the FRED® API while ensuring full compatibility and clean code design. This page details these important features. — Parameter Conve..." />
+<meta name="description" content="Starting from version 3.0, the fedfred library introduces new helper methods and additional properties in return objects. These enhancements make it easier to interact with the FRED® API while ensuring full compatibility and clean code design. This page details these important features. — New Hel..." />
 <meta property="og:locale" content="en_US" />
 <meta property="og:site_name" content="FedFred Documentation" />
 <meta property="og:url" content="https://nikhilxsunder.github.io/fedfred/" />
 <meta property="og:image:alt" content="FedFred Logo" />
 
-    <title>Special Notes: Parameter Conversion and Nested Classes (FedFred 2.0+) &#8212; fedfred</title>
+    <title>Special Notes: Added Helpers and Return Object Properties (FedFred 3.0+) &#8212; fedfred</title>
   
   
   
@@ -61,7 +61,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=786ba454"></script>
+    <script src="../_static/documentation_options.js?v=acc74ff5"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/design-tabs.js?v=f930bc37"></script>
@@ -116,7 +116,7 @@
 <aside class="bd-header-announcement" aria-label="Announcement">
   <div class="bd-header-announcement__content">
         <div class="sidebar-message">
-            Version 2 is now available!
+            Version 3 is now available!
             Please check the
             <a href="resources/notes.html" target="_self">
                 special notes page
@@ -548,7 +548,8 @@
 <li class="toctree-l1"><a class="reference internal" href="architecture.html">Internal Architecture</a></li>
 </ul>
 <ul class="current nav bd-sidenav">
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">Special Notes: Parameter Conversion and Nested Classes (FedFred 2.0+)</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Special Notes: Added Helpers and Return Object Properties (FedFred 3.0+)</a></li>
+
 </ul>
 </div>
 </nav></div>
@@ -592,7 +593,7 @@
     
     <li class="breadcrumb-item"><a href="index.html" class="nav-link">Resources</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Special Notes: Parameter Conversion and Nested Classes (FedFred 2.0+)</span></li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Special Notes: Added Helpers and Return Object Properties (FedFred 3.0+)</span></li>
   </ul>
 </nav>
 </div>
@@ -609,8 +610,127 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="special-notes-parameter-conversion-and-nested-classes-fedfred-2-0">
-<span id="api-notes"></span><h1>Special Notes: Parameter Conversion and Nested Classes (FedFred 2.0+)<a class="headerlink" href="#special-notes-parameter-conversion-and-nested-classes-fedfred-2-0" title="Link to this heading">#</a></h1>
+  <section id="special-notes-added-helpers-and-return-object-properties-fedfred-3-0">
+<span id="api-notes"></span><h1>Special Notes: Added Helpers and Return Object Properties (FedFred 3.0+)<a class="headerlink" href="#special-notes-added-helpers-and-return-object-properties-fedfred-3-0" title="Link to this heading">#</a></h1>
+<p>Starting from <strong>version 3.0</strong>, the <code class="xref py py-mod docutils literal notranslate"><span class="pre">fedfred</span></code> library introduces <strong>new helper methods</strong> and <strong>additional properties</strong> in return objects.
+These enhancements make it easier to interact with the <strong>FRED® API</strong> while ensuring full compatibility and clean code design.</p>
+<p>This page details these important features.</p>
+<p>—</p>
+<section id="new-helper-methods-in-fedfred">
+<h2>New Helper Methods in FedFred<a class="headerlink" href="#new-helper-methods-in-fedfred" title="Link to this heading">#</a></h2>
+<p>The <code class="xref py py-mod docutils literal notranslate"><span class="pre">fedfred.helpers</span></code> module now includes additional helper methods to facilitate data handling and conversion.</p>
+<section id="added-helper-methods">
+<h3>Added Helper Methods<a class="headerlink" href="#added-helper-methods" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p><a class="reference internal" href="../api/_autosummary/fedfred.helpers.FredHelpers.pd_frequency_conversion.html#fedfred.helpers.FredHelpers.pd_frequency_conversion" title="fedfred.helpers.FredHelpers.pd_frequency_conversion"><code class="xref py py-meth docutils literal notranslate"><span class="pre">fedfred.helpers.FredHelpers.pd_frequency_conversion()</span></code></a>: Converts fedfred native frequency strings to pandas compatible ones.</p></li>
+<li><p><a class="reference internal" href="../api/_autosummary/fedfred.helpers.FredHelpers.to_pd_series.html#fedfred.helpers.FredHelpers.to_pd_series" title="fedfred.helpers.FredHelpers.to_pd_series"><code class="xref py py-meth docutils literal notranslate"><span class="pre">fedfred.helpers.FredHelpers.to_pd_series()</span></code></a>: Converts a <code class="xref py py-class docutils literal notranslate"><span class="pre">pd.DataFrame</span></code> into a <code class="xref py py-class docutils literal notranslate"><span class="pre">pd.Series</span></code>.</p></li>
+</ul>
+</section>
+<section id="examples-of-new-helper-methods">
+<h3>Examples of New Helper Methods<a class="headerlink" href="#examples-of-new-helper-methods" title="Link to this heading">#</a></h3>
+<ul>
+<li><p><strong>Using</strong> <a class="reference internal" href="../api/_autosummary/fedfred.helpers.FredHelpers.pd_frequency_conversion.html#fedfred.helpers.FredHelpers.pd_frequency_conversion" title="fedfred.helpers.FredHelpers.pd_frequency_conversion"><code class="xref py py-meth docutils literal notranslate"><span class="pre">fedfred.helpers.FredHelpers.pd_frequency_conversion()</span></code></a> <strong>to convert frequency strings</strong>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fedfred.helpers</span><span class="w"> </span><span class="kn">import</span> <span class="n">FredHelpers</span>
+
+<span class="n">freq_str</span> <span class="o">=</span> <span class="s2">&quot;BW&quot;</span> <span class="c1"># FedFred frequency string for &quot;Biweekly&quot;</span>
+<span class="n">pd_freq</span> <span class="o">=</span> <span class="n">FredHelpers</span><span class="o">.</span><span class="n">pd_frequency_conversion</span><span class="p">(</span><span class="n">freq_str</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">pd_freq</span><span class="p">)</span>  <span class="c1"># Output: &#39;2W&#39;</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>Using</strong> <a class="reference internal" href="../api/_autosummary/fedfred.helpers.FredHelpers.to_pd_series.html#fedfred.helpers.FredHelpers.to_pd_series" title="fedfred.helpers.FredHelpers.to_pd_series"><code class="xref py py-meth docutils literal notranslate"><span class="pre">fedfred.helpers.FredHelpers.to_pd_series()</span></code></a> <strong>to convert DataFrame to Series</strong>:</p>
+<blockquote>
+<div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fedfred.helpers</span><span class="w"> </span><span class="kn">import</span> <span class="n">FredHelpers</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+
+<span class="c1"># Sample DataFrame</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span>
+    <span class="s1">&#39;date&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;2020-01-01&#39;</span><span class="p">,</span> <span class="s1">&#39;2020-02-01&#39;</span><span class="p">,</span> <span class="s1">&#39;2020-03-01&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">100</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="mi">300</span><span class="p">]</span>
+<span class="p">})</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">&#39;date&#39;</span><span class="p">)</span>
+
+<span class="n">series</span> <span class="o">=</span> <span class="n">FredHelpers</span><span class="o">.</span><span class="n">to_pd_series</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">series</span><span class="p">)</span>
+<span class="c1"># Output:</span>
+<span class="c1"># date</span>
+<span class="c1"># 2020-01-01    100</span>
+<span class="c1"># 2020-02-01    200</span>
+<span class="c1"># 2020-03-01    300</span>
+<span class="c1"># Name: value, dtype: int64</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+</ul>
+<p>—</p>
+</section>
+</section>
+<section id="additional-properties-in-return-objects">
+<h2>Additional Properties in Return Objects<a class="headerlink" href="#additional-properties-in-return-objects" title="Link to this heading">#</a></h2>
+<p>Several return objects in the <code class="xref py py-mod docutils literal notranslate"><span class="pre">fedfred.objects</span></code> module have been enhanced with additional properties to provide more context and information.</p>
+<section id="enhanced-return-object-properties">
+<h3>Enhanced Return Object Properties<a class="headerlink" href="#enhanced-return-object-properties" title="Link to this heading">#</a></h3>
+<p><strong>New Properties</strong>:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="../api/_autosummary/fedfred.objects.Category.html#fedfred.objects.Category" title="fedfred.objects.Category"><code class="xref py py-class docutils literal notranslate"><span class="pre">fedfred.objects.Category</span></code></a>:
+- <a class="reference internal" href="../api/_autosummary/fedfred.objects.Category.children.html#fedfred.objects.Category.children" title="fedfred.objects.Category.children"><code class="xref py py-attr docutils literal notranslate"><span class="pre">fedfred.objects.Category.children</span></code></a> - List of child categories.
+- <a class="reference internal" href="../api/_autosummary/fedfred.objects.Category.related.html#fedfred.objects.Category.related" title="fedfred.objects.Category.related"><code class="xref py py-attr docutils literal notranslate"><span class="pre">fedfred.objects.Category.related</span></code></a> - List of related categories.
+- <a class="reference internal" href="../api/_autosummary/fedfred.objects.Category.series.html#fedfred.objects.Category.series" title="fedfred.objects.Category.series"><code class="xref py py-attr docutils literal notranslate"><span class="pre">fedfred.objects.Category.series</span></code></a> - List of series in the category.
+- <a class="reference internal" href="../api/_autosummary/fedfred.objects.Category.tags.html#fedfred.objects.Category.tags" title="fedfred.objects.Category.tags"><code class="xref py py-attr docutils literal notranslate"><span class="pre">fedfred.objects.Category.tags</span></code></a> - List of tags associated with the category.
+- <a class="reference internal" href="../api/_autosummary/fedfred.objects.Category.related_tags.html#fedfred.objects.Category.related_tags" title="fedfred.objects.Category.related_tags"><code class="xref py py-attr docutils literal notranslate"><span class="pre">fedfred.objects.Category.related_tags</span></code></a> - List of related tags.</p></li>
+<li><p><a class="reference internal" href="../api/_autosummary/fedfred.objects.Series.html#fedfred.objects.Series" title="fedfred.objects.Series"><code class="xref py py-class docutils literal notranslate"><span class="pre">fedfred.objects.Series</span></code></a>:
+- <a class="reference internal" href="../api/_autosummary/fedfred.objects.Series.categories.html#fedfred.objects.Series.categories" title="fedfred.objects.Series.categories"><code class="xref py py-attr docutils literal notranslate"><span class="pre">fedfred.objects.Series.categories</span></code></a> - List of categories for the series.
+- <a class="reference internal" href="../api/_autosummary/fedfred.objects.Series.observations.html#fedfred.objects.Series.observations" title="fedfred.objects.Series.observations"><code class="xref py py-attr docutils literal notranslate"><span class="pre">fedfred.objects.Series.observations</span></code></a> - DataFrame of observations for the series.
+- <a class="reference internal" href="../api/_autosummary/fedfred.objects.Series.release.html#fedfred.objects.Series.release" title="fedfred.objects.Series.release"><code class="xref py py-attr docutils literal notranslate"><span class="pre">fedfred.objects.Series.release</span></code></a> - List of releases for the series.
+- <a class="reference internal" href="../api/_autosummary/fedfred.objects.Series.tags.html#fedfred.objects.Series.tags" title="fedfred.objects.Series.tags"><code class="xref py py-attr docutils literal notranslate"><span class="pre">fedfred.objects.Series.tags</span></code></a> - List of tags for the series.
+- <a class="reference internal" href="../api/_autosummary/fedfred.objects.Series.vintagedates.html#fedfred.objects.Series.vintagedates" title="fedfred.objects.Series.vintagedates"><code class="xref py py-attr docutils literal notranslate"><span class="pre">fedfred.objects.Series.vintagedates</span></code></a> - List of vintage dates for the series.</p></li>
+<li><p><a class="reference internal" href="../api/_autosummary/fedfred.objects.Tag.html#fedfred.objects.Tag" title="fedfred.objects.Tag"><code class="xref py py-class docutils literal notranslate"><span class="pre">fedfred.objects.Tag</span></code></a>:
+- <a class="reference internal" href="../api/_autosummary/fedfred.objects.Tag.related_tags.html#fedfred.objects.Tag.related_tags" title="fedfred.objects.Tag.related_tags"><code class="xref py py-attr docutils literal notranslate"><span class="pre">fedfred.objects.Tag.related_tags</span></code></a> - List of related tags.
+- <a class="reference internal" href="../api/_autosummary/fedfred.objects.Tag.series.html#fedfred.objects.Tag.series" title="fedfred.objects.Tag.series"><code class="xref py py-attr docutils literal notranslate"><span class="pre">fedfred.objects.Tag.series</span></code></a> - List of series associated with the tag.</p></li>
+<li><p><a class="reference internal" href="../api/_autosummary/fedfred.objects.Release.html#fedfred.objects.Release" title="fedfred.objects.Release"><code class="xref py py-class docutils literal notranslate"><span class="pre">fedfred.objects.Release</span></code></a>:
+- <a class="reference internal" href="../api/_autosummary/fedfred.objects.Release.dates.html#fedfred.objects.Release.dates" title="fedfred.objects.Release.dates"><code class="xref py py-attr docutils literal notranslate"><span class="pre">fedfred.objects.Release.dates</span></code></a> - List of release dates for the release.
+- <a class="reference internal" href="../api/_autosummary/fedfred.objects.Release.series.html#fedfred.objects.Release.series" title="fedfred.objects.Release.series"><code class="xref py py-attr docutils literal notranslate"><span class="pre">fedfred.objects.Release.series</span></code></a> - List of series associated with the release.
+- <a class="reference internal" href="../api/_autosummary/fedfred.objects.Release.sources.html#fedfred.objects.Release.sources" title="fedfred.objects.Release.sources"><code class="xref py py-attr docutils literal notranslate"><span class="pre">fedfred.objects.Release.sources</span></code></a> - List of sources associated with the release.
+- <a class="reference internal" href="../api/_autosummary/fedfred.objects.Release.tags.html#fedfred.objects.Release.tags" title="fedfred.objects.Release.tags"><code class="xref py py-attr docutils literal notranslate"><span class="pre">fedfred.objects.Release.tags</span></code></a> - List of tags associated with the release.
+- <a class="reference internal" href="../api/_autosummary/fedfred.objects.Release.related_tags.html#fedfred.objects.Release.related_tags" title="fedfred.objects.Release.related_tags"><code class="xref py py-attr docutils literal notranslate"><span class="pre">fedfred.objects.Release.related_tags</span></code></a> - List of related tags for the release.
+- <a class="reference internal" href="../api/_autosummary/fedfred.objects.Release.tables.html#fedfred.objects.Release.tables" title="fedfred.objects.Release.tables"><code class="xref py py-attr docutils literal notranslate"><span class="pre">fedfred.objects.Release.tables</span></code></a> - List of elements for the release.</p></li>
+<li><p><a class="reference internal" href="../api/_autosummary/fedfred.objects.Source.html#fedfred.objects.Source" title="fedfred.objects.Source"><code class="xref py py-class docutils literal notranslate"><span class="pre">fedfred.objects.Source</span></code></a>:
+- <a class="reference internal" href="../api/_autosummary/fedfred.objects.Source.releases.html#fedfred.objects.Source.releases" title="fedfred.objects.Source.releases"><code class="xref py py-attr docutils literal notranslate"><span class="pre">fedfred.objects.Source.releases</span></code></a> - List of releases for the source.</p></li>
+<li><p><a class="reference internal" href="../api/_autosummary/fedfred.objects.Element.html#fedfred.objects.Element" title="fedfred.objects.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">fedfred.objects.Element</span></code></a>:
+- <a class="reference internal" href="../api/_autosummary/fedfred.objects.Element.release.html#fedfred.objects.Element.release" title="fedfred.objects.Element.release"><code class="xref py py-attr docutils literal notranslate"><span class="pre">fedfred.objects.Element.release</span></code></a> - List of releases for the element.
+- <a class="reference internal" href="../api/_autosummary/fedfred.objects.Element.series.html#fedfred.objects.Element.series" title="fedfred.objects.Element.series"><code class="xref py py-attr docutils literal notranslate"><span class="pre">fedfred.objects.Element.series</span></code></a> - List of series for the element.</p></li>
+</ul>
+<p>—</p>
+</section>
+</section>
+<section id="global-api-key-configuration">
+<h2>Global API Key Configuration<a class="headerlink" href="#global-api-key-configuration" title="Link to this heading">#</a></h2>
+<p>To simplify API key management, FedFred now supports setting a <strong>global API key</strong> that will be used across all instances of <a class="reference internal" href="../api/_autosummary/fedfred.FredAPI.html#fedfred.FredAPI" title="fedfred.clients.FredAPI"><code class="xref py py-class docutils literal notranslate"><span class="pre">fedfred.clients.FredAPI</span></code></a>.</p>
+<section id="setting-a-global-api-key">
+<h3>Setting a Global API Key<a class="headerlink" href="#setting-a-global-api-key" title="Link to this heading">#</a></h3>
+<p>You can set a global API key using the <a href="#id1"><span class="problematic" id="id2">:function:`fedfred.config.set_api_key(api_key)`</span></a> function:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">fedfred</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">fd</span>
+<span class="n">fd</span><span class="o">.</span><span class="n">set_api_key</span><span class="p">(</span><span class="s2">&quot;your_global_api_key&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="overriding-the-global-api-key">
+<h3>Overriding the Global API Key<a class="headerlink" href="#overriding-the-global-api-key" title="Link to this heading">#</a></h3>
+<p>You can still override the global API key by providing an <cite>api_key</cite> parameter when instantiating <a class="reference internal" href="../api/_autosummary/fedfred.FredAPI.html#fedfred.FredAPI" title="fedfred.clients.FredAPI"><code class="xref py py-class docutils literal notranslate"><span class="pre">fedfred.clients.FredAPI</span></code></a>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fedfred.clients</span><span class="w"> </span><span class="kn">import</span> <span class="n">FredAPI</span>
+
+<span class="c1"># This instance uses the global API key</span>
+<span class="n">fred_global</span> <span class="o">=</span> <span class="n">FredAPI</span><span class="p">()</span>
+
+<span class="c1"># This instance uses a specific API key</span>
+<span class="n">fred_specific</span> <span class="o">=</span> <span class="n">FredAPI</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="s2">&quot;your_specific_api_key&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+<section id="special-notes-parameter-conversion-and-nested-classes-fedfred-2-0">
+<h1>Special Notes: Parameter Conversion and Nested Classes (FedFred 2.0+)<a class="headerlink" href="#special-notes-parameter-conversion-and-nested-classes-fedfred-2-0" title="Link to this heading">#</a></h1>
 <p>Starting from <strong>version 2.0</strong>, the <code class="xref py py-mod docutils literal notranslate"><span class="pre">fedfred</span></code> library introduces <strong>automatic parameter conversion</strong> and <strong>nested class access</strong>.
 These enhancements make it easier to interact with the <strong>FRED® API</strong> while ensuring full compatibility and clean code design.</p>
 <p>This page details these important features.</p>
@@ -621,7 +741,7 @@ These enhancements make it easier to interact with the <strong>FRED® API</stron
 <section id="supported-conversions">
 <h3>Supported Conversions<a class="headerlink" href="#supported-conversions" title="Link to this heading">#</a></h3>
 <ul>
-<li><p><a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">datetime.datetime</span></code></a> <strong>objects</strong>:</p>
+<li><p><a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">datetime.datetime</span></code></a> <strong>objects</strong>:</p>
 <p>Automatically converted to <cite>YYYY-MM-DD</cite> formatted strings.</p>
 <p>Example:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
@@ -633,7 +753,7 @@ These enhancements make it easier to interact with the <strong>FRED® API</stron
 </pre></div>
 </div>
 </li>
-<li><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a> <strong>of</strong> <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> <strong>or</strong> <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>:</p>
+<li><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a> <strong>of</strong> <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> <strong>or</strong> <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>:</p>
 <p>Lists are converted into semicolon-delimited strings.</p>
 <p>Example:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">fred</span><span class="o">.</span><span class="n">get_tags</span><span class="p">(</span><span class="n">tag_names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;nation&quot;</span><span class="p">,</span> <span class="s2">&quot;usa&quot;</span><span class="p">,</span> <span class="s2">&quot;economy&quot;</span><span class="p">])</span>
@@ -666,7 +786,7 @@ These enhancements make it easier to interact with the <strong>FRED® API</stron
 <h3>Helper Methods for Conversion<a class="headerlink" href="#helper-methods-for-conversion" title="Link to this heading">#</a></h3>
 <p>Parameter conversion is handled internally by helper methods in the <a class="reference internal" href="../api/_autosummary/fedfred.helpers.FredHelpers.html#fedfred.helpers.FredHelpers" title="fedfred.helpers.FredHelpers"><code class="xref py py-class docutils literal notranslate"><span class="pre">fedfred.helpers.FredHelpers</span></code></a> class:</p>
 <ul class="simple">
-<li><p><a class="reference internal" href="../api/_autosummary/fedfred.helpers.FredHelpers.datetime_conversion.html#fedfred.helpers.FredHelpers.datetime_conversion" title="fedfred.helpers.FredHelpers.datetime_conversion"><code class="xref py py-meth docutils literal notranslate"><span class="pre">fedfred.helpers.FredHelpers.datetime_conversion()</span></code></a>: Converts <a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">datetime.datetime</span></code></a> objects into <cite>YYYY-MM-DD</cite> strings.</p></li>
+<li><p><a class="reference internal" href="../api/_autosummary/fedfred.helpers.FredHelpers.datetime_conversion.html#fedfred.helpers.FredHelpers.datetime_conversion" title="fedfred.helpers.FredHelpers.datetime_conversion"><code class="xref py py-meth docutils literal notranslate"><span class="pre">fedfred.helpers.FredHelpers.datetime_conversion()</span></code></a>: Converts <a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">datetime.datetime</span></code></a> objects into <cite>YYYY-MM-DD</cite> strings.</p></li>
 <li><p><a class="reference internal" href="../api/_autosummary/fedfred.helpers.FredHelpers.liststring_conversion.html#fedfred.helpers.FredHelpers.liststring_conversion" title="fedfred.helpers.FredHelpers.liststring_conversion"><code class="xref py py-meth docutils literal notranslate"><span class="pre">fedfred.helpers.FredHelpers.liststring_conversion()</span></code></a>: Converts lists of strings into a semicolon-delimited string.</p></li>
 <li><p><a class="reference internal" href="../api/_autosummary/fedfred.helpers.FredHelpers.parameter_validation.html#fedfred.helpers.FredHelpers.parameter_validation" title="fedfred.helpers.FredHelpers.parameter_validation"><code class="xref py py-meth docutils literal notranslate"><span class="pre">fedfred.helpers.FredHelpers.parameter_validation()</span></code></a>: Validates parameters before API requests are made.</p></li>
 </ul>
@@ -676,7 +796,7 @@ These enhancements make it easier to interact with the <strong>FRED® API</stron
 <section id="examples-of-parameter-conversion">
 <h3>Examples of Parameter Conversion<a class="headerlink" href="#examples-of-parameter-conversion" title="Link to this heading">#</a></h3>
 <ul>
-<li><p><strong>Using</strong> <a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">datetime.datetime</span></code></a> <strong>parameters</strong>:</p>
+<li><p><strong>Using</strong> <a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">datetime.datetime</span></code></a> <strong>parameters</strong>:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
 <span class="n">fred</span><span class="o">.</span><span class="n">get_series_observations</span><span class="p">(</span>
     <span class="n">series_id</span><span class="o">=</span><span class="s2">&quot;GNPCA&quot;</span><span class="p">,</span>
@@ -686,12 +806,12 @@ These enhancements make it easier to interact with the <strong>FRED® API</stron
 </pre></div>
 </div>
 </li>
-<li><p><strong>Using</strong> <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a> <strong>parameters</strong>:</p>
+<li><p><strong>Using</strong> <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a> <strong>parameters</strong>:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">fred</span><span class="o">.</span><span class="n">get_tags</span><span class="p">(</span><span class="n">tag_names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;sticky&quot;</span><span class="p">,</span> <span class="s2">&quot;price&quot;</span><span class="p">,</span> <span class="s2">&quot;nation&quot;</span><span class="p">])</span>
 </pre></div>
 </div>
 </li>
-<li><p><strong>Mixing</strong> <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> <strong>and</strong> <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a> <strong>parameters</strong>:</p>
+<li><p><strong>Mixing</strong> <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> <strong>and</strong> <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a> <strong>parameters</strong>:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">fred</span><span class="o">.</span><span class="n">get_related_tags</span><span class="p">(</span><span class="n">tag_names</span><span class="o">=</span><span class="s2">&quot;nation&quot;</span><span class="p">)</span>
 <span class="n">fred</span><span class="o">.</span><span class="n">get_related_tags</span><span class="p">(</span><span class="n">tag_names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;nation&quot;</span><span class="p">,</span> <span class="s2">&quot;usa&quot;</span><span class="p">])</span>
 </pre></div>
@@ -816,6 +936,24 @@ These enhancements make it easier to interact with the <strong>FRED® API</stron
   </div>
   <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">Special Notes: Added Helpers and Return Object Properties (FedFred 3.0+)</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#new-helper-methods-in-fedfred">New Helper Methods in FedFred</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#added-helper-methods">Added Helper Methods</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#examples-of-new-helper-methods">Examples of New Helper Methods</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#additional-properties-in-return-objects">Additional Properties in Return Objects</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#enhanced-return-object-properties">Enhanced Return Object Properties</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#global-api-key-configuration">Global API Key Configuration</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#setting-a-global-api-key">Setting a Global API Key</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#overriding-the-global-api-key">Overriding the Global API Key</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#special-notes-parameter-conversion-and-nested-classes-fedfred-2-0">Special Notes: Parameter Conversion and Nested Classes (FedFred 2.0+)</a><ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#parameter-conversion-in-fedfred">Parameter Conversion in FedFred</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#supported-conversions">Supported Conversions</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#helper-methods-for-conversion">Helper Methods for Conversion</a></li>
@@ -828,6 +966,9 @@ These enhancements make it easier to interact with the <strong>FRED® API</stron
 </ul>
 </li>
 </ul>
+</li>
+</ul>
+
   </nav></div>
 
   <div class="sidebar-secondary-item">

@@ -1,0 +1,4 @@
+related_tags
+============
+
+.. autoattribute:: fedfred.objects.Tag.related_tags

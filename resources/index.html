@@ -61,7 +61,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=786ba454"></script>
+    <script src="../_static/documentation_options.js?v=acc74ff5"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/design-tabs.js?v=f930bc37"></script>
@@ -116,7 +116,7 @@
 <aside class="bd-header-announcement" aria-label="Announcement">
   <div class="bd-header-announcement__content">
         <div class="sidebar-message">
-            Version 2 is now available!
+            Version 3 is now available!
             Please check the
             <a href="resources/notes.html" target="_self">
                 special notes page
@@ -548,7 +548,8 @@
 <li class="toctree-l1"><a class="reference internal" href="architecture.html">Internal Architecture</a></li>
 </ul>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="notes.html">Special Notes: Parameter Conversion and Nested Classes (FedFred 2.0+)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notes.html">Special Notes: Added Helpers and Return Object Properties (FedFred 3.0+)</a></li>
+
 </ul>
 </div>
 </nav></div>
@@ -662,11 +663,12 @@
 <p>Some important notes about FedFred’s internal behavior:</p>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="notes.html">Special Notes: Parameter Conversion and Nested Classes (FedFred 2.0+)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notes.html">Special Notes: Added Helpers and Return Object Properties (FedFred 3.0+)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notes.html#special-notes-parameter-conversion-and-nested-classes-fedfred-2-0">Special Notes: Parameter Conversion and Nested Classes (FedFred 2.0+)</a></li>
 </ul>
 </div>
 <p>Topics include:
-- Parameter auto-conversion (e.g., <a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">datetime.datetime</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a> handling),
+- Parameter auto-conversion (e.g., <a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">datetime.datetime</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a> handling),
 - Nested class structure (<a class="reference internal" href="../api/_autosummary/fedfred.AsyncAPI.html#fedfred.AsyncAPI" title="fedfred.clients.FredAPI.AsyncAPI"><code class="xref py py-class docutils literal notranslate"><span class="pre">fedfred.clients.FredAPI.AsyncAPI</span></code></a>, <a class="reference internal" href="../api/_autosummary/fedfred.MapsAPI.html#fedfred.MapsAPI" title="fedfred.clients.FredAPI.MapsAPI"><code class="xref py py-class docutils literal notranslate"><span class="pre">fedfred.clients.FredAPI.MapsAPI</span></code></a>, <a class="reference internal" href="../api/_autosummary/fedfred.AsyncMapsAPI.html#fedfred.AsyncMapsAPI" title="fedfred.clients.FredAPI.AsyncAPI.AsyncMapsAPI"><code class="xref py py-class docutils literal notranslate"><span class="pre">fedfred.clients.FredAPI.AsyncAPI.AsyncMapsAPI</span></code></a>),
 - <a class="reference internal" href="../glossary.html#term-DataFrame"><span class="xref std std-term">DataFrame</span></a> backend configuration options (Pandas, Polars, Dask).</p>
 <p>For a high-level overview of how FedFred is structured internally, see <a class="reference internal" href="architecture.html#architecture"><span class="std std-ref">Internal Architecture</span></a>.</p>

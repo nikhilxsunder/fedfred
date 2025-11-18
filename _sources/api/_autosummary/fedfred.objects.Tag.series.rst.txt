@@ -1,0 +1,4 @@
+series
+======
+
+.. autoattribute:: fedfred.objects.Tag.series
