@@ -1,6 +1,6 @@
 # Test Coverage Report
 
-Last updated: 2025-09-25
+Last updated: 2025-11-18
 
 ## Coverage Summary
 
@@ -10,34 +10,38 @@ Overall coverage: 100%
 
 ```
 ============================= test session starts ==============================
-platform linux -- Python 3.11.13, pytest-8.4.2, pluggy-1.6.0
+platform linux -- Python 3.11.14, pytest-8.4.2, pluggy-1.6.0
 rootdir: /home/runner/work/fedfred/fedfred
 configfile: pyproject.toml
 plugins: anyio-4.10.0, asyncio-1.2.0, hypothesis-6.138.15, cov-7.0.0, mock-3.15.0
 asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
-collected 240 items
+collected 292 items
 
-tests/clients_test.py .................................................. [ 20%]
-........................................................................ [ 50%]
-..............................                                           [ 63%]
-tests/helpers_test.py ..........................................         [ 80%]
-tests/objects_property_based_test.py .........                           [ 84%]
-tests/objects_test.py .....................................              [100%]
+tests/clients_test.py .................................................. [ 17%]
+........................................................................ [ 41%]
+..............................                                           [ 52%]
+tests/config_test.py ...                                                 [ 53%]
+tests/helpers_test.py .................................................. [ 70%]
+.............................                                            [ 80%]
+tests/objects_test.py .................................................. [ 97%]
+........                                                                 [100%]
 
 ================================ tests coverage ================================
-_______________ coverage: platform linux, python 3.11.13-final-0 _______________
+_______________ coverage: platform linux, python 3.11.14-final-0 _______________
 
-Name                       Stmts   Miss  Cover
-----------------------------------------------
-src/fedfred/__about__.py       7      0   100%
-src/fedfred/__init__.py       11      0   100%
-src/fedfred/clients.py      1903      0   100%
-src/fedfred/helpers.py       599      0   100%
-src/fedfred/objects.py       195      0   100%
-----------------------------------------------
-TOTAL                       2715      0   100%
+Name                       Stmts   Miss  Cover   Missing
+--------------------------------------------------------
+src/fedfred/__about__.py       9      0   100%
+src/fedfred/__init__.py        9      0   100%
+src/fedfred/clients.py      1970      0   100%
+src/fedfred/config.py         28      0   100%
+src/fedfred/helpers.py       666      0   100%
+src/fedfred/objects.py       307      0   100%
+--------------------------------------------------------
+TOTAL                       2989      0   100%
+Coverage HTML written to dir htmlcov
 Coverage XML written to file coverage.xml
-====================== 240 passed, 14 warnings in 49.14s =======================
+====================== 292 passed, 14 warnings in 45.16s =======================
 ```
 
 ## Running Test Coverage Locally
