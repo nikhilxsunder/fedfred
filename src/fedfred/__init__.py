@@ -25,6 +25,8 @@ This module initializes the fedfred package.
 Imports:
     FredAPI: A class that provides methods to interact with the Fred API.
     FredHelpers: A class that provides helper methods for the Fred API.
+    set_api_key: Function to set the global FRED API key.
+    get_api_key: Function to get the current global FRED API key.
     Category: A class representing a category in the Fred database.
     Series: A class representing a series in the Fred database.
     Tag: A class representing a tag in the Fred database.
@@ -35,12 +37,9 @@ Imports:
     VintageDate: A class representing a vintage date in the Fred database.
     SeriesGroup: A class representing a series group in the Fred database.
 """
-from fedfred.__about__ import __title__, __version__, __author__, __license__, __copyright__, __description__, __url__
+from .__about__ import __title__, __version__, __author__, __email__, __license__, __copyright__, __description__, __docs__, __repository__
 
-from . import clients
-from . import helpers
-from . import objects
-
+from .config import set_api_key, get_api_key
 from .clients import FredAPI
 from .helpers import FredHelpers
 from .objects import (
@@ -65,11 +64,12 @@ __all__ = [
     "__version__",
     "__copyright__",
     "__author__",
+    "__email__",
     "__license__",
-    "__url__",
-    "clients",
-    "helpers",
-    "objects",
+    "__repository__",
+    "__docs__",
+    "set_api_key",
+    "get_api_key",
     "FredAPI",
     "AsyncAPI",
     "AsyncMapsAPI",

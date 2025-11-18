@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 """
-Comprehensive unit tests for the fedfred module.
+Comprehensive unit tests for the clients module.
 """
 
 import time
@@ -33,8 +33,7 @@ import httpx
 import tenacity
 import geopandas as gpd
 from fedfred.clients import FredAPI
-from fedfred.__about__ import __title__, __version__, __author__, __license__, __copyright__, __description__, __url__
-
+from fedfred.__about__ import __title__, __version__, __author__, __email__, __license__, __copyright__, __description__, __docs__, __repository__
 
 class TestFredAPI:
     # Dunder methods
@@ -1465,7 +1464,7 @@ class TestFredAPI:
                             "observation_date": "2020-01-01"
                         }
                     )
-                    mock_to_object.assert_called_once_with(fake_response)
+                    mock_to_object.assert_called_once_with(fake_response, client=api)
                     assert result == fake_elements
 
         with patch.object(api, "_FredAPI__fred_get_request", return_value=fake_response) as mock_get:
@@ -1481,7 +1480,7 @@ class TestFredAPI:
                         "observation_date": "2021-12-31"
                     }
                 )
-                mock_to_object.assert_called_once_with(fake_response)
+                mock_to_object.assert_called_once_with(fake_response, client=api)
                 assert result == fake_elements
 
         with patch.object(api, "_FredAPI__fred_get_request", return_value=fake_response) as mock_get:
@@ -1491,7 +1490,7 @@ class TestFredAPI:
                     "/release/tables",
                     {"release_id": 53}
                 )
-                mock_to_object.assert_called_once_with(fake_response)
+                mock_to_object.assert_called_once_with(fake_response, client=api)
                 assert result == fake_elements
 
     ## Series
@@ -3017,10 +3016,11 @@ class TestFredAPI:
             mock_to_object.assert_called_once_with(fake_response)
             assert result == fake_tags
 
+        # Supply tag_names explicitly (empty) to match new signature
         with patch.object(api, "_FredAPI__fred_get_request", return_value=fake_response) as mock_get, \
             patch("fedfred.clients.Tag.to_object", return_value=fake_tags) as mock_to_object:
-            result = api.get_related_tags()
-            mock_get.assert_called_once_with("/related_tags", {})
+            result = api.get_related_tags(tag_names="")
+            mock_get.assert_called_once_with("/related_tags", {"tag_names": ""})
             mock_to_object.assert_called_once_with(fake_response)
             assert result == fake_tags
 
@@ -3153,8 +3153,9 @@ class TestFredAPI:
 
         with patch.object(api, "_FredAPI__fred_get_request", return_value=fake_response) as mock_get, \
             patch("fedfred.clients.Series.to_object", return_value=fake_series) as mock_to_object:
-            result = api.get_tags_series()
-            mock_get.assert_called_once_with("/tags/series", {})
+            # Supply tag_names explicitly (empty) to satisfy new signature
+            result = api.get_tags_series(tag_names="")
+            mock_get.assert_called_once_with("/tags/series", {"tag_names": ""})
             mock_to_object.assert_called_once_with(fake_response)
             assert result == fake_series
 
@@ -7555,14 +7556,15 @@ class TestAsyncMapsAPI:
         assert "Cache Size: 2 items" in summary
         assert "API Key: ****1234" in summary
 
-        fred2 = FredAPI("", cache_mode=False, cache_size=1)
+        fred2 = FredAPI("testapikey1234", cache_mode=False, cache_size=1)
+        fred2.api_key = ""
         async_maps2 = fred2.Async.Maps
         summary2 = async_maps2()
 
         assert "API Key: Not Set" in summary2
         assert "Cache Mode: Disabled" in summary2
 
-    # Private Methods\
+    # Private Methods
     @pytest.mark.asyncio
     async def test_update_semaphore(self, monkeypatch):
         fred_api = FredAPI("testkey", cache_mode=True, cache_size=10)

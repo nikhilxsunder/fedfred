@@ -13,7 +13,7 @@ import sys
 project = 'fedfred'
 copyright = '2025, Nikhil Sunder'
 author = 'Nikhil Sunder'
-release = '2.1.5'
+release = '3.0.0'
 
 # -- General configuration ---------------------------------------------------
 extensions = [
@@ -111,7 +111,7 @@ html_theme_options = {
     "show_prev_next": True,
     "announcement": """
         <div class="sidebar-message">
-            Version 2 is now available!
+            Version 3 is now available!
             Please check the
             <a href="resources/notes.html" target="_self">
                 special notes page

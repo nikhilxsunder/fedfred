@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "fedfred"
-version = "2.1.5"
+version = "3.0.0"
 description = "A feature-rich python package for interacting with the Federal Reserve Bank of St. Louis Economic Database: FRED"
 authors = [
     "Nikhil Sunder <nsunder724@gmail.com>"
@@ -82,12 +82,24 @@ ignore_missing_imports = true
 
 [tool.pylint]
 max-line-length = 200
-disable = ["C0415", "C2801", "C0114", "C0115", "C0116", "C0302", "C0301", "E0401", "R0902", "R0913", "R0917", "R0914", "R0912", "R0904", "R1705", "C0103", "R1710"]
+disable = ["C0415", "C2801", "C0114", "C0115", "C0116", "C0302", "C0301", "E0401", "R0902", "R0913", "R0917", "R0914", "R0912", "R0904", "R1705", "C0103", "R1710", "W0603", "R0911"]
 ignore-patterns = [".*\\.pyi$"]
 
 [tool.bandit]
 exclude_dirs = ["tests", "docs"]
 
 [tool.pytest.ini_options]
+addopts = "--cov=src --cov-report=term-missing --cov-report=html"
 testpaths = ["tests"]
 pythonpath = "src"
+
+[tool.coverage.run]
+source = ["src"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+]

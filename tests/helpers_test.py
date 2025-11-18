@@ -32,7 +32,7 @@ import geopandas as gpd
 import dask_geopandas as dd_gpd
 import pytest
 from fedfred.helpers import FredHelpers
-from fedfred.__about__ import __title__, __version__, __author__, __license__, __copyright__, __description__, __url__
+from fedfred.__about__ import __title__, __version__, __author__, __email__, __license__, __copyright__, __description__, __docs__, __repository__
 
 class TestConditionalImports:
     """
@@ -781,6 +781,119 @@ class TestDataFrameHelpers:
         with pytest.raises(ValueError):
             FredHelpers.to_dd_df(self.invalid_response_dict)
 
+    def test_to_pd_series(self):
+        """
+        Full-branch coverage tests for FredHelpers.to_pd_series.
+        """
+        # 1) Series input path
+        idx = pd.to_datetime(["2020-01-01", "2020-01-02"])
+        s = pd.Series([1, 2], index=idx, name="old_name")
+        # Make index non-datetime so conversion is exercised
+        s.index = s.index.strftime("%Y-%m-%d")
+
+        result = FredHelpers.to_pd_series(s, name="new_name")
+        assert isinstance(result, pd.Series)
+        assert result.name == "new_name"
+        assert list(result.index) == list(idx)
+        assert result.dtype == float
+        assert result.tolist() == [1.0, 2.0]
+
+        # 2) Non-Series / Non-DataFrame raises TypeError
+        with pytest.raises(TypeError, match="Input must be a pd.Series or pd.DataFrame"):
+            FredHelpers.to_pd_series([1, 2, 3], name="x")  # type: ignore[arg-type]
+
+        # 3) DataFrame: index named 'date' → use index
+        idx2 = pd.to_datetime(["2021-01-01", "2021-01-02"])
+        df_index_date = pd.DataFrame({"value": [10, 20]}, index=idx2)
+        df_index_date.index.name = "date"
+
+        result = FredHelpers.to_pd_series(df_index_date, name="s1")
+        assert list(result.index) == list(idx2)
+        assert result.tolist() == [10.0, 20.0]
+
+        # 4) DataFrame: 'date' column present
+        df_date_col = pd.DataFrame(
+            {
+                "date": ["2022-01-01", "2022-01-02"],
+                "value": ["1", "2"],
+            }
+        )
+        # ensure index.name is a str so the assertion passes
+        df_date_col.index.name = "idx"
+
+        result = FredHelpers.to_pd_series(df_date_col, name="s2")
+        expected_idx = pd.to_datetime(["2022-01-01", "2022-01-02"])
+        assert list(result.index) == list(expected_idx)
+        assert result.tolist() == [1.0, 2.0]
+
+        # 5) DataFrame: other date-like column (name contains 'date')
+        df_other_date_col = pd.DataFrame(
+            {
+                "observation_date": ["2023-01-01", "2023-01-02"],
+                "value": [100, 200],
+            }
+        )
+        df_other_date_col.index.name = "idx"
+
+        result = FredHelpers.to_pd_series(df_other_date_col, name="s3")
+        expected_idx = pd.to_datetime(["2023-01-01", "2023-01-02"])
+        assert list(result.index) == list(expected_idx)
+        assert result.tolist() == [100.0, 200.0]
+
+        # 6) DataFrame: no date-like columns → fallback to index
+        idx3 = pd.to_datetime(["2024-01-01", "2024-01-02"])
+        df_index_fallback = pd.DataFrame({"value": [3, 4]}, index=idx3)
+        df_index_fallback.index.name = "not_date"  # still a str
+
+        result = FredHelpers.to_pd_series(df_index_fallback, name="s4")
+        assert list(result.index) == list(idx3)
+        assert result.tolist() == [3.0, 4.0]
+
+        # 7) DataFrame: no 'value' column but numeric columns present → first numeric
+        df_first_numeric = pd.DataFrame(
+            {
+                "date": ["2025-01-01", "2025-01-02"],
+                "x": [5, 6],        # numeric
+                "y": ["a", "b"],    # non-numeric
+            }
+        )
+        df_first_numeric.index.name = "idx"
+
+        result = FredHelpers.to_pd_series(df_first_numeric, name="s5")
+        expected_idx = pd.to_datetime(["2025-01-01", "2025-01-02"])
+        assert list(result.index) == list(expected_idx)
+        assert result.tolist() == [5.0, 6.0]
+
+        # 8) DataFrame: no 'value' and no numeric dtypes → use last column, coerce
+        df_last_col = pd.DataFrame(
+            {
+                "date": ["2026-01-01", "2026-01-02"],
+                "a": ["1", "2"],
+                "b": ["3", "4"],  # last column, will be coerced
+            }
+        )
+        df_last_col.index.name = "idx"
+
+        result = FredHelpers.to_pd_series(df_last_col, name="s6")
+        expected_idx = pd.to_datetime(["2026-01-01", "2026-01-02"])
+        assert list(result.index) == list(expected_idx)
+        assert result.tolist() == [3.0, 4.0]
+
+        # 9) DataFrame: duplicates in date → keep last, sort
+        df_dupes = pd.DataFrame(
+            {
+                "date": ["2020-01-02", "2020-01-01", "2020-01-01"],
+                "value": [1, 2, 3],
+            }
+        )
+        df_dupes.index.name = "idx"
+
+        result = FredHelpers.to_pd_series(df_dupes, name="s7")
+        expected_idx = pd.to_datetime(["2020-01-01", "2020-01-02"])
+        # For 2020-01-01, last value is 3; for 2020-01-02 it's 1
+        assert list(result.index) == list(expected_idx)
+        assert result.tolist() == [3.0, 1.0]
+
     @pytest.mark.asyncio
     async def test_to_pd_df_async(self):
         """
@@ -845,6 +958,69 @@ class TestDataFrameHelpers:
 
         with pytest.raises(ValueError):
             await FredHelpers.to_dd_df_async(self.invalid_response_dict)
+
+    @pytest.mark.asyncio
+    async def test_to_pd_series_async(self, monkeypatch):
+        """
+        Full coverage for FredHelpers.to_pd_series_async:
+        - delegates to FredHelpers.to_pd_series via asyncio.to_thread
+        - returns the resulting Series
+        - propagates TypeError from the sync helper
+        """
+        # Prepare a simple Series input
+        idx = pd.to_datetime(["2020-01-01", "2020-01-02"])
+        s = pd.Series([1, 2], index=idx, name="old_name")
+
+        # 1) Happy path: ensure delegation and return value
+        called = {}
+
+        async def fake_to_thread(fn, *args, **kwargs):
+            # Capture what function and args were used
+            called["fn"] = fn
+            called["args"] = args
+            called["kwargs"] = kwargs
+            # Call the real sync helper to keep behavior realistic
+            return fn(*args, **kwargs)
+
+        monkeypatch.setattr("fedfred.helpers.asyncio.to_thread", fake_to_thread)
+
+        result = await FredHelpers.to_pd_series_async(s, "new_name")
+
+        assert isinstance(result, pd.Series)
+        assert result.name == "new_name"
+        assert called["fn"] is FredHelpers.to_pd_series
+        assert called["args"] == (s, "new_name")
+
+        # 2) Error path: TypeError from sync helper is propagated
+        with pytest.raises(TypeError, match="Input must be a pd.Series or pd.DataFrame"):
+            await FredHelpers.to_pd_series_async([1, 2, 3], "bad")  # type: ignore[arg-type]
+
+    @pytest.mark.asyncio
+    async def test_pd_frequency_conversion_async(self, monkeypatch):
+        """
+        Full coverage for FredHelpers.pd_frequency_conversion_async:
+        - delegates to FredHelpers.pd_frequency_conversion via asyncio.to_thread
+        - returns the converted string
+        """
+        called = {}
+
+        async def fake_to_thread(fn, *args, **kwargs):
+            called["fn"] = fn
+            called["args"] = args
+            called["kwargs"] = kwargs
+            # Call the real sync helper so behavior stays realistic
+            return fn(*args, **kwargs)
+
+        # Patch asyncio.to_thread used inside fedfred.helpers
+        monkeypatch.setattr("fedfred.helpers.asyncio.to_thread", fake_to_thread)
+
+        # Use a frequency that exercises a non-trivial branch of the sync helper
+        result = await FredHelpers.pd_frequency_conversion_async("wef")
+
+        assert result == "W-FRI"
+        assert called["fn"] is FredHelpers.pd_frequency_conversion
+        assert called["args"] == ("wef",)
+        assert called["kwargs"] == {}
 
 class TestGeoDataFrameHelpers:
     """
@@ -1168,6 +1344,58 @@ class TestConversionHelpers:
 
         with pytest.raises(ValueError):
             FredHelpers.datetime_hh_mm_conversion(invalid_type)
+
+    @pytest.mark.parametrize(
+        "input_freq, expected",
+        [
+            # Passthrough compatible frequencies (case-insensitive)
+            ("d", "D"),
+            ("m", "M"),
+            ("q", "Q"),
+            ("w", "W"),
+            ("D", "D"),
+            ("M", "M"),
+            ("Q", "Q"),
+            ("W", "W"),
+            # Annual -> yearly
+            ("a", "Y"),
+            ("A", "Y"),
+            # Weekly end variants
+            ("wef", "W-FRI"),
+            ("WEF", "W-FRI"),
+            ("weth", "W-THU"),
+            ("WETH", "W-THU"),
+            ("wew", "W-WED"),
+            ("WEW", "W-WED"),
+            ("wetu", "W-TUE"),
+            ("WETU", "W-TUE"),
+            ("wem", "W-MON"),
+            ("WEM", "W-MON"),
+            ("wesu", "W-SUN"),
+            ("WESU", "W-SUN"),
+            ("wesa", "W-SAT"),
+            ("WESA", "W-SAT"),
+            # Biweekly -> 2 x weekly
+            ("bw", "2W"),
+            ("BW", "2W"),
+            # Biweekly end variants
+            ("bwew", "2W-WED"),
+            ("BWEW", "2W-WED"),
+            ("bwem", "2W-MON"),
+            ("BWEM", "2W-MON"),
+            # Semiannual -> 2 x quarterly
+            ("sa", "2Q"),
+            ("SA", "2Q"),
+            # Fallback / default branch
+            ("unknown", "UNKNOWN"),
+            ("", ""),
+        ],
+    )
+    def test_pd_frequency_conversion(self, input_freq, expected):
+        """
+        Test the pd_frequency_conversion function.
+        """
+        assert FredHelpers.pd_frequency_conversion(input_freq) == expected
 
     @pytest.mark.asyncio
     async def test_liststring_conversion_async(self):

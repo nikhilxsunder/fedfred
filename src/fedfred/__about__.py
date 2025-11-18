@@ -27,8 +27,10 @@ This information is used for package distribution and documentation.
 
 __title__ = "fedfred"
 __description__ = "A feature-rich python package for interacting with the Federal Reserve Bank of St. Louis Economic Database: FRED"
-__version__ = "2.1.5"
+__version__ = "3.0.0"
 __copyright__ = "Copyright (c) 2025 Nikhil Sunder"
 __author__ = "Nikhil Sunder"
+__email__ = "nsunder724@gmail.com"
 __license__ = "MIT"
-__url__ = "https://github.com/nikhilxsunder/fedfred"
+__repository__ = "https://github.com/nikhilxsunder/fedfred"
+__docs__ = "https://nikhilxsunder.github.io/fedfred"

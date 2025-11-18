@@ -20,9 +20,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 """
-fedfred: A feature-rich python package for interacting with the Federal Reserve Bank of St. Louis Economic Database: FRED® API.
+This module defines base clients for the fedfred package
 """
 
+from __future__ import annotations
 import asyncio
 from datetime import datetime
 import time
@@ -34,7 +35,8 @@ import geopandas as gpd
 from tenacity import retry, wait_fixed, stop_after_attempt
 from cachetools import FIFOCache, cached
 from asyncache import cached as async_cached
-from fedfred.__about__ import __title__, __version__, __author__, __license__, __copyright__, __description__, __url__
+from .__about__ import __title__, __version__, __author__, __email__, __license__, __copyright__, __description__, __docs__, __repository__
+from .config import resolve_api_key
 from .helpers import FredHelpers
 from .objects import Category, Series, Tag, Release, ReleaseDate, Source, Element, VintageDate, SeriesGroup
 if TYPE_CHECKING:
@@ -49,12 +51,12 @@ class FredAPI:
     FRED® API.
     """
     # Dunder Methods
-    def __init__(self, api_key: str, cache_mode: bool=False, cache_size: int=256) -> None:
+    def __init__(self, api_key: Optional[str]=None, cache_mode: bool=False, cache_size: int=256) -> None:
         """
         Initialize the FredAPI class that provides functions which query FRED data.
 
         Args:
-            api_key (str): Your FRED API key.
+            api_key (Optional[str]): Your FRED API key.
             cache_mode (bool, optional): Whether to enable caching for API responses. Defaults to False.
             cache_size (int, optional): The maximum number of items to store in the cache if caching is enabled. Defaults to 256.
 
@@ -62,14 +64,20 @@ class FredAPI:
             FredAPI: An instance of the FredAPI class.
 
         Raises:
-            ValueError: If the API key is not provided.
+            RuntimeError: If no API key can be resolved from the explicit argument,
+                global setting, or environment variable.
 
         Example:
             >>> import fedfred as fd
-            >>> fred = fd.FredAPI('your_api_key')
+            >>> fd.set_api_key("your_api_key")  # optional global
+            >>> fred = fd.FredAPI()             # uses global/env key
+
+            Or explicitly:
+
+            >>> fred = fd.FredAPI(api_key="your_api_key")
         """
         self.base_url: str = 'https://api.stlouisfed.org/fred'
-        self.api_key: str = api_key
+        self.api_key: str = resolve_api_key(api_key)
         self.cache_mode: bool = cache_mode
         self.cache_size: int = cache_size
         self.cache: FIFOCache = FIFOCache(maxsize=cache_size)
@@ -207,7 +215,6 @@ class FredAPI:
             f"  API Key: {'****' + self.api_key[-4:] if self.api_key else 'Not Set'}\n"
         )
     # Private Methods
-    @retry(wait=wait_fixed(1), stop=stop_after_attempt(3))
     def __rate_limited(self) -> None:
         """
         Ensures synchronous requests comply with rate limits.
@@ -288,7 +295,10 @@ class FredAPI:
             'category_id': category_id,
         }
         response = self.__fred_get_request(url_endpoint, data)
-        return Category.to_object(response)
+        categories = Category.to_object(response)
+        for category in categories:
+            category.client = self
+        return categories
     def get_category_children(self, category_id: int, realtime_start: Optional[Union[str, datetime]]=None,
                               realtime_end: Optional[Union[str, datetime]]=None) -> List[Category]:
         """Get a FRED Category's Child Categories
@@ -315,7 +325,7 @@ class FredAPI:
             'Exports'
             'Imports'
             'Income Payments & Receipts'
-            'U.S. International Finance
+            'U.S. International Finance'
 
         FRED API Documentation:
             https://fred.stlouisfed.org/docs/api/fred/category_children.html
@@ -333,7 +343,10 @@ class FredAPI:
                 realtime_end = FredHelpers.datetime_conversion(realtime_end)
             data['realtime_end'] = realtime_end
         response = self.__fred_get_request(url_endpoint, data)
-        return Category.to_object(response)
+        categories = Category.to_object(response)
+        for category in categories:
+            category.client = self
+        return categories
     def get_category_related(self, category_id: int, realtime_start: Optional[Union[str, datetime]]=None,
                              realtime_end: Optional[Union[str, datetime]]=None) -> List[Category]:
         """Get a FRED Category's Related Categories
@@ -381,7 +394,10 @@ class FredAPI:
                 realtime_end = FredHelpers.datetime_conversion(realtime_end)
             data['realtime_end'] = realtime_end
         response = self.__fred_get_request(url_endpoint, data)
-        return Category.to_object(response)
+        categories = Category.to_object(response)
+        for category in categories:
+            category.client = self
+        return categories
     def get_category_series(self, category_id: int, realtime_start: Optional[Union[str, datetime]]=None,
                             realtime_end: Optional[Union[str, datetime]]=None, limit: Optional[int]=None,
                             offset: Optional[int]=None, order_by: Optional[str]=None,
@@ -459,7 +475,10 @@ class FredAPI:
                 exclude_tag_names = FredHelpers.liststring_conversion(exclude_tag_names)
             data['exclude_tag_names'] = exclude_tag_names
         response = self.__fred_get_request(url_endpoint, data)
-        return Series.to_object(response)
+        seriess = Series.to_object(response)
+        for series in seriess:
+            series.client = self
+        return seriess
     def get_category_tags(self, category_id: int, realtime_start: Optional[Union[str, datetime]]=None,
                           realtime_end: Optional[Union[str, datetime]]=None, tag_names: Optional[Union[str, list[str]]]=None,
                           tag_group_id: Optional[int]=None, search_text: Optional[str]=None,
@@ -529,7 +548,10 @@ class FredAPI:
         if sort_order:
             data['sort_order'] = sort_order
         response = self.__fred_get_request(url_endpoint, data)
-        return Tag.to_object(response)
+        tags = Tag.to_object(response)
+        for tag in tags:
+            tag.client = self
+        return tags
     def get_category_related_tags(self, category_id: int, realtime_start: Optional[Union[str, datetime]]=None,
                                   realtime_end: Optional[Union[str, datetime]]=None, tag_names: Optional[Union[str, list[str]]]=None,
                                   exclude_tag_names: Optional[Union[str, list[str]]]=None,
@@ -606,7 +628,10 @@ class FredAPI:
         if sort_order:
             data['sort_order'] = sort_order
         response = self.__fred_get_request(url_endpoint, data)
-        return Tag.to_object(response)
+        tags = Tag.to_object(response)
+        for tag in tags:
+            tag.client = self
+        return tags
     ## Releases
     def get_releases(self, realtime_start: Optional[Union[str, datetime]]=None, realtime_end: Optional[Union[str, datetime]]=None,
                      limit: Optional[int]=None, offset: Optional[int]=None,
@@ -661,7 +686,10 @@ class FredAPI:
         if sort_order:
             data['sort_order'] = sort_order
         response = self.__fred_get_request(url_endpoint, data)
-        return Release.to_object(response)
+        releases = Release.to_object(response)
+        for release in releases:
+            release.client = self
+        return releases
     def get_releases_dates(self, realtime_start: Optional[Union[str, datetime]]=None,
                            realtime_end: Optional[Union[str, datetime]]=None, limit: Optional[int]=None,
                            offset: Optional[int]=None, order_by: Optional[str]=None,
@@ -761,7 +789,10 @@ class FredAPI:
                 realtime_end = FredHelpers.datetime_conversion(realtime_end)
             data['realtime_end'] = realtime_end
         response = self.__fred_get_request(url_endpoint, data)
-        return Release.to_object(response)
+        releases = Release.to_object(response)
+        for release in releases:
+            release.client = self
+        return releases
     def get_release_dates(self, release_id: int, realtime_start: Optional[Union[str, datetime]]=None,
                           realtime_end: Optional[Union[str, datetime]]=None, limit: Optional[int]=None,
                           offset: Optional[int]=None, sort_order: Optional[str]=None,
@@ -888,7 +919,10 @@ class FredAPI:
                 exclude_tag_names = FredHelpers.liststring_conversion(exclude_tag_names)
             data['exclude_tag_names'] = exclude_tag_names
         response = self.__fred_get_request(url_endpoint, data)
-        return Series.to_object(response)
+        seriess = Series.to_object(response)
+        for series in seriess:
+            series.client = self
+        return seriess
     def get_release_sources(self, release_id: int, realtime_start: Optional[Union[str, datetime]]=None,
                             realtime_end: Optional[Union[str, datetime]]=None) -> List[Source]:
         """Get FRED release sources
@@ -931,7 +965,10 @@ class FredAPI:
                 realtime_end = FredHelpers.datetime_conversion(realtime_end)
             data['realtime_end'] = realtime_end
         response = self.__fred_get_request(url_endpoint, data)
-        return Source.to_object(response)
+        sources = Source.to_object(response)
+        for source in sources:
+            source.client = self
+        return sources
     def get_release_tags(self, release_id: int, realtime_start: Optional[Union[str, datetime]]=None,
                          realtime_end: Optional[Union[str, datetime]]=None, tag_names: Optional[Union[str, list[str]]]=None,
                          tag_group_id: Optional[int]=None, search_text: Optional[str]=None,
@@ -998,7 +1035,10 @@ class FredAPI:
         if order_by:
             data['order_by'] = order_by
         response = self.__fred_get_request(url_endpoint, data)
-        return Tag.to_object(response)
+        tags = Tag.to_object(response)
+        for tag in tags:
+            tag.client = self
+        return tags
     def get_release_related_tags(self, release_id: int, realtime_start: Optional[Union[str, datetime]]=None,
                                  realtime_end: Optional[Union[str, datetime]]=None, tag_names: Optional[Union[str, list[str]]]=None,
                                  exclude_tag_names: Optional[Union[str, list[str]]]=None, tag_group_id: Optional[str]=None,
@@ -1074,7 +1114,10 @@ class FredAPI:
         if sort_order:
             data['sort_order'] = sort_order
         response = self.__fred_get_request(url_endpoint, data)
-        return Tag.to_object(response)
+        tags = Tag.to_object(response)
+        for tag in tags:
+            tag.client = self
+        return tags
     def get_release_tables(self, release_id: int, element_id: Optional[int]=None,
                            include_observation_values: Optional[bool]=None,
                            observation_date: Optional[Union[str, datetime]]=None) -> List[Element]:
@@ -1120,7 +1163,7 @@ class FredAPI:
                 observation_date = FredHelpers.datetime_conversion(observation_date)
             data['observation_date'] = observation_date
         response = self.__fred_get_request(url_endpoint, data)
-        return Element.to_object(response)
+        return Element.to_object(response, client=self)
     ## Series
     def get_series(self, series_id: str, realtime_start: Optional[Union[str, datetime]]=None,
                    realtime_end: Optional[Union[str, datetime]]=None) -> List[Series]:
@@ -1162,7 +1205,10 @@ class FredAPI:
                 realtime_end = FredHelpers.datetime_conversion(realtime_end)
             data['realtime_end'] = realtime_end
         response = self.__fred_get_request(url_endpoint, data)
-        return Series.to_object(response)
+        seriess = Series.to_object(response)
+        for series in seriess:
+            series.client = self
+        return seriess
     def get_series_categories(self, series_id: str, realtime_start: Optional[Union[str, datetime]]=None,
                               realtime_end: Optional[Union[str, datetime]]=None) -> List[Category]:
         """Get FRED series categories
@@ -1186,8 +1232,8 @@ class FredAPI:
             >>> categories = fred.get_series_categories('EXJPUS')
             >>> for category in categories:
             >>>     print(category.id)
-            95
-            275
+            '95'
+            '275'
 
         FRED API Documentation:
             https://fred.stlouisfed.org/docs/api/fred/series_categories.html
@@ -1205,7 +1251,10 @@ class FredAPI:
                 realtime_end = FredHelpers.datetime_conversion(realtime_end)
             data['realtime_end'] = realtime_end
         response = self.__fred_get_request(url_endpoint, data)
-        return Category.to_object(response)
+        categories = Category.to_object(response)
+        for category in categories:
+            category.client = self
+        return categories
     def get_series_observations(self, series_id: str, dataframe_method: str = 'pandas',
                                 realtime_start: Optional[Union[str, datetime]]=None, realtime_end: Optional[Union[str, datetime]]=None,
                                 limit: Optional[int]=None, offset: Optional[int]=None,
@@ -1236,9 +1285,9 @@ class FredAPI:
             vintage_dates (str | list, optional): A comma-separated string of vintage dates. String format: YYYY-MM-DD.
 
         Returns:
-            Pandas DataFrame: If dataframe_method='pandas' or is left blank.
-            Polars DataFrame: If dataframe_method='polars'.
-            Dask DataFrame: If dataframe_method='dask'.
+            pandas.DataFrame: If dataframe_method='pandas' or is left blank.
+            polars.DataFrame: If dataframe_method='polars'.
+            dask.DataFrame: If dataframe_method='dask'.
 
         Raises:
             ValueError: If the API request fails or returns an error.
@@ -1344,7 +1393,10 @@ class FredAPI:
                 realtime_end = FredHelpers.datetime_conversion(realtime_end)
             data['realtime_end'] = realtime_end
         response = self.__fred_get_request(url_endpoint, data)
-        return Release.to_object(response)
+        releases = Release.to_object(response)
+        for release in releases:
+            release.client = self
+        return releases
     def get_series_search(self, search_text: str, search_type: Optional[str]=None,
                           realtime_start: Optional[Union[str, datetime]]=None, realtime_end: Optional[Union[str, datetime]]=None,
                           limit: Optional[int]=None, offset: Optional[int]=None,
@@ -1423,7 +1475,10 @@ class FredAPI:
                 exclude_tag_names = FredHelpers.liststring_conversion(exclude_tag_names)
             data['exclude_tag_names'] = exclude_tag_names
         response = self.__fred_get_request(url_endpoint, data)
-        return Series.to_object(response)
+        seriess = Series.to_object(response)
+        for series in seriess:
+            series.client = self
+        return seriess
     def get_series_search_tags(self, series_search_text: str, realtime_start: Optional[Union[str, datetime]]=None,
                                realtime_end: Optional[Union[str, datetime]]=None, tag_names: Optional[Union[str, list[str]]]=None,
                                tag_group_id: Optional[str]=None,
@@ -1494,7 +1549,10 @@ class FredAPI:
         if sort_order:
             data['sort_order'] = sort_order
         response = self.__fred_get_request(url_endpoint, data)
-        return Tag.to_object(response)
+        tags = Tag.to_object(response)
+        for tag in tags:
+            tag.client = self
+        return tags
     def get_series_search_related_tags(self, series_search_text: str, tag_names: Union[str,list[str]],
                                        realtime_start: Optional[Union[str, datetime]]=None, realtime_end: Optional[Union[str,datetime]]=None,
                                        exclude_tag_names: Optional[Union[str, list[str]]]=None,tag_group_id: Optional[str]=None,
@@ -1569,7 +1627,10 @@ class FredAPI:
         if sort_order:
             data['sort_order'] = sort_order
         response = self.__fred_get_request(url_endpoint, data)
-        return Tag.to_object(response)
+        tags = Tag.to_object(response)
+        for tag in tags:
+            tag.client = self
+        return tags
     def get_series_tags(self, series_id: str, realtime_start: Optional[Union[str, datetime]]=None,
                         realtime_end: Optional[Union[str, datetime]]=None, order_by: Optional[str]=None,
                         sort_order: Optional[str]=None) -> List[Tag]:
@@ -1620,7 +1681,10 @@ class FredAPI:
         if sort_order:
             data['sort_order'] = sort_order
         response = self.__fred_get_request(url_endpoint, data)
-        return Tag.to_object(response)
+        tags = Tag.to_object(response)
+        for tag in tags:
+            tag.client = self
+        return tags
     def get_series_updates(self, realtime_start: Optional[Union[str, datetime]]=None,
                            realtime_end: Optional[Union[str, datetime]]=None, limit: Optional[int]=None,
                            offset: Optional[int]=None, filter_value: Optional[str]=None,
@@ -1682,7 +1746,10 @@ class FredAPI:
                 end_time = FredHelpers.datetime_hh_mm_conversion(end_time)
             data['end_time'] = end_time
         response = self.__fred_get_request(url_endpoint, data)
-        return Series.to_object(response)
+        seriess = Series.to_object(response)
+        for series in seriess:
+            series.client = self
+        return seriess
     def get_series_vintagedates(self, series_id: str, realtime_start: Optional[Union[str, datetime]]=None,
                                 realtime_end: Optional[Union[str, datetime]]=None, limit: Optional[int]=None,
                                 offset: Optional[int]=None, sort_order: Optional[str]=None) -> List[VintageDate]:
@@ -1793,7 +1860,10 @@ class FredAPI:
         if sort_order:
             data['sort_order'] = sort_order
         response = self.__fred_get_request(url_endpoint, data)
-        return Source.to_object(response)
+        sources = Source.to_object(response)
+        for source in sources:
+            source.client = self
+        return sources
     def get_source(self, source_id: int, realtime_start: Optional[Union[str, datetime]]=None,
                    realtime_end: Optional[Union[str, datetime]]=None) -> List[Source]:
         """Get a FRED source
@@ -1834,7 +1904,10 @@ class FredAPI:
                 realtime_end = FredHelpers.datetime_conversion(realtime_end)
             data['realtime_end'] = realtime_end
         response = self.__fred_get_request(url_endpoint, data)
-        return Source.to_object(response)
+        sources = Source.to_object(response)
+        for source in sources:
+            source.client = self
+        return sources
     def get_source_releases(self, source_id: int , realtime_start: Optional[Union[str, datetime]]=None,
                             realtime_end: Optional[Union[str, datetime]]=None, limit: Optional[int]=None,
                             offset: Optional[int]=None, order_by: Optional[str]=None,
@@ -1892,7 +1965,10 @@ class FredAPI:
         if sort_order:
             data['sort_order'] = sort_order
         response = self.__fred_get_request(url_endpoint, data)
-        return Release.to_object(response)
+        releases = Release.to_object(response)
+        for release in releases:
+            release.client = self
+        return releases
     ## Tags
     def get_tags(self, realtime_start: Optional[Union[str, datetime]]=None, realtime_end: Optional[Union[str,datetime]]=None,
                  tag_names: Optional[Union[str, list[str]]]=None, tag_group_id: Optional[str]=None,
@@ -1960,9 +2036,12 @@ class FredAPI:
         if sort_order:
             data['sort_order'] = sort_order
         response = self.__fred_get_request(url_endpoint, data)
-        return Tag.to_object(response)
-    def get_related_tags(self, realtime_start: Optional[Union[str, datetime]]=None, realtime_end: Optional[Union[str, datetime]]=None,
-                         tag_names: Optional[Union[str, list[str]]]=None, exclude_tag_names: Optional[Union[str, list[str]]]=None,
+        tags = Tag.to_object(response)
+        for tag in tags:
+            tag.client = self
+        return tags
+    def get_related_tags(self, tag_names: Union[str, list[str]], realtime_start: Optional[Union[str, datetime]]=None,
+                         realtime_end: Optional[Union[str, datetime]]=None, exclude_tag_names: Optional[Union[str, list[str]]]=None,
                          tag_group_id: Optional[str]=None, search_text: Optional[str]=None,
                          limit: Optional[int]=None, offset: Optional[int]=None,
                          order_by: Optional[str]=None, sort_order: Optional[str]=None) -> List[Tag]:
@@ -1971,9 +2050,9 @@ class FredAPI:
         Retrieve related tags for a given set of tags from the FRED API.
 
         Args:
+            tag_names (str | list): A semicolon-delimited list of tag names to include in the search.
             realtime_start (str | datetime, optional): The start of the real-time period. Strinng format: YYYY-MM-DD.
             realtime_end (str | datetime, optional): The end of the real-time period. String format: YYYY-MM-DD.
-            tag_names (str | list, optional): A semicolon-delimited list of tag names to include in the search.
             exclude_tag_names (str | list, optional): A semicolon-delimited list of tag names to exclude from the search.
             tag_group_id (str, optional): A tag group ID to filter tags by group.
             search_text (str, optional): The words to match against tag names and descriptions.
@@ -2003,6 +2082,9 @@ class FredAPI:
         """
         url_endpoint = '/related_tags'
         data: Dict[str, Optional[Union[str, int]]] = {}
+        if isinstance(tag_names, list):
+            tag_names = FredHelpers.liststring_conversion(tag_names)
+        data['tag_names'] = tag_names
         if realtime_start:
             if isinstance(realtime_start, datetime):
                 realtime_start = FredHelpers.datetime_conversion(realtime_start)
@@ -2011,10 +2093,6 @@ class FredAPI:
             if isinstance(realtime_end, datetime):
                 realtime_end = FredHelpers.datetime_conversion(realtime_end)
             data['realtime_end'] = realtime_end
-        if tag_names:
-            if isinstance(tag_names, list):
-                tag_names = FredHelpers.liststring_conversion(tag_names)
-            data['tag_names'] = tag_names
         if exclude_tag_names:
             if isinstance(exclude_tag_names, list):
                 exclude_tag_names = FredHelpers.liststring_conversion(exclude_tag_names)
@@ -2032,8 +2110,11 @@ class FredAPI:
         if sort_order:
             data['sort_order'] = sort_order
         response = self.__fred_get_request(url_endpoint, data)
-        return Tag.to_object(response)
-    def get_tags_series(self, tag_names: Optional[Union[str, list[str]]]=None, exclude_tag_names: Optional[Union[str, list[str]]]=None,
+        tags = Tag.to_object(response)
+        for tag in tags:
+            tag.client = self
+        return tags
+    def get_tags_series(self, tag_names: Union[str, list[str]], exclude_tag_names: Optional[Union[str, list[str]]]=None,
                         realtime_start: Optional[Union[str, datetime]]=None, realtime_end: Optional[Union[str, datetime]]=None,
                         limit: Optional[int]=None, offset: Optional[int]=None,
                         order_by: Optional[str]=None, sort_order: Optional[str]=None) -> List[Series]:
@@ -2042,8 +2123,8 @@ class FredAPI:
         Get the series matching tags.
 
         Args:
-            tag_names (str, optional): A semicolon delimited list of tag names to include in the search.
-            exclude_tag_names (str, optional): A semicolon delimited list of tag names to exclude in the search.
+            tag_names (str | list): A semicolon delimited list of tag names to include in the search.
+            exclude_tag_names (str | list, optional): A semicolon delimited list of tag names to exclude in the search.
             realtime_start (str, optional): The start of the real-time period. String format: YYYY-MM-DD.
             realtime_end (str, optional): The end of the real-time period. String format: YYYY-MM-DD.
             limit (int, optional): The maximum number of results to return. Default is 1000.
@@ -2072,10 +2153,9 @@ class FredAPI:
         """
         url_endpoint = '/tags/series'
         data: Dict[str, Optional[Union[str, int]]] = {}
-        if tag_names:
-            if isinstance(tag_names, list):
-                tag_names = FredHelpers.liststring_conversion(tag_names)
-            data['tag_names'] = tag_names
+        if isinstance(tag_names, list):
+            tag_names = FredHelpers.liststring_conversion(tag_names)
+        data['tag_names'] = tag_names
         if exclude_tag_names:
             if isinstance(exclude_tag_names, list):
                 exclude_tag_names = FredHelpers.liststring_conversion(exclude_tag_names)
@@ -2097,7 +2177,10 @@ class FredAPI:
         if sort_order:
             data['sort_order'] = sort_order
         response = self.__fred_get_request(url_endpoint, data)
-        return Series.to_object(response)
+        seriess = Series.to_object(response)
+        for series in seriess:
+            series.client = self
+        return seriess
     class MapsAPI:
         """
         The Maps sub-class contains methods for interacting with the FRED® Maps API and GeoFRED
@@ -2226,7 +2309,6 @@ class FredAPI:
                 f"      API Key: {'****' + self._parent.api_key[-4:] if self._parent.api_key else 'Not Set'}\n"
             )
         # Private Methods
-        @retry(wait=wait_fixed(1), stop=stop_after_attempt(3))
         def __rate_limited(self) -> None:
             """
             Ensures synchronous requests comply with rate limits.
@@ -2652,7 +2734,6 @@ class FredAPI:
                 new_limit = max(1, min(self._parent.max_requests_per_minute // 10, requests_left // 2))
                 self._parent.semaphore = asyncio.Semaphore(new_limit)
                 return requests_left, time_left
-        @retry(wait=wait_fixed(1), stop=stop_after_attempt(3))
         async def __rate_limited(self) -> None:
             """
             Enforces the rate limit dynamically based on requests left.
@@ -4787,7 +4868,6 @@ class FredAPI:
                     new_limit = max(1, min(self._grandparent.max_requests_per_minute // 10, requests_left // 2))
                     self._grandparent.semaphore = asyncio.Semaphore(new_limit)
                     return requests_left, time_left
-            @retry(wait=wait_fixed(1), stop=stop_after_attempt(3))
             async def __rate_limited(self) -> None:
                 """
                 Enforces the rate limit dynamically based on requests left.

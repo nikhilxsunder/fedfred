@@ -7,7 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [2.1.5] (RE-RELEASED 2.1.4)
+## [3.0.0] - 2025-11-17
+
+### Added
+
+- [config.py](https://github.com/nikhilxsunder/fedfred/blob/main/src/fedfred/config.py) module
+  - Global API Key getting, setting, and resolving logic
+- Helper method for converting pandas dataframes to pandas series
+- Helper method for converting FRED API native frequency strings to pandas compatible frequency strings
+- Relational API calls as class properties for return objects
+- [config_test.py](https://github.com/nikhilxsunder/fedfred/blob/main/tests/config_test.py) module
+
+### Fixed
+
+- Minor docstring fixes
+- All test modules for full coverage
+- Special notes page in documentaation site
+
+### Removed
+
+- All property based testing modules
+
+## [2.1.5] - 2025-09-22 (RE-RELEASED 2.1.4)
 
 ### Added
 
@@ -525,7 +546,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - initial directory structure
 - setuptools for build backend
 
-[Unreleased]: https://github.com/nikhilxsunder/fedfred/compare/v2.1.5...HEAD
+[Unreleased]: https://github.com/nikhilxsunder/fedfred/compare/v3.0.0...HEAD
+[3.0.0]: https://github.com/nikhilxsunder/fedfred/compare/v2.1.5...v3.0.0
 [2.1.5]: https://github.com/nikhilxsunder/fedfred/compare/v2.1.4...v2.1.5
 [2.1.4]: https://github.com/nikhilxsunder/fedfred/compare/v2.1.3...v2.1.4
 [2.1.3]: https://github.com/nikhilxsunder/fedfred/compare/v2.1.2...v2.1.3
