@@ -18,7 +18,7 @@ Added Helper Methods
 ^^^^^^^^^^^^^^^^^^^^
 
 - :meth:`fedfred.helpers.FredHelpers.pd_frequency_conversion`: Converts fedfred native frequency strings to pandas compatible ones.
-- :meth:`fedfred.helpers.FredHelpers.to_pd_series`: Converts a :class:`pd.DataFrame` into a :class:`pd.Series`.
+- :meth:`fedfred.helpers.FredHelpers.to_pd_series`: Converts a :class:`pandas.DataFrame` into a :class:`pandas.Series`.
 
 Examples of New Helper Methods
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
