@@ -203,8 +203,8 @@ Version 2.1.5. Available at: https://github.com/nikhilxsunder/fedfred
   title        = {fedfred: A Python client for the Federal Reserve Economic Database (FRED) API},
   year         = {2025},
   publisher    = {GitHub},
-  version      = {2.1.5},
-  doi          = {10.5281/zenodo.17180397},
+  version      = {3.0.0},
+  doi          = {10.5281/zenodo.17635942},
   url          = {https://github.com/nikhilxsunder/fedfred},
   orcid        = {https://orcid.org/0009-0007-3323-1760}
 }
