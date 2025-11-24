@@ -68,37 +68,37 @@ Enhanced Return Object Properties
 **New Properties**:
 
 - :class:`fedfred.objects.Category`:
-  - :attr:`fedfred.objects.Category.children` - List of child categories.
-  - :attr:`fedfred.objects.Category.related` - List of related categories.
-  - :attr:`fedfred.objects.Category.series` - List of series in the category.
-  - :attr:`fedfred.objects.Category.tags` - List of tags associated with the category.
-  - :attr:`fedfred.objects.Category.related_tags` - List of related tags.
+   - :attr:`fedfred.objects.Category.children` - List of child categories.
+   - :attr:`fedfred.objects.Category.related` - List of related categories.
+   - :attr:`fedfred.objects.Category.series` - List of series in the category.
+   - :attr:`fedfred.objects.Category.tags` - List of tags associated with the category.
+   - :attr:`fedfred.objects.Category.related_tags` - List of related tags.
 
 - :class:`fedfred.objects.Series`:
-  - :attr:`fedfred.objects.Series.categories` - List of categories for the series.
-  - :attr:`fedfred.objects.Series.observations` - DataFrame of observations for the series.
-  - :attr:`fedfred.objects.Series.release` - List of releases for the series.
-  - :attr:`fedfred.objects.Series.tags` - List of tags for the series.
-  - :attr:`fedfred.objects.Series.vintagedates` - List of vintage dates for the series.
+   - :attr:`fedfred.objects.Series.categories` - List of categories for the series.
+   - :attr:`fedfred.objects.Series.observations` - DataFrame of observations for the series.
+   - :attr:`fedfred.objects.Series.release` - List of releases for the series.
+   - :attr:`fedfred.objects.Series.tags` - List of tags for the series.
+   - :attr:`fedfred.objects.Series.vintagedates` - List of vintage dates for the series.
 
 - :class:`fedfred.objects.Tag`:
-  - :attr:`fedfred.objects.Tag.related_tags` - List of related tags.
-  - :attr:`fedfred.objects.Tag.series` - List of series associated with the tag.
+   - :attr:`fedfred.objects.Tag.related_tags` - List of related tags.
+   - :attr:`fedfred.objects.Tag.series` - List of series associated with the tag.
 
 - :class:`fedfred.objects.Release`:
-  - :attr:`fedfred.objects.Release.dates` - List of release dates for the release.
-  - :attr:`fedfred.objects.Release.series` - List of series associated with the release.
-  - :attr:`fedfred.objects.Release.sources` - List of sources associated with the release.
-  - :attr:`fedfred.objects.Release.tags` - List of tags associated with the release.
-  - :attr:`fedfred.objects.Release.related_tags` - List of related tags for the release.
-  - :attr:`fedfred.objects.Release.tables` - List of elements for the release.
+   - :attr:`fedfred.objects.Release.dates` - List of release dates for the release.
+   - :attr:`fedfred.objects.Release.series` - List of series associated with the release.
+   - :attr:`fedfred.objects.Release.sources` - List of sources associated with the release.
+   - :attr:`fedfred.objects.Release.tags` - List of tags associated with the release.
+   - :attr:`fedfred.objects.Release.related_tags` - List of related tags for the release.
+   - :attr:`fedfred.objects.Release.tables` - List of elements for the release.
 
 - :class:`fedfred.objects.Source`:
-  - :attr:`fedfred.objects.Source.releases` - List of releases for the source.
+   - :attr:`fedfred.objects.Source.releases` - List of releases for the source.
 
 - :class:`fedfred.objects.Element`:
-  - :attr:`fedfred.objects.Element.release` - List of releases for the element.
-  - :attr:`fedfred.objects.Element.series` - List of series for the element.
+   - :attr:`fedfred.objects.Element.release` - List of releases for the element.
+   - :attr:`fedfred.objects.Element.series` - List of series for the element.
 
 ---
 
