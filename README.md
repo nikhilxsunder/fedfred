@@ -192,7 +192,7 @@ If you use fedfred in your research, projects, or publications, please cite it a
 
 ```
 Sunder, Nikhil. (2025). fedfred: A Python client for the Federal Reserve Economic Database (FRED) API.
-Version 2.1.5. Available at: https://github.com/nikhilxsunder/fedfred
+Version 3.0.0. Available at: https://github.com/nikhilxsunder/fedfred
 ```
 
 **BibTeX**:
