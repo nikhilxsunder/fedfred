@@ -1,6 +1,6 @@
 # Test Coverage Report
 
-Last updated: 2026-01-13
+Last updated: 2026-01-31
 
 ## Coverage Summary
 
@@ -41,7 +41,7 @@ src/fedfred/objects.py       307      0   100%
 TOTAL                       2989      0   100%
 Coverage HTML written to dir htmlcov
 Coverage XML written to file coverage.xml
-====================== 292 passed, 14 warnings in 45.74s =======================
+====================== 292 passed, 14 warnings in 45.10s =======================
 ```
 
 ## Running Test Coverage Locally
