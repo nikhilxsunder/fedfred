@@ -34,8 +34,45 @@ jobs:
           cd docs
           poetry run make html
 
+      - name: Add IndexNow key file to site root
+        shell: bash
+        env:
+          INDEXNOW_KEY: ${{ secrets.INDEXNOW_KEY }}
+        run: |
+          set -euo pipefail
+          out_dir="./docs/build/html"
+          echo "${INDEXNOW_KEY}" > "${out_dir}/${INDEXNOW_KEY}.txt"
+
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./docs/build/html
+
+      - name: Notify IndexNow (Bing) of updated docs
+        shell: bash
+        env:
+          INDEXNOW_KEY: ${{ secrets.INDEXNOW_KEY }}
+        run: |
+          set -euo pipefail
+
+          base="https://nikhilxsunder.github.io/fedfred"
+          endpoint="https://www.bing.com/indexnow"
+          host="nikhilxsunder.github.io"
+          key_location="${base}/${INDEXNOW_KEY}.txt"
+
+          payload=$(printf '{
+            "host": "%s",
+            "key": "%s",
+            "keyLocation": "%s",
+            "urlList": [
+              "%s/",
+              "%s/sitemap.xml"
+            ]
+          }' "$host" "$INDEXNOW_KEY" "$key_location" "$base" "$base")
+
+          echo "$payload" | curl -sS -X POST "$endpoint" \
+            -H "Content-Type: application/json; charset=utf-8" \
+            --data-binary @-
+
+          echo "IndexNow notification sent."
