@@ -1,0 +1,32 @@
+# CODEOWNERS
+# Docs: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+#
+# Order matters: the last matching pattern takes precedence.
+
+# Default owner for everything
+* @nikhilxsunder
+
+# GitHub configuration and CI
+.github/ @nikhilxsunder
+.github/workflows/ @nikhilxsunder
+
+# Packaging / build metadata
+pyproject.toml @nikhilxsunder
+setup.cfg @nikhilxsunder
+setup.py @nikhilxsunder
+MANIFEST.in @nikhilxsunder
+
+# Source code (adjust if you do not use src/ layout)
+src/ @nikhilxsunder
+
+# Tests
+tests/ @nikhilxsunder
+
+# Documentation
+docs/ @nikhilxsunder
+
+# Security and policy files
+SECURITY.md @nikhilxsunder
+CODE_OF_CONDUCT.md @nikhilxsunder
+CONTRIBUTING.md @nikhilxsunder
+LICENSE @nikhilxsunder

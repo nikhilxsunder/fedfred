@@ -1,6 +1,6 @@
-# filepath: /src/fedfred/__init__.py
+# filepath: /src/fedfred/fred/__init__.py
 #
-# Copyright (c) 2025–2026 Nikhil Sunder
+# Copyright (c) 2026 Nikhil Sunder
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -19,20 +19,15 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""fedfred.__init__
+"""fedfred.fred.__init__
 
-This module initializes the fedfred package.
+This module initializes the fred subpackage of fedfred.
 
 Imports:
-    Fred: A class that provides methods to interact with the Fred API.
-    AsyncFred: An asynchronous class for interacting with the Fred API.
-    GeoFred: A class that provides methods to interact with the Fred Maps API.
-    AsyncGeoFred: An asynchronous class for interacting with the Fred Maps API.
-    Fraser: A class that provides methods to interact with the Fraser API.
-    Helpers: A class that provides helper methods for the Fred API.
-    AsyncHelpers: An asynchronous class that provides helper methods for the Fred API.
-    set_api_key: Function to set the global FRED API key.
-    get_api_key: Function to get the current global FRED API key.
+    FredAPI: A class that provides methods to interact with the Fred API.
+    AsyncFredAPI: An asynchronous class for interacting with the Fred API.
+    FredMapsAPI: A class that provides methods to interact with the Fred Maps API.
+    AsyncFredMapsAPI: An asynchronous class for interacting with the Fred Maps API.
     Category: A class representing a category in the Fred database.
     Series: A class representing a series in the Fred database.
     Tag: A class representing a tag in the Fred database.
@@ -45,12 +40,8 @@ Imports:
     BulkRelease: A class representing a bulk release in the Fred database.
 """
 
-# Fred
-from .fred import (
-    Fred,
-    AsyncFred,
-    GeoFred,
-    AsyncGeoFred,
+from .clients import Fred, AsyncFred, GeoFred, AsyncGeoFred
+from .objects import (
     Category,
     Series,
     Tag,
@@ -60,66 +51,14 @@ from .fred import (
     Element,
     VintageDate,
     SeriesGroup,
-    BulkRelease,
+    BulkRelease
 )
 
-# Fraser
-from .fraser import (
-    Fraser,
-)
-
-# Utils
-from .utils import ( 
-    set_api_key,
-    get_api_key,
-    clear_api_key,
-    Helpers, 
-    AsyncHelpers,
-)
-
-# Deprecated
-from ._deprecated import (
-    FredHelpers,
-    FredAPI
-)
-AsyncAPI = FredAPI.AsyncAPI
-AsyncMapsAPI = FredAPI.AsyncAPI.AsyncMapsAPI
-MapsAPI = FredAPI.MapsAPI
-
-# About
-from .__about__ import (
-    __title__,
-    __version__,
-    __author__,
-    __email__,
-    __license__,
-    __copyright__,
-    __description__,
-    __docs__,
-    __repository__,
-)
-
-# All
 __all__ = [
-    "__title__",
-    "__description__",
-    "__version__",
-    "__copyright__",
-    "__author__",
-    "__email__",
-    "__license__",
-    "__repository__",
-    "__docs__",
-    "set_api_key",
-    "get_api_key",
-    "clear_api_key",
     "Fred",
     "AsyncFred",
-    "AsyncGeoFred",
     "GeoFred",
-    "Fraser",
-    "Helpers",
-    "AsyncHelpers",
+    "AsyncGeoFred",
     "Category",
     "Series",
     "Tag",
@@ -127,13 +66,7 @@ __all__ = [
     "ReleaseDate",
     "Source",
     "Element",
+    "BulkRelease",
     "VintageDate",
     "SeriesGroup",
-    "BulkRelease",
-    # Deprecated
-    "FredHelpers",
-    "FredAPI",
-    "AsyncAPI",
-    "AsyncMapsAPI",
-    "MapsAPI",
 ]

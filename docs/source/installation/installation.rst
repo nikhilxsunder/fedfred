@@ -21,7 +21,7 @@ Installation Methods
 
          pip install fedfred
 
-      Installs core dependencies needed for Pandas-based :term:`DataFrame` outputs.
+      Installs core dependencies needed for :class:`pandas.DataFrame` outputs.
 
    .. tab-item:: conda (Conda-Forge)
 
@@ -60,13 +60,13 @@ Optional Enhancements
    :color: secondary
    :open:
 
-   Boost development experience with type hints (e.g., :mod:`mypy`, :mod:`pyright`):
+   Boost development experience with type hints (e.g., `mypy`, `pyright`):
 
    .. code-block:: bash
 
       pip install fedfred[types]
 
-   Includes stubs for `pandas`, `geopandas`, `cachetools`, and others.
+   Includes stubs for :mod:`pandas`, :mod:`geopandas`, :mod:`cachetools`, and others.
 
 .. dropdown:: Install Additional DataFrame Backends
    :color: secondary
@@ -79,8 +79,8 @@ Optional Enhancements
       pip install fedfred[polars]
       pip install fedfred[dask]
 
-   - **Polars**: Lightning-fast DataFrames for large datasets.
-   - **Dask**: Parallel, out-of-core DataFrame computation.
+   - **:mod:`polars`**: Lightning-fast DataFrames for large datasets.
+   - **:mod:`dask`**: Parallel, out-of-core DataFrame computation.
 
    See :ref:`api-overview` for details.
 

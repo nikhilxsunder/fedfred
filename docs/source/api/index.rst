@@ -3,10 +3,10 @@
 API Reference
 =============
 
-This section provides detailed, automatically generated documentation for FedFred's **modules**, **classes**, and **functions**.  
+This section provides detailed, automatically generated documentation for FedFred's **modules**, **classes**, and **functions**.
 It covers both synchronous and asynchronous clients, helper utilities, and typed object models.
 
-All API documentation is generated from the live source code using Sphinx :mod:`autodoc` and :mod:`autosummary`.
+All API documentation is generated from the live source code using Sphinx :mod:`sphinx.ext.autodoc` and :mod:`sphinx.ext.autosummary`.
 
 ---
 
@@ -17,10 +17,11 @@ API Clients
    :toctree: _autosummary
    :template: autosummary/class.rst
 
-   fedfred.FredAPI
-   fedfred.AsyncAPI
-   fedfred.MapsAPI
-   fedfred.AsyncMapsAPI
+   fedfred.Fred
+   fedfred.AsyncFred
+   fedfred.GeoFred
+   fedfred.AsyncGeoFred
+   fedfred.Fraser
 
 Utility Helpers
 ---------------
@@ -29,24 +30,45 @@ Utility Helpers
    :toctree: _autosummary
    :template: autosummary/class.rst
 
-   fedfred.helpers.FredHelpers
+   fedfred.Helpers
+   fedfred.AsyncHelpers
 
-Data Objects
+Data Models
 ------------
 
 .. autosummary::
    :toctree: _autosummary
    :template: autosummary/class.rst
 
-   fedfred.objects.Category
-   fedfred.objects.Series
-   fedfred.objects.Tag
-   fedfred.objects.Release
-   fedfred.objects.ReleaseDate
-   fedfred.objects.Source
-   fedfred.objects.Element
-   fedfred.objects.VintageDate
-   fedfred.objects.SeriesGroup
+   fedfred.Category
+   fedfred.Series
+   fedfred.Tag
+   fedfred.Release
+   fedfred.ReleaseDate
+   fedfred.Source
+   fedfred.Element
+   fedfred.VintageDate
+   fedfred.SeriesGroup
+   fedfred.BulkRelease
+
+API Key Config
+--------------
+.. autosummary::
+   :toctree: _autosummary
+   :template: autosummary/function.rst
+
+   fedfred.set_api_key
+   fedfred.get_api_key
+
+Deprecated Feature Reference
+----------------------------
+.. autosummary::
+   :toctree: _autosummary
+   :template: autosummary/class.rst
+
+   fedfred.FredHelpers
+   fedfred.FredAPI
+
 
 ---
 

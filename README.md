@@ -20,6 +20,7 @@
     <a href="https://anaconda.org/conda-forge/fedfred"><img src="https://anaconda.org/conda-forge/fedfred/badges/version.svg" alt="Conda-Forge version"></a>
     <a href="https://anaconda.org/conda-forge/fedfred"><img src="https://anaconda.org/conda-forge/fedfred/badges/downloads.svg" alt="Conda-Forge downloads"></a>
     <a href="https://doi.org/10.5281/zenodo.17635942"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.17635942.svg" alt="DOI"></a>
+    <a href="https://github.com/wilsonfreitas/awesome-quant"><img src="https://awesome.re/badge.svg" alt="Awesome"></a>
 </div>
 
 ### Features
@@ -30,6 +31,43 @@
 - Native support for asynchronous requests (async).
 - Local caching for easier data access and faster execution times.
 - Built-in rate limiter that doesn't exceed 120 calls per minute (ignores local caching).
+
+### Used by & Featured In
+
+> Note: Listing does not imply endorsement or affiliation.
+
+#### Institutions / Organizations
+<a href="https://herbert.miami.edu/" title="University of Miami Herbert Business School">
+    <img src="https://ft-bschool-rankings.s3.eu-west-2.amazonaws.com/production/images/5c4bdeb1-1c63-4db1-a083-17788dc9e936-695b4305f38b114a94513f7f0a44085c"
+         alt="University of Miami Herbert Business School"
+         height="75">
+</a>
+
+<!--
+#### Companies
+_Add yours here_
+-->
+
+#### Open-source projects / Repositories
+<div align="left">
+  <a href="https://github.com/wilsonfreitas/awesome-quant" title="Awesome Quant">
+    <img src="https://raw.githubusercontent.com/sindresorhus/awesome/main/media/logo.svg"
+         alt="Awesome Quant"
+         height="75">
+  </a>
+  &nbsp;&nbsp;&nbsp;
+  <a href="https://conda-forge.org/" title="conda-forge">
+    <img src="https://numfocus.org/wp-content/uploads/2018/09/conda-forge-square.png"
+         alt="conda-forge"
+         height="75">
+  </a>
+</div>
+
+#### How to add your project/org
+1. Edit this README and add a new entry under the appropriate heading.
+2. Use the same **HTML link + image** format already used above.
+3. If you’re adding multiple logos on one row, keep them inside the same `<div>` and separate with `&nbsp;&nbsp;&nbsp;` (don’t insert a blank line between `<a>` tags).
+4. Open a pull request.
 
 ### Installation
 
@@ -75,8 +113,8 @@ Here is a simple example of how to use the package:
 ```python
 # FredAPI
 import fedfred as fd
-api_key = 'your_api_key'
-fred = fd.FredAPI(api_key)
+fd.set_api_key('your_api_key')
+fred = fd.Fred()
 
 # Get Series Observations as a pandas DataFrame
 gdp = fred.get_series_observations('GDP')
@@ -85,7 +123,7 @@ gdp.head()
 # Get Series Observations as a pandas DataFrame (async)
 import asyncio
 async def main():
-    fred = fd.FredAPI(api_key).Async
+    fred = fd.Fred(api_key).AsyncFred
     gdp = fred.get_series_observations('GNPCA')
     print(observations.head())
 asyncio.run(main())
@@ -201,7 +239,7 @@ Version 3.0.0. Available at: https://github.com/nikhilxsunder/fedfred
 @software{fedfred,
   author       = {Nikhil Sunder},
   title        = {fedfred: A Python client for the Federal Reserve Economic Database (FRED) API},
-  year         = {2025},
+  year         = {2026},
   publisher    = {GitHub},
   version      = {3.0.0},
   doi          = {10.5281/zenodo.17635942},

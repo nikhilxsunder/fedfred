@@ -3,7 +3,7 @@
 Basic Usage Examples
 =====================
 
-This page shows how to quickly start using the :mod:`fedfred` package to interact with the **FRED® API**.
+This page shows how to quickly start using the fedfred package to interact with the **FRED® API**.
 You'll learn how to **initialize a client**, **fetch time series**, **retrieve metadata**, and **explore categories and tags**.
 
 If you're new to FedFred, start here!

@@ -22,7 +22,7 @@
 
 ## Current Vulnerability Status
 
-As of September 2025, there are no unpatched vulnerabilities of medium or higher severity that have been publicly known for more than 60 days in the FedFred codebase.
+As of January 2026, there are no unpatched vulnerabilities of medium or higher severity that have been publicly known for more than 60 days in the FedFred codebase.
 
 We monitor for vulnerabilities through:
 
@@ -68,10 +68,10 @@ When you report a vulnerability, you can expect:
 
 ## Supported Versions
 
-| Version | Supported |
-| ------- | --------- |
-| 2.1.x   | Yes       |
-| < 2.1   | No        |
+| Version   | Supported |
+| --------- | --------- |
+| 4.0.x     | Yes       |
+| < 4.0.0   | No        |
 
 Only the latest minor release within each supported major version will receive security updates.
 
@@ -182,7 +182,7 @@ For maximum security, you can also verify our release signatures:
 
 1. Download our public GPG key: [Here](https://raw.githubusercontent.com/nikhilxsunder/fedfred/main/fedfred_public_key.asc)
 2. Import the key: `gpg --import fedfred_public_key.asc`
-3. Verify the release: `gpg --verify fedfred-2.1.1.tar.gz.asc fedfred-2.1.1.tar.gz`
+3. Verify the release: `gpg --verify fedfred-4.0.0.tar.gz.asc fedfred-4.0.0.tar.gz`
 
 ## Verifying Package Signatures
 
@@ -195,16 +195,16 @@ curl -s https://raw.githubusercontent.com/nikhilxsunder/fedfred/main/fedfred_pub
 ```
 
 2. Download the package and signature:
-   Example for version 2.1.1
+   Example for version 4.0.0
 
 ```sh
-curl -O https://github.com/nikhilxsunder/fedfred/releases/download/v2.1.1/fedfred-2.1.1.tar.gz curl -O https://github.com/nikhilxsunder/fedfred/releases/download/v2.1.1/fedfred-2.1.1.tar.gz.asc
+curl -O https://github.com/nikhilxsunder/fedfred/releases/download/v4.0.0/fedfred-4.0.0.tar.gz curl -O https://github.com/nikhilxsunder/fedfred/releases/download/v4.0.0/fedfred-4.0.0.tar.gz.asc
 ```
 
 3. Verify the signature:
 
 ```sh
-gpg --verify fedfred-2.1.1.tar.gz.asc fedfred-2.1.1.tar.gz
+gpg --verify fedfred-4.0.0.tar.gz.asc fedfred-4.0.0.tar.gz
 ```
 
 ## Security Updates and Announcements

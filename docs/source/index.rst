@@ -172,13 +172,13 @@ Key Features
    :color: primary
    :icon: table
 
-   Output data as Pandas, Polars, or Dask DataFrames for seamless data manipulation.
+   Output data as :class:`pandas.DataFrame`, :class:`polars.DataFrame`, or :class:`dask.dataframe.DataFrame` for seamless data manipulation.
 
 .. dropdown:: GeoSpatial Support
    :color: secondary
    :icon: location
 
-   Native output to GeoDataFrames using GeoPandas, Polars-ST, and Dask-GeoPandas.
+   Output geospatial data as :class:`geopandas.GeoDataFrame`, :class:`polars_st.DataFrame`, and :class:`dask_geopandas.GeoDataFrame`.
 
 .. dropdown:: Async Compatibility
    :color: primary
@@ -190,19 +190,19 @@ Key Features
    :color: secondary
    :icon: archive
 
-   FIFO local cache accelerates repeated queries dramatically.
+   :class:`cachetools.FIFOCache` local cache accelerates repeated queries dramatically.
 
 .. dropdown:: Rate Limiting
    :color: primary
    :icon: clock
 
-   Automatic throttling to comply with FRED’s API request limits.
+   Automatic throttling to comply with FRED's API request limits.
 
 .. dropdown:: Structured Models
    :color: secondary
    :icon: database
 
-   Rich typed objects (:class:`fedfred.objects.Series`, :class:`fedfred.objects.Release`) representing FRED entities.
+   Rich typed objects (:class:`fedfred.objects.Series`, :class:`fedfred.objects.Release`, etc.) representing FRED entities.
 
 Resources
 ---------

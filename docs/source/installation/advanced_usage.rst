@@ -82,7 +82,7 @@ FedFred **automatically** enforces FRED's 120 calls/minute API limit.
 
 ---
 
-Concurrent Requests with AsyncAPI
+Concurrent Requests with :class:`AsyncAPI`
 ---------------------------------
 
 .. dropdown:: See Example
@@ -109,14 +109,14 @@ Concurrent Requests with AsyncAPI
 
         asyncio.run(fetch_multiple_series())
 
-**AsyncAPI** dramatically improves throughput for bulk data retrieval.
+**:class:`AsyncAPI`** dramatically improves throughput for bulk data retrieval.
 
 ---
 
 Working with Geographic Data
 -----------------------------
 
-FedFred supports **GeoPandas**, **Polars-ST**, and **Dask-GeoPandas** for geographic outputs.
+FedFred supports **:mod:`geopandas`**, **:mod:`polars`**, and **:mod:`dask`** for geographic outputs.
 
 .. dropdown:: See Examples
     :color: secondary

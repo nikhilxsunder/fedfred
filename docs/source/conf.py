@@ -13,7 +13,7 @@ import sys
 project = 'fedfred'
 copyright = '2025, Nikhil Sunder'
 author = 'Nikhil Sunder'
-release = '3.0.0'
+release = '4.0.0'
 
 # -- General configuration ---------------------------------------------------
 extensions = [
@@ -59,7 +59,7 @@ googleanalytics_enabled = True
 
 # html
 html_baseurl = 'https://nikhilxsunder.github.io/fedfred/'
-html_extra_path = ['robots.txt', 'BingSiteAuth.xml', '29979ea943cf4526830870100b86564a.txt']
+html_extra_path = ['robots.txt', 'BingSiteAuth.xml', '1bf488999066430fb8b8b741dc2a3486.txt']
 html_theme = "pydata_sphinx_theme"
 html_theme_options = {
     "logo": {
@@ -93,7 +93,7 @@ html_theme_options = {
         },
         {
             "name": "Socket",
-            "url": "https://socket.dev/pypi/package/fedfred/overview/3.0.0/tar-gz",
+            "url": "https://socket.dev/pypi/package/fedfred/overview/2.1.1/tar-gz",
             "icon": "fas fa-shield",
         },
         {
@@ -111,7 +111,7 @@ html_theme_options = {
     "show_prev_next": True,
     "announcement": """
         <div class="sidebar-message">
-            Version 3 is now available!
+            Version 4 is now available!
             Please check the
             <a href="https://nikhilxsunder.github.io/fedfred/resources/notes.html" target="_self">
                 special notes page
@@ -179,6 +179,10 @@ intersphinx_mapping = {
     "seaborn": ("https://seaborn.pydata.org/", None),
     "tenacity": ("https://tenacity.readthedocs.io/en/latest/", None),
     "sphinx": ("https://www.sphinx-doc.org/en/master/", None),
+    "cachetools": ("https://cachetools.readthedocs.io/en/stable/", None),
+    "dask_geopandas": ("https://dask-geopandas.readthedocs.io/en/latest/", None),
+    "polars_st": ("https://oreilles.github.io/polars-st/", None),
+    "mypy": ("https://mypy.readthedocs.io/en/stable/", None),
 }
 
 # autosummary

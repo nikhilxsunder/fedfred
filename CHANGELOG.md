@@ -7,6 +7,72 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.0.0] - 2026-02-08
+
+### Added
+
+- [codecov.yml](https://github.com/nikhilxsunder/fedfred/blob/main/codecov.yml) config for test coverage
+- [AUTHORS.md](https://github.com/nikhilxsunder/fedfred/blob/main/AUTHORS.md)
+- [/.github/workflows/dependency-review.yml](https://github.com/nikhilxsunder/fedfred/blob/main/.github/workflows/dependency-review.yml) for dependency and PR security
+- [/.github/workflows/scorecards.yml](https://github.com/nikhilxsunder/fedfred/blob/main/.github/workflows/scorecards.yml) for OpenSSF Scorecard generation
+- [/.github/CODEOWNERS](https://github.com/nikhilxsunder/fedfred/blob/main/.github/CODEOWNERS) for code ownership and future delegation of responsibilities
+- [/.github/dependabot.yml](https://github.com/nikhilxsunder/fedfred/blob/main/.github/dependabot.yml) for dependabot config
+- [/.github/pull_request_template.md](https://github.com/nikhilxsunder/fedfred/blob/main/.github/pull_request_template.md)
+- [/docs/source/_templates/autosummary/function.rst](https://github.com/nikhilxsunder/fedfred/blob/main/docs/source/_templates/autosummary/function.rst) for function template in sphinx documentation
+- [/src/fedfred/fred](https://github.com/nikhilxsunder/fedfred/blob/main/src/fedfred/fred)
+  - contains modified versions of original source modules clients.py and objects.py
+  - [/src/fedfred/fred/clients.py](https://github.com/nikhilxsunder/fedfred/blob/main/src/fedfred/fred/clients.py) added version 2 API logic for requests as well as V2 endpoints.
+- [/src/fedfred/fraser](https://github.com/nikhilxsunder/fedfred/blob/main/src/fedfred/fraser)
+  - [__init__.py](https://github.com/nikhilxsunder/fedfred/blob/main/src/fedfred/fraser/__init__.py)
+  - [clients.py](https://github.com/nikhilxsunder/fedfred/blob/main/src/fedfred/fraser/clients.py)
+  - [objects.py](https://github.com/nikhilxsunder/fedfred/blob/main/src/fedfred/fraser/objects.py)
+- [/src/fedfred/utils](https://github.com/nikhilxsunder/fedfred/blob/main/src/fedfred/utils)
+  - contains modified versions of original source modules helpers.py and config.py
+  - [__init__.py](https://github.com/nikhilxsunder/fedfred/blob/main/src/fedfred/utils/__init__.py)
+  - [/src/fedfred/utils/__validators.py](https://github.com/nikhilxsunder/fedfred/blob/main/src/fedfred/utils/__validators.py)
+  - [/src/fedfred/utils/maps.py](https://github.com/nikhilxsunder/fedfred/blob/main/src/fedfred/utils/maps.py)
+- [/src/fedfred/alfred](https://github.com/nikhilxsunder/fedfred/blob/main/src/fedfred/alfred)
+  - [__init__.py](https://github.com/nikhilxsunder/fedfred/blob/main/src/fedfred/alfred/__init__.py)
+  - [clients.py](https://github.com/nikhilxsunder/fedfred/blob/main/src/fedfred/alfred/clients.py)
+- [/src/fedfred/_deprecated.py](https://github.com/nikhilxsunder/fedfred/blob/main/src/fedfred/_deprecated.py) module for backwards compatibility with old architecture
+- [/src/tests/_deprecated_test.py](https://github.com/nikhilxsunder/fedfred/blob/main/src/tests/_deprected_test.py)
+- test sub directories inside [/tests](https://github.com/nikhilxsunder/fedfred/blob/main/src/tests)
+  -[/tests/fred_test](https://github.com/nikhilxsunder/fedfred/blob/main/src/tests/fred_test)
+  -[/tests/alfred_test](https://github.com/nikhilxsunder/fedfred/blob/main/src/tests/alfred_test)
+    - [clients_test.py](https://github.com/nikhilxsunder/fedfred/blob/main/src/tests/alfred_test/clients_test.py)
+  -[/tests/fraser_test](https://github.com/nikhilxsunder/fedfred/blob/main/src/tests/fraser_test)
+    - [clients_test.py](https://github.com/nikhilxsunder/fedfred/blob/main/src/tests/fraser_test/clients_test.py)
+    - [objects_test.py](https://github.com/nikhilxsunder/fedfred/blob/main/src/tests/fraser_test/objects_test.py)
+  -[/tests/utils_test](https://github.com/nikhilxsunder/fedfred/blob/main/src/tests/utils_test)
+    - [__validators_test.py](https://github.com/nikhilxsunder/fedfred/blob/main/src/tests/utils_test/__validators_test.py)
+    - [maps_test,py](https://github.com/nikhilxsunder/fedfred/blob/main/src/tests/utils_test/maps_test.py)
+    
+
+
+### Changed
+
+- renamed /.github/workflows/main.yml to [/.github/workflows/release.yml](https://github.com/nikhilxsunder/fedfred/blob/main/.github/workflows/release.yml)
+- package is now divided into subpackages
+- original fedfred clients.py and objects.py modules have been moved to [/src/fedfred/fred](https://github.com/nikhilxsunder/fedfred/blob/main/src/fedfred/fred) subpackage
+- helpers.py and config.py moved to [/src/fedfred/utils](https://github.com/nikhilxsunder/fedfred/blob/main/src/fedfred/utils) subpackage
+- test modules divided by subpackage
+  - original fedfred tests clients_test.py and objects_test.py moved to [/tests/fred_test](https://github.com/nikhilxsunder/fedfred/blob/main/src/tests/fred_test)
+- helper methods divided in to two classes and renamed: Helpers and AsyncHelpers
+- individual type/validator methods moved to [/src/fedfred/utils/__validators.py](https://github.com/nikhilxsunder/fedfred/blob/main/src/fedfred/utils/__validators.py)
+- Helper methods with long conditional chains now use dicts for hash lookups
+- 
+
+
+
+### Fixed
+
+- [/src/fedfred/fred/clients.py](https://github.com/nikhilxsunder/fedfred/blob/main/src/fedfred/fred/clients.py) architecture and class structure has been flattened with no more sub classing.
+- [SECURITY.md](https://github.com/nikhilxsunder/fedfred/blob/main/SECURITY.md) updated versioned sections and version support
+
+### Removed
+
+### Deprecated
+
 ## [3.0.0] - 2025-11-17
 
 ### Added
@@ -67,7 +133,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Rebuilt documentation using pydata sphinx theme
-- Added better documentnation pages with dynamic elements
+- Added better documentation pages with dynamic elements
 - Reindexing with Bing Webmaster, Index Now, annd Google Search Console
 - Logic fixes for parameter validation
 - Nested methods for FredHelpers class refactored
@@ -546,7 +612,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - initial directory structure
 - setuptools for build backend
 
-[Unreleased]: https://github.com/nikhilxsunder/fedfred/compare/v3.0.0...HEAD
+[Unreleased]: https://github.com/nikhilxsunder/fedfred/compare/v4.0.0...HEAD
+[4.0.0]: https://github.com/nikhilxsunder/fedfred/compare/v3.0.0...v4.0.0
 [3.0.0]: https://github.com/nikhilxsunder/fedfred/compare/v2.1.5...v3.0.0
 [2.1.5]: https://github.com/nikhilxsunder/fedfred/compare/v2.1.4...v2.1.5
 [2.1.4]: https://github.com/nikhilxsunder/fedfred/compare/v2.1.3...v2.1.4

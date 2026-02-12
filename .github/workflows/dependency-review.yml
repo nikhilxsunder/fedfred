@@ -1,0 +1,25 @@
+name: Dependency Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  dependency-review:
+    name: Review dependency changes
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Blocks PRs that introduce known-vulnerable dependencies or risky license changes.
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v4
+        with:
+          # Fail the job if a vulnerability is detected in added dependencies.
+          fail-on-severity: moderate
+
+          deny-licenses: GPL-3.0, AGPL-3.0
