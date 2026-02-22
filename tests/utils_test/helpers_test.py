@@ -31,7 +31,7 @@ import dask.dataframe as dd
 import geopandas as gpd
 import dask_geopandas as dd_gpd
 import pytest
-from fedfred.utils.helpers import Helpers, AsyncHelpers
+from fedfred._core._helpers import Helpers, AsyncHelpers
 from fedfred.__about__ import __title__, __version__, __author__, __email__, __license__, __copyright__, __description__, __docs__, __repository__
 
 class TestConditionalImports:

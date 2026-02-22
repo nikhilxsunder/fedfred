@@ -1,6 +1,6 @@
-# filepath: /src/fedfred/__about__.py
+# filepath: /src/fedfred/exceptions/base.py
 #
-# Copyright (c) 2025-2026 Nikhil Sunder
+# Copyright (c) 2026 Nikhil Sunder
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -19,17 +19,21 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""fedfred.__about__
+"""fedfred.exceptions.base"""
 
-This module defines metadata about the fedfred package, including its title, version, author, and other relevant information. This information is used for package distribution and documentation purposes.
-"""
+from dataclasses import dataclass, field
+from typing import Any, Mapping, Optional
 
-__title__ = "fedfred"
-__description__ = "A feature-rich python package for interacting with the Federal Reserve Bank of St. Louis Economic Database: FRED"
-__version__ = "4.0.0"
-__copyright__ = "Copyright (c) 2025-2026 Nikhil Sunder"
-__author__ = "Nikhil Sunder"
-__email__ = "nsunder724@gmail.com"
-__license__ = "MIT"
-__repository__ = "https://github.com/nikhilxsunder/fedfred"
-__docs__ = "https://nikhilxsunder.github.io/fedfred"
+
+@dataclass(frozen=True, slots=True)
+class FedfredError(Exception):
+    """
+    Root base exception for all fedfred errors.
+    """
+
+    message: str
+    context: Mapping[str, Any] = field(default_factory=dict)
+    original_exception: Optional[BaseException] = None
+
+    def __str__(self) -> str:
+        return self.message

@@ -1,4 +1,4 @@
-# filepath: /src/fedfred/fraser/clients.py
+# filepath: /src/fedfred/clients/fraser.py
 #
 # Copyright (c) 2026 Nikhil Sunder
 #
@@ -19,7 +19,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""fedfred.fraser.clients
+"""fedfred.clients.fraser
 
 This module defines the Fraser client for interacting with the Federal Reserve Fraser API.
 """
@@ -30,8 +30,8 @@ import time
 from cachetools import FIFOCache, cached
 import httpx
 from tenacity import retry, wait_fixed, stop_after_attempt, retry_if_exception_type
-from ..utils.helpers import Helpers
-from ..utils.config import resolve_api_key
+from .._core._helpers import Helpers
+from ..config import resolve_api_key
 
 class Fraser:
     """Client for the Federal Reserve FRASER API.

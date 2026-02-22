@@ -1,6 +1,6 @@
-# filepath: /src/alfred/__init__.py
+# filepath: /src/fedfred/exceptions/__init__.py
 #
-# Copyright (c) 2025–2026 Nikhil Sunder
+# Copyright (c) 2026 Nikhil Sunder
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -19,16 +19,8 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""alfred.__init__
+"""fedfred.exceptions.__init__"""
 
-This module initializes the alfred subpackage of fedfred.
-
-Imports:
-    Alfred: A class that provides methods to interact with the Alfred API.
-"""
-
-from .clients import Alfred
-
-__all__ = [
-    "Alfred",
-]
+from .validation import ValueValidationError, TypeValidationError, ParameterValidationError, ValidationError
+from .conversion import ConversionError, ParameterConversionError, DateConversionError
+from .base import FedfredError

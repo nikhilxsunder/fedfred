@@ -21,94 +21,38 @@
 # SOFTWARE.
 
 import warnings
-import inspect
-from functools import wraps
-from .utils.helpers import Helpers, AsyncHelpers
-from .fred.clients import Fred, GeoFred, AsyncFred, AsyncGeoFred
+from typing import Dict, Optional, Union
+from datetime import datetime
+import pandas as pd
+from sphinx import TYPE_CHECKING
+from ..clients import Fred, GeoFred, AsyncFred, AsyncGeoFred
 
-__all__ = ["FredHelpers", "FredAPI"]
+if TYPE_CHECKING:
+    import geopandas as gpd
+    import dask.dataframe as dd
+    import dask_geopandas as dd_gpd
+    import polars as pl
+    import polars_st as st
 
 # Deprecated
-def _deprecated_wrapper(func, deprecated_qualname: str, *, is_async: bool):
-    msg = (
-        f"{deprecated_qualname} is deprecated and will be removed in a future release. "
-        "Use Helpers / AsyncHelpers instead."
-    )
-
-    if is_async:
-        @wraps(func)
-        async def _wrapped_async(*args, **kwargs):
-            warnings.warn(msg, DeprecationWarning, stacklevel=3)
-            return await func(*args, **kwargs)
-        return staticmethod(_wrapped_async)
-
-    @wraps(func)
-    def _wrapped_sync(*args, **kwargs):
-        warnings.warn(msg, DeprecationWarning, stacklevel=3)
-        return func(*args, **kwargs)
-    return staticmethod(_wrapped_sync)
-
-class FredHelpers(Helpers):
+# OLD FREDHELPERS ARCHITECTURE COMPATIBILITY
+class FredHelpers():
     """
-    Deprecated compatibility façade.
+    Deprecated alias for Helpers.
 
-    Back-compat behavior:
-      - FredHelpers.foo(...) delegates to Helpers.foo(...)
-      - FredHelpers.foo_async(...) delegates to AsyncHelpers.foo(...)
+    This class exists for backward compatibility and will be removed
+    in a future major release.
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self):
         warnings.warn(
             "FredHelpers is deprecated and will be removed in a future release. "
-            "Use Helpers / AsyncHelpers instead.",
+            "Use Helpers instead.",
             DeprecationWarning,
             stacklevel=2,
         )
-        super().__init__(*args, **kwargs)
-
-# FOR IMPORT COMPATIBILITY ONLY
-class AsyncFredHelpers(AsyncHelpers):
-    """
-    Deprecated alias for AsyncHelpers (kept for callers importing AsyncFredHelpers).
-    """
-
-    def __init__(self, *args, **kwargs):
-        warnings.warn(
-            "AsyncFredHelpers is deprecated and will be removed in a future release. "
-            "Use AsyncHelpers instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        super().__init__(*args, **kwargs)
 
 
-def _install_fredhelpers_compat_methods() -> None:
-    for name in dir(Helpers):
-        if name.startswith("_"):
-            continue
-        attr = getattr(Helpers, name, None)
-        if callable(attr):
-            setattr(FredHelpers, name, _deprecated_wrapper(attr, f"FredHelpers.{name}", is_async=False))
-
-    for name in dir(AsyncHelpers):
-        if name.startswith("_"):
-            continue
-        attr = getattr(AsyncHelpers, name, None)
-        if callable(attr):
-            setattr(
-                FredHelpers,
-                f"{name}_async",
-                _deprecated_wrapper(attr, f"FredHelpers.{name}_async", is_async=True),
-            )
-
-    for name in dir(AsyncHelpers):
-        if name.startswith("_"):
-            continue
-        attr = getattr(AsyncHelpers, name, None)
-        if callable(attr):
-            setattr(AsyncFredHelpers, name, _deprecated_wrapper(attr, f"AsyncFredHelpers.{name}", is_async=inspect.iscoroutinefunction(attr)))
-
-_install_fredhelpers_compat_methods()
 
 # OLD FREDAPI ARCHITECTURE COMPATIBILITY
 class FredAPI(Fred):
@@ -128,7 +72,7 @@ class FredAPI(Fred):
         )
         super().__init__(*args, **kwargs)
 
-    def get_release_observations(self, release_id, limit):
+    def get_release_observations(self, release_id: int, limit: Optional[int]=None):
         return NotImplementedError("get_release_observations is part of the the Version 2 Fred API and is not supported in the deprecated FredAPI class. For access to Version 2 functionality, please use the new Fred client classes.")
 
     class MapsAPI(GeoFred):
@@ -165,7 +109,7 @@ class FredAPI(Fred):
             )
             super().__init__(*args, **kwargs)
 
-        async def get_release_observations(self, release_id, limit):
+        async def get_release_observations(self, release_id: int, limit: Optional[int]=None):
             return NotImplementedError("get_release_observations is part of the the Version 2 Fred API and is not supported in the deprecated AsyncFredAPI class. For access to Version 2 functionality, please use the new AsyncFred client classes.")
 
         class AsyncMapsAPI(AsyncGeoFred):
@@ -224,4 +168,3 @@ class FredAPI(Fred):
         )
         return self.AsyncAPI(self)
     #------------------------------------------------------# 
-

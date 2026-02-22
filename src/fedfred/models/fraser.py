@@ -1,4 +1,4 @@
-# filepath: /src/fedfred/fraser/objects.py
+# filepath: /src/fedfred/models/fraser.py
 #
 # Copyright (c) 2026 Nikhil Sunder
 #

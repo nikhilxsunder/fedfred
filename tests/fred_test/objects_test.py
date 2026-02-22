@@ -26,7 +26,7 @@ Comprehensive unit tests for the objects module.
 from unittest.mock import patch, MagicMock, AsyncMock
 import pytest
 import pandas as pd
-from fedfred.fred.objects import Category, Series, Tag, Release, ReleaseDate, Source, Element, VintageDate, SeriesGroup, BulkRelease
+from fedfred.models.fred import Category, Series, Tag, Release, ReleaseDate, Source, Element, VintageDate, SeriesGroup, BulkRelease
 from fedfred.__about__ import __title__, __version__, __author__, __email__, __license__, __copyright__, __description__, __docs__, __repository__
 
 class TestCategory:

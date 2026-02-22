@@ -45,47 +45,6 @@ Imports:
     BulkRelease: A class representing a bulk release in the Fred database.
 """
 
-# Fred
-from .fred import (
-    Fred,
-    AsyncFred,
-    GeoFred,
-    AsyncGeoFred,
-    Category,
-    Series,
-    Tag,
-    Release,
-    ReleaseDate,
-    Source,
-    Element,
-    VintageDate,
-    SeriesGroup,
-    BulkRelease,
-)
-
-# Fraser
-from .fraser import (
-    Fraser,
-)
-
-# Utils
-from .utils import ( 
-    set_api_key,
-    get_api_key,
-    clear_api_key,
-    Helpers, 
-    AsyncHelpers,
-)
-
-# Deprecated
-from ._deprecated import (
-    FredHelpers,
-    FredAPI
-)
-AsyncAPI = FredAPI.AsyncAPI
-AsyncMapsAPI = FredAPI.AsyncAPI.AsyncMapsAPI
-MapsAPI = FredAPI.MapsAPI
-
 # About
 from .__about__ import (
     __title__,
@@ -99,8 +58,60 @@ from .__about__ import (
     __repository__,
 )
 
+# Settings
+from .settings import set_api_key, get_api_key, clear_api_key
+
+# Models
+from .models import (
+    Category,
+    Series,
+    Tag,
+    Release,
+    ReleaseDate,
+    Source,
+    Element,
+    VintageDate,
+    SeriesGroup,
+    BulkRelease,
+)
+
+# Clients
+from .clients import (
+    Fred,
+    AsyncFred,
+    GeoFred,
+    AsyncGeoFred,
+    Fraser,
+    Alfred
+)
+
+# Exceptions
+from .exceptions import (
+    FedFredError,
+    RequestContext,
+    FedFredTransportError,
+    FedFredParsingError,
+    FedFredAPIError,
+    FedFredRateLimitError,
+    FedFredValidationError,
+    FedFredHTTPError,
+    FedFredAuthError,
+    FedFredNotFoundError,
+    FedFredServerError
+)
+
+# Deprecated
+from ._core import (
+    FredHelpers,
+    FredAPI
+)
+AsyncAPI = FredAPI.AsyncAPI
+AsyncMapsAPI = FredAPI.AsyncAPI.AsyncMapsAPI
+MapsAPI = FredAPI.MapsAPI
+
 # All
 __all__ = [
+    # About
     "__title__",
     "__description__",
     "__version__",
@@ -110,16 +121,19 @@ __all__ = [
     "__license__",
     "__repository__",
     "__docs__",
+    # Settings
     "set_api_key",
     "get_api_key",
     "clear_api_key",
+    # Clients
     "Fred",
     "AsyncFred",
     "AsyncGeoFred",
     "GeoFred",
+    "AsyncGeoFred",
     "Fraser",
-    "Helpers",
-    "AsyncHelpers",
+    "Alfred",
+    # Models
     "Category",
     "Series",
     "Tag",
@@ -130,6 +144,18 @@ __all__ = [
     "VintageDate",
     "SeriesGroup",
     "BulkRelease",
+    # Exceptions
+    "FedFredError",
+    "RequestContext",
+    "FedFredTransportError",
+    "FedFredParsingError",
+    "FedFredAPIError",
+    "FedFredRateLimitError",
+    "FedFredValidationError",
+    "FedFredHTTPError",
+    "FedFredAuthError",
+    "FedFredNotFoundError",
+    "FedFredServerError",
     # Deprecated
     "FredHelpers",
     "FredAPI",

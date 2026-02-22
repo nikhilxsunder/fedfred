@@ -25,7 +25,7 @@ Comprehensive unit tests for the config module.
 
 import importlib
 import pytest
-from fedfred.utils import config
+from fedfred import config
 from fedfred.__about__ import __title__, __version__, __author__, __email__, __license__, __copyright__, __description__, __docs__, __repository__
 
 class TestConfigFunctions:

@@ -1,4 +1,4 @@
-# filepath: /src/fedfred/utils/config.py
+# filepath: /src/fedfred/settings.py
 #
 # Copyright (c) 2026 Nikhil Sunder
 #
@@ -19,7 +19,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""fedfred.utils.config
+"""fedfred.settings
 
 This module defines configuration management for the fedfred package, including setting, getting, and resolving the FRED API key.
 
@@ -51,7 +51,7 @@ References:
 from __future__ import annotations
 from typing import Optional, Literal, Dict
 import os
-from ..__about__ import __title__, __version__, __author__, __email__, __license__, __copyright__, __description__, __docs__, __repository__
+from .__about__ import __title__, __version__, __author__, __email__, __license__, __copyright__, __description__, __docs__, __repository__
 
 Service = Literal["fred", "fraser"]
 """Type alias for supported services in fedfred package."""
@@ -115,7 +115,7 @@ def clear_api_key(service: Service = "fred") -> None:
         raise ValueError(f"Unknown service: {service!r}. Expected 'fred' or 'fraser'.")
     _GLOBAL_KEYS[service] = None
 
-def resolve_api_key(api_key: Optional[str] = None, *, service: Service = "fred", env_var: Optional[str] = None,) -> str:
+def _resolve_api_key(api_key: Optional[str] = None, *, service: Service = "fred", env_var: Optional[str] = None,) -> str:
     """Resolve an API key from an explicit argument, the global setting, or the environment variable. Raises if nothing is available.
 
     Args:

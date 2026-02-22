@@ -1,4 +1,4 @@
-# filepath: /src/fedfred/fred/objects.py
+# filepath: /src/fedfred/models/fred.py
 #
 # Copyright (c) 2025-2026 Nikhil Sunder
 #
@@ -19,7 +19,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""fedfred.fred.objects
+"""fedfred.models.fred
 
 This module defines data classes for the FRED API responses.
 
@@ -47,18 +47,17 @@ References:
     - Federal Reserve Bank of St. Louis, FRED API documentation. https://fred.stlouisfed.org/docs/api/fred/
 """
 
-from __future__ import annotations
 from typing import Optional, List, Dict, TYPE_CHECKING
 from dataclasses import dataclass, field
 import asyncio
 import pandas as pd
-from ..utils.helpers import Helpers, AsyncHelpers
 from ..__about__ import __title__, __version__, __author__, __email__, __license__, __copyright__, __description__, __docs__, __repository__
+from .._core import _pandas_dataframe_converter, _pandas_dataframe_converter_async
 
 if TYPE_CHECKING:
-    from .clients import Fred # pragma: no cover
+    from ..clients.fred import Fred # pragma: no cover
 
-@dataclass
+@dataclass(slots=True)
 class Category:
     """A class used to represent a FRED Category.
 
@@ -243,7 +242,7 @@ class Category:
             raise RuntimeError("Client not set for this Category instance.")
         return self.client.get_category_related_tags(self.id)
 
-@dataclass
+@dataclass(slots=True)
 class Series:
     """A class used to represent a FRED Series.
 
@@ -428,7 +427,7 @@ class Series:
                 realtime_end=series.get("realtime_end"),
                 notes=series.get("notes"),
                 copyright_id=series.get("copyright_id"),
-                _observations=Helpers.to_pd_df(series["observations"]) if "observations" in series else None,
+                _observations=_pandas_dataframe_converter(series["observations"]) if "observations" in series else None,
                 client=client if client is not None else None
             )
             for series in response[dict_key]
@@ -511,7 +510,7 @@ class Series:
                 realtime_end=series.get("realtime_end"),
                 notes=series.get("notes"),
                 copyright_id=series.get("copyright_id"),
-                _observations=await AsyncHelpers.to_pd_df(series["observations"]) if "observations" in series else None
+                _observations=await _pandas_dataframe_converter_async(series["observations"]) if "observations" in series else None
             )
             for series in response[dict_key]
         ]
@@ -565,7 +564,7 @@ class Series:
             raise RuntimeError("Client is not set for this Series")
         return self.client.get_series_vintagedates(self.id)
 
-@dataclass
+@dataclass(slots=True)
 class Tag:
     """A class used to represent a FRED Tag.
 
@@ -747,7 +746,7 @@ class Tag:
             raise RuntimeError("Client is not set for this Tag")
         return self.client.get_tags_series(self.name)
 
-@dataclass
+@dataclass(slots=True)
 class Release:
     """A class used to represent a Release.
 
@@ -980,7 +979,7 @@ class Release:
             raise RuntimeError("Client is not set for this Release")
         return self.client.get_release_tables(self.id)
 
-@dataclass
+@dataclass(slots=True)
 class ReleaseDate:
     """A class used to represent a ReleaseDate.
 
@@ -1110,7 +1109,7 @@ class ReleaseDate:
 
         return await asyncio.to_thread(cls.to_object, response)
 
-@dataclass
+@dataclass(slots=True)
 class Source:
     """A class used to represent a Source.
 
@@ -1284,7 +1283,7 @@ class Source:
         else:
             raise RuntimeError("Source ID is not set for this Source")
 
-@dataclass
+@dataclass(slots=True)
 class Element:
     """A class used to represent an Element.
 
@@ -1491,7 +1490,7 @@ class Element:
             raise RuntimeError("Client is not set for this Element")
         return self.client.get_series(self.series_id)
 
-@dataclass
+@dataclass(slots=True)
 class VintageDate:
     """A class used to represent a VintageDate.
 
@@ -1603,174 +1602,7 @@ class VintageDate:
 
         return await asyncio.to_thread(cls.to_object, response)
 
-@dataclass
-class SeriesGroup:
-    """A class used to represent a SeriesGroup.
-
-    Represents a single series group in the Federal Reserve Economic Data (FRED) database. A series group is a collection of related
-    economic data series that share common characteristics, such as region type, seasonality, units, and frequency. Each series group has a title, region type, series group identifier,
-    seasonality, units, frequency, and date range.
-
-    Attributes:
-        title (str): The title of the series group.
-        region_type (str): The region type of the series group.
-        series_group (str): The identifier of the series group.
-        season (str): The seasonality of the series group.
-        units (str): The units of the series group.
-        frequency (str): The frequency of the series group.
-        min_date (str): The minimum date of the series group.
-        max_date (str): The maximum date of the series group.
-
-    Examples:
-        >>> import fedfred as fd
-        >>> fred_client = fd.Fred('your_api_key')
-        >>> series_groups = fred_client.get_series_group('GDP')
-        >>> for series_group in series_groups:
-        >>>     print(series_group.title)
-        'Gross Domestic Product'
-        'Real Gross Domestic Product'...
-
-    References:
-        - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.objects.SeriesGroup.html
-
-    See Also:
-        - :class:`fedfred.Series`: For the object representation of a FRED series.
-        - :meth:`fedfred.Fred.get_series_group`: For retrieving series group information from the FRED API.
-    """
-    title: str
-    """The title of the series group."""
-
-    region_type: str
-    """The region type of the series group."""
-
-    series_group: str
-    """The identifier of the series group."""
-
-    season: str
-    """The seasonality of the series group."""
-
-    units: str
-    """The units of the series group."""
-
-    frequency: str
-    """The frequency of the series group."""
-
-    min_date: str
-    """The minimum date of the series group."""
-
-    max_date: str
-    """The maximum date of the series group."""
-
-    @classmethod
-    def to_object(cls, response: Dict) -> List["SeriesGroup"]:
-        """Parses the FRED API response and returns a list of SeriesGroup objects.
-
-        Args:
-            response (Dict): The FRED API response.
-
-        Returns:
-            List[SeriesGroup]: A list of SeriesGroup objects.
-
-        Raises:
-            ValueError: If the response does not contain the expected data.
-
-        Examples:
-            >>> import fedfred as fd
-            >>> response = {
-            >>>     "series_group": [
-            >>>         {
-            >>>             "title": "Gross Domestic Product",
-            >>>             "region_type": "NATIONAL",
-            >>>             "series_group": "GDP",
-            >>>             "season": "SA",
-            >>>             "units": "Billions of Dollars",
-            >>>             "frequency": "Quarterly",
-            >>>             "min_date": "1947-01-01",
-            >>>             "max_date": "2024-06-01"
-            >>>         }
-            >>>     ]
-            >>> }
-            >>> series_groups = fd.SeriesGroup.to_object(response)
-            >>> for series_group in series_groups:
-            >>>     print(series_group.title)
-            'Gross Domestic Product'
-
-        Notes:
-            This method assumes that the input response dictionary contains a 'series_group' key with a list of series group data.
-
-        References:
-            - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.objects.SeriesGroup.to_object.html
-        """
-
-        if "series_group" not in response:
-            raise ValueError("Invalid API response: Missing 'series_group' field")
-        series_group_data = response["series_group"]
-        if isinstance(series_group_data, dict):
-            series_group_data = [series_group_data]
-        series_groups = [
-            cls(
-                title=series_group["title"],
-                region_type=series_group["region_type"],
-                series_group=series_group["series_group"],
-                season=series_group["season"],
-                units=series_group["units"],
-                frequency=series_group["frequency"],
-                min_date=series_group["min_date"],
-                max_date=series_group["max_date"]
-            )
-            for series_group in series_group_data
-        ]
-        if not series_groups:
-            raise ValueError("No series groups found in the response")
-        return series_groups
-
-    @classmethod
-    async def to_object_async(cls, response: Dict) -> List["SeriesGroup"]:
-        """Asynchronously parses the FRED API response and returns a list of SeriesGroup objects.
-
-        Args:
-            response (Dict): The FRED API response.
-
-        Returns:
-            List[SeriesGroup]: A list of SeriesGroup objects.
-
-        Raises:
-            ValueError: If the response does not contain the expected data.
-
-        Examples:
-            >>> import fedfred as fd
-            >>> response = {
-            >>>     "series_group": [
-            >>>         {
-            >>>             "title": "Gross Domestic Product",
-            >>>             "region_type": "NATIONAL",
-            >>>             "series_group": "GDP",
-            >>>             "season": "SA",
-            >>>             "units": "Billions of Dollars",
-            >>>             "frequency": "Quarterly",
-            >>>             "min_date": "1947-01-01",
-            >>>             "max_date": "2024-06-01"
-            >>>         }
-            >>>     ]
-            >>> }
-            >>> async def main():
-            >>>     series_groups = await fd.SeriesGroup.to_object_async(response)
-            >>>     for series_group in series_groups:
-            >>>         print(series_group.title)
-            >>> if __name__ == "__main__":
-            >>>     asyncio.run(main())
-            'Gross Domestic Product'
-
-        Notes:
-            This method assumes that the input response dictionary contains a 'series_group' key with a list of series group data.
-
-        References:
-            - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.objects.SeriesGroup.to_object_async.html
-        """
-
-        return await asyncio.to_thread(cls.to_object, response)
-
-@dataclass
+@dataclass(slots=True)
 class BulkRelease:
     """A class used to represent a BulkRelease.
 

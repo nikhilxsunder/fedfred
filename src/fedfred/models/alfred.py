@@ -1,4 +1,4 @@
-# filepath: /src/fedfred/utils/__init__.py
+# filepath: /src/fedfred/models/alfred.py
 #
 # Copyright (c) 2026 Nikhil Sunder
 #
@@ -19,23 +19,3 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""fedfred.utils.__init__
-
-This module initializes the utils subpackage of fedfred.
-
-Imports:
-    set_api_key: Function to set the global FRED API key.
-    get_api_key: Function to get the current global FRED API key.
-    Helpers: A class that provides helper methods for the Fred API.
-    AsyncHelpers: An asynchronous class that provides helper methods for the Fred API.
-"""
-
-from .config import set_api_key, get_api_key, clear_api_key
-from .helpers import AsyncHelpers, Helpers
-
-__all__ = [
-    "set_api_key",
-    "get_api_key",
-    "Helpers",
-    "AsyncHelpers",
-]

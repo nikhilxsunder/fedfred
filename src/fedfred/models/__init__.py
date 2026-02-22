@@ -1,4 +1,4 @@
-# filepath: /src/fedfred/fred/__init__.py
+# filepath: /src/fedfred/models/__init__.py
 #
 # Copyright (c) 2026 Nikhil Sunder
 #
@@ -19,15 +19,11 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""fedfred.fred.__init__
+"""fedfred.models.__init__
 
-This module initializes the fred subpackage of fedfred.
+This module initializes the models subpackage of fedfred.
 
 Imports:
-    FredAPI: A class that provides methods to interact with the Fred API.
-    AsyncFredAPI: An asynchronous class for interacting with the Fred API.
-    FredMapsAPI: A class that provides methods to interact with the Fred Maps API.
-    AsyncFredMapsAPI: An asynchronous class for interacting with the Fred Maps API.
     Category: A class representing a category in the Fred database.
     Series: A class representing a series in the Fred database.
     Tag: A class representing a tag in the Fred database.
@@ -40,8 +36,7 @@ Imports:
     BulkRelease: A class representing a bulk release in the Fred database.
 """
 
-from .clients import Fred, AsyncFred, GeoFred, AsyncGeoFred
-from .objects import (
+from .fred import (
     Category,
     Series,
     Tag,
@@ -55,10 +50,6 @@ from .objects import (
 )
 
 __all__ = [
-    "Fred",
-    "AsyncFred",
-    "GeoFred",
-    "AsyncGeoFred",
     "Category",
     "Series",
     "Tag",

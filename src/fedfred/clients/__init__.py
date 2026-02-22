@@ -1,4 +1,4 @@
-# filepath: /src/fedfred/fraser/__init__.py
+# filepath: /src/fedfred/clients/__init__.py
 #
 # Copyright (c) 2026 Nikhil Sunder
 #
@@ -19,16 +19,29 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""fedfred.fraser.__init__
+"""fedfred.clients.__init__
 
-This module initializes the fraser subpackage of fedfred.
+This module initializes the clients subpackage of fedfred.
 
 Imports:
+    Fred: A class that provides methods to interact with the FRED API.
+    AsyncFred: An asynchronous class that provides methods to interact with the FRED API.
+    GeoFred: A class that provides methods to interact with the GeoFRED API.
+    AsyncGeoFred: An asynchronous class that provides methods to interact with the GeoFRED API.
+    Alfred: A class that provides methods to interact with the ALFRED API.
     Fraser: A class that provides methods to interact with the Fraser API.
 """
 
-from .clients import Fraser
+from .fred import Fred, AsyncFred
+from .geofred import GeoFred, AsyncGeoFred
+from.alfred import Alfred
+from .fraser import Fraser
 
 __all__ = [
+    "Fred",
+    "AsyncFred",
+    "GeoFred",
+    "AsyncGeoFred",
+    "Alfred",
     "Fraser",
 ]
