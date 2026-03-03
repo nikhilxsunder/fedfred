@@ -82,7 +82,7 @@ ignore_missing_imports = true
 
 [tool.pylint]
 max-line-length = 200
-disable = ["C0415", "C2801", "C0114", "C0115", "C0116", "C0302", "C0301", "E0401", "R0902", "R0913", "R0917", "R0914", "R0912", "R0904", "R1705", "C0103", "R1710", "W0603", "R0911"]
+disable = []
 ignore-patterns = [".*\\.pyi$"]
 
 [tool.bandit]

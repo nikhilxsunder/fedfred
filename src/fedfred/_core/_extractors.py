@@ -30,7 +30,6 @@ References:
 
 import asyncio
 from typing import Dict
-from ..__about__ import __title__, __version__, __author__, __email__, __license__, __copyright__, __description__, __docs__, __repository__
 
 def _region_type_extractor(response: Dict) -> str:
     """Helper method to extract the region type from a GeoFred response dict.
@@ -72,10 +71,12 @@ def _region_type_extractor(response: Dict) -> str:
 
     meta_data = response.get('meta', {})
     if not meta_data:
-        raise ValueError("No meta data found in the response")
+        raise 
+
     region_type = meta_data.get('region')
     if not region_type:
         raise ValueError("No region type found in the response")
+
     return region_type
 
 async def _region_type_extractor_async(response: Dict) -> str:

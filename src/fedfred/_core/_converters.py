@@ -1,10 +1,37 @@
+# filepath: /src/fedfred/_core/_converters.py
+#
+# Copyright (c) 2025–2026 Nikhil Sunder
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+"""fedfred._core._converters
+
+This module provides converter methods for the FRED API.
+"""
 
 import asyncio
 from typing import TYPE_CHECKING, Dict, Optional, Union, Tuple
 from datetime import datetime
 import pandas as pd
 import geopandas as gpd
-from ..__about__ import __title__, __version__, __author__, __email__, __license__, __copyright__, __description__, __docs__, __repository__
+
+from fedfred.exceptions.conversion import TypeConversionError
+from ..exceptions import DataFrameConversionError, GeoDataFrameConversionError, OptionalDependencyError
 
 if TYPE_CHECKING:
     import dask.dataframe as dd # pragma: no cover
@@ -12,8 +39,9 @@ if TYPE_CHECKING:
     import polars as pl # pragma: no cover
     import polars_st as st # pragma: no cover
 
+# DataFrame Converters
 def _pandas_dataframe_converter(data: Dict[str, list]) -> pd.DataFrame:
-    """Helper method to convert a fred observation dictionary to a Pandas DataFrame.
+    """Internal converter function to convert a FRED observation dictionary to a Pandas DataFrame.
 
     Args:
         data (Dict[str, list]): FRED observation dictionary.
@@ -22,7 +50,7 @@ def _pandas_dataframe_converter(data: Dict[str, list]) -> pd.DataFrame:
         pandas.DataFrame: Converted Pandas DataFrame.
 
     Raises:
-        ValueError: If 'observations' key is not in the data.
+        DataFrameConversionError: If 'observations' key is not in the data or if conversion fails.
 
     Examples:
         >>> import fedfred as fd
@@ -53,7 +81,13 @@ def _pandas_dataframe_converter(data: Dict[str, list]) -> pd.DataFrame:
     """
 
     if 'observations' not in data:
-        raise ValueError("Data must contain 'observations' key")
+        raise DataFrameConversionError(
+            message="DataFrame conversion failed: 'observations' key not found in data",
+            backend='pandas',
+            missing_fields=('observations',),
+            details="Data must contain 'observations' key"
+        )
+
     df = pd.DataFrame(data['observations'])
     df['date'] = pd.to_datetime(df['date'])
     df.set_index('date', inplace=True)
@@ -70,8 +104,8 @@ def _polars_dataframe_converter(data: Dict[str, list]) -> 'pl.DataFrame':
         polars.DataFrame: Converted Polars DataFrame.
 
     Raises:
-        ImportError: If Polars is not installed.
-        ValueError: If 'observations' key is not in the data.
+        OptionalDependencyError: If Polars is not installed.
+        DataFrameConversionError: If 'observations' key is not in the data.
 
     Examples:
         >>> import fedfred as fd
@@ -109,11 +143,21 @@ def _polars_dataframe_converter(data: Dict[str, list]) -> 'pl.DataFrame':
     try:
         import polars as pl
     except ImportError as e:
-        raise ImportError(
-            f"{e}: Polars is not installed. Install it with `pip install polars` to use this method."
-    ) from e
+        raise OptionalDependencyError(
+            message=f"{e}: Polars is not installed. Install it with `pip install polars` to use this method.",
+            package="polars",
+            feature="Helpers.to_pl_df",
+            install_hint="pip install polars",
+        ) from e
+
     if 'observations' not in data:
-        raise ValueError("Data must contain 'observations' key")
+        raise DataFrameConversionError(
+            message="DataFrame conversion failed: 'observations' key not found in data",
+            backend='polars',
+            missing_fields=('observations',),
+            details="Data must contain 'observations' key"
+        )
+
     df = pl.DataFrame(data['observations'])
     df = df.with_columns(
         pl.when(pl.col('value') == 'NA')
@@ -133,8 +177,8 @@ def _dask_dataframe_converter(data: Dict[str, list]) -> 'dd.DataFrame':
         dask.dataframe.DataFrame: Converted Dask DataFrame.
 
     Raises:
-        ImportError: If Dask is not installed.
-        ValueError: If 'observations' key is not in the data.
+        OptionalDependencyError: If Dask is not installed.
+        DataFrameConversionError: If 'observations' key is not in the data.
 
     Examples:
         >>> import fedfred as fd
@@ -167,9 +211,13 @@ def _dask_dataframe_converter(data: Dict[str, list]) -> 'dd.DataFrame':
     try:
         import dask.dataframe as dd
     except ImportError as e:
-        raise ImportError(
-            f"{e}: Dask is not installed. Install it with `pip install dask` to use this method."
+        raise OptionalDependencyError(
+            message=f"{e}: Dask is not installed. Install it with `pip install dask` to use this method.",
+            package="dask",
+            feature="Helpers.to_dd_df",
+            install_hint="pip install dask",
         ) from e
+
     df = _pandas_dataframe_converter(data)
     return dd.from_pandas(df, npartitions=1)
 
@@ -219,10 +267,18 @@ def _geopandas_geodataframe_converter(shapefile: gpd.GeoDataFrame, meta_data: Di
     shapefile['value'] = None
     shapefile['series_id'] = None
     data_section = meta_data.get('data', {})
+
     if not data_section:
-        raise ValueError("No data section found in the response")
+        raise GeoDataFrameConversionError(
+            message="GeoDataFrame conversion failed: No data section found in metadata",
+            backend='geopandas',
+            missing_fields=('data',),
+            details="Metadata must contain 'data' section with observations"
+        )
+
     data_key = next(iter(data_section))
     items = data_section[data_key]
+
     for item in items:
         if item['region'] in shapefile.index:
             shapefile.loc[item['region'], 'value'] = item['value']
@@ -275,9 +331,13 @@ def _dask_geopandas_geodataframe_converter(shapefile: gpd.GeoDataFrame, meta_dat
     try:
         import dask_geopandas as dd_gpd
     except ImportError as e:
-        raise ImportError(
-            f"{e}: Dask GeoPandas is not installed. Install it with `pip install dask-geopandas` to use this method."
+        raise OptionalDependencyError(
+            message=f"{e}: Dask GeoPandas is not installed. Install it with `pip install dask-geopandas` to use this method.",
+            package="dask-geopandas",
+            feature="Helpers.to_dd_gpd_gdf",
+            install_hint="pip install dask-geopandas"
         ) from e
+
     gdf = _geopandas_geodataframe_converter(shapefile, meta_data)
     return dd_gpd.from_geopandas(gdf, npartitions=1)
 
@@ -333,329 +393,15 @@ def _polars_geodataframe_converter(shapefile: gpd.GeoDataFrame, meta_data: Dict)
     try:
         import polars_st as st
     except ImportError as e:
-        raise ImportError(
-            f"{e}: Polars with geospatial support is not installed. Install it with `pip install polars-st` to use this method."
+        raise OptionalDependencyError(
+            message=f"{e}: Polars with geospatial support is not installed. Install it with `pip install polars-st` to use this method.",
+            package="polars-st",
+            feature="Helpers.to_pl_st_gdf",
+            install_hint="pip install polars-st"
         ) from e
+
     gdf = _geopandas_geodataframe_converter(shapefile, meta_data)
     return st.from_geopandas(gdf)
-
-def _liststring_converter(param: list[str]) -> str:
-    """Helper method to convert a list of strings to a semicolon-separated string.
-
-    Args:
-        param (list[str]): List of strings to convert.
-
-    Returns:
-        str: Semicolon-separated string.
-
-    Raises:
-        ValueError: If param is not a list of strings.
-
-    Examples:
-        >>> import fedfred as fd
-        >>> param = ["tag1", "tag2", "tag3"]
-        >>> result = fd.Helpers.liststring_conversion(param)
-        >>> print(result)
-        tag1;tag2;tag3
-
-    Notes:
-        This method joins the elements of the list with semicolons.
-
-    References:
-        - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.helpers.Helpers.liststring_conversion.html
-
-    See Also:
-        - :meth:`Helpers.liststring_validation`: Validate a semicolon-separated string.
-    """
-
-    if not isinstance(param, list):
-        raise ValueError("Parameter must be a list")
-    if any(not isinstance(i, str) for i in param):
-        raise ValueError("All elements in the list must be strings")
-    return ';'.join(param)
-
-def _vintage_dates_type_converter(param: Union[str, datetime, list[Optional[Union[str, datetime]]]]) -> str:
-    """Helper method to convert a vintage_dates parameter to a string.
-
-    Args:
-        param (str | datetime | list[Optional[str | datetime]]): vintage_dates parameter to convert.
-
-    Returns:
-        str: Converted vintage_dates string.
-
-    Raises:
-        ValueError: If param is not a string, datetime object, or list of strings/datetime objects.
-
-    Examples:
-        >>> import fedfred as fd
-        >>> param1 = "2020-01-01"
-        >>> result1 = fd.Helpers.vintage_dates_type_conversion(param1)
-        >>> print(result1)
-        2020-01-01
-
-    Notes:
-        This method handles single strings, datetime objects, and lists of strings/datetime objects.
-
-    References:
-        - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.helpers.Helpers.vintage_dates_type_conversion.html
-
-    See Also:
-        - :meth:`Helpers.datetime_conversion`: Convert a datetime object to a string in YYYY-MM-DD format.
-        - :meth:`Helpers.vintage_dates_validation`: Validate vintage_dates parameters.
-    """
-
-    if isinstance(param, str):
-        return param
-    elif isinstance(param, datetime):
-        return _datetime_converter(param)
-    elif isinstance(param, list):
-        converted_list = [
-            _datetime_converter(i) if isinstance(i, datetime) else i
-            for i in param
-            if i is not None
-        ]
-        if not all(isinstance(i, str) for i in converted_list):
-            raise ValueError("All elements in the list must be strings or datetime objects")
-        return ','.join(converted_list)
-    else:
-        raise ValueError("Parameter must be a string, datetime object, or list of strings/datetime objects")
-
-def _datetime_converter(param: datetime) -> str:
-    """Helper method to convert a datetime object to a string in YYYY-MM-DD format.
-
-    Args:
-        param (datetime): Datetime object to convert.
-
-    Returns:
-        str: Formatted date string.
-
-    Raises:
-        ValueError: If param is not a datetime object.
-
-    Examples:
-        >>> import fedfred as fd
-        >>> from datetime import datetime
-        >>> param = datetime(2020, 1, 1)
-        >>> result = fd.Helpers.datetime_conversion(param)
-        >>> print(result)
-        2020-01-01
-
-    References:
-        - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.helpers.Helpers.datetime_conversion.html
-
-    See Also:
-        - :meth:`Helpers.datetime_hh_mm_conversion`: Convert a datetime object to a string in HH:MM format.
-        - :meth:`Helpers.datestring_validation`: Validate date-string formatted parameters.
-    """
-
-    if not isinstance(param, datetime):
-        raise ValueError("Parameter must be a datetime object")
-    return param.strftime("%Y-%m-%d")
-
-def _datetime_hh_mm_converter(param: datetime) -> str:
-    """Helper method to convert a datetime object to a string in HH:MM format.
-
-    Args:
-        param (datetime): Datetime object to convert.
-
-    Returns:
-        str: Formatted time string.
-
-    Raises:
-        ValueError: If param is not a datetime object.
-
-    Examples:
-        >>> import fedfred as fd
-        >>> from datetime import datetime
-        >>> param = datetime(2020, 1, 1, 15, 30)
-        >>> result = fd.Helpers.datetime_hh_mm_conversion(param)
-        >>> print(result)
-        15:30
-
-    References:
-        - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.helpers.Helpers.datetime_hh_mm_conversion.html
-
-    See Also:
-        - :meth:`Helpers.datetime_conversion`: Convert a datetime object to a string in YYYY-MM-DD format.
-        - :meth:`Helpers.hh_mm_datestring_validation`: Validate hh:mm formatted parameters.
-    """
-
-    if not isinstance(param, datetime):
-        raise ValueError("Parameter must be a datetime object")
-    return param.strftime("%H:%M")
-
-def _pandas_frequency_converter(frequency: str) -> str:
-    """Convert FRED native frequency strings to pandas compatible ones.
-
-    Args:
-        frequency (str): Input frequency string.
-
-    Returns:
-        str: Coerced frequency string compatible with pandas.
-
-    Raises:
-        ValueError: If the input frequency is not recognized.
-
-    Examples:
-        >>> import fedfred as fd
-        >>> freq = "a"
-        >>> pd_freq = fd.Helpers.pd_frequency_conversion(freq)
-        >>> print(pd_freq)
-        Y
-
-    References:
-        - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.helpers.Helpers.pd_frequency_conversion.html
-
-    See Also:
-        - :meth:`Helpers.to_pd_series`: Convert a Series or DataFrame to a pandas Series with DatetimeIndex.
-    """
-
-    frequency = frequency.upper()
-    if frequency in _FREQUENCIES_MAP:
-        return _FREQUENCIES_MAP[frequency]
-    else:
-        raise ValueError(f"Frequency '{frequency}' is not recognized.")
-
-def _pandas_series_converter(data: Union[pd.Series, pd.DataFrame], name: str) -> pd.Series:
-    """Accepts a Series or a DataFrame with 'date' and 'value' columns and returns a float Series with DatetimeIndex and the given name.
-
-    Args:
-        data (pandas.Series | pandas.DataFrame): Input data to be converted.
-        name (str): Name to assign to the resulting Series.
-
-    Returns:
-        pandas.Series: A float Series with DatetimeIndex and the given `name`.
-
-    Raises:
-        TypeError: If the input is neither a pandas.Series nor a pandas.DataFrame.
-
-    Examples:
-        >>> import fedfred as fd
-        >>> import pandas as pd
-        >>> data = pd.DataFrame({
-        >>>     "date": ["2020-01-01", "2020-02-01"],
-        >>>     "value": [100, 200]
-        >>> })
-        >>> series = fd.Helpers.to_pd_series(data, name="My Series")
-        >>> print(series)
-        2020-01-01    100.0
-        2020-02-01    200.0
-        Name: My Series, dtype: float64
-
-    Notes:
-        This method handles both Series and DataFrame inputs, ensuring the output is a properly formatted pandas Series.
-
-    References:
-        - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.helpers.Helpers.to_pd_series.html
-
-    See Also:
-        - :meth:`Helpers.pd_frequency_conversion`: Convert FRED native frequency strings to pandas compatible ones.
-    """
-
-    if isinstance(data, pd.Series):
-        s = data.copy()
-        s.index = pd.to_datetime(s.index)
-        s = s.astype(float)
-        s.name = name
-        return s
-
-    if not isinstance(data, pd.DataFrame):
-        raise TypeError("Input must be a pd.Series or pd.DataFrame")
-
-    df: pd.DataFrame = data.copy()
-    assert isinstance(df.index.name, str)
-    if df.index.name and df.index.name.lower() == "date":
-        idx: Union[pd.DatetimeIndex, pd.Series] = pd.to_datetime(df.index)
-    elif "date" in df.columns:
-        idx = pd.to_datetime(df["date"])
-    else:
-        cand = next((c for c in df.columns if "date" in c.lower()), None)
-        if cand is not None:
-            idx = pd.to_datetime(df[cand])
-        else:
-            idx = pd.to_datetime(df.index)
-    if "value" in df.columns:
-        vals = pd.to_numeric(df["value"], errors="coerce")
-    else:
-        num_cols = [c for c in df.columns if pd.api.types.is_numeric_dtype(df[c])]
-        if not num_cols:
-            vals = pd.to_numeric(df.iloc[:, -1], errors="coerce")
-        else:
-            vals = pd.to_numeric(df[num_cols[0]], errors="coerce")
-
-    s = pd.Series(vals.values, index=idx, name=name).astype(float)
-    s = s[~s.index.duplicated(keep="last")].sort_index()
-    s.index = pd.to_datetime(s.index)
-    return s
-
-def _polars_series_converter(): # Add this helpers logic before release
-    """Accepts a Polars Series or a DataFrame with 'date' and 'value' columns and returns a float Series with DatetimeIndex and the given name.
-    
-    Args:
-        data (polars.Series | polars.DataFrame): Input data to be converted.
-        name (str): Name to assign to the resulting Series.
-
-    Returns:
-        polars.Series: A float Series with DatetimeIndex and the given `name`.
-
-    Raises:
-        TypeError: If the input is neither a polars.Series nor a polars.DataFrame
-
-    Examples:
-
-    Notes:
-
-    References:
-        - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.helpers.Helpers.to_pl_series.html
-    
-    See Also:
-        - :meth:`Helpers.to_pd_series`: Convert a Series or DataFrame to a pandas Series with DatetimeIndex.
-    """
-
-    return None
-
-def _hashable_type_converter(data: Optional[Dict[str, Optional[Union[str, int]]]]) -> Optional[Tuple[Tuple[str, Optional[Union[str, int]]], ...]]:
-    """Helper function to make the data dictionary hashable for caching.
-
-    Args:
-        data (Dict[str, Optional[str | int]], optional): The query parameters for the request.
-
-    Returns:
-        Optional[Tuple[Tuple[str, Optional[str | int]], ...]]: A hashable representation of the data dictionary.
-
-    Notes:
-        This function converts the data dictionary into a sorted tuple of key-value pairs, making it suitable 
-        for use as a cache key.
-
-    Warnings:
-        Caching is only applied if `cache_mode` is enabled. Ensure that the `data` parameter is hashable for 
-        caching to work correctly.
-    """
-
-    if data is None:
-        return None
-    return tuple(sorted(data.items()))
-
-def _dict_type_converter(hashable_data: Optional[Tuple[Tuple[str, Optional[Union[str, int]]], ...]]) -> Optional[Dict[str, Optional[Union[str, int]]]]:
-    """Helper function to convert hashable data back to a dictionary.
-    
-    Args:
-        hashable_data (Optional[Tuple[Tuple[str, Optional[str | int]], ...]]): The hashable representation of the data.
-
-    Returns:
-        Optional[Dict[str, Optional[str | int]]]: The original data dictionary.
-
-    Notes:
-        This function converts the hashable sorted tuple of key-value pairs back into a standard dictionary.
-
-    Warnings:
-        Caching is only applied if `cache_mode` is enabled. Ensure that the `data` parameter is hashable for 
-        caching to work correctly.
-    """
-
-    if hashable_data is None:
-        return None
-    return dict(hashable_data)
 
 async def _pandas_dataframe_converter_async(data: Dict[str, list]) -> pd.DataFrame:
     """Helper method to convert a FRED observation dictionary to a Pandas DataFrame asynchronously.
@@ -667,7 +413,7 @@ async def _pandas_dataframe_converter_async(data: Dict[str, list]) -> pd.DataFra
         pandas.DataFrame: Converted Pandas DataFrame.
 
     Raises:
-        ValueError: If 'observations' key is not in the data.
+        DataFrameConversionError: If 'observations' key is not in the data.
 
     Examples:
         >>> import asyncio
@@ -803,9 +549,13 @@ async def _dask_dataframe_converter_async(data: Dict[str, list]) -> 'dd.DataFram
     try:
         import dask.dataframe as dd
     except ImportError as e:
-        raise ImportError(
-            f"{e}: Dask is not installed. Install it with `pip install dask` to use this method."
+        raise OptionalDependencyError(
+            message=f"{e}: Dask is not installed. Install it with `pip install dask` to use this method.",
+            package="dask",
+            feature="Helpers.to_dd_df",
+            install_hint="pip install dask"
         ) from e
+    
     df = await _pandas_dataframe_converter_async(data)
     return await asyncio.to_thread(dd.from_pandas, df, npartitions=1)
 
@@ -907,9 +657,13 @@ async def _dask_geopandas_geodataframe_converter_async(shapefile: gpd.GeoDataFra
     try:
         import dask_geopandas as dd_gpd
     except ImportError as e:
-        raise ImportError(
-            f"{e}: Dask GeoPandas is not installed. Install it with `pip install dask-geopandas` to use this method."
+        raise OptionalDependencyError(
+            message=f"{e}: Dask GeoPandas is not installed. Install it with `pip install dask-geopandas` to use this method.",
+            package="dask-geopandas",
+            feature="Helpers.to_dd_gpd_gdf",
+            install_hint="pip install dask-geopandas"
         ) from e
+    
     gdf = await _geopandas_geodataframe_converter_async(shapefile, meta_data)
     return await asyncio.to_thread(dd_gpd.from_geopandas, gdf, npartitions=1)
 
@@ -969,11 +723,194 @@ async def _polars_geodataframe_converter_async(shapefile: gpd.GeoDataFrame, meta
     try:
         import polars_st as st
     except ImportError as e:
-        raise ImportError(
-            f"{e}: Polars with geospatial support is not installed. Install it with `pip install polars-st` to use this method."
+        raise OptionalDependencyError(
+            message=f"{e}: Polars with geospatial support is not installed. Install it with `pip install polars-st` to use this method.",
+            package="polars-st",
+            feature="Helpers.to_pl_st_gdf",
+            install_hint="pip install polars-st"
         ) from e
+
     gdf = await _geopandas_geodataframe_converter_async(shapefile, meta_data)
     return await asyncio.to_thread(st.from_geopandas, gdf)
+
+# Single Parameter Converters
+def _liststring_converter(parameter: list[str]) -> str:
+    """Helper method to convert a list of strings to a semicolon-separated string.
+
+    Args:
+        parameter (list[str]): List of strings to convert.
+
+    Returns:
+        str: Semicolon-separated string.
+
+    Raises:
+        ValueError: If parameter is not a list of strings.
+
+    Examples:
+        >>> import fedfred as fd
+        >>> parameter = ["tag1", "tag2", "tag3"]
+        >>> result = fd.Helpers.liststring_conversion(parameter)
+        >>> print(result)
+        tag1;tag2;tag3
+
+    Notes:
+        This method joins the elements of the list with semicolons.
+
+    References:
+        - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.helpers.Helpers.liststring_conversion.html
+
+    See Also:
+        - :meth:`Helpers.liststring_validation`: Validate a semicolon-separated string.
+    """
+
+    if not isinstance(parameter, list):
+        raise TypeConversionError(
+            message="Type conversion failed: Parameter must be a list of strings",
+            expected="list[str]",
+            received=type(parameter).__name__,
+        )
+
+    if any(not isinstance(i, str) for i in parameter):
+        raise TypeConversionError(
+            message="Type conversion failed: All elements in the list must be strings",
+            expected="list[str]",
+            received=", ".join(type(i).__name__ for i in parameter if not isinstance(i, str)),
+        )
+
+    return ';'.join(parameter)
+
+def _vintage_dates_type_converter(param: Union[str, datetime, list[Optional[Union[str, datetime]]]]) -> str:
+    """Helper method to convert a vintage_dates parameter to a string.
+
+    Args:
+        param (str | datetime | list[Optional[str | datetime]]): vintage_dates parameter to convert.
+
+    Returns:
+        str: Converted vintage_dates string.
+
+    Raises:
+        ValueError: If param is not a string, datetime object, or list of strings/datetime objects.
+
+    Examples:
+        >>> import fedfred as fd
+        >>> param1 = "2020-01-01"
+        >>> result1 = fd.Helpers.vintage_dates_type_conversion(param1)
+        >>> print(result1)
+        2020-01-01
+
+    Notes:
+        This method handles single strings, datetime objects, and lists of strings/datetime objects.
+
+    References:
+        - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.helpers.Helpers.vintage_dates_type_conversion.html
+
+    See Also:
+        - :meth:`Helpers.datetime_conversion`: Convert a datetime object to a string in YYYY-MM-DD format.
+        - :meth:`Helpers.vintage_dates_validation`: Validate vintage_dates parameters.
+    """
+
+    if isinstance(param, str):
+        return param
+
+    if isinstance(param, datetime):
+        return _datetime_converter(param)
+
+    if isinstance(param, list):
+        converted_list = [
+            _datetime_converter(i) if isinstance(i, datetime) else i
+            for i in param
+            if i is not None
+        ]
+
+        if not all(isinstance(i, str) for i in converted_list):
+            raise TypeConversionError(
+                message="Type conversion failed: All elements in the list must be strings or datetime objects",
+                expected="list[Optional[str | datetime]]",
+                received=", ".join(type(i).__name__ for i in converted_list if not isinstance(i, str)),
+            )
+
+        return ','.join(converted_list)
+
+    else:
+        raise TypeConversionError(
+            message="Type conversion failed: Parameter must be a string, datetime object, or list of strings/datetime objects",
+            expected="str | datetime | list[Optional[str | datetime]]",
+            received=type(param).__name__,
+        )
+
+def _datetime_converter(param: datetime) -> str:
+    """Helper method to convert a datetime object to a string in YYYY-MM-DD format.
+
+    Args:
+        param (datetime): Datetime object to convert.
+
+    Returns:
+        str: Formatted date string.
+
+    Raises:
+        ValueError: If param is not a datetime object.
+
+    Examples:
+        >>> import fedfred as fd
+        >>> from datetime import datetime
+        >>> param = datetime(2020, 1, 1)
+        >>> result = fd.Helpers.datetime_conversion(param)
+        >>> print(result)
+        2020-01-01
+
+    References:
+        - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.helpers.Helpers.datetime_conversion.html
+
+    See Also:
+        - :meth:`Helpers.datetime_hh_mm_conversion`: Convert a datetime object to a string in HH:MM format.
+        - :meth:`Helpers.datestring_validation`: Validate date-string formatted parameters.
+    """
+
+    if not isinstance(param, datetime):
+        raise TypeConversionError(
+            message="Type conversion failed: Parameter must be a datetime object",
+            expected="datetime",
+            received=type(param).__name__,
+        )
+
+    return param.strftime("%Y-%m-%d")
+
+def _datetime_hh_mm_converter(param: datetime) -> str:
+    """Helper method to convert a datetime object to a string in HH:MM format.
+
+    Args:
+        param (datetime): Datetime object to convert.
+
+    Returns:
+        str: Formatted time string.
+
+    Raises:
+        ValueError: If param is not a datetime object.
+
+    Examples:
+        >>> import fedfred as fd
+        >>> from datetime import datetime
+        >>> param = datetime(2020, 1, 1, 15, 30)
+        >>> result = fd.Helpers.datetime_hh_mm_conversion(param)
+        >>> print(result)
+        15:30
+
+    References:
+        - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.helpers.Helpers.datetime_hh_mm_conversion.html
+
+    See Also:
+        - :meth:`Helpers.datetime_conversion`: Convert a datetime object to a string in YYYY-MM-DD format.
+        - :meth:`Helpers.hh_mm_datestring_validation`: Validate hh:mm formatted parameters.
+    """
+
+    if not isinstance(param, datetime):
+        raise TypeConversionError(
+            message="Type conversion failed: Parameter must be a datetime object",
+            expected="datetime",
+            received=type(param).__name__,
+        )
+    
+    return param.strftime("%H:%M")
 
 async def _liststring_converter_async(param: list[str]) -> str:
     """Helper method to convert a list of strings to a semicolon-separated string asynchronously.
@@ -1113,105 +1050,51 @@ async def _datetime_hh_mm_converter_async(param: datetime) -> str:
 
     return await asyncio.to_thread(_datetime_hh_mm_converter, param)
 
-async def _pandas_frequency_converter_async(frequency: str) -> str:
-    """Asynchronously convert FRED native frequency strings to pandas compatible ones.
+# Collective Parameter Converters
+def _hashable_type_converter(data: Optional[Dict[str, Optional[Union[str, int]]]]) -> Optional[Tuple[Tuple[str, Optional[Union[str, int]]], ...]]:
+    """Helper function to make the data dictionary hashable for caching.
 
     Args:
-        frequency (str): Input frequency string.
+        data (Dict[str, Optional[str | int]], optional): The query parameters for the request.
 
     Returns:
-        str: Coerced frequency string compatible with pandas.
-
-    Raises:
-        None
-
-    Examples:
-        >>> import asyncio
-        >>> import fedfred as fd
-        >>> frequency = "WEF"
-        >>> async def main():
-        >>>     result = await fd.AsyncHelpers.pd_frequency_conversion(frequency)
-        >>>     print(result)
-        >>> if __name__ == "__main__":
-        >>>     asyncio.run(main())
-        W-FRI
-
-    References:
-        - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.helpers.AsyncHelpers.pd_frequency_conversion.html
-
-    See Also:
-        - :meth:`AsyncHelpers.pd_frequency_conversion`: Convert FRED native frequency strings to pandas compatible ones asynchronously.
-    """
-
-    return await asyncio.to_thread(_pandas_frequency_converter, frequency)
-
-async def _pandas_series_converter_async(data: Union[pd.Series, pd.DataFrame], name: str) -> pd.Series:
-    """Asynchronously accepts a Series or a DataFrame with 'date' and 'value' columns (fedfred style) and returns a float Series with DatetimeIndex and the given name.
-
-    Args:
-        data (pandas.Series | pandas.DataFrame): Input data to be converted.
-        name (str): Name to assign to the resulting Series.
-
-    Returns:
-        pandas.Series: A float Series with DatetimeIndex and the given `name`.
-
-    Raises:
-        TypeError: If the input is neither a pandas.Series nor a pandas.DataFrame.
-
-    Examples:
-        >>> import asyncio
-        >>> import pandas as pd
-        >>> import fedfred as fd
-        >>> data = pd.DataFrame({
-        >>>     "date": ["2020-01-01", "2020-02-01"],
-        >>>     "value": [100, 200]
-        >>> })
-        >>> async def main():
-        >>>     series = await fd.AsyncHelpers.to_pd_series(data, name="My Series")
-        >>>     print(series)
-        >>> if __name__ == "__main__":
-        >>>     asyncio.run(main())
-        2020-01-01    100.0
-        2020-02-01    200.0
-        Name: My Series, dtype: float64
+        Optional[Tuple[Tuple[str, Optional[str | int]], ...]]: A hashable representation of the data dictionary.
 
     Notes:
-        This method handles both Series and DataFrame inputs, ensuring the output is a properly formatted pandas Series.
+        This function converts the data dictionary into a sorted tuple of key-value pairs, making it suitable 
+        for use as a cache key.
 
-    References:
-        - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.helpers.AsyncHelpers.to_pd_series.html
-
-    See Also:
-        - :meth:`AsyncHelpers.pd_frequency_conversion`: Asynchronously convert FRED native frequency strings to pandas compatible ones.
+    Warnings:
+        Caching is only applied if `cache_mode` is enabled. Ensure that the `data` parameter is hashable for 
+        caching to work correctly.
     """
 
-    return await asyncio.to_thread(_pandas_series_converter, data, name)
+    if data is None:
+        return None
 
-async def _polars_series_converter_async(): # Add this helpers logic before release
-    """Asynchronously accepts a Polars Series or a DataFrame with 'date' and 'value' columns and returns a float Series with DatetimeIndex and the given name.
+    return tuple(sorted(data.items()))
+
+def _dict_type_converter(hashable_data: Optional[Tuple[Tuple[str, Optional[Union[str, int]]], ...]]) -> Optional[Dict[str, Optional[Union[str, int]]]]:
+    """Helper function to convert hashable data back to a dictionary.
     
     Args:
-        data (polars.Series | polars.DataFrame): Input data to be converted.
-        name (str): Name to assign to the resulting Series.
+        hashable_data (Optional[Tuple[Tuple[str, Optional[str | int]], ...]]): The hashable representation of the data.
 
     Returns:
-        polars.Series: A float Series with DatetimeIndex and the given `name`.
-
-    Raises:
-        TypeError: If the input is neither a polars.Series nor a polars.DataFrame
-
-    Examples:
+        Optional[Dict[str, Optional[str | int]]]: The original data dictionary.
 
     Notes:
+        This function converts the hashable sorted tuple of key-value pairs back into a standard dictionary.
 
-    References:
-        - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.helpers.Helpers.to_pl_series.html
-    
-    See Also:
-        - :meth:`AsyncHelpers.to_pd_series`: Convert a Series or DataFrame to a pandas Series with DatetimeIndex.
+    Warnings:
+        Caching is only applied if `cache_mode` is enabled. Ensure that the `data` parameter is hashable for 
+        caching to work correctly.
     """
 
-    return None
+    if hashable_data is None:
+        return None
+
+    return dict(hashable_data)
 
 async def _hashable_type_converter_async(data: Optional[Dict[str, Optional[Union[str, int]]]]) -> Optional[Tuple[Tuple[str, Optional[Union[str, int]]], ...]]:
     """Asynchronous helper function to make the data dictionary hashable for caching.

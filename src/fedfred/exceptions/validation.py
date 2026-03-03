@@ -1,8 +1,7 @@
+
 from dataclasses import dataclass, field
 from typing import Any, Mapping
-
 from .base import FedfredError
-
 
 @dataclass(frozen=True, slots=True)
 class ValidationError(FedfredError):
@@ -24,7 +23,6 @@ class ParameterValidationError(ValidationError):
             return f"{self.message} (parameter={self.parameter!r}, reason={self.reason!r})"
         return self.message
 
-
 @dataclass(frozen=True, slots=True)
 class TypeValidationError(ParameterValidationError):
     """
@@ -33,7 +31,6 @@ class TypeValidationError(ParameterValidationError):
 
     expected: str = ""
     received: str = ""
-
 
 @dataclass(frozen=True, slots=True)
 class ValueValidationError(ParameterValidationError):

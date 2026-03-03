@@ -63,12 +63,6 @@ _Add yours here_
   </a>
 </div>
 
-#### How to add your project/org
-1. Edit this README and add a new entry under the appropriate heading.
-2. Use the same **HTML link + image** format already used above.
-3. If you’re adding multiple logos on one row, keep them inside the same `<div>` and separate with `&nbsp;&nbsp;&nbsp;` (don’t insert a blank line between `<a>` tags).
-4. Open a pull request.
-
 ### Installation
 
 You can install the package using pip:

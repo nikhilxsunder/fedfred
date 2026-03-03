@@ -22,5 +22,6 @@
 """fedfred.exceptions.__init__"""
 
 from .validation import ValueValidationError, TypeValidationError, ParameterValidationError, ValidationError
-from .conversion import ConversionError, ParameterConversionError, DateConversionError
+from .conversion import ConversionError, ParameterConversionError, TypeConversionError, DateConversionError, DataFrameConversionError, GeoDataFrameConversionError
+from .dependencies import OptionalDependencyError
 from .base import FedfredError

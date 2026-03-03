@@ -30,7 +30,7 @@ import time
 from cachetools import FIFOCache, cached
 import httpx
 from tenacity import retry, wait_fixed, stop_after_attempt, retry_if_exception_type
-from .._core._helpers import Helpers
+from .._core._extractors import Helpers
 from ..config import resolve_api_key
 
 class Fraser:
