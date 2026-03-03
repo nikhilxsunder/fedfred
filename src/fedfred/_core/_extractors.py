@@ -1,4 +1,4 @@
-# filepath: /src/fedfred/_internals/_helpers.py
+# filepath: /src/fedfred/_core/_extractors.py
 #
 # Copyright (c) 2025–2026 Nikhil Sunder
 #
@@ -19,9 +19,9 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""fedfred._internals._helpers
+"""fedfred._core._extractors
 
-This module provides helper methods for the FRED API.
+This module provides internal helper methods for the fedfred package, specifically for extracting data from certain FRED API responses.
 
 References:
     - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/
@@ -30,6 +30,8 @@ References:
 
 import asyncio
 from typing import Dict
+
+from fedfred.exceptions.extraction import ExtractionError
 
 def _region_type_extractor(response: Dict) -> str:
     """Helper method to extract the region type from a GeoFred response dict.
@@ -71,11 +73,15 @@ def _region_type_extractor(response: Dict) -> str:
 
     meta_data = response.get('meta', {})
     if not meta_data:
-        raise 
+        raise ExtractionError(
+            message="No meta data found in the response"
+            )
 
     region_type = meta_data.get('region')
     if not region_type:
-        raise ValueError("No region type found in the response")
+        raise ExtractionError(
+            message="No region type found in the response meta data"
+            )
 
     return region_type
 

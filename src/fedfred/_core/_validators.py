@@ -1,4 +1,4 @@
-# filepath: /src/fedfred/_internals/_helpers.py
+# filepath: /src/fedfred/_core/_validators.py
 #
 # Copyright (c) 2025–2026 Nikhil Sunder
 #
@@ -19,13 +19,11 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""fedfred._internals._validators
+"""fedfred._core._validators
 
-This module provides validation methods for the FRED API.
-
-References:
-    - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/
-    - Federal Reserve Bank of St. Louis, FRED API documentation. https://fred.stlouisfed.org/docs/api/fred/
+This module provides internal validation methods for request parameters sent to the FRED API. These methods are used to validate 
+parameters passed to the various API endpoint methods, ensuring that they conform to expected types, formats, 
+and value constraints before being sent in API requests.
 """
 
 from typing import Optional, Dict, Union, Callable, Any

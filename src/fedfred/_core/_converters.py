@@ -53,15 +53,14 @@ def _pandas_dataframe_converter(data: Dict[str, list]) -> pd.DataFrame:
         DataFrameConversionError: If 'observations' key is not in the data or if conversion fails.
 
     Examples:
-        >>> import fedfred as fd
-        >>> data = {
+        >>> response = {
         >>>     "observations": [
         >>>         {"date": "2020-01-01", "value": "100"},
         >>>         {"date": "2020-02-01", "value": "200"},
         >>>         {"date": "2020-03-01", "value": "300"},
         >>>     ]
         >>> }
-        >>> df = fd.Helpers.to_pd_df(data)
+        >>> df = _pandas_dataframe_converter(response)
         >>> print(df)
                     value
         date
@@ -70,14 +69,8 @@ def _pandas_dataframe_converter(data: Dict[str, list]) -> pd.DataFrame:
         2020-03-01  300.0
 
     Notes:
-        The 'date' column is converted to a DatetimeIndex and set as the DataFrame index and the 'value' column is converted to numeric, with non-numeric values coerced to NaN.
-
-    References:
-        - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.helpers.Helpers.to_pd_df.html
-
-    See Also:
-        - :meth:`Helpers.to_pl_df`: Convert a FRED observation dictionary to a Polars DataFrame.
-        - :meth:`Helpers.to_dd_df`: Convert a FRED observation dictionary to a Dask DataFrame.
+        The 'date' column is converted to a DatetimeIndex and set as the DataFrame index and the 'value' column is converted to 
+        numeric, with non-numeric values coerced to NaN.
     """
 
     if 'observations' not in data:
@@ -95,7 +88,7 @@ def _pandas_dataframe_converter(data: Dict[str, list]) -> pd.DataFrame:
     return df
 
 def _polars_dataframe_converter(data: Dict[str, list]) -> 'pl.DataFrame':
-    """Helper method to convert a fred observation dictionary to a Polars DataFrame.
+    """Internal converter method to convert a FRED observation dictionary to a Polars DataFrame.
 
     Args:
         data (Dict[str, list]): FRED observation dictionary.
@@ -108,15 +101,14 @@ def _polars_dataframe_converter(data: Dict[str, list]) -> 'pl.DataFrame':
         DataFrameConversionError: If 'observations' key is not in the data.
 
     Examples:
-        >>> import fedfred as fd
-        >>> data = {
+        >>> response = {
         >>>     "observations": [
         >>>         {"date": "2020-01-01", "value": "100"},
         >>>         {"date": "2020-02-01", "value": "200"},
         >>>         {"date": "2020-03-01", "value": "300"},
         >>>     ]
         >>> }
-        >>> df = fd.Helpers.to_pl_df(data)
+        >>> df = _polars_dataframe_converter(response)
         >>> print(df)
         shape: (3, 2)
         ┌────────────┬───────┐
@@ -131,13 +123,6 @@ def _polars_dataframe_converter(data: Dict[str, list]) -> 'pl.DataFrame':
 
     Notes:
         The 'value' column is converted to Float64, with 'NA' values replaced with None.
-
-    References:
-        - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.helpers.Helpers.to_pl_df.html
-
-    See Also:
-        - :meth:`Helpers.to_pd_df`: Convert a FRED observation dictionary to a Pandas DataFrame.
-        - :meth:`Helpers.to_dd_df`: Convert a FRED observation dictionary to a Dask DataFrame.
     """
 
     try:
@@ -168,7 +153,7 @@ def _polars_dataframe_converter(data: Dict[str, list]) -> 'pl.DataFrame':
     return df
 
 def _dask_dataframe_converter(data: Dict[str, list]) -> 'dd.DataFrame':
-    """Helper method to convert a FRED observation dictionary to a Dask DataFrame.
+    """Internal converter method to convert a FRED observation dictionary to a Dask DataFrame.
 
     Args:
         data (Dict[str, list]): FRED observation dictionary.
@@ -181,15 +166,14 @@ def _dask_dataframe_converter(data: Dict[str, list]) -> 'dd.DataFrame':
         DataFrameConversionError: If 'observations' key is not in the data.
 
     Examples:
-        >>> import fedfred as fd
-        >>> data = {
+        >>> response = {
         >>>     "observations": [
         >>>         {"date": "2020-01-01", "value": "100"},
         >>>         {"date": "2020-02-01", "value": "200"},
         >>>         {"date": "2020-03-01", "value": "300"},
         >>>     ]
         >>> }
-        >>> df = fd.Helpers.to_dd_df(data)
+        >>> df = _dask_dataframe_converter(response)
         >>> print(df.compute())
                     value
         date
@@ -199,13 +183,6 @@ def _dask_dataframe_converter(data: Dict[str, list]) -> 'dd.DataFrame':
 
     Notes:
         This method first converts the data to a Pandas DataFrame and then to a Dask DataFrame with a single partition.
-
-    References:
-        - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.helpers.Helpers.to_dd_df.html
-
-    See Also:
-        - :meth:`Helpers.to_pd_df`: Convert a FRED observation dictionary to a Pandas DataFrame.
-        - :meth:`Helpers.to_pl_df`: Convert a FRED observation dictionary to a Polars DataFrame.
     """
 
     try:

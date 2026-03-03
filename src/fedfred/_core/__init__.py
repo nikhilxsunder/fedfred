@@ -21,33 +21,8 @@
 # SOFTWARE.
 """fedfred._core.__init__
 
-This module initializes the _core subpackage of fedfred.
-
-Imports:
-    _dict_type_converter
-    _dict_type_converter_async
-    _hashable_type_converter
-    _hashable_type_converter_async
-    _datetime_converter
-    _datetime_converter_async
-    _liststring_converter
-    _liststring_converter_async
-    _vintage_dates_type_converter
-    _vintage_dates_type_converter_async
-    _pandas_dataframe_converter
-    _pandas_dataframe_converter_async
-    _polars_dataframe_converter
-    _polars_dataframe_converter_async
-    _dask_dataframe_converter
-    _dask_dataframe_converter_async
-    _datetime_hh_mm_converter
-    _datetime_hh_mm_converter_async
-    _geopandas_geodataframe_converter
-    _geopandas_geodataframe_converter_async
-    _dask_geopandas_geodataframe_converter
-    _dask_geopandas_geodataframe_converter_async
-    _polars_geodataframe_converter
-    _polars_geodataframe_converter_async
+This module initializes the _core subpackage of fedfred. It imports and exposes the core helper 
+methods for data conversion, validation, and extraction used across the fedfred package.
 """
 
 from ._converters import (

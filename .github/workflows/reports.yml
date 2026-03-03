@@ -1,0 +1,87 @@
+name: quality-sonarqube
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test-lint-security:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          # If you use a src-layout + extras, adjust accordingly.
+          # Example: pip install -e ".[dev]"
+          pip install -e ".[dev]" || pip install -r requirements.txt
+          pip install pytest pytest-cov pylint mypy bandit
+
+      - name: Create report directories
+        run: |
+          mkdir -p reports/sonar
+
+      # ---------------------------
+      # Tests + coverage (XML for Sonar)
+      # ---------------------------
+      - name: Pytest with coverage
+        run: |
+          pytest \
+            --cov=src \
+            --cov-report=term-missing \
+            --cov-report=xml:reports/sonar/coverage.xml
+
+      # ---------------------------
+      # Pylint (parseable output for Sonar import)
+      # ---------------------------
+      - name: Pylint
+        run: |
+          # Adjust paths: src/fedfred tests etc.
+          pylint src tests \
+            --output-format=parseable \
+            > reports/sonar/pylint.txt || true
+
+      # ---------------------------
+      # MyPy (plain text output for Sonar import)
+      # ---------------------------
+      - name: MyPy
+        run: |
+          mypy src tests \
+            --no-pretty \
+            --show-column-numbers \
+            --show-error-codes \
+            > reports/sonar/mypy.txt || true
+
+      # ---------------------------
+      # Bandit (JSON output for Sonar import)
+      # ---------------------------
+      - name: Bandit
+        run: |
+          bandit -r src -f json -o reports/sonar/bandit.json || true
+
+      # ---------------------------
+      # SonarQube scan
+      # ---------------------------
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v2
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        with:
+          args: >
+            -Dsonar.projectBaseDir=.
+            -Dsonar.sources=src
+            -Dsonar.tests=tests
+            -Dsonar.python.coverage.reportPaths=reports/sonar/coverage.xml
+            -Dsonar.python.pylint.reportPaths=reports/sonar/pylint.txt
+            -Dsonar.python.mypy.reportPaths=reports/sonar/mypy.txt
+            -Dsonar.python.bandit.reportPaths=reports/sonar/bandit.json
