@@ -1,9 +1,10 @@
-name: SonarCloud
-
+name: Reports
 on:
   push:
-    branches: [main, v4-dev]
+    branches:
+      - main
   pull_request:
+    types: [opened, synchronize, reopened]
 
 jobs:
   sonar:
@@ -78,9 +79,5 @@ jobs:
       # ---------------------------
       # SonarCloud Scan
       # ---------------------------
-      - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@v2
-        env:
-            SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-            SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
-            SONAR_ORGANIZATION: ${{ secrets.SONAR_ORGANIZATION }}
+
+
