@@ -49,6 +49,12 @@ from ._parsers import (
     _region_type_parser, _region_type_parser_async
 )
 
+from ._transport import (
+    _get_request, _get_request_async,
+    _cached_get_request, _cached_get_request_async
+)
+    
+
 __all__ = [
     # Converters
     '_dict_type_converter', '_dict_type_converter_async',
@@ -67,5 +73,8 @@ __all__ = [
     '_fred_parameter_validator', '_fred_parameter_validator_async',
     '_geofred_parameter_validator', '_geofred_parameter_validator_async',
     # Parsers
-    '_region_type_parser', '_region_type_parser_async'
+    '_region_type_parser', '_region_type_parser_async',
+    # Transport
+    '_get_request', '_get_request_async',
+    '_cached_get_request', '_cached_get_request_async'
 ]

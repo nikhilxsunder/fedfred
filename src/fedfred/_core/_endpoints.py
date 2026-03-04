@@ -48,14 +48,14 @@ _FRED_V1 = _EndpointSpec(
 )
 
 _FRED_V2 = _EndpointSpec(
-    base_url=_BASE_URL,  # or a different base if it truly differs
+    base_url=_BASE_URL,
     default_params=_VERSION_TWO_BASE_PARAMETERS,
     default_headers=_VERSION_TWO_HEADERS,
 )
 
 def _resolve_endpoint(url_endpoint: str) -> _EndpointSpec:
     # Centralize the “what counts as v2” rule here (not in transport).
-    return _FRED_V2 if url_endpoint.startswith("/v2/") else _FRED_V1
+    return _FRED_V1 if not url_endpoint.startswith("/v2/") else _FRED_V2
 
 async def _resolve_endpoint_async(url_endpoint: str) -> _EndpointSpec:
 

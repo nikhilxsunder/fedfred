@@ -57,21 +57,13 @@ References:
     Federal Reserve Bank of St. Louis, FRED API documentation. https://fred.stlouisfed.org/docs/api/fred/
 """
 
-import asyncio
 from datetime import datetime
-import time
-from collections import deque
-from typing import TYPE_CHECKING, Optional, Dict, Union, List, Tuple, Any
-import httpx
+from typing import TYPE_CHECKING, Optional, Dict, Union, List, Any
 import pandas as pd
-from tenacity import retry, wait_fixed, stop_after_attempt, retry_if_exception_type
-from cachetools import FIFOCache, cached
-from asyncache import cached as async_cached
-from ..__about__ import __title__, __version__, __author__, __email__, __license__, __copyright__, __description__, __docs__, __repository__
+
 from ..settings import _resolve_api_key, set_api_key
 from .._core import (
     # Converters
-    _dict_type_converter, _dict_type_converter_async,
     _hashable_type_converter, _hashable_type_converter_async,
     _datetime_converter, _datetime_converter_async,
     _liststring_converter, _liststring_converter_async,
@@ -82,6 +74,9 @@ from .._core import (
     _datetime_hh_mm_converter, _datetime_hh_mm_converter_async,
     # Validators
     _fred_parameter_validator, _fred_parameter_validator_async,
+    # Transport
+    _get_request, _get_request_async,
+    _cached_get_request, _cached_get_request_async
 )
 from ..models import BulkRelease, Category, Series, Tag, Release, ReleaseDate, Source, Element, VintageDate
 
@@ -177,11 +172,6 @@ class Fred:
         self.__api_key: Optional[str] = _resolve_api_key(service="fred")
         self.cache_mode: bool = cache_mode
         self.cache_size: int = cache_size
-        self.cache: FIFOCache = FIFOCache(maxsize=cache_size)
-        self.max_requests_per_minute: int = 120
-        self.request_times: deque = deque()
-        self.lock: asyncio.Lock = asyncio.Lock()
-        self.semaphore: asyncio.Semaphore = asyncio.Semaphore(self.max_requests_per_minute // 10)
 
     def __repr__(self) -> str:
         """String representation of the Fred class.
@@ -199,7 +189,7 @@ class Fred:
             'Fred(api_key='your_api_key', cache_mode=True, cache_size=256)'
         """
 
-        return f"Fred(api_key='{self.api_key}', cache_mode={self.cache_mode}, cache_size={self.cache_size})"
+        return f"Fred(api_key='{self.__api_key}', cache_mode={self.cache_mode}, cache_size={self.cache_size})"
 
     def __str__(self) -> str:
         """String representation of the Fred class.
@@ -225,7 +215,7 @@ class Fred:
         return (
             f"Fred Instance:\n"
             f"  Base URL: {self.base_url}\n"
-            f"  API Key: {'***' + self.api_key[-4:] if self.api_key else 'Not Provided'}\n"
+            f"  API Key: {'***' + self.__api_key[-4:] if self.__api_key else 'Not Provided'}\n"
             f"  Cache Mode: {'Enabled' if self.cache_mode else 'Disabled'}\n"
             f"  Cache Size: {self.cache_size}\n"
             f"  Max Requests Per Minute: {self.max_requests_per_minute}"
@@ -255,7 +245,7 @@ class Fred:
         if not isinstance(other, Fred):
             return NotImplemented
         return (
-            self.api_key == other.api_key and
+            self.__api_key == other.__api_key and
             self.cache_mode == other.cache_mode and
             self.cache_size == other.cache_size
         )
@@ -276,7 +266,7 @@ class Fred:
             1234567890 # Example hash value
         """
 
-        return hash((self.api_key, self.cache_mode, self.cache_size))
+        return hash((self.__api_key, self.cache_mode, self.cache_size))
 
     def __del__(self) -> None:
         """Destructor for the Fred class. Clears the cache when the instance is deleted.
@@ -430,7 +420,7 @@ class Fred:
             f"  Base URL: {self.base_url}\n"
             f"  Cache Mode: {'Enabled' if self.cache_mode else 'Disabled'}\n"
             f"  Cache Size: {len(self.cache)} items\n"
-            f"  API Key: {'****' + self.api_key[-4:] if self.api_key else 'Not Set'}\n"
+            f"  API Key: {'****' + self.__api_key[-4:] if self.__api_key else 'Not Set'}\n"
         )
 
     # Properties
@@ -441,24 +431,6 @@ class Fred:
         return list(self.cache.keys()) if self.cache_mode else []
 
     # Private Methods
-    def __rate_limited(self) -> None:
-        """Ensures synchronous requests comply with rate limits.
-
-        Notes:
-            This method tracks the timestamps of requests and enforces rate limiting by sleeping when the maximum 
-            number of requests per minute is reached.
-
-        Warnings:
-            This method uses time.sleep(), which blocks the current thread. Avoid using it in asynchronous contexts.
-        """
-
-        now = time.time()
-        self.request_times.append(now)
-        while self.request_times and self.request_times[0] < now - 60:
-            self.request_times.popleft()
-        if len(self.request_times) >= self.max_requests_per_minute:
-            time.sleep(60 - (now - self.request_times[0]))
-
     def __fred_get_request(self, url_endpoint: str, data: Optional[Dict[str, Optional[Union[str, int]]]]=None) -> Dict[str, Any]:
         """Helper method to perform a synchronous GET request to the FRED API.
 
@@ -480,76 +452,14 @@ class Fred:
             caching to work correctly.
         """
 
-        @retry(wait=wait_fixed(1),
-               stop=stop_after_attempt(3),
-               retry=retry_if_exception_type(httpx.HTTPError),
-               reraise=True,)
-        def __get_request(url_endpoint: str, data: Optional[Dict[str, Optional[Union[str, int]]]]=None) -> Dict[str, Any]:
-            """Perform a GET request without caching.
-
-            Args:
-                url_endpoint (str): The FRED API endpoint to query.
-                data (Dict[str, Optional[str | int]], optional): The query parameters for the request. Defaults to None.
-
-            Returns:
-                Dict[str, Any]: The JSON response from the FRED API.
-
-            Raises:
-                httpx.HTTPError: If the HTTP request fails.
-
-            Notes:
-                This method handles rate limiting and caching for synchronous GET requests to the FRED API.
-            """
-
-            self.__rate_limited()
-            params = {
-                **(data or {}),
-                'api_key': self.api_key,
-                'file_type': 'json'
-            }
-            with httpx.Client() as client:
-                try:
-                    if "/v2/" in url_endpoint:
-                        headers = {
-                            'Authorization': f'Bearer {self.api_key}'
-                        }
-                        params = {
-                            **(data or {}),
-                            'format': 'json'
-                        }
-                        response = client.get(self.base_url + url_endpoint, headers=headers, params=params, timeout=10)
-                        response.raise_for_status()
-                        return response.json()
-                    else:
-                        response = client.get(self.base_url + url_endpoint, params=params, timeout=10)
-                        response.raise_for_status()
-                    return response.json()
-                except httpx.HTTPError as e:
-                    raise ValueError(f"HTTP Error occurred: {e}") from e
-
-        @cached(cache=self.cache)
-        def __cached_get_request(url_endpoint: str, hashable_data: Optional[Tuple[Tuple[str, Optional[Union[str, int]]], ...]]=None) -> Dict[str, Any]:
-            """Perform a GET request with caching.
-
-            Args:
-                url_endpoint (str): The FRED API endpoint to query.
-                hashable_data (Optional[Tuple[Tuple[str, Optional[str | int]], ...]], optional): The hashable representation of the data. Defaults to None.
-
-            Returns:
-                Dict[str, Any]: The JSON response from the FRED API.
-
-            Raises:
-                httpx.HTTPError: If the HTTP request fails.
-            """
-
-            return __get_request(url_endpoint, _dict_type_converter(hashable_data))
-
         if data:
             _fred_parameter_validator(data)
+
         if self.cache_mode:
-            return __cached_get_request(url_endpoint, _hashable_type_converter(data))
+            return _cached_get_request(url_endpoint, _hashable_type_converter(data))
+        
         else:
-            return __get_request(url_endpoint, data)
+            return _get_request(url_endpoint, data)
 
     # Public Methods
     ## Categories
@@ -2733,9 +2643,6 @@ class AsyncFred:
             raise ValueError("parent must be an instance of Fred")
 
         self._parent: Fred = parent
-        self.cache_mode: bool = parent.cache_mode
-        self.cache: FIFOCache = parent.cache
-        self.base_url: str = parent.base_url
 
     def __repr__(self) -> str:
         """String representation of the AsyncFred class.
@@ -3007,51 +2914,6 @@ class AsyncFred:
         return list(self.cache.keys()) if self.cache_mode else []
 
     # Private Methods
-    async def __update_semaphore(self) -> Tuple[Any, float]:
-        """Dynamically adjusts the semaphore based on requests left in the minute.
-
-        Returns:
-            Tuple[Any, float]: A tuple containing the number of requests left and the time left in seconds.
-
-        Notes:
-            This method updates the semaphore limit based on the number of requests made in the last minute, allowing for dynamic rate limiting.
-
-        Warnings:
-            This method should be used within an asynchronous context to ensure proper locking and timing.
-        """
-
-        async with self._parent.lock:
-            now = time.time()
-            while self._parent.request_times and self._parent.request_times[0] < now - 60:
-                self._parent.request_times.popleft()
-            requests_made = len(self._parent.request_times)
-            requests_left = max(0, self._parent.max_requests_per_minute - requests_made)
-            time_left = max(1, 60 - (now - (self._parent.request_times[0] if self._parent.request_times else now)))
-            new_limit = max(1, min(self._parent.max_requests_per_minute // 10, requests_left // 2))
-            self._parent.semaphore = asyncio.Semaphore(new_limit)
-            return requests_left, time_left
-
-    async def __rate_limited(self) -> None:
-        """Ensures asynchronous requests comply with rate limits.
-
-        Notes:
-            This method ensures that API requests adhere to the rate limit by dynamically adjusting the wait time based on the 
-            number of requests left and the time remaining in the current minute.
-
-        Warnings:
-            This method should be used within an asynchronous context to ensure proper locking and timing.
-        """
-
-        async with self._parent.semaphore:
-            requests_left, time_left = await self.__update_semaphore()
-            if requests_left > 0:
-                sleep_time = time_left / max(1, requests_left)
-                await asyncio.sleep(sleep_time)
-            else:
-                await asyncio.sleep(60)
-            async with self._parent.lock:
-                self._parent.request_times.append(time.time())
-
     async def __fred_get_request(self, url_endpoint: str, data: Optional[Dict[str, Optional[Union[str, int]]]]=None) -> Dict[str, Any]:
         """Helper method to perform an asynchronous GET request to the FRED API.
 
@@ -3073,75 +2935,14 @@ class AsyncFred:
             caching to work correctly.
         """
 
-        @retry(wait=wait_fixed(1),
-            stop=stop_after_attempt(3),
-            retry=retry_if_exception_type(httpx.HTTPError),
-            reraise=True,)
-        async def __get_request(url_endpoint: str, data: Optional[Dict[str, Optional[Union[str, int]]]]=None) -> Dict[str, Any]:
-            """Perform a GET request without caching.
-
-            Args:
-                url_endpoint (str): The FRED API endpoint to query.
-                data (Dict[str, Optional[str | int]], optional): The query parameters for the request. Defaults to None.
-
-            Returns:
-                Dict[str, Any]: The JSON response from the FRED API.
-
-            Raises:
-                httpx.HTTPError: If the HTTP request fails.
-
-            Notes:
-                This method handles rate limiting and caching for synchronous GET requests to the FRED API.
-            """
-
-            await self.__rate_limited()
-            params = {
-                **(data or {}),
-                'api_key': self._parent.api_key,
-                'file_type': 'json'
-            }
-            async with httpx.AsyncClient() as client:
-                try:
-                    if "/v2/" in url_endpoint:
-                        headers = {
-                            'Authorization': f'Bearer {self._parent.api_key}'
-                        }
-                        params = {
-                            **(data or {}),
-                            'format': 'json'
-                        }
-                        response = await client.get(self.base_url + url_endpoint, headers=headers, params=params, timeout=10)
-                        response.raise_for_status()
-                        return response.json()
-                    response = await client.get(self.base_url + url_endpoint, params=params, timeout=10)
-                    response.raise_for_status()
-                    return response.json()
-                except httpx.HTTPError as e:
-                    raise ValueError(f"HTTP Error occurred: {e}") from e
-
-        @async_cached(cache=self.cache)
-        async def __cached_get_request(url_endpoint: str, hashable_data: Optional[Tuple[Tuple[str, Optional[Union[str, int]]], ...]]=None) -> Dict[str, Any]:
-            """Perform a GET request with caching.
-
-            Args:
-                url_endpoint (str): The FRED API endpoint to query.
-                hashable_data (Optional[Tuple[Tuple[str, Optional[str | int]], ...]], optional): The hashable representation of the data. Defaults to None.
-
-            Returns:
-                Dict[str, Any]: The JSON response from the FRED API.
-
-            Raises:
-                httpx.HTTPError: If the HTTP request fails.
-            """
-
-            return await __get_request(url_endpoint, await _dict_type_converter_async(hashable_data))
-
         if data:
             await _fred_parameter_validator_async(data)
-        if self.cache_mode:
-            return await __cached_get_request(url_endpoint, await _hashable_type_converter_async(data))
+
+        if self._parent.cache_mode:
+            return await _cached_get_request_async(url_endpoint, await _hashable_type_converter_async(data))
+
         else:
-            return await __get_request(url_endpoint, data)
+            return await _get_request_async(url_endpoint, data)
 
     # Public Methods
     ## Categories

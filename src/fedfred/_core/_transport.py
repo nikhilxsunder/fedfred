@@ -11,7 +11,7 @@ from ._converters import _dict_type_converter, _dict_type_converter_async
 from ._rate_limit import _rate_limiter, _rate_limiter_async
 from ._endpoints import _resolve_endpoint, _resolve_endpoint_async
 
-_CACHE: FIFOCache = FIFOCache(256) # fix cache size resolution, refactor resolution logic to settings module.
+_CACHE: FIFOCache = FIFOCache(maxsize=256) # fix cache size resolution, refactor resolution logic to settings module.
 
 
 @retry(wait=wait_fixed(1), stop=stop_after_attempt(3), retry=retry_if_exception_type(httpx.HTTPError),reraise=True,)
