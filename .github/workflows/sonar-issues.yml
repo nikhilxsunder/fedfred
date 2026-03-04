@@ -30,13 +30,13 @@ jobs:
 
       # Customize these:
       SONAR_HOST: https://sonarcloud.io
-      SONAR_PROJECT_KEY: nikhilxsunder_fedfred  # e.g. nikhilxsunder_fedfred
-      SONAR_ORGANIZATION: nikhilxsunder  # optional but useful in links
+      SONAR_PROJECT_KEY: nikhilxsunder_fedfred
+      SONAR_ORGANIZATION: nikhilxsunder
 
       # Filtering:
       SONAR_TYPES: BUG,VULNERABILITY,CODE_SMELL
       SONAR_SEVERITIES: BLOCKER,CRITICAL,MAJOR,MINOR
-      NEW_CODE_ONLY: "true"  # uses sinceLeakPeriod=true
+      NEW_CODE_ONLY: "true" # uses sinceLeakPeriod=true
 
       # Issue labeling:
       GH_LABELS: "sonarcloud,static-analysis"
@@ -58,26 +58,24 @@ jobs:
           fi
 
           # Determine branch name for links + Sonar query
+          PR_KEY=""
+          SONAR_BRANCH_PARAM=""
+          SONAR_PR_PARAM=""
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
             BRANCH="${{ github.head_ref }}"
             PR_KEY="${{ github.event.pull_request.number }}"
-            SONAR_BRANCH_PARAM="" # prefer pullRequest param for Sonar PR analysis
             SONAR_PR_PARAM="&pullRequest=${PR_KEY}"
           else
             BRANCH="${{ github.ref_name }}"
             SONAR_BRANCH_PARAM="&branch=${BRANCH}"
-            SONAR_PR_PARAM=""
           fi
 
           OWNER="${{ github.repository_owner }}"
-          REPO="$(basename "${{ github.repository }}")"
+          REPO="${{ github.event.repository.name }}"
 
-          # Helpers
+          # Helpers (avoid heredoc; jq is preinstalled on ubuntu-latest)
           urlencode() {
-            python - <<'PY' "$1"
-import sys, urllib.parse
-print(urllib.parse.quote(sys.argv[1], safe=""))
-PY
+            printf '%s' "$1" | jq -s -R -r @uri
           }
 
           # Sonar search endpoint
@@ -85,8 +83,7 @@ PY
           TYPES_ENC="$(urlencode "${SONAR_TYPES}")"
           SEV_ENC="$(urlencode "${SONAR_SEVERITIES}")"
 
-          # Use "sinceLeakPeriod=true" to restrict to "New Code" (Leak Period).
-          # This is generally what you want to avoid flooding GitHub issues.
+          # Restrict to "New Code" (Leak Period) by default to avoid flooding
           SINCE_LEAK=""
           if [[ "${NEW_CODE_ONLY}" == "true" ]]; then
             SINCE_LEAK="&sinceLeakPeriod=true"
@@ -105,7 +102,6 @@ PY
 
             RESP="$(curl -fsSL -u "${SONAR_TOKEN}:" "${QUERY}")"
 
-            # total count
             TOTAL="$(echo "${RESP}" | jq -r '.total // 0')"
             COUNT="$(echo "${RESP}" | jq -r '.issues | length')"
 
@@ -137,60 +133,63 @@ PY
                 LOC="${FILE_PATH}"
               fi
 
-              # Sonar issue deep link (works for both branch + PR; Sonar will route appropriately)
+              # Sonar issue deep link
               SONAR_ISSUE_URL="${SONAR_HOST}/project/issues?id=$(urlencode "${SONAR_PROJECT_KEY}")&open=$(urlencode "${ISSUE_KEY}")&issues=$(urlencode "${ISSUE_KEY}")"
 
               # Dedup marker
               MARKER="<!-- sonar_issue:${ISSUE_KEY} -->"
 
-              # Search for an existing open GitHub issue with this marker
-              # Use the REST search endpoint via gh for reliable matching.
+              # Check if a GitHub issue already exists for this Sonar issue key
+              SEARCH_Q="repo:${OWNER}/${REPO} is:issue is:open ${ISSUE_KEY}"
               EXISTING="$(gh api -H "Accept: application/vnd.github+json" \
-                "/search/issues?q=$(urlencode "repo:${OWNER}/${REPO} is:issue is:open ${ISSUE_KEY}")" \
+                "/search/issues?q=$(urlencode "${SEARCH_Q}")" \
                 --jq '.total_count')"
 
               if [[ "${EXISTING}" != "0" ]]; then
                 echo "Skip (already exists): ${ISSUE_KEY}"
-                exit 0
+                continue
               fi
 
               TITLE="SonarCloud ${TYPE} (${SEVERITY}): ${RULE} @ ${LOC}"
 
+              # NOTE: heredoc content MUST remain indented inside this run block.
               BODY="$(cat <<EOF
-${MARKER}
+              ${MARKER}
 
-### SonarCloud finding
+              ### SonarCloud finding
 
-- **Type:** ${TYPE}
-- **Severity:** ${SEVERITY}
-- **Rule:** ${RULE}
+              - **Type:** ${TYPE}
+              - **Severity:** ${SEVERITY}
+              - **Rule:** ${RULE}
 
-**Message**
-${MESSAGE}
+              **Message**
+              ${MESSAGE}
 
-**Location**
-${LOC}
+              **Location**
+              ${LOC}
 
-**Links**
-- GitHub: ${GH_CODE_URL}
-- SonarCloud: ${SONAR_ISSUE_URL}
+              **Links**
+              - GitHub: ${GH_CODE_URL}
+              - SonarCloud: ${SONAR_ISSUE_URL}
 
-**Context**
-- Event: ${{ github.event_name }}
-- Branch: ${BRANCH}
-- PR: ${PR_KEY:-N/A}
-EOF
-)"
+              **Context**
+              - Event: ${{ github.event_name }}
+              - Branch: ${BRANCH}
+              - PR: ${PR_KEY:-N/A}
+              EOF
+              )"
 
-              # Create issue
-              # Labels: create if they already exist; otherwise GitHub will ignore unknown labels.
-              echo "Creating GitHub issue for ${ISSUE_KEY}"
-              gh api -H "Accept: application/vnd.github+json" \
-                -X POST "/repos/${OWNER}/${REPO}/issues" \
-                -f title="${TITLE}" \
-                -f body="${BODY}" \
-                -f labels="[$(printf '"%s",' ${GH_LABELS//,/ } | sed 's/,$//')]"
-            done
+                            # Create issue
+                            # Labels are best-effort; unknown labels are ignored by GitHub.
+                            LABELS_JSON="$(printf '%s' "${GH_LABELS}" | jq -R -s 'split(",") | map(gsub("^\\s+|\\s+$";"")) | map(select(length>0))')"
 
-            PAGE=$((PAGE + 1))
-          done
+                            echo "Creating GitHub issue for ${ISSUE_KEY}"
+                            gh api -H "Accept: application/vnd.github+json" \
+                              -X POST "/repos/${OWNER}/${REPO}/issues" \
+                              -f title="${TITLE}" \
+                              -f body="${BODY}" \
+                              -f labels="${LABELS_JSON}"
+                          done
+
+                          PAGE=$((PAGE + 1))
+                        done
