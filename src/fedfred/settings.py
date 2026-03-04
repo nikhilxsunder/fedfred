@@ -115,7 +115,7 @@ def clear_api_key(service: Service = "fred") -> None:
         raise ValueError(f"Unknown service: {service!r}. Expected 'fred' or 'fraser'.")
     _GLOBAL_KEYS[service] = None
 
-def _resolve_api_key(api_key: Optional[str] = None, *, service: Service = "fred", env_var: Optional[str] = None,) -> str:
+def _resolve_api_key(*, service: Service = "fred", env_var: Optional[str] = None,) -> str:
     """Resolve an API key from an explicit argument, the global setting, or the environment variable. Raises if nothing is available.
 
     Args:
@@ -133,10 +133,6 @@ def _resolve_api_key(api_key: Optional[str] = None, *, service: Service = "fred"
 
     if service not in _GLOBAL_KEYS:
         raise ValueError(f"Unknown service: {service!r}. Expected 'fred' or 'fraser'.")
-
-    # 1) explicit argument
-    if isinstance(api_key, str) and api_key.strip():
-        return api_key.strip()
 
     # 2) global
     global_key = _GLOBAL_KEYS.get(service)

@@ -231,13 +231,6 @@ def _geopandas_geodataframe_converter(shapefile: gpd.GeoDataFrame, meta_data: Di
 
     Notes:
         This method adds 'value' and 'series_id' columns to the GeoDataFrame based on the provided metadata.
-
-    References:
-        - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.helpers.Helpers.to_gpd_gdf.html
-
-    See Also:
-        - :meth:`Helpers.to_dd_gpd_gdf`: Convert a FRED observation dictionary to a Dask GeoPandas GeoDataFrame.
-        - :meth:`Helpers.to_pl_st_gdf`: Convert a FRED observation dictionary to a Polars GeoDataFrame.
     """
 
     shapefile.set_index('name', inplace=True)

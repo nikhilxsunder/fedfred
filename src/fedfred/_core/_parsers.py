@@ -1,4 +1,4 @@
-# filepath: /src/fedfred/_core/_extractors.py
+# filepath: /src/fedfred/_core/_parsers.py
 #
 # Copyright (c) 2025–2026 Nikhil Sunder
 #
@@ -19,7 +19,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""fedfred._core._extractors
+"""fedfred._core._parsers
 
 This module provides internal helper methods for the fedfred package, specifically for extracting data from certain FRED API responses.
 
@@ -31,9 +31,9 @@ References:
 import asyncio
 from typing import Dict
 
-from fedfred.exceptions.extraction import ExtractionError
+from fedfred.exceptions.parsing import ParsingError
 
-def _region_type_extractor(response: Dict) -> str:
+def _region_type_parser(response: Dict) -> str:
     """Helper method to extract the region type from a GeoFred response dict.
 
     Args:
@@ -43,7 +43,7 @@ def _region_type_extractor(response: Dict) -> str:
         str: Extracted region type.
 
     Raises:
-        ValueError: If no meta data or region type is found in the response.
+        ParsingError: If no meta data or region type is found in the response.
     
     Examples:
         >>> import fedfred as fd
@@ -73,19 +73,19 @@ def _region_type_extractor(response: Dict) -> str:
 
     meta_data = response.get('meta', {})
     if not meta_data:
-        raise ExtractionError(
+        raise ParsingError(
             message="No meta data found in the response"
             )
 
     region_type = meta_data.get('region')
     if not region_type:
-        raise ExtractionError(
+        raise ParsingError(
             message="No region type found in the response meta data"
             )
 
     return region_type
 
-async def _region_type_extractor_async(response: Dict) -> str:
+async def _region_type_parser_async(response: Dict) -> str:
     """Helper method to extract the region type from a GeoFred response dictionary asynchronously.
 
     Args:
@@ -95,7 +95,7 @@ async def _region_type_extractor_async(response: Dict) -> str:
         str: Extracted region type.
 
     Raises:
-        ValueError: If no meta data or region type is found in the response.
+        ParsingError: If no meta data or region type is found in the response.
 
     Examples:
         >>> import asyncio
@@ -127,4 +127,4 @@ async def _region_type_extractor_async(response: Dict) -> str:
         - :meth:`AsyncHelpers.to_pl_st_gdf`: Asynchronously convert a FRED observation dictionary to a Polars GeoDataFrame.
     """
 
-    return await asyncio.to_thread(_region_type_extractor, response)
+    return await asyncio.to_thread(_region_type_parser, response)

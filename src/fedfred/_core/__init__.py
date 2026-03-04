@@ -45,8 +45,8 @@ from ._validators import (
     _geofred_parameter_validator, _geofred_parameter_validator_async
 )
 
-from ._extractors import (
-    _region_type_extractor, _region_type_extractor_async
+from ._parsers import (
+    _region_type_parser, _region_type_parser_async
 )
 
 __all__ = [
@@ -66,6 +66,6 @@ __all__ = [
     # Validators
     '_fred_parameter_validator', '_fred_parameter_validator_async',
     '_geofred_parameter_validator', '_geofred_parameter_validator_async',
-    # Extractors
-    '_region_type_extractor', '_region_type_extractor_async'
+    # Parsers
+    '_region_type_parser', '_region_type_parser_async'
 ]

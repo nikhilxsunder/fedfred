@@ -57,7 +57,6 @@ References:
     Federal Reserve Bank of St. Louis, FRED API documentation. https://fred.stlouisfed.org/docs/api/fred/
 """
 
-from __future__ import annotations
 import asyncio
 from datetime import datetime
 import time
@@ -69,7 +68,7 @@ from tenacity import retry, wait_fixed, stop_after_attempt, retry_if_exception_t
 from cachetools import FIFOCache, cached
 from asyncache import cached as async_cached
 from ..__about__ import __title__, __version__, __author__, __email__, __license__, __copyright__, __description__, __docs__, __repository__
-from ..settings import _resolve_api_key
+from ..settings import _resolve_api_key, set_api_key
 from .._core import (
     # Converters
     _dict_type_converter, _dict_type_converter_async,
@@ -171,7 +170,11 @@ class Fred:
         """
 
         self.base_url: str = 'https://api.stlouisfed.org/fred'
-        self.api_key: Optional[str] = _resolve_api_key(api_key, service="fred")
+
+        if api_key:
+            set_api_key(api_key, service="fred")
+
+        self.__api_key: Optional[str] = _resolve_api_key(service="fred")
         self.cache_mode: bool = cache_mode
         self.cache_size: int = cache_size
         self.cache: FIFOCache = FIFOCache(maxsize=cache_size)

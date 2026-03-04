@@ -24,4 +24,5 @@
 from .validation import ValueValidationError, TypeValidationError, ParameterValidationError, ValidationError
 from .conversion import ConversionError, ParameterConversionError, TypeConversionError, DateConversionError, DataFrameConversionError, GeoDataFrameConversionError
 from .dependencies import OptionalDependencyError
+from .parsing import ParsingError
 from .base import FedfredError
