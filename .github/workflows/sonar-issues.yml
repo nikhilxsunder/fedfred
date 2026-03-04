@@ -1,0 +1,196 @@
+# .github/workflows/sonarcloud-to-github-issues.yml
+name: SonarCloud → GitHub Issues
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: read
+
+concurrency:
+  group: sonarcloud-issues-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  sonarcloud_issues:
+    runs-on: ubuntu-latest
+
+    env:
+      # Required secrets:
+      #   SONAR_TOKEN: SonarCloud token (project analysis token is fine)
+      # GitHub provides:
+      #   GITHUB_TOKEN: auto
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Customize these:
+      SONAR_HOST: https://sonarcloud.io
+      SONAR_PROJECT_KEY: nikhilxsunder_fedfred  # e.g. nikhilxsunder_fedfred
+      SONAR_ORGANIZATION: nikhilxsunder  # optional but useful in links
+
+      # Filtering:
+      SONAR_TYPES: BUG,VULNERABILITY,CODE_SMELL
+      SONAR_SEVERITIES: BLOCKER,CRITICAL,MAJOR,MINOR
+      NEW_CODE_ONLY: "true"  # uses sinceLeakPeriod=true
+
+      # Issue labeling:
+      GH_LABELS: "sonarcloud,static-analysis"
+
+    steps:
+      - name: Checkout (for repo context only)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Create GitHub issues from SonarCloud issues
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ -z "${SONAR_TOKEN:-}" ]]; then
+            echo "SONAR_TOKEN secret is missing."
+            exit 1
+          fi
+
+          # Determine branch name for links + Sonar query
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            BRANCH="${{ github.head_ref }}"
+            PR_KEY="${{ github.event.pull_request.number }}"
+            SONAR_BRANCH_PARAM="" # prefer pullRequest param for Sonar PR analysis
+            SONAR_PR_PARAM="&pullRequest=${PR_KEY}"
+          else
+            BRANCH="${{ github.ref_name }}"
+            SONAR_BRANCH_PARAM="&branch=${BRANCH}"
+            SONAR_PR_PARAM=""
+          fi
+
+          OWNER="${{ github.repository_owner }}"
+          REPO="$(basename "${{ github.repository }}")"
+
+          # Helpers
+          urlencode() {
+            python - <<'PY' "$1"
+import sys, urllib.parse
+print(urllib.parse.quote(sys.argv[1], safe=""))
+PY
+          }
+
+          # Sonar search endpoint
+          BASE_URL="${SONAR_HOST}/api/issues/search"
+          TYPES_ENC="$(urlencode "${SONAR_TYPES}")"
+          SEV_ENC="$(urlencode "${SONAR_SEVERITIES}")"
+
+          # Use "sinceLeakPeriod=true" to restrict to "New Code" (Leak Period).
+          # This is generally what you want to avoid flooding GitHub issues.
+          SINCE_LEAK=""
+          if [[ "${NEW_CODE_ONLY}" == "true" ]]; then
+            SINCE_LEAK="&sinceLeakPeriod=true"
+          fi
+
+          # Pagination
+          PAGE=1
+          PAGE_SIZE=100
+          TOTAL=1
+
+          echo "Querying SonarCloud issues for project: ${SONAR_PROJECT_KEY}"
+          echo "Event: ${{ github.event_name }}, Branch: ${BRANCH}, PR: ${PR_KEY:-<none>}"
+
+          while (( (PAGE - 1) * PAGE_SIZE < TOTAL )); do
+            QUERY="${BASE_URL}?componentKeys=$(urlencode "${SONAR_PROJECT_KEY}")${SONAR_BRANCH_PARAM}${SONAR_PR_PARAM}${SINCE_LEAK}&resolved=false&types=${TYPES_ENC}&severities=${SEV_ENC}&ps=${PAGE_SIZE}&p=${PAGE}"
+
+            RESP="$(curl -fsSL -u "${SONAR_TOKEN}:" "${QUERY}")"
+
+            # total count
+            TOTAL="$(echo "${RESP}" | jq -r '.total // 0')"
+            COUNT="$(echo "${RESP}" | jq -r '.issues | length')"
+
+            echo "Page ${PAGE}: ${COUNT} issues (total: ${TOTAL})"
+
+            if (( COUNT == 0 )); then
+              break
+            fi
+
+            # Iterate issues
+            echo "${RESP}" | jq -c '.issues[]' | while read -r issue; do
+              ISSUE_KEY="$(echo "${issue}" | jq -r '.key')"
+              RULE="$(echo "${issue}" | jq -r '.rule')"
+              SEVERITY="$(echo "${issue}" | jq -r '.severity')"
+              TYPE="$(echo "${issue}" | jq -r '.type')"
+              MESSAGE="$(echo "${issue}" | jq -r '.message')"
+              COMPONENT="$(echo "${issue}" | jq -r '.component')"
+              LINE="$(echo "${issue}" | jq -r '.line // empty')"
+
+              # component looks like "projectKey:path/to/file.py"
+              FILE_PATH="${COMPONENT#*:}"
+
+              # Construct GitHub code link (best-effort)
+              if [[ -n "${LINE}" ]]; then
+                GH_CODE_URL="https://github.com/${OWNER}/${REPO}/blob/${BRANCH}/${FILE_PATH}#L${LINE}"
+                LOC="${FILE_PATH}:${LINE}"
+              else
+                GH_CODE_URL="https://github.com/${OWNER}/${REPO}/blob/${BRANCH}/${FILE_PATH}"
+                LOC="${FILE_PATH}"
+              fi
+
+              # Sonar issue deep link (works for both branch + PR; Sonar will route appropriately)
+              SONAR_ISSUE_URL="${SONAR_HOST}/project/issues?id=$(urlencode "${SONAR_PROJECT_KEY}")&open=$(urlencode "${ISSUE_KEY}")&issues=$(urlencode "${ISSUE_KEY}")"
+
+              # Dedup marker
+              MARKER="<!-- sonar_issue:${ISSUE_KEY} -->"
+
+              # Search for an existing open GitHub issue with this marker
+              # Use the REST search endpoint via gh for reliable matching.
+              EXISTING="$(gh api -H "Accept: application/vnd.github+json" \
+                "/search/issues?q=$(urlencode "repo:${OWNER}/${REPO} is:issue is:open ${ISSUE_KEY}")" \
+                --jq '.total_count')"
+
+              if [[ "${EXISTING}" != "0" ]]; then
+                echo "Skip (already exists): ${ISSUE_KEY}"
+                exit 0
+              fi
+
+              TITLE="SonarCloud ${TYPE} (${SEVERITY}): ${RULE} @ ${LOC}"
+
+              BODY="$(cat <<EOF
+${MARKER}
+
+### SonarCloud finding
+
+- **Type:** ${TYPE}
+- **Severity:** ${SEVERITY}
+- **Rule:** ${RULE}
+
+**Message**
+${MESSAGE}
+
+**Location**
+${LOC}
+
+**Links**
+- GitHub: ${GH_CODE_URL}
+- SonarCloud: ${SONAR_ISSUE_URL}
+
+**Context**
+- Event: ${{ github.event_name }}
+- Branch: ${BRANCH}
+- PR: ${PR_KEY:-N/A}
+EOF
+)"
+
+              # Create issue
+              # Labels: create if they already exist; otherwise GitHub will ignore unknown labels.
+              echo "Creating GitHub issue for ${ISSUE_KEY}"
+              gh api -H "Accept: application/vnd.github+json" \
+                -X POST "/repos/${OWNER}/${REPO}/issues" \
+                -f title="${TITLE}" \
+                -f body="${BODY}" \
+                -f labels="[$(printf '"%s",' ${GH_LABELS//,/ } | sed 's/,$//')]"
+            done
+
+            PAGE=$((PAGE + 1))
+          done

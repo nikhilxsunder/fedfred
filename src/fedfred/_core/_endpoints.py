@@ -4,7 +4,7 @@
 
 from dataclasses import dataclass
 import asyncio
-from typing import Mapping, Optional, Dict, Union, Any
+from typing import Mapping, Dict
 
 from ..settings import _resolve_api_key
 
