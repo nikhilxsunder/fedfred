@@ -180,12 +180,18 @@ jobs:
 
               LABELS_JSON="$(printf '%s' "${GH_LABELS}" | jq -R -s 'split(",") | map(gsub("^\\s+|\\s+$";"")) | map(select(length>0))')"
 
+              CREATE_BODY="$(jq -n \
+                --arg title "${TITLE}" \
+                --arg body "${BODY}" \
+                --argjson labels "${LABELS_JSON}" \
+                '{title:$title, body:$body, labels:$labels}')"
+
               echo "Creating GitHub issue for ${ISSUE_KEY}"
-              gh api -H "Accept: application/vnd.github+json" \
+
+              printf '%s' "${CREATE_BODY}" | gh api \
+                -H "Accept: application/vnd.github+json" \
                 -X POST "/repos/${OWNER}/${REPO}/issues" \
-                -f title="${TITLE}" \
-                -f body="${BODY}" \
-                -f labels="${LABELS_JSON}"
+                --input -
             done
 
             PAGE=$((PAGE + 1))
