@@ -152,44 +152,41 @@ jobs:
 
               TITLE="SonarCloud ${TYPE} (${SEVERITY}): ${RULE} @ ${LOC}"
 
-              # NOTE: heredoc content MUST remain indented inside this run block.
-              BODY="$(cat <<EOF
-              ${MARKER}
-
-              ### SonarCloud finding
-
-              - **Type:** ${TYPE}
-              - **Severity:** ${SEVERITY}
-              - **Rule:** ${RULE}
-
-              **Message**
-              ${MESSAGE}
-
-              **Location**
-              ${LOC}
-
-              **Links**
-              - GitHub: ${GH_CODE_URL}
-              - SonarCloud: ${SONAR_ISSUE_URL}
-
-              **Context**
-              - Event: ${{ github.event_name }}
-              - Branch: ${BRANCH}
-              - PR: ${PR_KEY:-N/A}
-              EOF
+              BODY="$(
+                printf '%s\n' \
+                  "${MARKER}" \
+                  "" \
+                  "### SonarCloud finding" \
+                  "" \
+                  "- **Type:** ${TYPE}" \
+                  "- **Severity:** ${SEVERITY}" \
+                  "- **Rule:** ${RULE}" \
+                  "" \
+                  "**Message**" \
+                  "${MESSAGE}" \
+                  "" \
+                  "**Location**" \
+                  "${LOC}" \
+                  "" \
+                  "**Links**" \
+                  "- GitHub: ${GH_CODE_URL}" \
+                  "- SonarCloud: ${SONAR_ISSUE_URL}" \
+                  "" \
+                  "**Context**" \
+                  "- Event: ${{ github.event_name }}" \
+                  "- Branch: ${BRANCH}" \
+                  "- PR: ${PR_KEY:-N/A}"
               )"
 
-                            # Create issue
-                            # Labels are best-effort; unknown labels are ignored by GitHub.
-                            LABELS_JSON="$(printf '%s' "${GH_LABELS}" | jq -R -s 'split(",") | map(gsub("^\\s+|\\s+$";"")) | map(select(length>0))')"
+              LABELS_JSON="$(printf '%s' "${GH_LABELS}" | jq -R -s 'split(",") | map(gsub("^\\s+|\\s+$";"")) | map(select(length>0))')"
 
-                            echo "Creating GitHub issue for ${ISSUE_KEY}"
-                            gh api -H "Accept: application/vnd.github+json" \
-                              -X POST "/repos/${OWNER}/${REPO}/issues" \
-                              -f title="${TITLE}" \
-                              -f body="${BODY}" \
-                              -f labels="${LABELS_JSON}"
-                          done
+              echo "Creating GitHub issue for ${ISSUE_KEY}"
+              gh api -H "Accept: application/vnd.github+json" \
+                -X POST "/repos/${OWNER}/${REPO}/issues" \
+                -f title="${TITLE}" \
+                -f body="${BODY}" \
+                -f labels="${LABELS_JSON}"
+            done
 
-                          PAGE=$((PAGE + 1))
-                        done
+            PAGE=$((PAGE + 1))
+          done
