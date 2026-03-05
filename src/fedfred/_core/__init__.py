@@ -53,7 +53,6 @@ from ._transport import (
     _get_request, _get_request_async,
     _cached_get_request, _cached_get_request_async
 )
-    
 
 __all__ = [
     # Converters
