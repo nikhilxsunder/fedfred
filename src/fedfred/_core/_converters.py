@@ -21,7 +21,7 @@
 # SOFTWARE.
 """fedfred._core._converters
 
-This module provides converter methods for the FRED API.
+This module provides internal converter functions for the fedfred core package.
 """
 
 import asyncio
@@ -53,6 +53,8 @@ def _pandas_dataframe_converter(data: Dict[str, list]) -> pd.DataFrame:
         DataFrameConversionError: If 'observations' key is not in the data or if conversion fails.
 
     Examples:
+        >>> # Internal use
+        >>> from ._core import _pandas_dataframe_converter
         >>> response = {
         >>>     "observations": [
         >>>         {"date": "2020-01-01", "value": "100"},
@@ -88,7 +90,7 @@ def _pandas_dataframe_converter(data: Dict[str, list]) -> pd.DataFrame:
     return df
 
 def _polars_dataframe_converter(data: Dict[str, list]) -> 'pl.DataFrame':
-    """Internal converter method to convert a FRED observation dictionary to a Polars DataFrame.
+    """Internal converter function to convert a FRED observation dictionary to a Polars DataFrame.
 
     Args:
         data (Dict[str, list]): FRED observation dictionary.
@@ -101,6 +103,8 @@ def _polars_dataframe_converter(data: Dict[str, list]) -> 'pl.DataFrame':
         DataFrameConversionError: If 'observations' key is not in the data.
 
     Examples:
+        >>> # Internal use
+        >>> from ._core import _polars_dataframe_converter
         >>> response = {
         >>>     "observations": [
         >>>         {"date": "2020-01-01", "value": "100"},
@@ -153,7 +157,7 @@ def _polars_dataframe_converter(data: Dict[str, list]) -> 'pl.DataFrame':
     return df
 
 def _dask_dataframe_converter(data: Dict[str, list]) -> 'dd.DataFrame':
-    """Internal converter method to convert a FRED observation dictionary to a Dask DataFrame.
+    """Internal converter function to convert a FRED observation dictionary to a Dask DataFrame.
 
     Args:
         data (Dict[str, list]): FRED observation dictionary.
@@ -166,6 +170,8 @@ def _dask_dataframe_converter(data: Dict[str, list]) -> 'dd.DataFrame':
         DataFrameConversionError: If 'observations' key is not in the data.
 
     Examples:
+        >>> # Internal use
+        >>> from ._core import _dask_dataframe_converter
         >>> response = {
         >>>     "observations": [
         >>>         {"date": "2020-01-01", "value": "100"},
@@ -199,31 +205,53 @@ def _dask_dataframe_converter(data: Dict[str, list]) -> 'dd.DataFrame':
     return dd.from_pandas(df, npartitions=1)
 
 def _geopandas_geodataframe_converter(shapefile: gpd.GeoDataFrame, meta_data: Dict) -> gpd.GeoDataFrame:
-    """Helper method to convert a FRED observation dictionary to a GeoPandas GeoDataFrame.
+    """Internal converter function to convert a GeoFRED observation dictionary to a GeoPandas GeoDataFrame.
 
     Args:
-        shapefile (geopandas.GeoDataFrame): FRED shapefile GeoDataFrame.
-        meta_data (Dict): FRED response metadata dictionary.
+        shapefile (geopandas.GeoDataFrame): GeoFRED shapefile GeoDataFrame.
+        meta_data (Dict): GeoFRED response metadata dictionary.
 
     Returns:
         geopandas.GeoDataFrame: Converted GeoPandas GeoDataFrame.
 
     Raises:
-        ValueError: If no data section is found in the response.
+        GeoDataFrameConversionError: If no data section is found in the response.
 
     Examples:
-        >>> import fedfred as fd
-        >>> import geopandas as gpd
-        >>> shapefile = gpd.read_file("path_to_shapefile.shp")
+        >>> # Internal use
+        >>> from ._core import _geopandas_geodataframe_converter
+        >>> shapefile = {
+        ...     "type": "FeatureCollection",
+        ...     "features": [
+        ...         {
+        ...             "type": "Feature",
+        ...             "id": "US.MA",
+        ...             "properties": {"name": "Massachusetts"},
+        ...             "geometry": {
+        ...                 "type": "MultiPolygon",
+        ...                 "coordinates": [[[[9727, 7650], ...]]]
+        ...             }
+        ...         }
+        ...     ]
+        ... }
         >>> meta_data = {
-        >>>     "data": {
-        >>>         "observations": [
-        >>>             {"region": "Region1", "value": 100, "series_id": "S1"},
-        >>>             {"region": "Region2", "value": 200, "series_id": "S2"},
-        >>>         ]
-        >>>     }
-        >>> }
-        >>> gdf = fd.Helpers.to_gpd_gdf(shapefile, meta_data)
+        ...     "meta": {
+        ...         "title": "2012 Per Capita Personal Income by State (Dollars)",
+        ...         "region": "state",
+        ...         "seasonality": "Not Seasonally Adjusted",
+        ...         "units": "Dollars",
+        ...         "frequency": "Annual",
+        ...         "date": "2012-01-01",
+        ...         "data":{"2013-01-01":[{
+        ...             "region": "Massachusetts",
+        ...             "code": "25",
+        ...             "value": "56713",
+        ...             "series_id": "MAPCPI"
+        ...             },]
+        ...         }
+        ...     }
+        ... }
+        >>> gdf = _geopandas_geodataframe_converter(shapefile, meta_data)
         >>> print(gdf)
             name  value series_id                     geometry
         0  Region1  100.0        S1  POLYGON ((...))
@@ -256,32 +284,54 @@ def _geopandas_geodataframe_converter(shapefile: gpd.GeoDataFrame, meta_data: Di
     return shapefile
 
 def _dask_geopandas_geodataframe_converter(shapefile: gpd.GeoDataFrame, meta_data: Dict) -> 'dd_gpd.GeoDataFrame':
-    """Helper method to convert a FRED observation dictionary to a Dask GeoPandas GeoDataFrame.
+    """Internal converter function to convert a GeoFRED observation dictionary to a Dask GeoPandas GeoDataFrame.
 
     Args:
-        shapefile (geopandas.GeoDataFrame): FRED shapefile GeoDataFrame.
-        meta_data (Dict): FRED response metadata dictionary.
+        shapefile (geopandas.GeoDataFrame): GeoFRED shapefile GeoDataFrame.
+        meta_data (Dict): GeoFRED response metadata dictionary.
 
     Returns:
         dask_geopandas.GeoDataFrame: Converted Dask GeoPandas GeoDataFrame.
 
     Raises:
-        ImportError: If Dask GeoPandas is not installed.
-        ValueError: If no data section is found in the response.
+        OptionalDependencyError: If Dask GeoPandas is not installed.
+        GeoDataFrameConverterError: If no data section is found in the response.
 
     Examples:
-        >>> import fedfred as fd
-        >>> import geopandas as gpd
-        >>> shapefile = gpd.read_file("path_to_shapefile.shp")
+        >>> # Internal use
+        >>> from ._core import _dask_geopandas_geodataframe_converter
+        >>> shapefile = {
+        ...     "type": "FeatureCollection",
+        ...     "features": [
+        ...         {
+        ...             "type": "Feature",
+        ...             "id": "US.MA",
+        ...             "properties": {"name": "Massachusetts"},
+        ...             "geometry": {
+        ...                 "type": "MultiPolygon",
+        ...                 "coordinates": [[[[9727, 7650], ...]]]
+        ...             }
+        ...         }
+        ...     ]
+        ... }
         >>> meta_data = {
-        >>>     "data": {
-        >>>         "observations": [
-        >>>             {"region": "Region1", "value": 100, "series_id": "S1"},
-        >>>             {"region": "Region2", "value": 200, "series_id": "S2"},
-        >>>         ]
-        >>>     }
-        >>> }
-        >>> gdf = fd.Helpers.to_dd_gpd_gdf(shapefile, meta_data)
+        ...     "meta": {
+        ...         "title": "2012 Per Capita Personal Income by State (Dollars)",
+        ...         "region": "state",
+        ...         "seasonality": "Not Seasonally Adjusted",
+        ...         "units": "Dollars",
+        ...         "frequency": "Annual",
+        ...         "date": "2012-01-01",
+        ...         "data":{"2013-01-01":[{
+        ...             "region": "Massachusetts",
+        ...             "code": "25",
+        ...             "value": "56713",
+        ...             "series_id": "MAPCPI"
+        ...             },]
+        ...         }
+        ...     }
+        ... }
+        >>> gdf = _dask_geopandas_geodataframe_converter(shapefile, meta_data)
         >>> print(gdf.compute())
             name  value series_id                     geometry
         0  Region1  100.0        S1  POLYGON ((...))
@@ -289,13 +339,6 @@ def _dask_geopandas_geodataframe_converter(shapefile: gpd.GeoDataFrame, meta_dat
 
     Notes:
         This method first converts the data to a GeoPandas GeoDataFrame and then to a Dask GeoPandas GeoDataFrame with a single partition.
-
-    References:
-        - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.helpers.Helpers.to_dd_gpd_gdf.html
-
-    See Also:
-        - :meth:`Helpers.to_gpd_gdf`: Convert a FRED observation dictionary to a GeoPandas GeoDataFrame.
-        - :meth:`Helpers.to_pl_st_gdf`: Convert a FRED observation dictionary to a Polars GeoDataFrame.
     """
 
     try:
@@ -312,52 +355,65 @@ def _dask_geopandas_geodataframe_converter(shapefile: gpd.GeoDataFrame, meta_dat
     return dd_gpd.from_geopandas(gdf, npartitions=1)
 
 def _polars_geodataframe_converter(shapefile: gpd.GeoDataFrame, meta_data: Dict) -> 'st.GeoDataFrame':
-    """Helper method to convert a FRED observation dictionary to a Polars GeoDataFrame.
+    """Internal converter function to convert a GeoFRED observation dictionary to a Polars GeoDataFrame.
 
     Args:
-        shapefile (geopandas.GeoDataFrame): FRED shapefile GeoDataFrame.
-        meta_data (Dict): FRED response metadata dictionary.
+        shapefile (geopandas.GeoDataFrame): GeoFRED shapefile GeoDataFrame.
+        meta_data (Dict): GeoFRED response metadata dictionary.
 
     Returns:
         polars_st.GeoDataFrame: Converted Polars GeoDataFrame.
 
     Raises:
-        ImportError: If Polars with geospatial support is not installed.
-        ValueError: If no data section is found in the response.
+        OptionalDependencyError: If Polars with geospatial support is not installed.
+        GeoDataFrameConversionError: If no data section is found in the response.
         
     Examples:
-        >>> import fedfred as fd
-        >>> import geopandas as gpd
-        >>> shapefile = gpd.read_file("path_to_shapefile.shp")
+        >>> from ._core import _polars_geodataframe_converter
+        >>> shapefile = {
+        ...     "type": "FeatureCollection",
+        ...     "features": [
+        ...         {
+        ...             "type": "Feature",
+        ...             "id": "US.MA",
+        ...             "properties": {"name": "Massachusetts"},
+        ...             "geometry": {
+        ...                 "type": "MultiPolygon",
+        ...                 "coordinates": [[[[9727, 7650], ...]]]
+        ...             }
+        ...         }
+        ...     ]
+        ... }
         >>> meta_data = {
-        >>>     "data": {
-        >>>         "observations": [
-        >>>             {"region": "Region1", "value": 100, "series_id": "S1"},
-        >>>             {"region": "Region2", "value": 200, "series_id": "S2"},
-        >>>         ]
-        >>>     }
-        >>> }
-        >>> gdf = fd.Helpers.to_pl_st_gdf(shapefile, meta_data)
+        ...     "meta": {
+        ...         "title": "2012 Per Capita Personal Income by State (Dollars)",
+        ...         "region": "state",
+        ...         "seasonality": "Not Seasonally Adjusted",
+        ...         "units": "Dollars",
+        ...         "frequency": "Annual",
+        ...         "date": "2012-01-01",
+        ...         "data":{"2013-01-01":[{
+        ...             "region": "Massachusetts",
+        ...             "code": "25",
+        ...             "value": "56713",
+        ...             "series_id": "MAPCPI"
+        ...             },]
+        ...         }
+        ...     }
+        ... }
+        >>> gdf = _polars_geodataframe_converter(shapefile, meta_data)
         >>> print(gdf)
-        shape: (2, 3)
-        ┌─────────┬───────┬───────────┬────────────────────────┐
-        │ name    ┆ value ┆ series_id ┆ geometry               │
-        │ ---     ┆ ---   ┆ ---       ┆ ---                    │
-        │ str     ┆ f64   ┆ str       ┆ geo                    │
-        ╞═════════╪═══════╪═══════════╪════════════════════════╡
-        │ Region1 ┆ 100.0 ┆ S1        ┆ POLYGON ((...))        │
-        │ Region2 ┆ 200.0 ┆ S2        ┆ POLYGON ((...))        │
-        └─────────┴───────┴───────────┴────────────────────────┘
+        shape: (1, 3)
+        ┌───────────────┬─────────┬───────────┬────────────────────────┐
+        │ name          ┆ value   ┆ series_id ┆ geometry               │
+        │ ---           ┆ ---     ┆ ---       ┆ ---                    │
+        │ str           ┆ f64     ┆ str       ┆ geo                    │
+        ╞═══════════════╪═════════╪═══════════╪════════════════════════╡
+        │ Massachusetts ┆ 56713.0 ┆ MAPCPI    ┆ POLYGON ((...))        │
+        └───────────────┴─────────┴───────────┴────────────────────────┘
 
     Notes:
         This method first converts the data to a GeoPandas GeoDataFrame and then to a Polars GeoDataFrame.
-
-    References:
-        - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.helpers.Helpers.to_pl_st_gdf.html
-
-    See Also:
-        - :meth:`Helpers.to_gpd_gdf`: Convert a FRED observation dictionary to a GeoPandas GeoDataFrame.
-        - :meth:`Helpers.to_dd_gpd_gdf`: Convert a FRED observation dictionary to a Dask GeoPandas GeoDataFrame.
     """
 
     try:
@@ -374,7 +430,7 @@ def _polars_geodataframe_converter(shapefile: gpd.GeoDataFrame, meta_data: Dict)
     return st.from_geopandas(gdf)
 
 async def _pandas_dataframe_converter_async(data: Dict[str, list]) -> pd.DataFrame:
-    """Helper method to convert a FRED observation dictionary to a Pandas DataFrame asynchronously.
+    """Internal asynchronous converter function to convert a FRED observation dictionary to a Pandas DataFrame.
 
     Args:
         data (Dict[str, list]): FRED observation dictionary.
@@ -386,8 +442,8 @@ async def _pandas_dataframe_converter_async(data: Dict[str, list]) -> pd.DataFra
         DataFrameConversionError: If 'observations' key is not in the data.
 
     Examples:
-        >>> import asyncio
-        >>> import fedfred as fd
+        >>> # Internal use
+        >>> from ._core import _pandas_dataframe_converter_async
         >>> data = {
         >>>     "observations": [
         >>>         {"date": "2020-01-01", "value": "100"},
@@ -396,8 +452,9 @@ async def _pandas_dataframe_converter_async(data: Dict[str, list]) -> pd.DataFra
         >>>     ]
         >>> }
         >>> async def main():
-        >>>     df = await fd.AsyncHelpers._pandas_dataframe_converter_async(data)
+        >>>     df = await _pandas_dataframe_converter_async(data)
         >>>     print(df)
+        >>> # Event loops should not be created in the library codebase, so this method should only be used within an existing async context. But for documentation purposes, the following pattern can be used:
         >>> if __name__ == "__main__":
         >>>     asyncio.run(main())
                     value
@@ -407,20 +464,13 @@ async def _pandas_dataframe_converter_async(data: Dict[str, list]) -> pd.DataFra
         2020-03-01  300.0
 
     Notes:
-        The 'date' column is converted to a DatetimeIndex and set as the DataFrame index and the 'value' column is converted to numeric, with non-numeric values coerced to NaN.
-
-    References:
-        - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.helpers.AsyncHelpers._pandas_dataframe_converter_async.html
-
-    See Also:
-        - :meth:`AsyncHelpers._polars_dataframe_converter_async`: Asynchronously convert a FRED observation dictionary to a Polars DataFrame.
-        - :meth:`AsyncHelpers._dask_dataframe_converter_async`: Asynchronously convert a FRED observation dictionary to a Dask DataFrame.    
+        The 'date' column is converted to a DatetimeIndex and set as the DataFrame index and the 'value' column is converted to numeric, with non-numeric values coerced to NaN. 
     """
 
     return await asyncio.to_thread(_pandas_dataframe_converter, data)
 
 async def _polars_dataframe_converter_async(data: Dict[str, list]) -> 'pl.DataFrame':
-    """Helper method to convert a FRED observation dictionary to a Polars DataFrame asynchronously.
+    """Internal asynchronous converter function to convert a FRED observation dictionary to a Polars DataFrame.
 
     Args:
         data (Dict[str, list]): FRED observation dictionary.
@@ -429,11 +479,11 @@ async def _polars_dataframe_converter_async(data: Dict[str, list]) -> 'pl.DataFr
         polars.DataFrame: Converted Polars DataFrame.
 
     Raises:
-        ImportError: If Polars is not installed.
-        ValueError: If 'observations' key is not in the data.
+        OptionalDependencyError: If Polars is not installed.
+        DataFrameConversionError: If 'observations' key is not in the data.
 
     Examples:
-        >>> import asyncio
+        >>> # Internal use
         >>> import fedfred as fd
         >>> data = {
         >>>     "observations": [
@@ -443,7 +493,7 @@ async def _polars_dataframe_converter_async(data: Dict[str, list]) -> 'pl.DataFr
         >>>     ]
         >>> }
         >>> async def main():
-        >>>     df = await fd.AsyncHelpers.to_pl_df(data)
+        >>>     df = await _polars_dataframe_converter_async(data)
         >>>     print(df)
         >>> if __name__ == "__main__":
         >>>     asyncio.run(main())
@@ -460,19 +510,12 @@ async def _polars_dataframe_converter_async(data: Dict[str, list]) -> 'pl.DataFr
 
     Notes:
         The 'value' column is converted to Float64, with 'NA' values replaced with None.
-
-    References:
-        - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.helpers.AsyncHelpers.to_pl_df.html
-
-    See Also:
-        - :meth:`AsyncHelpers.to_pd_df`: Asynchronously convert a FRED observation dictionary to a Pandas DataFrame.
-        - :meth:`AsyncHelpers.to_dd_df`: Asynchronously convert a FRED observation dictionary to a Dask DataFrame.    
     """
 
     return await asyncio.to_thread(_polars_dataframe_converter, data)
 
 async def _dask_dataframe_converter_async(data: Dict[str, list]) -> 'dd.DataFrame':
-    """Helper method to convert a FRED observation dictionary to a Dask DataFrame asynchronously.
+    """Internal asynchronous converter function to convert a FRED observation dictionary to a Dask DataFrame.
 
     Args:
         data (Dict[str, list]): FRED observation dictionary.
@@ -481,12 +524,12 @@ async def _dask_dataframe_converter_async(data: Dict[str, list]) -> 'dd.DataFram
         dask.dataframe.DataFrame: Converted Dask DataFrame.
 
     Raises:
-        ImportError: If Dask is not installed.
-        ValueError: If 'observations' key is not in the data.
+        OptionalDependencyError: If Dask is not installed.
+        DataFrameConversionError: If 'observations' key is not in the data.
 
     Examples:
-        >>> import asyncio
-        >>> import fedfred as fd
+        >>> # Internal use
+        >>> from ._core import _dask_dataframe_converter_async
         >>> data = {
         >>>     "observations": [
         >>>         {"date": "2020-01-01", "value": "100"},
@@ -495,7 +538,7 @@ async def _dask_dataframe_converter_async(data: Dict[str, list]) -> 'dd.DataFram
         >>>     ]
         >>> }
         >>> async def main():
-        >>>     df = await fd.AsyncHelpers.to_dd_df(data)
+        >>>     df = await _dask_dataframe_converter_async(data)
         >>>     print(df.compute())
         >>> if __name__ == "__main__":
         >>>     asyncio.run(main())
@@ -507,13 +550,6 @@ async def _dask_dataframe_converter_async(data: Dict[str, list]) -> 'dd.DataFram
 
     Notes:
         This method first converts the data to a Pandas DataFrame and then to a Dask DataFrame with a single partition.
-
-    References:
-        - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.helpers.AsyncHelpers.to_dd_df.html
-
-    See Also:
-        - :meth:`AsyncHelpers.to_pd_df`: Asynchronously convert a FRED observation dictionary to a Pandas DataFrame.
-        - :meth:`AsyncHelpers.to_pl_df`: Asynchronously convert a FRED observation dictionary to a Polars DataFrame.
     """
 
     try:
@@ -522,10 +558,10 @@ async def _dask_dataframe_converter_async(data: Dict[str, list]) -> 'dd.DataFram
         raise OptionalDependencyError(
             message=f"{e}: Dask is not installed. Install it with `pip install dask` to use this method.",
             package="dask",
-            feature="Helpers.to_dd_df",
+            feature="_dask_dataframe_converter_async",
             install_hint="pip install dask"
         ) from e
-    
+
     df = await _pandas_dataframe_converter_async(data)
     return await asyncio.to_thread(dd.from_pandas, df, npartitions=1)
 
@@ -546,7 +582,7 @@ async def _geopandas_geodataframe_converter_async(shapefile: gpd.GeoDataFrame, m
         >>> import asyncio
         >>> import fedfred as fd
         >>> import geopandas as gpd
-        >>> shapefile = gpd.read_file("path_to_shapefile.shp")
+        >>> shapefile = {}
         >>> meta_data = {
         >>>     "data": {
         >>>         "observations": [

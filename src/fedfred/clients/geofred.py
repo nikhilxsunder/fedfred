@@ -22,8 +22,8 @@ from .._core import (
     _polars_geodataframe_converter, _polars_geodataframe_converter_async,
     # Validators
     _geofred_parameter_validator, _geofred_parameter_validator_async,
-    # Helpers
-    _region_type_extractor, _region_type_extractor_async
+    # Parsers
+    _region_type_parser, _region_type_parser_async
 )
 from ..models import SeriesGroup
 

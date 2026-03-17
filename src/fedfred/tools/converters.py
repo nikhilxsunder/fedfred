@@ -112,32 +112,6 @@ def _pandas_series_converter(data: Union[pd.Series, pd.DataFrame], name: str) ->
     s.index = pd.to_datetime(s.index)
     return s
 
-def _polars_series_converter() -> 'pl.Series': # Add this helpers logic before release
-    """Accepts a Polars Series or a DataFrame with 'date' and 'value' columns and returns a float Series with DatetimeIndex and the given name.
-    
-    Args:
-        data (polars.Series | polars.DataFrame): Input data to be converted.
-        name (str): Name to assign to the resulting Series.
-
-    Returns:
-        polars.Series: A float Series with DatetimeIndex and the given `name`.
-
-    Raises:
-        TypeError: If the input is neither a polars.Series nor a polars.DataFrame
-
-    Examples:
-
-    Notes:
-
-    References:
-        - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.helpers.Helpers.to_pl_series.html
-    
-    See Also:
-        - :meth:`Helpers.to_pd_series`: Convert a Series or DataFrame to a pandas Series with DatetimeIndex.
-    """
-
-    return None
-
 async def _pandas_frequency_converter_async(frequency: str) -> str:
     """Asynchronously convert FRED native frequency strings to pandas compatible ones.
 
@@ -211,6 +185,32 @@ async def _pandas_series_converter_async(data: Union[pd.Series, pd.DataFrame], n
     """
 
     return await asyncio.to_thread(_pandas_series_converter, data, name)
+
+def _polars_series_converter() -> 'pl.Series': # Add this helpers logic before release
+    """Accepts a Polars Series or a DataFrame with 'date' and 'value' columns and returns a float Series with DatetimeIndex and the given name.
+    
+    Args:
+        data (polars.Series | polars.DataFrame): Input data to be converted.
+        name (str): Name to assign to the resulting Series.
+
+    Returns:
+        polars.Series: A float Series with DatetimeIndex and the given `name`.
+
+    Raises:
+        TypeError: If the input is neither a polars.Series nor a polars.DataFrame
+
+    Examples:
+
+    Notes:
+
+    References:
+        - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.helpers.Helpers.to_pl_series.html
+    
+    See Also:
+        - :meth:`Helpers.to_pd_series`: Convert a Series or DataFrame to a pandas Series with DatetimeIndex.
+    """
+
+    return None
 
 async def _polars_series_converter_async() -> 'pl.Series': # Add this helpers logic before release
     """Asynchronously accepts a Polars Series or a DataFrame with 'date' and 'value' columns and returns a float Series with DatetimeIndex and the given name.
