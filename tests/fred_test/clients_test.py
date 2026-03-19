@@ -31,8 +31,7 @@ from datetime import datetime
 import pytest
 import httpx
 import geopandas as gpd
-from fedfred.clients.fred import FredAPI, AsyncFredAPI, FredMapsAPI, AsyncFredMapsAPI
-from fedfred.__about__ import __title__, __version__, __author__, __email__, __license__, __copyright__, __description__, __docs__, __repository__
+from fedfred import FredAPI, AsyncFredAPI, FredMapsAPI, AsyncFredMapsAPI
 
 class TestFredAPI:
     # Dunder methods
