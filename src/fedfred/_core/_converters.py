@@ -454,7 +454,8 @@ async def _pandas_dataframe_converter_async(data: Dict[str, list]) -> pd.DataFra
         >>> async def main():
         >>>     df = await _pandas_dataframe_converter_async(data)
         >>>     print(df)
-        >>> # Event loops should not be created in the library codebase, so this method should only be used within an existing async context. But for documentation purposes, the following pattern can be used:
+        >>> # Event loops should not be created in the library codebase, so this method should only be used within an existing async context. 
+        >>> # For documentation purposes, the following pattern can be used to check the output dataframe:
         >>> if __name__ == "__main__":
         >>>     asyncio.run(main())
                     value
@@ -495,6 +496,8 @@ async def _polars_dataframe_converter_async(data: Dict[str, list]) -> 'pl.DataFr
         >>> async def main():
         >>>     df = await _polars_dataframe_converter_async(data)
         >>>     print(df)
+        >>> # Event loops should not be created in the library codebase, so this method should only be used within an existing async context. 
+        >>> # For documentation purposes, the following pattern can be used to check the output dataframe:
         >>> if __name__ == "__main__":
         >>>     asyncio.run(main())
         shape: (3, 2)
@@ -540,6 +543,8 @@ async def _dask_dataframe_converter_async(data: Dict[str, list]) -> 'dd.DataFram
         >>> async def main():
         >>>     df = await _dask_dataframe_converter_async(data)
         >>>     print(df.compute())
+        >>> # Event loops should not be created in the library codebase, so this method should only be used within an existing async context. 
+        >>> # For documentation purposes, the following pattern can be used to check the output dataframe:
         >>> if __name__ == "__main__":
         >>>     asyncio.run(main())
                     value
@@ -566,34 +571,57 @@ async def _dask_dataframe_converter_async(data: Dict[str, list]) -> 'dd.DataFram
     return await asyncio.to_thread(dd.from_pandas, df, npartitions=1)
 
 async def _geopandas_geodataframe_converter_async(shapefile: gpd.GeoDataFrame, meta_data: Dict) -> gpd.GeoDataFrame:
-    """Helper method to convert a FRED observation dictionary to a GeoPandas GeoDataFrame asynchronously.
+    """Internal asynchronous converter function to convert a GeoFRED observation dictionary to a GeoPandas GeoDataFrame.
 
     Args:
-        shapefile (geopandas.GeoDataFrame): FRED shapefile GeoDataFrame.
-        meta_data (Dict): FRED response metadata dictionary.
+        shapefile (geopandas.GeoDataFrame): GeoFRED shapefile GeoDataFrame.
+        meta_data (Dict): GeoFRED response metadata dictionary.
 
     Returns:
         geopandas.GeoDataFrame: Converted GeoPandas GeoDataFrame.
 
     Raises:
-        ValueError: If no data section is found in the response.
+        GeoDataFrameConversionError: If no data section is found in the response.
 
     Examples:
-        >>> import asyncio
-        >>> import fedfred as fd
-        >>> import geopandas as gpd
-        >>> shapefile = {}
+        >>> # Internal use
+        >>> from ._core import _geopandas_geodataframe_converter_async
+        >>> shapefile = {
+        ...     "type": "FeatureCollection",
+        ...     "features": [
+        ...         {
+        ...             "type": "Feature",
+        ...             "id": "US.MA",
+        ...             "properties": {"name": "Massachusetts"},
+        ...             "geometry": {
+        ...                 "type": "MultiPolygon",
+        ...                 "coordinates": [[[[9727, 7650], ...]]]
+        ...             }
+        ...         }
+        ...     ]
+        ... }
         >>> meta_data = {
-        >>>     "data": {
-        >>>         "observations": [
-        >>>             {"region": "Region1", "value": 100, "series_id": "S1"},
-        >>>             {"region": "Region2", "value": 200, "series_id": "S2"},
-        >>>         ]
-        >>>     }
-        >>> }
+        ...     "meta": {
+        ...         "title": "2012 Per Capita Personal Income by State (Dollars)",
+        ...         "region": "state",
+        ...         "seasonality": "Not Seasonally Adjusted",
+        ...         "units": "Dollars",
+        ...         "frequency": "Annual",
+        ...         "date": "2012-01-01",
+        ...         "data":{"2013-01-01":[{
+        ...             "region": "Massachusetts",
+        ...             "code": "25",
+        ...             "value": "56713",
+        ...             "series_id": "MAPCPI"
+        ...             },]
+        ...         }
+        ...     }
+        ... }
         >>> async def main():
-        >>>     gdf = await fd.AsyncHelpers.to_gpd_gdf(shapefile, meta_data)
+        >>>     gdf = await _geopandas_geodataframe_converter_async(shapefile, meta_data)
         >>>     print(gdf)
+        >>> # Event loops should not be created in the library codebase, so this method should only be used within an existing async context. 
+        >>> # For documentation purposes, the following pattern can be used to check the output dataframe:
         >>> if __name__ == "__main__":
         >>>     asyncio.run(main())
             name  value series_id                     geometry
@@ -602,47 +630,63 @@ async def _geopandas_geodataframe_converter_async(shapefile: gpd.GeoDataFrame, m
 
     Notes:
         This method adds 'value' and 'series_id' columns to the GeoDataFrame based on the provided metadata.
-
-    References:
-        - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.helpers.AsyncHelpers.to_gpd_gdf.html
-
-    See Also:
-        - :meth:`AsyncHelpers.to_dd_gpd_gdf`: Asynchronously convert a FRED observation dictionary to a Dask GeoPandas GeoDataFrame.
-        - :meth:`AsyncHelpers.to_pl_st_gdf`: Asynchronously convert a FRED observation dictionary to a Polars GeoDataFrame.
     """
 
     return await asyncio.to_thread(_geopandas_geodataframe_converter, shapefile, meta_data)
 
 async def _dask_geopandas_geodataframe_converter_async(shapefile: gpd.GeoDataFrame, meta_data: Dict) -> 'dd_gpd.GeoDataFrame':
-    """Helper method to convert a FRED observation dictionary to a Dask GeoPandas GeoDataFrame asynchronously.
+    """Internal asynchronous converter function to convert a GeoFRED observation dictionary to a Dask GeoPandas GeoDataFrame.
 
     Args:
-        shapefile (geopandas.GeoDataFrame): FRED shapefile GeoDataFrame.
-        meta_data (Dict): FRED response metadata dictionary.
+        shapefile (geopandas.GeoDataFrame): GeoFRED shapefile GeoDataFrame.
+        meta_data (Dict): GeoFRED response metadata dictionary.
 
     Returns:
         dask_geopandas.GeoDataFrame: Converted Dask GeoPandas GeoDataFrame
 
     Raises:
-        ImportError: If Dask GeoPandas is not installed.
-        ValueError: If no data section is found in the response.
+        OptionalDependencyError: If Dask GeoPandas is not installed.
+        GeoDataFrameConversionError: If no data section is found in the response.
 
     Examples:
-        >>> import asyncio
-        >>> import fedfred as fd
-        >>> import geopandas as gpd
-        >>> shapefile = gpd.read_file("path_to_shapefile.shp")
+        >>> # Internal use
+        >>> from ._core import _dask_geopandas_geodataframe_converter_async
+        >>> shapefile = {
+        ...     "type": "FeatureCollection",
+        ...     "features": [
+        ...         {
+        ...             "type": "Feature",
+        ...             "id": "US.MA",
+        ...             "properties": {"name": "Massachusetts"},
+        ...             "geometry": {
+        ...                 "type": "MultiPolygon",
+        ...                 "coordinates": [[[[9727, 7650], ...]]]
+        ...             }
+        ...         }
+        ...     ]
+        ... }
         >>> meta_data = {
-        >>>     "data": {
-        >>>         "observations": [
-        >>>             {"region": "Region1", "value": 100, "series_id": "S1"},
-        >>>             {"region": "Region2", "value": 200, "series_id": "S2"},
-        >>>         ]
-        >>>     }
-        >>> }
+        ...     "meta": {
+        ...         "title": "2012 Per Capita Personal Income by State (Dollars)",
+        ...         "region": "state",
+        ...         "seasonality": "Not Seasonally Adjusted",
+        ...         "units": "Dollars",
+        ...         "frequency": "Annual",
+        ...         "date": "2012-01-01",
+        ...         "data":{"2013-01-01":[{
+        ...             "region": "Massachusetts",
+        ...             "code": "25",
+        ...             "value": "56713",
+        ...             "series_id": "MAPCPI"
+        ...             },]
+        ...         }
+        ...     }
+        ... }
         >>> async def main():
-        >>>     dd_gdf = await fd.AsyncHelpers.to_dd_gpd_gdf(shapefile, meta_data)
+        >>>     dd_gdf = await _dask_geopandas_geodataframe_converter_async(shapefile, meta_data)
         >>>     print(dd_gdf.compute())
+        >>> # Event loops should not be created in the library codebase, so this method should only be used within an existing async context. 
+        >>> # For documentation purposes, the following pattern can be used to check the output dataframe:
         >>> if __name__ == "__main__":
         >>>     asyncio.run(main())
             name  value series_id                     geometry
@@ -651,13 +695,6 @@ async def _dask_geopandas_geodataframe_converter_async(shapefile: gpd.GeoDataFra
 
     Notes:
         This method first converts the data to a GeoPandas GeoDataFrame and then to a Dask GeoPandas GeoDataFrame with a single partition.
-
-    References:
-        - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.helpers.AsyncHelpers.to_dd_gpd_gdf.html
-
-    See Also:
-        - :meth:`AsyncHelpers.to_gpd_gdf`: Asynchronously convert a FRED observation dictionary to a GeoPandas GeoDataFrame.
-        - :meth:`AsyncHelpers.to_pl_st_gdf`: Asynchronously convert a FRED observation dictionary to a Polars GeoDataFrame.
     """
 
     try:
@@ -669,40 +706,62 @@ async def _dask_geopandas_geodataframe_converter_async(shapefile: gpd.GeoDataFra
             feature="Helpers.to_dd_gpd_gdf",
             install_hint="pip install dask-geopandas"
         ) from e
-    
+
     gdf = await _geopandas_geodataframe_converter_async(shapefile, meta_data)
     return await asyncio.to_thread(dd_gpd.from_geopandas, gdf, npartitions=1)
 
 async def _polars_geodataframe_converter_async(shapefile: gpd.GeoDataFrame, meta_data: Dict) -> 'st.GeoDataFrame':
-    """Helper method to convert a FRED observation dictionary to a Polars GeoDataFrame asynchronously.
+    """Internal asynchronous converter function to convert a GeoFRED observation dictionary to a Polars GeoDataFrame asynchronously.
 
     Args:
-        shapefile (geopandas.GeoDataFrame): FRED shapefile GeoDataFrame.
-        meta_data (Dict): FRED response metadata dictionary.
+        shapefile (geopandas.GeoDataFrame): GeoFRED shapefile GeoDataFrame.
+        meta_data (Dict): GeoFRED response metadata dictionary.
 
     Returns:
         polars_st.GeoDataFrame: Converted Polars GeoDataFrame.
 
     Raises:
-        ImportError: If Polars with geospatial support is not installed.
-        ValueError: If no data section is found in the response.
+        OptionalDependencyError: If Polars with geospatial support is not installed.
+        GeoDataFrameConversionError: If no data section is found in the response.
 
     Examples:
-        >>> import asyncio
-        >>> import fedfred as fd
-        >>> import geopandas as gpd
-        >>> shapefile = gpd.read_file("path_to_shapefile.shp")
+        >>> from ._core import _polars_geodataframe_converter_async
+        >>> shapefile = {
+        ...     "type": "FeatureCollection",
+        ...     "features": [
+        ...         {
+        ...             "type": "Feature",
+        ...             "id": "US.MA",
+        ...             "properties": {"name": "Massachusetts"},
+        ...             "geometry": {
+        ...                 "type": "MultiPolygon",
+        ...                 "coordinates": [[[[9727, 7650], ...]]]
+        ...             }
+        ...         }
+        ...     ]
+        ... }
         >>> meta_data = {
-        >>>     "data": {
-        >>>         "observations": [
-        >>>             {"region": "Region1", "value": 100, "series_id": "S1"},
-        >>>             {"region": "Region2", "value": 200, "series_id": "S2"},
-        >>>         ]
-        >>>     }
-        >>> }
+        ...     "meta": {
+        ...         "title": "2012 Per Capita Personal Income by State (Dollars)",
+        ...         "region": "state",
+        ...         "seasonality": "Not Seasonally Adjusted",
+        ...         "units": "Dollars",
+        ...         "frequency": "Annual",
+        ...         "date": "2012-01-01",
+        ...         "data":{"2013-01-01":[{
+        ...             "region": "Massachusetts",
+        ...             "code": "25",
+        ...             "value": "56713",
+        ...             "series_id": "MAPCPI"
+        ...             },]
+        ...         }
+        ...     }
+        ... }
         >>> async def main():
-        >>>     st_gdf = await fd.AsyncHelpers.to_pl_st_gdf(shapefile, meta_data)
+        >>>     st_gdf = await _polars_geodataframe_converter_async(shapefile, meta_data)
         >>>     print(st_gdf)
+        >>> # Event loops should not be created in the library codebase, so this method should only be used within an existing async context. 
+        >>> # For documentation purposes, the following pattern can be used to check the output dataframe:
         >>> if __name__ == "__main__":
         >>>     asyncio.run(main())
         shape: (2, 3)
@@ -717,13 +776,6 @@ async def _polars_geodataframe_converter_async(shapefile: gpd.GeoDataFrame, meta
 
     Notes:
         This method first converts the data to a GeoPandas GeoDataFrame and then to a Polars GeoDataFrame.
-
-    References:
-        - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.helpers.AsyncHelpers.to_pl_st_gdf.html
-
-    See Also:
-        - :meth:`AsyncHelpers.to_gpd_gdf`: Asynchronously convert a FRED observation dictionary to a GeoPandas GeoDataFrame.
-        - :meth:`AsyncHelpers.to_dd_gpd_gdf`: Asynchronously convert a FRED observation dictionary to a Dask GeoPandas GeoDataFrame.
     """
 
     try:
@@ -741,7 +793,7 @@ async def _polars_geodataframe_converter_async(shapefile: gpd.GeoDataFrame, meta
 
 # Single Parameter Converters
 def _liststring_converter(parameter: list[str]) -> str:
-    """Helper method to convert a list of strings to a semicolon-separated string.
+    """Internal converter function to convert a list of strings to a semicolon-separated string.
 
     Args:
         parameter (list[str]): List of strings to convert.
@@ -750,23 +802,17 @@ def _liststring_converter(parameter: list[str]) -> str:
         str: Semicolon-separated string.
 
     Raises:
-        ValueError: If parameter is not a list of strings.
+        TypeConversionError: If parameter is not a list of strings.
 
     Examples:
-        >>> import fedfred as fd
+        >>> from ._core import _liststring_converter
         >>> parameter = ["tag1", "tag2", "tag3"]
-        >>> result = fd.Helpers.liststring_conversion(parameter)
+        >>> result = _liststring_converter(parameter)
         >>> print(result)
         tag1;tag2;tag3
 
     Notes:
         This method joins the elements of the list with semicolons.
-
-    References:
-        - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.helpers.Helpers.liststring_conversion.html
-
-    See Also:
-        - :meth:`Helpers.liststring_validation`: Validate a semicolon-separated string.
     """
 
     if not isinstance(parameter, list):
@@ -785,46 +831,40 @@ def _liststring_converter(parameter: list[str]) -> str:
 
     return ';'.join(parameter)
 
-def _vintage_dates_type_converter(param: Union[str, datetime, list[Optional[Union[str, datetime]]]]) -> str:
-    """Helper method to convert a vintage_dates parameter to a string.
+def _vintage_dates_type_converter(parameter: Union[str, datetime, list[Optional[Union[str, datetime]]]]) -> str:
+    """Internal converter function to convert a vintage_dates or list of vintage_dates parameter to a string in YYYY-MM-DD format.
 
     Args:
-        param (str | datetime | list[Optional[str | datetime]]): vintage_dates parameter to convert.
+        parameter (str | datetime | list[Optional[str | datetime]]): vintage_dates parameter to convert.
 
     Returns:
         str: Converted vintage_dates string.
 
     Raises:
-        ValueError: If param is not a string, datetime object, or list of strings/datetime objects.
+        TypeConversionError: If parameter is not a string, datetime object, or list of strings/datetime objects.
 
     Examples:
-        >>> import fedfred as fd
-        >>> param1 = "2020-01-01"
-        >>> result1 = fd.Helpers.vintage_dates_type_conversion(param1)
+        >>> from datetime import datetime
+        >>> from ._core import _vintage_dates_type_converter
+        >>> parameter = datetime(2020, 1, 1)
+        >>> result1 = _vintage_dates_type_converter(parameter)
         >>> print(result1)
         2020-01-01
 
     Notes:
         This method handles single strings, datetime objects, and lists of strings/datetime objects.
-
-    References:
-        - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.helpers.Helpers.vintage_dates_type_conversion.html
-
-    See Also:
-        - :meth:`Helpers.datetime_conversion`: Convert a datetime object to a string in YYYY-MM-DD format.
-        - :meth:`Helpers.vintage_dates_validation`: Validate vintage_dates parameters.
     """
 
-    if isinstance(param, str):
-        return param
+    if isinstance(parameter, str):
+        return parameter
 
-    if isinstance(param, datetime):
-        return _datetime_converter(param)
+    if isinstance(parameter, datetime):
+        return _datetime_converter(parameter)
 
-    if isinstance(param, list):
+    if isinstance(parameter, list):
         converted_list = [
             _datetime_converter(i) if isinstance(i, datetime) else i
-            for i in param
+            for i in parameter
             if i is not None
         ]
 
@@ -841,82 +881,68 @@ def _vintage_dates_type_converter(param: Union[str, datetime, list[Optional[Unio
         raise TypeConversionError(
             message="Type conversion failed: Parameter must be a string, datetime object, or list of strings/datetime objects",
             expected="str | datetime | list[Optional[str | datetime]]",
-            received=type(param).__name__,
+            received=type(parameter).__name__,
         )
 
-def _datetime_converter(param: datetime) -> str:
-    """Helper method to convert a datetime object to a string in YYYY-MM-DD format.
+def _datetime_converter(parameter: datetime) -> str:
+    """Internal converter function to convert a datetime object to a string in YYYY-MM-DD format.
 
     Args:
-        param (datetime): Datetime object to convert.
+        parameter (datetime): Datetime object to convert.
 
     Returns:
         str: Formatted date string.
 
     Raises:
-        ValueError: If param is not a datetime object.
+        TypeConversionError: If parameter is not a datetime object.
 
     Examples:
-        >>> import fedfred as fd
         >>> from datetime import datetime
-        >>> param = datetime(2020, 1, 1)
-        >>> result = fd.Helpers.datetime_conversion(param)
+        >>> from ._core import _datetime_converter
+        >>> parameter = datetime(2020, 1, 1)
+        >>> result = _datetime_converter(parameter)
         >>> print(result)
         2020-01-01
-
-    References:
-        - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.helpers.Helpers.datetime_conversion.html
-
-    See Also:
-        - :meth:`Helpers.datetime_hh_mm_conversion`: Convert a datetime object to a string in HH:MM format.
-        - :meth:`Helpers.datestring_validation`: Validate date-string formatted parameters.
     """
 
-    if not isinstance(param, datetime):
+    if not isinstance(parameter, datetime):
         raise TypeConversionError(
             message="Type conversion failed: Parameter must be a datetime object",
             expected="datetime",
-            received=type(param).__name__,
+            received=type(parameter).__name__,
         )
 
-    return param.strftime("%Y-%m-%d")
+    return parameter.strftime("%Y-%m-%d")
 
-def _datetime_hh_mm_converter(param: datetime) -> str:
-    """Helper method to convert a datetime object to a string in HH:MM format.
+def _datetime_hh_mm_converter(parameter: datetime) -> str:
+    """Internal converter function to convert a datetime object to a string in HH:MM format.
 
     Args:
-        param (datetime): Datetime object to convert.
+        parameter (datetime): Datetime object to convert.
 
     Returns:
         str: Formatted time string.
 
     Raises:
-        ValueError: If param is not a datetime object.
+        TypeConversionError: If parameter is not a datetime object.
 
     Examples:
-        >>> import fedfred as fd
         >>> from datetime import datetime
-        >>> param = datetime(2020, 1, 1, 15, 30)
-        >>> result = fd.Helpers.datetime_hh_mm_conversion(param)
+        >>> from ._core import _datetime_hh_mm_converter
+        >>> parameter = datetime(2020, 1, 1, 15, 30)
+        >>> result = _datetime_hh_mm_converter(parameter)
         >>> print(result)
         15:30
-
-    References:
-        - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.helpers.Helpers.datetime_hh_mm_conversion.html
-
-    See Also:
-        - :meth:`Helpers.datetime_conversion`: Convert a datetime object to a string in YYYY-MM-DD format.
-        - :meth:`Helpers.hh_mm_datestring_validation`: Validate hh:mm formatted parameters.
     """
 
-    if not isinstance(param, datetime):
+    if not isinstance(parameter, datetime):
         raise TypeConversionError(
             message="Type conversion failed: Parameter must be a datetime object",
             expected="datetime",
-            received=type(param).__name__,
+            received=type(parameter).__name__,
         )
-    
-    return param.strftime("%H:%M")
+
+    return parameter.strftime("%H:%M")
 
 async def _liststring_converter_async(param: list[str]) -> str:
     """Helper method to convert a list of strings to a semicolon-separated string asynchronously.
