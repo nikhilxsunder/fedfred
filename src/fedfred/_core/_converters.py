@@ -1105,9 +1105,6 @@ def _hashable_type_converter(data: Optional[Dict[str, Optional[Union[str, int]]]
     Returns:
         Optional[Tuple[Tuple[str, Optional[str | int]], ...]]: A hashable representation of the data dictionary.
 
-    Raises:
-        TypeConversionError: If data is not a dictionary or None.
-
     Examples:
         >>> # Internal use
         >>> from ._core import _hashable_type_converter
@@ -1124,12 +1121,8 @@ def _hashable_type_converter(data: Optional[Dict[str, Optional[Union[str, int]]]
         Caching is only applied if `cache_mode` is enabled. Ensure that the `data` parameter is hashable for caching to work correctly.
     """
 
-    if data is not None or not isinstance(data, dict):
-        raise TypeConversionError(
-            message="Type conversion failed: Data parameter must be a dictionary or None for caching purposes",
-            expected="Dict[str, Optional[str | int]]",
-            received=type(data).__name__,
-        )
+    if data is None:
+        return None
 
     return tuple(sorted(data.items()))
 
@@ -1141,9 +1134,6 @@ def _dict_type_converter(hashable_data: Optional[Tuple[Tuple[str, Optional[Union
 
     Returns:
         Optional[Dict[str, Optional[str | int]]]: The original data dictionary.
-
-    Raises:
-        TypeConversionError: If hashable_data is not a tuple or None.
 
     Examples:
         >>> # Internal use
@@ -1161,12 +1151,8 @@ def _dict_type_converter(hashable_data: Optional[Tuple[Tuple[str, Optional[Union
         Caching is only applied if `cache_mode` is enabled. Ensure that the `data` parameter is hashable for caching to work correctly.
     """
 
-    if hashable_data is not None or not isinstance(hashable_data, tuple):
-        raise TypeConversionError(
-            message="Type conversion failed: Hashable data parameter must be a tuple or None for caching purposes",
-            expected="Tuple[Tuple[str, Optional[str | int]], ...]",
-            received=type(hashable_data).__name__,
-        )
+    if hashable_data is None:
+        return None
 
     return dict(hashable_data)
 
@@ -1178,9 +1164,6 @@ async def _hashable_type_converter_async(data: Optional[Dict[str, Optional[Union
 
     Returns:
         Optional[Tuple[Tuple[str, Optional[str | int]], ...]]: A hashable representation of the data dictionary.
-
-    Raises:
-        TypeConversionError: If data is not a dictionary or None.
 
     Examples:
         >>> # Internal use
@@ -1213,9 +1196,6 @@ async def _dict_type_converter_async(hashable_data: Optional[Tuple[Tuple[str, Op
 
     Returns:
         Optional[Dict[str, Optional[str | int]]]: The original data dictionary.
-
-    Raises:
-        TypeConversionError: If hashable_data is not a tuple or None.
 
     Examples:
         >>> # Internal use
