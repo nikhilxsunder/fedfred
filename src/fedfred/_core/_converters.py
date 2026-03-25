@@ -63,6 +63,7 @@ def _pandas_dataframe_converter(data: Dict[str, list]) -> pd.DataFrame:
         >>>     ]
         >>> }
         >>> df = _pandas_dataframe_converter(response)
+        >>> # Test output dataframe
         >>> print(df)
                     value
         date
@@ -113,6 +114,7 @@ def _polars_dataframe_converter(data: Dict[str, list]) -> 'pl.DataFrame':
         >>>     ]
         >>> }
         >>> df = _polars_dataframe_converter(response)
+        >>> # Test output dataframe
         >>> print(df)
         shape: (3, 2)
         ┌────────────┬───────┐
@@ -180,6 +182,7 @@ def _dask_dataframe_converter(data: Dict[str, list]) -> 'dd.DataFrame':
         >>>     ]
         >>> }
         >>> df = _dask_dataframe_converter(response)
+        >>> # Test output dataframe
         >>> print(df.compute())
                     value
         date
@@ -252,6 +255,7 @@ def _geopandas_geodataframe_converter(shapefile: gpd.GeoDataFrame, meta_data: Di
         ...     }
         ... }
         >>> gdf = _geopandas_geodataframe_converter(shapefile, meta_data)
+        >>> # Test output dataframe
         >>> print(gdf)
             name  value series_id                     geometry
         0  Region1  100.0        S1  POLYGON ((...))
@@ -332,6 +336,7 @@ def _dask_geopandas_geodataframe_converter(shapefile: gpd.GeoDataFrame, meta_dat
         ...     }
         ... }
         >>> gdf = _dask_geopandas_geodataframe_converter(shapefile, meta_data)
+        >>> # Test output dataframe
         >>> print(gdf.compute())
             name  value series_id                     geometry
         0  Region1  100.0        S1  POLYGON ((...))
@@ -402,6 +407,7 @@ def _polars_geodataframe_converter(shapefile: gpd.GeoDataFrame, meta_data: Dict)
         ...     }
         ... }
         >>> gdf = _polars_geodataframe_converter(shapefile, meta_data)
+        >>> # Test output dataframe
         >>> print(gdf)
         shape: (1, 3)
         ┌───────────────┬─────────┬───────────┬────────────────────────┐
@@ -456,6 +462,7 @@ async def _pandas_dataframe_converter_async(data: Dict[str, list]) -> pd.DataFra
         >>>     print(df)
         >>> # Event loops should not be created in the library codebase, so this method should only be used within an existing async context. 
         >>> # For documentation purposes, the following pattern can be used to check the output dataframe:
+        >>> import asyncio
         >>> if __name__ == "__main__":
         >>>     asyncio.run(main())
                     value
@@ -498,6 +505,7 @@ async def _polars_dataframe_converter_async(data: Dict[str, list]) -> 'pl.DataFr
         >>>     print(df)
         >>> # Event loops should not be created in the library codebase, so this method should only be used within an existing async context. 
         >>> # For documentation purposes, the following pattern can be used to check the output dataframe:
+        import asyncio
         >>> if __name__ == "__main__":
         >>>     asyncio.run(main())
         shape: (3, 2)
@@ -545,6 +553,7 @@ async def _dask_dataframe_converter_async(data: Dict[str, list]) -> 'dd.DataFram
         >>>     print(df.compute())
         >>> # Event loops should not be created in the library codebase, so this method should only be used within an existing async context. 
         >>> # For documentation purposes, the following pattern can be used to check the output dataframe:
+        >>> import asyncio
         >>> if __name__ == "__main__":
         >>>     asyncio.run(main())
                     value
@@ -621,7 +630,8 @@ async def _geopandas_geodataframe_converter_async(shapefile: gpd.GeoDataFrame, m
         >>>     gdf = await _geopandas_geodataframe_converter_async(shapefile, meta_data)
         >>>     print(gdf)
         >>> # Event loops should not be created in the library codebase, so this method should only be used within an existing async context. 
-        >>> # For documentation purposes, the following pattern can be used to check the output dataframe:
+        >>> # For documentation purposes, the following pattern can be used to check the output geodataframe:
+        >>> import asyncio
         >>> if __name__ == "__main__":
         >>>     asyncio.run(main())
             name  value series_id                     geometry
@@ -686,7 +696,8 @@ async def _dask_geopandas_geodataframe_converter_async(shapefile: gpd.GeoDataFra
         >>>     dd_gdf = await _dask_geopandas_geodataframe_converter_async(shapefile, meta_data)
         >>>     print(dd_gdf.compute())
         >>> # Event loops should not be created in the library codebase, so this method should only be used within an existing async context. 
-        >>> # For documentation purposes, the following pattern can be used to check the output dataframe:
+        >>> # For documentation purposes, the following pattern can be used to check the output geodataframe:
+        >>> import asyncio
         >>> if __name__ == "__main__":
         >>>     asyncio.run(main())
             name  value series_id                     geometry
@@ -761,7 +772,8 @@ async def _polars_geodataframe_converter_async(shapefile: gpd.GeoDataFrame, meta
         >>>     st_gdf = await _polars_geodataframe_converter_async(shapefile, meta_data)
         >>>     print(st_gdf)
         >>> # Event loops should not be created in the library codebase, so this method should only be used within an existing async context. 
-        >>> # For documentation purposes, the following pattern can be used to check the output dataframe:
+        >>> # For documentation purposes, the following pattern can be used to check the output geodataframe:
+        >>> import asyncio
         >>> if __name__ == "__main__":
         >>>     asyncio.run(main())
         shape: (2, 3)
@@ -805,9 +817,11 @@ def _liststring_converter(parameter: list[str]) -> str:
         TypeConversionError: If parameter is not a list of strings.
 
     Examples:
+        >>> # Internal use
         >>> from ._core import _liststring_converter
         >>> parameter = ["tag1", "tag2", "tag3"]
         >>> result = _liststring_converter(parameter)
+        >>> # Test output dataframe
         >>> print(result)
         tag1;tag2;tag3
 
@@ -844,10 +858,12 @@ def _vintage_dates_type_converter(parameter: Union[str, datetime, list[Optional[
         TypeConversionError: If parameter is not a string, datetime object, or list of strings/datetime objects.
 
     Examples:
+        >>> # Internal use
         >>> from datetime import datetime
         >>> from ._core import _vintage_dates_type_converter
         >>> parameter = datetime(2020, 1, 1)
         >>> result1 = _vintage_dates_type_converter(parameter)
+        >>> # Test output dataframe
         >>> print(result1)
         2020-01-01
 
@@ -897,10 +913,12 @@ def _datetime_converter(parameter: datetime) -> str:
         TypeConversionError: If parameter is not a datetime object.
 
     Examples:
+        >>> # Internal use
         >>> from datetime import datetime
         >>> from ._core import _datetime_converter
         >>> parameter = datetime(2020, 1, 1)
         >>> result = _datetime_converter(parameter)
+        >>> # Test output dataframe
         >>> print(result)
         2020-01-01
     """
@@ -927,10 +945,12 @@ def _datetime_hh_mm_converter(parameter: datetime) -> str:
         TypeConversionError: If parameter is not a datetime object.
 
     Examples:
+        >>> # Internal use
         >>> from datetime import datetime
         >>> from ._core import _datetime_hh_mm_converter
         >>> parameter = datetime(2020, 1, 1, 15, 30)
         >>> result = _datetime_hh_mm_converter(parameter)
+        >>> # Test output dataframe
         >>> print(result)
         15:30
     """
@@ -944,131 +964,124 @@ def _datetime_hh_mm_converter(parameter: datetime) -> str:
 
     return parameter.strftime("%H:%M")
 
-async def _liststring_converter_async(param: list[str]) -> str:
-    """Helper method to convert a list of strings to a semicolon-separated string asynchronously.
+async def _liststring_converter_async(parameter: list[str]) -> str:
+    """Internal asynchronous converter function to convert a list of strings to a semicolon-separated string.
 
     Args:
-        param (list[str]): List of strings to convert.
+        parameter (list[str]): List of strings to convert.
 
     Returns:
         str: Semicolon-separated string.
 
     Raises:
-        ValueError: If param is not a list of strings.
+        TypeConversionError: If parameter is not a list of strings.
 
     Examples:
-        >>> import asyncio
-        >>> import fedfred as fd
-        >>> param = ["GDP", "CPI", "UNRATE"]
+        >>> # Internal use
+        >>> from _core import _liststring_converter_async
+        >>> parameters = ["GDP", "CPI", "UNRATE"]
         >>> async def main():
-        >>>     result = await fd.AsyncHelpers._liststring_converter_async(param)
+        >>>     result = await _liststring_converter_async(param)
         >>>     print(result)
+        >>> # Event loops should not be created in the library codebase, so this method should only be used within an existing async context. 
+        >>> # For documentation purposes, the following pattern can be used to check the output data:
+        >>> import asyncio
         >>> if __name__ == "__main__":
         >>>     asyncio.run(main())
         GDP;CPI;UNRATE
 
     Notes:
         This method joins the list elements with a semicolon (';') separator.
-
-    References:
-        - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.helpers.AsyncHelpers.liststring_conversion.html
-
-    See Also:
-        - :meth:`AsyncHelpers.liststring_validation`: Validate list-string formatted parameters asynchronously.
     """
 
-    return await asyncio.to_thread(_liststring_converter, param)
+    return await asyncio.to_thread(_liststring_converter, parameter)
 
-async def _vintage_dates_type_converter_async(param: Union[str, datetime, list[Optional[Union[str, datetime]]]]) -> str:
-    """Helper method to convert a vintage_dates parameter to a string asynchronously.
+async def _vintage_dates_type_converter_async(parameter: Union[str, datetime, list[Optional[Union[str, datetime]]]]) -> str:
+    """Internal asynchronous converter function to convert a vintage_dates parameter to a string.
 
     Args:
-        param (str | datetime | list[Optional[str | datetime]]]): vintage_dates parameter to convert.
+        parameter (str | datetime | list[Optional[str | datetime]]]): vintage_dates parameter to convert.
 
     Returns:
         str: Converted vintage_dates string.
 
     Raises:
-        ValueError: If param is not a string, datetime object, or list of strings/datetime objects.
+        TypeConversionError: If parameter is not a string, datetime object, or list of strings/datetime objects.
 
     Examples:
-        >>> import asyncio
-        >>> import fedfred as fd
-        >>> param1 = "2020-01-01"
+        >>> # Internal use
+        >>> from datetime import datetime
+        >>> from ._core import _vintage_dates_type_converter_async
+        >>> parameter = datetime(2020, 1, 1)
         >>> async def main():
-        >>>     result = await fd.AsyncHelpers.vintage_dates_type_conversion(param1)
+        >>>     result = await _vintage_dates_type_converter_async(parameter)
         >>>     print(result)
+        >>> # Event loops should not be created in the library codebase, so this method should only be used within an existing async context. 
+        >>> # For documentation purposes, the following pattern can be used to check the output data:
+        >>> import asyncio
         >>> if __name__ == "__main__":
         >>>     asyncio.run(main())
         2020-01-01
 
     Notes:
         This method handles single strings, datetime objects, and lists of strings/datetime objects, converting them to a comma-separated string.
-
-    References:
-        - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.helpers.AsyncHelpers.vintage_dates_type_conversion.html
-
-    See Also:
-        - :meth:`AsyncHelpers.datetime_conversion`: Convert a datetime object to a string in YYYY-MM-DD format asynchronously.
-        - :meth:`AsyncHelpers.vintage_dates_validation`: Validate vintage_dates parameters asynchronously.
     """
 
-    return await asyncio.to_thread(_vintage_dates_type_converter, param)
+    return await asyncio.to_thread(_vintage_dates_type_converter, parameter)
 
-async def _datetime_converter_async(param: datetime) -> str:
-    """Helper method to convert a datetime object to a string in YYYY-MM-DD format asynchronously.
+async def _datetime_converter_async(parameter: datetime) -> str:
+    """Internal asynchronous converter function to convert a datetime object to a string in YYYY-MM-DD format.
 
     Args:
-        param (datetime): Datetime object to convert.
+        parameter (datetime): Datetime object to convert.
 
     Returns:
         str: Formatted date string.
 
     Raises:
-        ValueError: If param is not a datetime object.
+        TypeConversionError: If parameter is not a datetime object.
 
     Examples:
-        >>> import asyncio
-        >>> import fedfred as fd
+        >>> # Internal use
         >>> from datetime import datetime
+        >>> from ._core import _datetime_converter_async
         >>> param = datetime(2020, 1, 1)
         >>> async def main():
-        >>>     result = await fd.AsyncHelpers.datetime_conversion(param)
+        >>>     result = await _datetime_converter_async(param)
         >>>     print(result)
+        >>> # Event loops should not be created in the library codebase, so this method should only be used within an existing async context. 
+        >>> # For documentation purposes, the following pattern can be used to check the output data:
+        >>> import asyncio
         >>> if __name__ == "__main__":
         >>>     asyncio.run(main())
         2020-01-01
-
-    References:
-        - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.helpers.AsyncHelpers.datetime_conversion.html
-
-    See Also:
-        - :meth:`AsyncHelpers.datetime_hh_mm_conversion`: Convert a datetime object to a string in HH:MM format asynchronously.
-        - :meth:`AsyncHelpers.datestring_validation`: Validate date-string formatted parameters asynchronously.
     """
 
-    return await asyncio.to_thread(_datetime_converter, param)
+    return await asyncio.to_thread(_datetime_converter, parameter)
 
-async def _datetime_hh_mm_converter_async(param: datetime) -> str:
-    """Helper method to convert a datetime object to a string in HH:MM format asynchronously.
+async def _datetime_hh_mm_converter_async(parameter: datetime) -> str:
+    """Internal asynchronous converter function to convert a datetime object to a string in HH:MM format.
 
     Args:
-        param (datetime): Datetime object to convert.
+        parameter (datetime): Datetime object to convert.
 
     Returns:
         str: Formatted time string.
 
     Raises:
-        ValueError: If param is not a datetime object.
+        TypeConversionError: If parameter is not a datetime object.
 
     Examples:
-        >>> import asyncio
-        >>> import fedfred as fd
+        >>> # Internal use
         >>> from datetime import datetime
+        >>> from ._core import _datetime_hh_mm_converter_async
         >>> param = datetime(2020, 1, 1, 14, 30)
         >>> async def main():
-        >>>     result = await fd.AsyncHelpers.datetime_hh_mm_conversion(param)
+        >>>     result = await _datetime_hh_mm_converter_async(param)
         >>>     print(result)
+        >>> # Event loops should not be created in the library codebase, so this method should only be used within an existing async context. 
+        >>> # For documentation purposes, the following pattern can be used to check the output data:
+        >>> import asyncio
         >>> if __name__ == "__main__":
         >>>     asyncio.run(main())
 
@@ -1080,11 +1093,11 @@ async def _datetime_hh_mm_converter_async(param: datetime) -> str:
         - :meth:`AsyncHelpers.datetime_hh_mm_conversion`: Validate hh:mm formatted parameters asynchronously.
     """
 
-    return await asyncio.to_thread(_datetime_hh_mm_converter, param)
+    return await asyncio.to_thread(_datetime_hh_mm_converter, parameter)
 
 # Collective Parameter Converters
 def _hashable_type_converter(data: Optional[Dict[str, Optional[Union[str, int]]]]) -> Optional[Tuple[Tuple[str, Optional[Union[str, int]]], ...]]:
-    """Helper function to make the data dictionary hashable for caching.
+    """Internal converter function to make the data dictionary hashable for caching.
 
     Args:
         data (Dict[str, Optional[str | int]], optional): The query parameters for the request.
@@ -1092,22 +1105,36 @@ def _hashable_type_converter(data: Optional[Dict[str, Optional[Union[str, int]]]
     Returns:
         Optional[Tuple[Tuple[str, Optional[str | int]], ...]]: A hashable representation of the data dictionary.
 
+    Raises:
+        TypeConversionError: If data is not a dictionary or None.
+
+    Examples:
+        >>> # Internal use
+        >>> from ._core import _hashable_type_converter
+        >>> data = {"param1": "value1", "param2": 123, "param3": None}
+        >>> result = _hashable_type_converter(data)
+        >>> # Test output
+        >>> print(result)
+        (('param1', 'value1'), ('param2', 123), ('param3', None))
+
     Notes:
-        This function converts the data dictionary into a sorted tuple of key-value pairs, making it suitable 
-        for use as a cache key.
+        This function converts the data dictionary into a sorted tuple of key-value pairs, making it suitable for use as a cache key.
 
     Warnings:
-        Caching is only applied if `cache_mode` is enabled. Ensure that the `data` parameter is hashable for 
-        caching to work correctly.
+        Caching is only applied if `cache_mode` is enabled. Ensure that the `data` parameter is hashable for caching to work correctly.
     """
 
-    if data is None:
-        return None
+    if data is not None or not isinstance(data, dict):
+        raise TypeConversionError(
+            message="Type conversion failed: Data parameter must be a dictionary or None for caching purposes",
+            expected="Dict[str, Optional[str | int]]",
+            received=type(data).__name__,
+        )
 
     return tuple(sorted(data.items()))
 
 def _dict_type_converter(hashable_data: Optional[Tuple[Tuple[str, Optional[Union[str, int]]], ...]]) -> Optional[Dict[str, Optional[Union[str, int]]]]:
-    """Helper function to convert hashable data back to a dictionary.
+    """Internal converter function to convert hashable data back to a dictionary.
     
     Args:
         hashable_data (Optional[Tuple[Tuple[str, Optional[str | int]], ...]]): The hashable representation of the data.
@@ -1115,21 +1142,36 @@ def _dict_type_converter(hashable_data: Optional[Tuple[Tuple[str, Optional[Union
     Returns:
         Optional[Dict[str, Optional[str | int]]]: The original data dictionary.
 
+    Raises:
+        TypeConversionError: If hashable_data is not a tuple or None.
+
+    Examples:
+        >>> # Internal use
+        >>> from ._core import _dict_type_converter
+        >>> hashable_data = (('param1', 'value1'), ('param2', 123), ('param3', None))
+        >>> result = _dict_type_converter(hashable_data)
+        >>> # Test output
+        >>> print(result)
+        {'param1': 'value1', 'param2': 123, 'param3': None}
+
     Notes:
         This function converts the hashable sorted tuple of key-value pairs back into a standard dictionary.
 
     Warnings:
-        Caching is only applied if `cache_mode` is enabled. Ensure that the `data` parameter is hashable for 
-        caching to work correctly.
+        Caching is only applied if `cache_mode` is enabled. Ensure that the `data` parameter is hashable for caching to work correctly.
     """
 
-    if hashable_data is None:
-        return None
+    if hashable_data is not None or not isinstance(hashable_data, tuple):
+        raise TypeConversionError(
+            message="Type conversion failed: Hashable data parameter must be a tuple or None for caching purposes",
+            expected="Tuple[Tuple[str, Optional[str | int]], ...]",
+            received=type(hashable_data).__name__,
+        )
 
     return dict(hashable_data)
 
 async def _hashable_type_converter_async(data: Optional[Dict[str, Optional[Union[str, int]]]]) -> Optional[Tuple[Tuple[str, Optional[Union[str, int]]], ...]]:
-    """Asynchronous helper function to make the data dictionary hashable for caching.
+    """Internal asynchronous converter function to make the data dictionary hashable for caching.
 
     Args:
         data (Dict[str, Optional[str | int]], optional): The query parameters for the request.
@@ -1137,19 +1179,34 @@ async def _hashable_type_converter_async(data: Optional[Dict[str, Optional[Union
     Returns:
         Optional[Tuple[Tuple[str, Optional[str | int]], ...]]: A hashable representation of the data dictionary.
 
+    Raises:
+        TypeConversionError: If data is not a dictionary or None.
+
+    Examples:
+        >>> # Internal use
+        >>> from ._core import _hashable_type_converter_async
+        >>> data = {"param1": "value1", "param2": 123, "param3": None}
+        >>> async def main():
+        >>>     result = await _hashable_type_converter_async(data)
+        >>>     print(result)
+        >>> # Event loops should not be created in the library codebase, so this method should only be used within an existing async context.
+        >>> # For documentation purposes, the following pattern can be used to check the output data:
+        >>> import asyncio
+        >>> if __name__ == "__main__":
+        >>>     asyncio.run(main())
+        (('param1', 'value1'), ('param2', 123), ('param3', None))
+
     Notes:
-        This function converts the data dictionary into a sorted tuple of key-value pairs, making it suitable 
-        for use as a cache key.
+        This function converts the data dictionary into a sorted tuple of key-value pairs, making it suitable for use as a cache key.
 
     Warnings:
-        Caching is only applied if `cache_mode` is enabled. Ensure that the `data` parameter is hashable for 
-        caching to work correctly.
+        Caching is only applied if `cache_mode` is enabled. Ensure that the `data` parameter is hashable for caching to work correctly.
     """
 
     return await asyncio.to_thread(_hashable_type_converter, data)
 
 async def _dict_type_converter_async(hashable_data: Optional[Tuple[Tuple[str, Optional[Union[str, int]]], ...]]) -> Optional[Dict[str, Optional[Union[str, int]]]]:
-    """Asynchronous helper function to convert hashable data back to a dictionary.
+    """Internal asynchronous converter function to convert hashable data back to a dictionary.
     
     Args:
         hashable_data (Optional[Tuple[Tuple[str, Optional[str | int]], ...]]): The hashable representation of the data.
@@ -1157,12 +1214,28 @@ async def _dict_type_converter_async(hashable_data: Optional[Tuple[Tuple[str, Op
     Returns:
         Optional[Dict[str, Optional[str | int]]]: The original data dictionary.
 
+    Raises:
+        TypeConversionError: If hashable_data is not a tuple or None.
+
+    Examples:
+        >>> # Internal use
+        >>> from ._core import _dict_type_converter_async
+        >>> hashable_data = (('param1', 'value1'), ('param2', 123), ('param3', None))
+        >>> async def main():
+        >>>     result = await _dict_type_converter_async(hashable_data)
+        >>>     print(result)
+        >>> # Event loops should not be created in the library codebase, so this method should only be used within an existing async context.
+        >>> # For documentation purposes, the following pattern can be used to check the output data:
+        >>> import asyncio
+        >>> if __name__ == "__main__":
+        >>>     asyncio.run(main())
+        (('param1', 'value1'), ('param2', 123), ('param3', None))
+
     Notes:
         This function converts the hashable sorted tuple of key-value pairs back into a standard dictionary.
 
     Warnings:
-        Caching is only applied if `cache_mode` is enabled. Ensure that the `data` parameter is hashable for 
-        caching to work correctly.
+        Caching is only applied if `cache_mode` is enabled. Ensure that the `data` parameter is hashable for caching to work correctly.
     """
 
     return await asyncio.to_thread(_dict_type_converter, hashable_data)

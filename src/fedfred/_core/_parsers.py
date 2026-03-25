@@ -22,10 +22,6 @@
 """fedfred._core._parsers
 
 This module provides internal helper methods for the fedfred package, specifically for extracting data from certain FRED API responses.
-
-References:
-    - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/
-    - Federal Reserve Bank of St. Louis, FRED API documentation. https://fred.stlouisfed.org/docs/api/fred/
 """
 
 import asyncio
@@ -34,7 +30,7 @@ from typing import Dict
 from fedfred.exceptions.parsing import ParsingError
 
 def _region_type_parser(response: Dict) -> str:
-    """Helper method to extract the region type from a GeoFred response dict.
+    """Internal parser function to extract the region type from a GeoFred response dictionary.
 
     Args:
         response (Dict): FRED GeoFred response dictionary.
@@ -46,7 +42,7 @@ def _region_type_parser(response: Dict) -> str:
         ParsingError: If no meta data or region type is found in the response.
     
     Examples:
-        >>> import fedfred as fd
+        >>> from ._core import _region_type_parser
         >>> response = {
         >>>     "meta": {
         >>>         "region_type": "state"
@@ -55,20 +51,12 @@ def _region_type_parser(response: Dict) -> str:
         >>>         "observations": []
         >>>     }
         >>> }
-        >>> region_type = fd.Helpers.extract_region_type(response)
+        >>> region_type = _region_type_parser(response)
         >>> print(region_type)
         state
 
     Notes:
         This method looks for the 'region' key in the 'meta' section of the response dictionary.
-
-    References:
-        - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.helpers.Helpers.extract_region_type.html
-
-    See Also:
-        - :meth:`Helpers.to_gpd_gdf`: Convert a FRED observation dictionary to a GeoPandas GeoDataFrame.
-        - :meth:`Helpers.to_dd_gpd_gdf`: Convert a FRED observation dictionary to a Dask GeoPandas GeoDataFrame.
-        - :meth:`Helpers.to_pl_st_gdf`: Convert a FRED observation dictionary to a Polars GeoDataFrame.
     """
 
     meta_data = response.get('meta', {})
@@ -86,7 +74,7 @@ def _region_type_parser(response: Dict) -> str:
     return region_type
 
 async def _region_type_parser_async(response: Dict) -> str:
-    """Helper method to extract the region type from a GeoFred response dictionary asynchronously.
+    """Internal asynchronous parser function to extract the region type from a GeoFred response dictionary.
 
     Args:
         response (Dict): FRED GeoFred response dictionary.
@@ -98,8 +86,7 @@ async def _region_type_parser_async(response: Dict) -> str:
         ParsingError: If no meta data or region type is found in the response.
 
     Examples:
-        >>> import asyncio
-        >>> import fedfred as fd
+        >>> from ._core import _region_type_parser_async
         >>> response = {
         >>>     "meta": {
         >>>         "region_type": "state"
@@ -109,22 +96,17 @@ async def _region_type_parser_async(response: Dict) -> str:
         >>>     }
         >>> }
         >>> async def main():
-        >>>     region_type = await fd.AsyncHelpers.extract_region_type(response)
+        >>>     region_type = await _region_type_parser_async(response)
         >>>     print(region_type)
+        >>> # Event loops should not be created in the library codebase, so this method should only be used within an existing async context. 
+        >>> # For documentation purposes, the following pattern can be used to check the output data:
+        >>> import asyncio
         >>> if __name__ == "__main__":
         >>>     asyncio.run(main())
         state
 
     Notes:
         This method looks for the 'region_type' key in the 'meta' section of the response.
-
-    References:
-        - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.helpers.AsyncHelpers.extract_region_type.html
-
-    See Also:
-        - :meth:`AsyncHelpers.to_gpd_gdf`: Asynchronously convert a FRED observation dictionary to a GeoPandas GeoDataFrame.
-        - :meth:`AsyncHelpers.to_dd_gpd_gdf`: Asynchronously convert a FRED observation dictionary to a Dask GeoPandas GeoDataFrame.
-        - :meth:`AsyncHelpers.to_pl_st_gdf`: Asynchronously convert a FRED observation dictionary to a Polars GeoDataFrame.
     """
 
     return await asyncio.to_thread(_region_type_parser, response)

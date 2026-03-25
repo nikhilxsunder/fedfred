@@ -21,7 +21,7 @@
 # SOFTWARE.
 """fedfred._core._validators
 
-This module provides internal validation methods for request parameters sent to the FRED API. These methods are used to validate 
+This module provides internal validation methods for request parameters sent to the FRED, GeoFRED, and FRASER API. These methods are used to validate 
 parameters passed to the various API endpoint methods, ensuring that they conform to expected types, formats, 
 and value constraints before being sent in API requests.
 """
@@ -33,7 +33,7 @@ from ..exceptions import ValueValidationError, TypeValidationError
 
 # Single Parameter Validators
 def _datestring_validator(parameter: str, value: str) -> None:
-    """Helper method to validate date-string formatted parameters.
+    """Internal validator function to validate date-string formatted parameters.
 
     Args:
         parameter (str): Name of the parameter being validated (for error messages).
@@ -42,12 +42,13 @@ def _datestring_validator(parameter: str, value: str) -> None:
         None
 
     Raises:
-        ValueError: If param is not a valid date string in YYYY-MM-DD format.
+        TypeValidationError: If parameter is not a string.
+        ValueValidationError: If parameter is not a valid date string in YYYY-MM-DD format.
 
     Examples:
         >>> import fedfred as fd
         >>> param = "2020-01-01"
-        >>> result = fd.__datestring_validation(param)
+        >>> result = fd.__datestring_validation("param", param)
         >>> print(result)
         None
 
