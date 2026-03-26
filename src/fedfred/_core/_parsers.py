@@ -26,8 +26,11 @@ This module provides internal helper methods for the fedfred package, specifical
 
 import asyncio
 from typing import Dict
-
 from fedfred.exceptions.parsing import ParsingError
+
+__all__ = [
+    "_region_type_parser", "_region_type_parser_async"
+]
 
 def _region_type_parser(response: Dict) -> str:
     """Internal parser function to extract the region type from a GeoFred response dictionary.
