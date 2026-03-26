@@ -51,12 +51,6 @@ def _datestring_validator(parameter: str, value: str) -> None:
         >>> result = fd.__datestring_validation("param", param)
         >>> print(result)
         None
-
-    References:
-        - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.____datestring_validation.html
-
-    See Also:
-        - :meth:`__datetime_conversion`: Convert a datetime object to a string in YYYY-MM-DD format.
     """
 
     if not isinstance(value, str):
