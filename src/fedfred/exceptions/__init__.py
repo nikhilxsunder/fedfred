@@ -26,3 +26,33 @@ from .conversion import ConversionError, ParameterConversionError, TypeConversio
 from .dependencies import OptionalDependencyError
 from .parsing import ParsingError
 from .base import FedfredError
+from .transport import (
+    AuthenticationError,
+    AuthorizationError,
+    BadRequestError,
+    ConnectTimeoutError,
+    HTTPClientError,
+    HTTPResponseError,
+    HTTPServerError,
+    NotFoundError,
+    PoolTimeoutError,
+    ProxyTransportError,
+    RateLimitError,
+    ReadTimeoutError,
+    ResponseDecodingError,
+    TooManyRedirectsError,
+    TransportConnectionError,
+    TransportError,
+    TransportProtocolError,
+    TransportReadError,
+    TransportWriteError,
+    TransportRequestError,
+    WriteTimeoutError,
+    UnsupportedProtocolError,
+)
+from .rate_limit import (
+    LimiterLimitError,
+    LimiterReleaseError,
+    LimiterLoopError,
+    LimiterWakeError,
+)
