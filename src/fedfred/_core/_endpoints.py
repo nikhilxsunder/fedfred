@@ -19,6 +19,7 @@ _CATEGORY_RELATED_TAGS_ENDPOINT: str = "/category/related_tags"
 
 _RELEASES_ENDPOINT: str = "/releases"
 _RELEASES_DATES_ENDPOINT: str = "/releases/dates"
+_RELEASE: str = "/release"
 
 
 _BASE_PARAMETERS: Dict[str, str] = {

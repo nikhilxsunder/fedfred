@@ -1,6 +1,7 @@
 
 from dataclasses import dataclass
 from typing import Optional
+from tenacity import RetryError
 from .base import FedfredError
 
 @dataclass(frozen=True, slots=True)
@@ -15,8 +16,8 @@ class TransportError(FedfredError):
             The HTTP method associated with the failure, if available.
     """
 
-    def __init__(self, message: str, *, url: Optional[str] = None,
-                 method: Optional[str] = None, status_code: Optional[int] = None, response_text: Optional[str] = None) -> None:
+    def __init__(self, message: str, *, url: Optional[str] = None, method: Optional[str] = None,
+                 status_code: Optional[int] = None, response_text: Optional[str] = None) -> None:
 
         super().__init__(message)
         self.url: Optional[str] = url
@@ -24,11 +25,11 @@ class TransportError(FedfredError):
         self.status_code: Optional[int] = status_code
         self.response_text: Optional[str] = response_text
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True, slots=True, init=False)
 class RequestPreparationError(TransportError):
     """Raised when a request cannot be constructed correctly."""
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True, slots=True, init=False)
 class TransportRequestError(TransportError):
     """Base exception for request execution failures before a valid HTTP error response is processed."""
 
@@ -80,12 +81,12 @@ class UnsupportedProtocolError(TransportRequestError):
 class TooManyRedirectsError(TransportRequestError):
     """Raised when the request exceeds the allowed redirect limit."""
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True, slots=True, init=False)
 class ResponseDecodingError(TransportRequestError):
     """Raised when a response body cannot be decoded or parsed as expected."""
 
-@dataclass(frozen=True, slots=True)
-class TransportRetryError(TransportRequestError):
+@dataclass(frozen=True, slots=True, init=False)
+class TransportRetryError(RetryError):
     """
     Raised when transport retry attempts are exhausted.
 
@@ -94,18 +95,7 @@ class TransportRetryError(TransportRequestError):
             The number of retry attempts performed, if known.
     """
 
-    def __init__(
-        self,
-        message: str,
-        *,
-        url: Optional[str] = None,
-        method: Optional[str] = None,
-        attempts: Optional[int] = None,
-    ) -> None:
-        super().__init__(message, url=url, method=method)
-        self.attempts: Optional[int] = attempts
-
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True, slots=True, init=False)
 class HTTPResponseError(TransportError):
     """
     Base exception for unsuccessful HTTP responses.
@@ -117,43 +107,81 @@ class HTTPResponseError(TransportError):
             The decoded response text, if available.
     """
 
-    def __init__(
-        self,
-        message: str,
-        *,
-        status_code: Optional[int] = None,
-        url: Optional[str] = None,
-        method: Optional[str] = None,
-        response_text: Optional[str] = None,
-    ) -> None:
-        super().__init__(message, url=url, method=method)
-        self.status_code: Optional[int] = status_code
-        self.response_text: Optional[str] = response_text
-
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True, slots=True, init=False)
 class HTTPClientError(HTTPResponseError):
     """Raised for 4xx HTTP response errors."""
 
-@dataclass(frozen=True, slots=True)
+
+@dataclass(frozen=True, slots=True, init=False)
 class BadRequestError(HTTPClientError):
     """Raised for HTTP 400 responses."""
 
-@dataclass(frozen=True, slots=True)
+
+@dataclass(frozen=True, slots=True, init=False)
 class AuthenticationError(HTTPClientError):
     """Raised for HTTP 401 or equivalent authentication failures."""
 
-@dataclass(frozen=True, slots=True)
+
+@dataclass(frozen=True, slots=True, init=False)
 class AuthorizationError(HTTPClientError):
     """Raised for HTTP 403 responses."""
 
-@dataclass(frozen=True, slots=True)
+
+@dataclass(frozen=True, slots=True, init=False)
 class NotFoundError(HTTPClientError):
     """Raised for HTTP 404 responses."""
 
-@dataclass(frozen=True, slots=True)
+
+@dataclass(frozen=True, slots=True, init=False)
+class MethodNotAllowedError(HTTPClientError):
+    """Raised for HTTP 405 responses."""
+
+
+@dataclass(frozen=True, slots=True, init=False)
+class ConflictError(HTTPClientError):
+    """Raised for HTTP 409 responses."""
+
+
+@dataclass(frozen=True, slots=True, init=False)
+class GoneError(HTTPClientError):
+    """Raised for HTTP 410 responses."""
+
+
+@dataclass(frozen=True, slots=True, init=False)
+class UnprocessableEntityError(HTTPClientError):
+    """Raised for HTTP 422 responses."""
+
+
+@dataclass(frozen=True, slots=True, init=False)
 class RateLimitError(HTTPClientError):
     """Raised for HTTP 429 responses."""
 
-@dataclass(frozen=True, slots=True)
+
+@dataclass(frozen=True, slots=True, init=False)
 class HTTPServerError(HTTPResponseError):
     """Raised for 5xx HTTP response errors."""
+
+
+@dataclass(frozen=True, slots=True, init=False)
+class InternalServerError(HTTPServerError):
+    """Raised for HTTP 500 responses."""
+
+
+@dataclass(frozen=True, slots=True, init=False)
+class BadGatewayError(HTTPServerError):
+    """Raised for HTTP 502 responses."""
+
+
+@dataclass(frozen=True, slots=True, init=False)
+class ServiceUnavailableError(HTTPServerError):
+    """Raised for HTTP 503 responses."""
+
+
+@dataclass(frozen=True, slots=True, init=False)
+class GatewayTimeoutError(HTTPServerError):
+    """Raised for HTTP 504 responses."""
+
+
+@dataclass(frozen=True, slots=True, init=False)
+class UnexpectedHTTPStatusError(HTTPResponseError):
+    """Raised for unexpected or unmapped non-success HTTP status codes."""

@@ -580,21 +580,7 @@ _FRED_PARAMETERS_MAP: Dict[str, Dict[str, Optional[Union[Callable, str]]]] = {
         'error_message': "season must be one of the valid options: 'seasonally_adjusted', 'not_seasonally_adjusted'"
     }
 }
-"""Parameter map specifications for FRED API endpoints. Each key corresponds to a parameter name, and the value is a dictionary that may contain the following keys to specify validation rules:
-
-Attributes:
-    FRED_PARAMETERS_MAP (Dict[str, Dict[str, Optional[Callable | str]]]):
-        Key:
-            Parameter name (e.g., "series_id", "frequency").
-        Value:
-            Dictionary containing validation rules for the parameter.
-
-Examples:
-    >>> # Internal use
-    >>> from ._core import FRED_PARAMETERS_MAP
-    >>> FRED_PARAMETERS_MAP["series_id"]
-    {'type_condition': <function <lambda> at 0x...>, 'value_condition': <function <lambda> at 0x...>, 'error_message': "series_id must be a non-empty alphanumeric string without spaces"}
-"""
+"""Parameter map specifications for FRED API endpoints. Each key corresponds to a parameter name, and the value is a dictionary that may contain the following keys to specify validation rules"""
 
 _GEOFRED_PARAMETERS_MAP: Dict[str, Dict[str, Optional[Union[Callable, str]]]] = {
     'api_key': 
@@ -667,21 +653,7 @@ _GEOFRED_PARAMETERS_MAP: Dict[str, Dict[str, Optional[Union[Callable, str]]]] = 
         'error_message': "transformation must be one of the valid options: 'lin', 'chg', 'ch1', 'pch', 'pc1', 'pca', 'cch', 'cca', 'log'"
     }
 }
-"""Parameter map specifications for GeoFRED API endpoints. Each key corresponds to a parameter name, and the value is a dictionary that may contain the following keys to specify validation rules:
-
-Attributes:
-    GEOFRED_PARAMETERS_MAP (Dict[str, Dict[str, Optional[Callable | str]]]):
-        Key: 
-            Parameter name (e.g., "series_id", "shape").
-        Value:
-            Dictionary containing validation rules for the parameter.
-
-Examples:
-    >>> # Internal use
-    >>> from ._core import GEOFRED_PARAMETERS_MAP
-    >>> GEOFRED_PARAMETERS_MAP["shape"]
-    {'type_condition': <function <lambda> at 0x...>, 'value_condition': <function <lambda> at 0x...>, 'error_message': "shape must be one of the valid options: 'bea', 'msa', 'frb', 'necta', 'state', 'country', 'county', 'censusregion', 'censusdivision'"}
-"""
+"""Parameter map specifications for GeoFRED API endpoints. Each key corresponds to a parameter name, and the value is a dictionary that may contain the following keys to specify validation rules"""
 
 _FRASER_PARAMETERS_MAP: Dict[str, Dict[str, Optional[Union[Callable, str]]]] = {
     'limit':
@@ -709,21 +681,7 @@ _FRASER_PARAMETERS_MAP: Dict[str, Dict[str, Optional[Union[Callable, str]]]] = {
         'error_message': "role must be one of the valid options: 'creator', 'contributor', 'editor', 'repository', 'uncertain', 'subject'"
     },
 }
-"""Parameter map specifications for FRASER API endpoints. Each key corresponds to a parameter name, and the value is a dictionary that may contain the following keys to specify validation rules:
-
-Attributes:
-    FRASER_PARAMETERS_MAP (Dict[str, Dict[str, Optional[Callable | str]]]):
-        Key:
-            Parameter name (e.g., "role", "limit").
-        Value:
-            Dictionary containing validation rules for the parameter.
-
-Examples:
-    >>> # Internal use
-    >>> from ._core import FRASER_PARAMETERS_MAP
-    >>> FRASER_PARAMETERS_MAP["role"]
-    {'type_condition': <function <lambda> at 0x...>, 'value_condition': <function <lambda> at 0x...>, 'error_message': "role must be one of the valid options: 'creator', 'contributor', 'editor', 'repository', 'uncertain', 'subject'"}
-"""
+"""Parameter map specifications for FRASER API endpoints. Each key corresponds to a parameter name, and the value is a dictionary that may contain the following keys to specify validation rules"""
 
 # Collective Parameter Validators
 def _fred_parameter_validator(parameters: Dict[str, Any]) -> None:
