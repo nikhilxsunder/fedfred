@@ -1,9 +1,9 @@
 from dataclasses import dataclass
 from typing import Tuple
-from .base import FedfredError
+from .base import FedFredError
 
 @dataclass(frozen=True, slots=True)
-class ConversionError(FedfredError):
+class ConversionError(FedFredError):
     """
     Base class for conversion failures (e.g., converting datetimes, lists, enums
     into API-compatible strings).

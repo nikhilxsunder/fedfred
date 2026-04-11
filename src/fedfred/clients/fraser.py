@@ -120,7 +120,7 @@ class Fraser:
             'Fraser(api_key='your_fraser_api_key', cache_mode=True, cache_size=256)'
         """
         return f"Fraser(api_key={'SET' if self.api_key else 'NOT SET'}, cache_mode={self.cache_mode}, cache_size={self.cache_size})"
-    
+
     def __str__(self) -> str:
         """String representation of the Fraser class
 
@@ -147,7 +147,7 @@ class Fraser:
             f"  Cache Size: {self.cache_size}\n"
             f"  Max Requests Per Minute: {self.max_requests_per_minute}"
         )
-    
+
     def __eq__(self, other:object) -> bool:
         """Equality comparison for the Fraser class.
 
@@ -175,7 +175,7 @@ class Fraser:
             self.cache_mode == other.cache_mode and
             self.cache_size == other.cache_size
         )
-    
+
     def __hash__(self) -> int:
         """Hash function for the Fraser class.
 
@@ -192,7 +192,7 @@ class Fraser:
         """
 
         return hash((self.api_key, self.cache_mode, self.cache_size))
-    
+
     def __del__(self) -> None:
         """Destructor for the Fraser class. Clears the cache when the instance is deleted.
 
@@ -230,7 +230,7 @@ class Fraser:
         """
 
         return len(self.cache) if self.cache_mode else 0
-    
+
     def __contains__(self, key: str) -> bool:
         """Check if a specific item exists in the cache.
 
@@ -245,7 +245,7 @@ class Fraser:
         """
 
         return key in self.cache.keys() if self.cache_mode else False
-    
+
     def __getitem__(self, key:str) -> Any:
         """Get a cached item by key.
 
@@ -267,7 +267,7 @@ class Fraser:
             return self.cache[key]
         else:
             raise AttributeError(f"'{key}' not found in cache.")
-        
+
     def __setitem__(self, key:str, value:Any) -> None:
         """Set a cached item by key.
 
@@ -300,7 +300,7 @@ class Fraser:
             del self.cache[key]
         else:
             raise AttributeError(f"'{key}' not found in cache.")
-        
+
     def __call__(self)-> str:
         """Call method for the Fraser class. Returns a summary of the instance's configuration.
 
@@ -326,14 +326,6 @@ class Fraser:
         )
 
     # Private Methods
-    def __rate_limited(self) -> None:
-        now = time.time()
-        self.request_times.append(now)
-        while self.request_times and self.request_times[0] < now - 60:
-            self.request_times.popleft()
-        if len(self.request_times) >= self.max_requests_per_minute:
-            time.sleep(60 - (now - self.request_times[0]))
-
     def __fraser_post_request(self, url_endpoint: str, data: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
 
         self.__rate_limited()

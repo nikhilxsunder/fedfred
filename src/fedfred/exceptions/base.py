@@ -26,7 +26,7 @@ from typing import Any, Mapping, Optional
 
 
 @dataclass(frozen=True, slots=True)
-class FedfredError(Exception):
+class FedFredError(Exception):
     """
     Root base exception for all fedfred errors.
     """

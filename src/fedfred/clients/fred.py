@@ -169,6 +169,8 @@ class Fred:
         if api_key:
             set_api_key(api_key, service="fred")
 
+        set_cache_size(cache_size) # Add logic to core abstraction
+
         self.__api_key: Optional[str] = _resolve_api_key(service="fred")
         self.cache_mode: bool = cache_mode
         self.cache_size: int = cache_size

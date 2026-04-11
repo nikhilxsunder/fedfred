@@ -1,10 +1,10 @@
 
 from dataclasses import dataclass, field
 from typing import Any, Mapping
-from .base import FedfredError
+from .base import FedFredError
 
 @dataclass(frozen=True, slots=True)
-class ValidationError(FedfredError):
+class ValidationError(FedFredError):
     """
     Base class for validation failures (user input / parameter validation).
     """

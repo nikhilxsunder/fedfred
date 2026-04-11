@@ -4,11 +4,11 @@
 
 from dataclasses import dataclass
 from typing import Optional
-from .base import FedfredError
+from .base import FedFredError
 
 
 @dataclass(frozen=True, slots=True)
-class OptionalDependencyError(FedfredError):
+class OptionalDependencyError(FedFredError):
     """Raised when an optional third-party dependency is required but not installed.
 
     This exception is used when a feature depends on an external library

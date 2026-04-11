@@ -21,38 +21,89 @@
 # SOFTWARE.
 """fedfred.exceptions.__init__"""
 
-from .validation import ValueValidationError, TypeValidationError, ParameterValidationError, ValidationError
-from .conversion import ConversionError, ParameterConversionError, TypeConversionError, DateConversionError, DataFrameConversionError, GeoDataFrameConversionError
+from .validation import (
+    ValueValidationError,
+    TypeValidationError,
+    ParameterValidationError,
+    ValidationError
+)
+
+from .conversion import (
+    ConversionError,
+    ParameterConversionError,
+    TypeConversionError,
+    DateConversionError,
+    DataFrameConversionError,
+    GeoDataFrameConversionError
+)
+
 from .dependencies import OptionalDependencyError
+
 from .parsing import ParsingError
-from .base import FedfredError
+
+from .base import FedFredError
+
 from .transport import (
-    AuthenticationError,
-    AuthorizationError,
-    BadRequestError,
-    ConnectTimeoutError,
-    HTTPClientError,
-    HTTPResponseError,
-    HTTPServerError,
-    NotFoundError,
-    PoolTimeoutError,
-    ProxyTransportError,
-    RateLimitError,
-    ReadTimeoutError,
-    ResponseDecodingError,
-    TooManyRedirectsError,
-    TransportConnectionError,
     TransportError,
-    TransportProtocolError,
+    RequestPreparationError,
+    TransportRequestError,
+    TransportConnectionError,
+    TransportTimeoutError,
+    ConnectTimeoutError,
+    ReadTimeoutError,
+    WriteTimeoutError,
+    PoolTimeoutError,
     TransportReadError,
     TransportWriteError,
-    TransportRequestError,
-    WriteTimeoutError,
+    TransportProtocolError,
+    ProxyTransportError,
     UnsupportedProtocolError,
+    TooManyRedirectsError,
+    ResponseDecodingError,
+    TransportRetryError,
+    HTTPResponseError,
+    HTTPClientError,
+    BadRequestError,
+    AuthenticationError,
+    AuthorizationError,
+    NotFoundError,
+    MethodNotAllowedError,
+    ConflictError,
+    GoneError,
+    UnprocessableEntityError,
+    RateLimitError,
+    HTTPServerError,
+    InternalServerError,
+    BadGatewayError,
+    ServiceUnavailableError,
+    GatewayTimeoutError,
+    UnexpectedHTTPStatusError
 )
-from .rate_limit import (
+
+from .endpoints import (
+    EndpointError,
+    EndpointConfigurationError,
+    EndpointResolutionError,
+    EndpointSpecError,
+    EndpointContextError,
+    EndpointNameTypeError,
+    EndpointNameValueError,
+    EndpointUnsupportedError,
+    EndpointMapError,
+    EndpointBaseURLError,
+    EndpointPayloadError,
+    EndpointParametersError,
+    EndpointHeadersError,
+    EndpointServiceError,
+    EndpointURLError
+)
+
+from .rate_limit import(
     LimiterLimitError,
-    LimiterReleaseError,
-    LimiterLoopError,
     LimiterWakeError,
+    LimiterLoopError,
+    LimiterReleaseError,
+    LimiterServiceError,
+    RateLimiterConfigurationError,
+    RateLimiterStateError,
 )

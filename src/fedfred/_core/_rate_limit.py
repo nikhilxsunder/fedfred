@@ -30,11 +30,14 @@ from dataclasses import dataclass, field
 import time
 from collections import deque
 from typing import Tuple, Any
-from ..exceptions import (
+from ..exceptions import(
     LimiterLimitError,
-    LimiterReleaseError,
-    LimiterLoopError,
     LimiterWakeError,
+    LimiterLoopError,
+    LimiterReleaseError,
+    LimiterServiceError,
+    RateLimiterConfigurationError,
+    RateLimiterStateError,
 )
 
 __all__ = [
@@ -48,8 +51,13 @@ class AdjustableLimiter:
     Attributes:
         limit (int): The maximum number of concurrent holders allowed.
 
+    Examples:
+        >>> # Internal use
+        >>> from ._core import
+
     Notes: At most `limit` concurrent holders. `set_limit()` adjusts the cap; existing holders keep their slots.
     """
+
     limit: int
     """The maximum number of concurrent holders allowed."""
 
@@ -123,17 +131,10 @@ class AdjustableLimiter:
 
     # Public methods
     def set_limit(self, new_limit: int) -> None:
-        """Set a new limit for the semaphore.
-
-        Args:
-            new_limit (int): The new limit for the semaphore.
-        """
-
         if new_limit < 1:
-            new_limit = 1
-        # no await; just update and wake waiters via a task-safe notify
+            raise LimiterLimitError(f"new_limit must be >= 1, got {new_limit}")
+
         self.limit = new_limit
-        # notifying requires the condition; schedule it
         try:
             asyncio.get_running_loop().call_soon_threadsafe(self._notify)
         except RuntimeError as exc:
@@ -166,12 +167,50 @@ class AdjustableLimiter:
             self._in_use -= 1
             self._cond.notify_all()
 
-_MAX_REQUESTS_PER_MINUTE: int = 120
-_REQUEST_TIMES: deque = deque()
-_LOCK: asyncio.Lock = asyncio.Lock()
-_SEMAPHORE: AdjustableLimiter = AdjustableLimiter(limit=_MAX_REQUESTS_PER_MINUTE // 10)
+_FRED_MAX_REQUESTS_PER_MINUTE: int = 120
+_FRASER_MAX_REQUESTS_PER_MINUTE: int = 30
+_FRED_REQUEST_TIMES: deque = deque()
+_FRASER_REQUEST_TIMES: deque = deque()
+_FRED_LOCK: asyncio.Lock = asyncio.Lock()
+_FRASER_LOCK: asyncio.Lock = asyncio.Lock()
+_FRED_SEMAPHORE: AdjustableLimiter = AdjustableLimiter(limit=_FRED_MAX_REQUESTS_PER_MINUTE // 10)
+_FRASER_SEMAPHORE: AdjustableLimiter = AdjustableLimiter(limit=_FRASER_MAX_REQUESTS_PER_MINUTE // 10)
 
-async def _semaphore_updater() -> Tuple[Any, float]:
+@dataclass(slots=True)
+class LimiterSpec:
+
+    service: str
+    request_times: deque = field(init=False)
+    max_requests_per_minute: int = field(init=False)
+    lock: asyncio.Lock = field(init=False)
+    semaphore: AdjustableLimiter = field(init=False)
+
+    def __post_init__(self) -> None:
+
+        if self.service in {"fred", "geofred"}:
+            self.request_times = _FRED_REQUEST_TIMES
+            self.max_requests_per_minute = _FRED_MAX_REQUESTS_PER_MINUTE
+            self.lock = _FRED_LOCK
+            self.semaphore = _FRED_SEMAPHORE
+
+        elif self.service == "fraser":
+            self.request_times = _FRASER_REQUEST_TIMES
+            self.max_requests_per_minute = _FRASER_MAX_REQUESTS_PER_MINUTE
+            self.lock = _FRASER_LOCK
+            self.semaphore = _FRASER_SEMAPHORE
+
+        else:
+            raise LimiterServiceError(f"Unknown rate-limited service: {self.service}")
+
+def _resolve_limiter(service: str) -> LimiterSpec:
+
+    return LimiterSpec(service)
+
+async def _resolve_limiter_async(service: str) -> LimiterSpec:
+
+    return await asyncio.to_thread(_resolve_limiter, service)
+
+async def _semaphore_updater(request_times: deque, max_requests_per_minute: int, lock: asyncio.Lock, semaphore: AdjustableLimiter) -> Tuple[Any, float]:
     """Dynamically adjusts the semaphore based on requests left in the minute.
 
     Returns:
@@ -184,18 +223,37 @@ async def _semaphore_updater() -> Tuple[Any, float]:
         This method should be used within an asynchronous context to ensure proper locking and timing.
     """
 
-    async with _LOCK:
+    if max_requests_per_minute < 1:
+        raise RateLimiterConfigurationError(
+            f"max_requests_per_minute must be >= 1, got {max_requests_per_minute}"
+        )
+
+    if semaphore.limit < 1:
+        raise RateLimiterStateError(
+            f"Limiter semaphore is in an invalid state: limit={semaphore.limit}"
+        )
+
+    async with lock:
         now = time.time()
-        while _REQUEST_TIMES and _REQUEST_TIMES[0] < now - 60:
-            _REQUEST_TIMES.popleft()
-        requests_made = len(_REQUEST_TIMES)
-        requests_left = max(0, _MAX_REQUESTS_PER_MINUTE - requests_made)
-        time_left = max(1, 60 - (now - (_REQUEST_TIMES[0] if _REQUEST_TIMES else now)))
-        new_limit = max(1, min(_MAX_REQUESTS_PER_MINUTE // 10, requests_left // 2))
-        _SEMAPHORE.set_limit(new_limit)
+
+        while request_times and request_times[0] < now - 60:
+            request_times.popleft()
+
+        requests_made = len(request_times)
+
+        if requests_made > max_requests_per_minute and not request_times:
+            raise RateLimiterStateError(
+                "Request time queue state is inconsistent with computed request volume."
+            )
+
+        requests_left = max(0, max_requests_per_minute - requests_made)
+        time_left = max(1, 60 - (now - (request_times[0] if request_times else now)))
+        new_limit = max(1, min(max_requests_per_minute // 10, requests_left // 2))
+
+        semaphore.set_limit(new_limit)
         return requests_left, time_left
 
-def _rate_limiter() -> None:
+def _rate_limiter(service: str) -> None:
     """Ensures synchronous requests comply with rate limits.
 
     Notes:
@@ -206,14 +264,25 @@ def _rate_limiter() -> None:
         This method uses time.sleep(), which blocks the current thread. Avoid using it in asynchronous contexts.
     """
 
-    now = time.time()
-    _REQUEST_TIMES.append(now)
-    while _REQUEST_TIMES and _REQUEST_TIMES[0] < now - 60:
-        _REQUEST_TIMES.popleft()
-    if len(_REQUEST_TIMES) >= _MAX_REQUESTS_PER_MINUTE:
-        time.sleep(60 - (now - _REQUEST_TIMES[0]))
+    spec = _resolve_limiter(service)
 
-async def _rate_limiter_async() -> None:
+    now = time.time()
+
+    while spec.request_times and spec.request_times[0] < now - 60:
+        spec.request_times.popleft()
+
+    if len(spec.request_times) >= spec.max_requests_per_minute:
+        sleep_for = 60 - (now - spec.request_times[0])
+        if sleep_for > 0:
+            time.sleep(sleep_for)
+
+        now = time.time()
+        while spec.request_times and spec.request_times[0] < now - 60:
+            spec.request_times.popleft()
+
+    spec.request_times.append(now)
+
+async def _rate_limiter_async(service: str) -> None:
     """Ensures asynchronous requests comply with rate limits.
 
     Notes:
@@ -224,12 +293,14 @@ async def _rate_limiter_async() -> None:
         This method should be used within an asynchronous context to ensure proper locking and timing.
     """
 
-    async with _SEMAPHORE:
-        requests_left, time_left = await _semaphore_updater()
+    spec = await _resolve_limiter_async(service)
+
+    async with spec.semaphore:
+        requests_left, time_left = await _semaphore_updater(spec.request_times, spec.max_requests_per_minute, spec.lock, spec.semaphore)
         if requests_left > 0:
             sleep_time = time_left / max(1, requests_left)
             await asyncio.sleep(sleep_time)
         else:
             await asyncio.sleep(60)
-        async with _LOCK:
-            _REQUEST_TIMES.append(time.time())
+        async with spec.lock:
+            spec.request_times.append(time.time())

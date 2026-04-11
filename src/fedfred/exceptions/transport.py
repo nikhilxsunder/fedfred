@@ -2,10 +2,10 @@
 from dataclasses import dataclass
 from typing import Optional
 from tenacity import RetryError
-from .base import FedfredError
+from .base import FedFredError
 
 @dataclass(frozen=True, slots=True)
-class TransportError(FedfredError):
+class TransportError(FedFredError):
     """
     Base exception for transport-layer failures in fedfred.
 

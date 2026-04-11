@@ -33,7 +33,7 @@ from ._converters import _dict_type_converter, _dict_type_converter_async
 from ._rate_limit import _rate_limiter, _rate_limiter_async
 from ._caching import _CACHE
 from ._endpoints import _resolve_endpoint, _resolve_endpoint_async
-from ..exceptions.transport import (
+from ..exceptions import (
     TransportError,
     RequestPreparationError,
     TransportRequestError,
@@ -72,7 +72,8 @@ from ..exceptions.transport import (
 
 __all__ = [
     "_get_request", "_get_request_async",
-    "_cached_get_request", "_cached_get_request_async"
+    "_cached_get_request", "_cached_get_request_async",
+    "_post_request", "_post_request_async",
 ]
 
 _HTTP_EXCEPTION_MAP: Dict = {
@@ -239,15 +240,15 @@ def _map_httpx_exception(exception: httpx.HTTPError) -> TransportError:
     )
 
 @retry(wait=wait_fixed(1), stop=stop_after_attempt(3), retry=retry_if_exception_type(TransportTimeoutError), reraise=False, retry_error_cls=TransportRetryError)
-def _get_request(url_endpoint: str, data: Optional[Dict[str, Optional[Union[str, int]]]]=None) -> Dict[str, Any]:
+def _get_request(endpoint_name: str, data: Optional[Dict[str, Optional[Union[str, int]]]]=None) -> Dict[str, Any]:
     """Perform a GET request without caching.
 
     Args:
-        url_endpoint (str): The FRED API endpoint to query.
+        endpoint_name (str): The endpoint to query.
         data (Dict[str, Optional[str | int]], optional): The query parameters for the request. Defaults to None.
 
     Returns:
-        Dict[str, Any]: The JSON response from the FRED API.
+        Dict[str, Any]: The JSON response from the requested service's API.
 
     Raises:
         TransportError: If the request fails due to transport-level issues, including connection failures, timeouts, protocol errors, or unsuccessful HTTP responses.
@@ -256,28 +257,25 @@ def _get_request(url_endpoint: str, data: Optional[Dict[str, Optional[Union[str,
         TransportRetryError: If the request fails after retrying the specified number of times due to transport timeouts.
     """
 
-    _rate_limiter()
-
     try:
-        spec = _resolve_endpoint(url_endpoint)
+        spec = _resolve_endpoint(endpoint_name)
     except Exception as exc:
         raise RequestPreparationError(
-            f"Failed to resolve endpoint: {url_endpoint}",
+            f"Failed to resolve endpoint: {endpoint_name}",
             url=None,
             method="GET",
         ) from exc
 
+    _rate_limiter(service=spec.service)
+
     params: Dict[str, Any] = {
-        **spec.default_params,
+        **(spec.params or {}),
         **(data or {}),
     }
 
-    headers = dict(spec.default_headers or {})
-    request_url = spec.base_url + url_endpoint
-
     with httpx.Client() as client:
         try:
-            response = client.get(request_url, params=params, headers=headers or None, timeout=10)
+            response = client.get(spec.url, params=params, headers=spec.headers or None, timeout=10)
             response.raise_for_status()
             return response.json()
         except httpx.HTTPError as exc:
@@ -285,7 +283,7 @@ def _get_request(url_endpoint: str, data: Optional[Dict[str, Optional[Union[str,
         except ValueError as exc:
             raise ResponseDecodingError(
                 "Response body could not be decoded as valid JSON.",
-                url=request_url,
+                url=spec.url,
                 method="GET",
             ) from exc
 
@@ -310,15 +308,15 @@ def _cached_get_request(url_endpoint: str, hashable_data: Optional[Tuple[Tuple[s
     return _get_request(url_endpoint, _dict_type_converter(hashable_data))
 
 @retry(wait=wait_fixed(1), stop=stop_after_attempt(3), retry=retry_if_exception_type(TransportTimeoutError), reraise=False, retry_error_cls=TransportRetryError)
-async def _get_request_async(url_endpoint: str, data: Optional[Dict[str, Optional[Union[str, int]]]]=None) -> Dict[str, Any]:
+async def _get_request_async(endpoint_name: str, data: Optional[Dict[str, Optional[Union[str, int]]]]=None) -> Dict[str, Any]:
     """Perform a GET request without caching.
 
     Args:
-        url_endpoint (str): The FRED API endpoint to query.
+        endpoint_name (str): The endpoint to query.
         data (Dict[str, Optional[str | int]], optional): The query parameters for the request. Defaults to None.
 
     Returns:
-        Dict[str, Any]: The JSON response from the FRED API.
+        Dict[str, Any]: The JSON response from the requested service's API.
 
     Raises:
         TransportError: If the request fails due to transport-level issues, including connection failures, timeouts, protocol errors, or unsuccessful HTTP responses.
@@ -327,28 +325,25 @@ async def _get_request_async(url_endpoint: str, data: Optional[Dict[str, Optiona
         TransportRetryError: If the request fails after retrying the specified number of times due to transport timeouts.
     """
 
-    await _rate_limiter_async()
-
     try:
-        spec = await _resolve_endpoint_async(url_endpoint)
+        spec = await _resolve_endpoint_async(endpoint_name)
     except Exception as exc:
         raise RequestPreparationError(
-            f"Failed to resolve endpoint: {url_endpoint}",
+            f"Failed to resolve endpoint: {endpoint_name}",
             url=None,
             method="GET",
         ) from exc
 
+    await _rate_limiter_async(service=spec.service)
+
     params: Dict[str, Any] = {
-        **spec.default_params,
+        **(spec.params or {}),
         **(data or {}),
     }
 
-    headers = dict(spec.default_headers or {})
-    request_url = spec.base_url + url_endpoint
-
     async with httpx.AsyncClient() as client:
         try:
-            response = await client.get(request_url, params=params, headers=headers or None, timeout=10)
+            response = await client.get(spec.url, params=params, headers=spec.headers or None, timeout=10)
             response.raise_for_status()
             return response.json()
         except httpx.HTTPError as exc:
@@ -356,7 +351,7 @@ async def _get_request_async(url_endpoint: str, data: Optional[Dict[str, Optiona
         except ValueError as exc:
             raise ResponseDecodingError(
                 "Response body could not be decoded as valid JSON.",
-                url=request_url,
+                url=spec.url,
                 method="GET",
             ) from exc
 
@@ -379,3 +374,99 @@ async def _cached_get_request_async(url_endpoint: str, hashable_data: Optional[T
     """
 
     return await _get_request_async(url_endpoint, await _dict_type_converter_async(hashable_data))
+
+def _post_request(endpoint_name: str, data: Optional[Dict[str, Optional[Union[str, int]]]]=None) -> Dict[str, Any]:
+    """
+    Perform a POST request without caching.
+
+    Args:
+        endpoint_name (str): The endpoint to query.
+        data (Dict[str, Optional[str | int]], optional): The payload for the request. Defaults to None.
+
+    Returns:
+        Dict[str, Any]: The JSON response from the requested service's API.
+
+    Raises:
+        TransportError: If the request fails due to transport-level issues, including connection failures, timeouts, protocol errors, or unsuccessful HTTP responses.
+        ResponseDecodingError: If the response body cannot be decoded as valid JSON.
+        RequestPreparationError: If there is an error preparing the request, such as resolving the endpoint specification.
+        TransportRetryError: If the request fails after retrying the specified number of times due to transport timeouts.
+    """
+
+    try:
+        spec = _resolve_endpoint(endpoint_name)
+    except Exception as exc:
+        raise RequestPreparationError(
+            f"Failed to resolve endpoint: {endpoint_name}",
+            url=None,
+            method="POST",
+        ) from exc
+
+    _rate_limiter(service=spec.service)
+
+    payload: Dict[str, Any] = {
+        **(spec.payload or {}),
+        **(data or {}),
+    }
+
+    with httpx.Client() as client:
+        try:
+            response = client.post(spec.url, json=payload, headers=spec.headers or None, timeout=10)
+            response.raise_for_status()
+            return response.json()
+        except httpx.HTTPError as exc:
+            raise _map_httpx_exception(exc) from exc
+        except ValueError as exc:
+            raise ResponseDecodingError(
+                "Response body could not be decoded as valid JSON.",
+                url=spec.url,
+                method="POST",
+            ) from exc
+
+async def _post_request_async(endpoint_name: str, data: Optional[Dict[str, Optional[Union[str, int]]]]=None) -> Dict[str, Any]:
+    """
+    Perform an asynchronous POST request without caching.
+
+    Args:
+        endpoint_name (str): The endpoint to query.
+        data (Dict[str, Optional[str | int]], optional): The payload for the request. Defaults to None.
+
+    Returns:
+        Dict[str, Any]: The JSON response from the requested service's API.
+
+    Raises:
+        TransportError: If the request fails due to transport-level issues, including connection failures, timeouts, protocol errors, or unsuccessful HTTP responses.
+        ResponseDecodingError: If the response body cannot be decoded as valid JSON.
+        RequestPreparationError: If there is an error preparing the request, such as resolving the endpoint specification.
+        TransportRetryError: If the request fails after retrying the specified number of times due to transport timeouts.
+    """
+
+    try:
+        spec = await _resolve_endpoint_async(endpoint_name)
+    except Exception as exc:
+        raise RequestPreparationError(
+            f"Failed to resolve endpoint: {endpoint_name}",
+            url=None,
+            method="POST",
+        ) from exc
+
+    await _rate_limiter_async(service=spec.service)
+
+    payload: Dict[str, Any] = {
+        **(spec.payload or {}),
+        **(data or {}),
+    }
+
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.post(spec.url, json=payload, headers=spec.headers or None, timeout=10)
+            response.raise_for_status()
+            return response.json()
+        except httpx.HTTPError as exc:
+            raise _map_httpx_exception(exc) from exc
+        except ValueError as exc:
+            raise ResponseDecodingError(
+                "Response body could not be decoded as valid JSON.",
+                url=spec.url,
+                method="POST",
+            ) from exc
