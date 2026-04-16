@@ -51,12 +51,12 @@ class LimiterWakeError(RateLimiterContextError):
     """Raised when waiter notification fails."""
 
 @dataclass(frozen=True, slots=True)
-class LimiterServiceError(RateLimiterConfigurationError):
-    """Raised when an unknown or unsupported service is requested."""
-
-@dataclass(frozen=True, slots=True)
 class LimiterSpecError(RateLimiterConfigurationError):
     """Raised when a limiter spec contains invalid configuration."""
+
+@dataclass(frozen=True, slots=True)
+class LimiterServiceError(LimiterSpecError):
+    """Raised when an unknown or unsupported service is requested."""
 
 @dataclass(frozen=True, slots=True)
 class LimiterQueueStateError(RateLimiterStateError):

@@ -10,10 +10,8 @@ class TransportError(FedFredError):
     Base exception for transport-layer failures in fedfred.
 
     Attributes:
-        url (Optional[str]):
-            The request URL associated with the failure, if available.
-        method (Optional[str]):
-            The HTTP method associated with the failure, if available.
+        url (Optional[str]): The request URL associated with the failure, if available.
+        method (Optional[str]): The HTTP method associated with the failure, if available.
     """
 
     def __init__(self, message: str, *, url: Optional[str] = None, method: Optional[str] = None,

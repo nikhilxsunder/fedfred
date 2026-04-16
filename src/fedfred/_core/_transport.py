@@ -120,6 +120,18 @@ def _request_url(exception: httpx.HTTPError) -> Optional[str]:
     Returns:
         Optional[str]: The request URL if available, otherwise None.
 
+    Examples:
+        >>> # Internal use
+        >>> from ._core import _request_url
+        >>> import httpx
+        >>> try:
+        ...     response = httpx.get("https://httpbin.org/status/404")
+        ...     response.raise_for_status()
+        ... except httpx.HTTPError as exc:
+        ...     url = _request_url(exc)
+        ...     print(url)
+        https://httpbin.org/status/404
+
     Notes:
         This function attempts to access the 'request' attribute of the exception and extract the URL. If the 'request' attribute is not present, or if the URL cannot be extracted, it returns None.
     """
@@ -136,9 +148,21 @@ def _request_method(exception: httpx.HTTPError) -> Optional[str]:
     Returns:
         Optional[str]: The request method if available, otherwise None.
 
+    Examples:
+        >>> # Internal use
+        >>> from ._core import _request_method
+        >>> import httpx
+        >>> try:
+        ...     response = httpx.get("https://httpbin.org/status/404")
+        ...     response.raise_for_status()
+        ... except httpx.HTTPError as exc:
+        ...     method = _request_method(exc)
+        ...     print(method)
+        GET
+
     Notes:
-        This function attempts to access the 'request' attribute of the exception and extract the HTTP method (e.g., GET, POST). If the 'request' attribute is not present, or if the
-        method cannot be extracted, it returns None.
+        This function attempts to access the 'request' attribute of the exception and extract the HTTP method (e.g., GET, POST). If the 'request' attribute is not 
+        present, or if the method cannot be extracted, it returns None.
     """
 
     request = getattr(exception, "request", None)
@@ -152,6 +176,18 @@ def _safe_response_text(exception: httpx.HTTPStatusError) -> Optional[str]:
 
     Returns:
         Optional[str]: The decoded response text if available, otherwise None.
+
+    Examples:
+        >>> # Internal use
+        >>> from ._core import _safe_response_text
+        >>> import httpx
+        >>> try:
+        ...     response = httpx.get("https://httpbin.org/status/404")
+        ...     response.raise_for_status()
+        ... except httpx.HTTPStatusError as exc:
+        ...     text = _safe_response_text(exc)
+        ...     print(text)
+        Not Found
 
     Notes:
         This function attempts to access the 'response' attribute of the exception and extract the decoded text. If the 'response' attribute is not present, or if the text cannot be extracted, 
@@ -171,6 +207,19 @@ def _map_http_status_error(exception: httpx.HTTPStatusError) -> HTTPResponseErro
 
     Returns:
         HTTPResponseError: The mapped fedfred HTTP exception instance.
+
+    Examples:
+        >>> # Internal use
+        >>> from ._core import _map_http_status_error
+        >>> import httpx
+        >>> try:
+        ...     response = httpx.get("https://httpbin.org/status/404")
+        ...     response.raise_for_status()
+        ... except httpx.HTTPStatusError as exc:
+        ...     mapped_exc = _map_http_status_error(exc)
+        ...     print(type(mapped_exc))
+        <class 'fedfred.exceptions.HTTPClientError'>
+        <class 'fedfred.exceptions.NotFoundError'>
     """
 
     status_code: int = exception.response.status_code
@@ -207,6 +256,17 @@ def _resolve_httpx_exception_class(exception: httpx.HTTPError) -> type[Transport
     Returns:
         type[TransportError]: The fedfred exception class to instantiate.
 
+    Examples:
+        >>> # Internal use
+        >>> from ._core import _resolve_httpx_exception_class
+        >>> import httpx
+        >>> try:
+        ...     response = httpx.get("https://httpbin.org/delay/10", timeout=1)
+        ... except httpx.HTTPError as exc:
+        ...     exc_cls = _resolve_httpx_exception_class(exc)
+        ...     print(exc_cls)
+        <class 'fedfred.exceptions.TransportTimeoutError'>
+
     Notes:
         Resolution walks the exception MRO so that specific exception classes are preferred before broader parent classes.
     """
@@ -226,6 +286,17 @@ def _map_httpx_exception(exception: httpx.HTTPError) -> TransportError:
 
     Returns:
         TransportError: The mapped fedfred exception instance.
+
+    Examples:
+        >>> # Internal use
+        >>> from ._core import _map_httpx_exception
+        >>> import httpx
+        >>> try:
+        ...     response = httpx.get("https://httpbin.org/delay/10", timeout=1)
+        ... except httpx.HTTPError as exc:
+        ...     mapped_exc = _map_httpx_exception(exc)
+        ...     print(type(mapped_exc))
+        <class 'fedfred.exceptions.TransportTimeoutError'>
     """
 
     if isinstance(exception, httpx.HTTPStatusError):
@@ -255,6 +326,21 @@ def _get_request(endpoint_name: str, data: Optional[Dict[str, Optional[Union[str
         ResponseDecodingError: If the response body cannot be decoded as valid JSON.
         RequestPreparationError: If there is an error preparing the request, such as resolving the endpoint specification.
         TransportRetryError: If the request fails after retrying the specified number of times due to transport timeouts.
+        EndpointServiceError: If the service name is invalid.
+        EndpointURLError: If the URL is invalid.
+        EndpointParametersError: If params are invalid.
+        EndpointHeadersError: If headers are invalid.
+        UnsupportedEndpointError: If the endpoint name is not recognized in any service registry.
+        LimiterServiceError: If the specified service is unknown or unsupported.
+        LimiterLimitError: If the rate limiter is configured with an invalid maximum requests per minute value.
+        LimiterLoopError: If there is no running event loop to manage timing for rate limiting.
+
+    Examples:
+        >>> # Internal use
+        >>> from ._core import _get_request
+        >>> response = _get_request("fred/series", {"series_id": "GNPCA"})
+        >>> print(response)
+         {...JSON response from the FRED API...}
     """
 
     try:
@@ -303,6 +389,21 @@ def _cached_get_request(url_endpoint: str, hashable_data: Optional[Tuple[Tuple[s
         ResponseDecodingError: If the response body cannot be decoded as valid JSON.
         RequestPreparationError: If there is an error preparing the request, such as resolving the endpoint specification.
         TransportRetryError: If the request fails after retrying the specified number of times due to transport timeouts.
+        EndpointServiceError: If the service name is invalid.
+        EndpointURLError: If the URL is invalid.
+        EndpointParametersError: If params are invalid.
+        EndpointHeadersError: If headers are invalid.
+        UnsupportedEndpointError: If the endpoint name is not recognized in any service registry.
+        LimiterServiceError: If the specified service is unknown or unsupported.
+        LimiterLimitError: If the rate limiter is configured with an invalid maximum requests per minute value.
+        LimiterLoopError: If there is no running event loop to manage timing for rate limiting.
+
+    Examples:
+        >>> # Internal use
+        >>> from ._core import _cached_get_request
+        >>> response = _cached_get_request("get_series_observations", ((series_id, "GNPCA"),(realtime_start, "2020-01-01"),(realtime_end, "2020-12-31")))
+        >>> print(response)
+        {...JSON response from the FRED API...}
     """
 
     return _get_request(url_endpoint, _dict_type_converter(hashable_data))
@@ -323,6 +424,23 @@ async def _get_request_async(endpoint_name: str, data: Optional[Dict[str, Option
         ResponseDecodingError: If the response body cannot be decoded as valid JSON.
         RequestPreparationError: If there is an error preparing the request, such as resolving the endpoint specification.
         TransportRetryError: If the request fails after retrying the specified number of times due to transport timeouts.
+        EndpointServiceError: If the service name is invalid.
+        EndpointURLError: If the URL is invalid.
+        EndpointParametersError: If params are invalid.
+        EndpointHeadersError: If headers are invalid.
+        UnsupportedEndpointError: If the endpoint name is not recognized in any service registry.
+        LimiterServiceError: If the specified service is unknown or unsupported.
+        LimiterLimitError: If the rate limiter is configured with an invalid maximum requests per minute value.
+        RateLimiterConfigurationError: If max_requests_per_minute is less than 1, indicating an invalid configuration for rate limiting.
+        RateLimiterStateError: If there is an issue with the internal state of the rate limiter.
+        LimiterLoopError: If there is no running event loop to manage timing for rate limiting or to acquire the lock.
+        LimiterLimitError: If the semaphore limit is invalid, indicating that it cannot be updated based on the current request volume.
+
+    Examples:
+        >>> # Internal use
+        >>> from ._core import _get_request_async
+        >>> import asyncio
+        >>> response = await _get_request_async("get_series", {"series_id": "GNPCA"})
     """
 
     try:
@@ -371,13 +489,34 @@ async def _cached_get_request_async(url_endpoint: str, hashable_data: Optional[T
         ResponseDecodingError: If the response body cannot be decoded as valid JSON.
         RequestPreparationError: If there is an error preparing the request, such as resolving the endpoint specification.
         TransportRetryError: If the request fails after retrying the specified number of times due to transport timeouts.
+        EndpointServiceError: If the service name is invalid.
+        EndpointURLError: If the URL is invalid.
+        EndpointParametersError: If params are invalid.
+        EndpointHeadersError: If headers are invalid.
+        UnsupportedEndpointError: If the endpoint name is not recognized in any service registry.
+        LimiterServiceError: If the specified service is unknown or unsupported.
+        LimiterLimitError: If the rate limiter is configured with an invalid maximum requests per minute value.
+        RateLimiterConfigurationError: If max_requests_per_minute is less than 1, indicating an invalid configuration for rate limiting.
+        RateLimiterStateError: If there is an issue with the internal state of the rate limiter.
+        LimiterLoopError: If there is no running event loop to manage timing for rate limiting or to acquire the lock.
+        LimiterLimitError: If the semaphore limit is invalid, indicating that it cannot be updated based on the current request volume.
+
+    Examples:
+        >>> # Internal use
+        >>> from ._core import _cached_get_request_async
+        >>> import asyncio
+        >>> response = await _cached_get_request_async("get_series_observations", ((series_id, "GNPCA"),
+        ... (realtime_start, "2020-01-01"),
+        ... (realtime_end, "2020-12-31")))
+        >>> print(response)
+        {...JSON response from the FRED API...}
     """
 
     return await _get_request_async(url_endpoint, await _dict_type_converter_async(hashable_data))
 
+@retry(wait=wait_fixed(1), stop=stop_after_attempt(3), retry=retry_if_exception_type(TransportTimeoutError), reraise=False, retry_error_cls=TransportRetryError)
 def _post_request(endpoint_name: str, data: Optional[Dict[str, Optional[Union[str, int]]]]=None) -> Dict[str, Any]:
-    """
-    Perform a POST request without caching.
+    """Perform a POST request without caching.
 
     Args:
         endpoint_name (str): The endpoint to query.
@@ -391,6 +530,21 @@ def _post_request(endpoint_name: str, data: Optional[Dict[str, Optional[Union[st
         ResponseDecodingError: If the response body cannot be decoded as valid JSON.
         RequestPreparationError: If there is an error preparing the request, such as resolving the endpoint specification.
         TransportRetryError: If the request fails after retrying the specified number of times due to transport timeouts.
+        EndpointServiceError: If the service name is invalid.
+        EndpointURLError: If the URL is invalid.
+        EndpointParametersError: If params are invalid.
+        EndpointHeadersError: If headers are invalid.
+        UnsupportedEndpointError: If the endpoint name is not recognized in any service registry.
+        LimiterServiceError: If the specified service is unknown or unsupported.
+        LimiterLimitError: If the rate limiter is configured with an invalid maximum requests per minute value.
+        LimiterLoopError: If there is no running event loop to manage timing for rate limiting.
+
+    Examples:
+        >>> # Internal use
+        >>> from ._core import _post_request
+        >>> response = _post_request("some_service/some_endpoint", {"param1": "value1", "param2": 123})
+        >>> print(response)
+        {...JSON response from the service's API...}
     """
 
     try:
@@ -439,6 +593,24 @@ async def _post_request_async(endpoint_name: str, data: Optional[Dict[str, Optio
         ResponseDecodingError: If the response body cannot be decoded as valid JSON.
         RequestPreparationError: If there is an error preparing the request, such as resolving the endpoint specification.
         TransportRetryError: If the request fails after retrying the specified number of times due to transport timeouts.
+        EndpointServiceError: If the service name is invalid.
+        EndpointURLError: If the URL is invalid.
+        EndpointParametersError: If params are invalid.
+        EndpointHeadersError: If headers are invalid.
+        UnsupportedEndpointError: If the endpoint name is not recognized in any service registry.
+        LimiterServiceError: If the specified service is unknown or unsupported.
+        LimiterLimitError: If the rate limiter is configured with an invalid maximum requests per minute value.
+        LimiterLoopError: If there is no running event loop to manage timing for rate limiting.
+        RateLimiterConfigurationError: If max_requests_per_minute is less than 1, indicating an invalid configuration for rate limiting.
+        RateLimiterStateError: If the semaphore is in an invalid state (e.g., limit less than 1) or if the request time queue state is inconsistent with the computed request volume.
+
+    Examples:
+        >>> # Internal use
+        >>> from ._core import _post_request_async
+        >>> import asyncio
+        >>> response = await _post_request_async("post_api_key", {"param1": "value1", "param2": 123})
+        >>> print(response)
+        {...JSON response from the service's API...}
     """
 
     try:
