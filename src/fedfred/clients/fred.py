@@ -92,23 +92,16 @@ class Fred:
     response objects, rate limiting, retries, and typed results.
 
     Attributes:
-        base_url (str): The base URL for the FRED API.
-        api_key (str): Your FRED API key.
-        cache_mode (bool): Whether caching is enabled for API responses.
+        caching_enabled (bool): Whether caching is enabled for API responses.
         cache_size (int): The maximum number of items to store in the cache if caching is enabled.
-        cache (FIFOCache): The cache object for storing API responses.
-        max_requests_per_minute (int): The maximum number of requests allowed per minute.
-        request_times (deque): A deque to track the timestamps of recent requests for rate limiting.
-        lock (asyncio.Lock): An asyncio lock for synchronizing access to shared resources.
-        semaphore (asyncio.Semaphore): An asyncio semaphore for limiting concurrent requests.
-        keys (List[str]): List of keys in the cache.
-        GeoFred (GeoFred): Attached instance for FRED Maps API endpoints.
-        AsyncFred (AsyncFred): Attached instance for asynchronous FRED API endpoints.
+        logging_enabled (bool): Whether logging is enabled for API requests.
+        keys (List[str]): List of keys in the cache if caching is enabled.
 
     Args:
         api_key (str, optional): Your FRED API key.
-        cache_mode (bool, optional): Whether to enable caching for API responses. Defaults to False.
+        caching_enabled (bool, optional): Whether to enable caching for API responses. Defaults to False.
         cache_size (int, optional): The maximum number of items to store in the cache if caching is enabled. Defaults to 256.
+        logging_enabled (bool, optional): Whether to enable logging for API requests. Defaults to False.
 
     Raises:
         RuntimeError: If no API key can be resolved from the explicit argument, global setting, or environment variable.
@@ -134,13 +127,14 @@ class Fred:
     """
 
     # Dunder Methods
-    def __init__(self, api_key: Optional[str]=None, cache_mode: bool=True, cache_size: int=256) -> None:
+    def __init__(self, api_key: Optional[str]=None, caching_enabled: bool=True, cache_size: int=256, logging_enabled: bool=False) -> None:
         """Initialize the Fred class that provides functions which query FRED data.
 
         Args:
             api_key (str, optional): Your FRED API key.
-            cache_mode (bool, optional): Whether to enable caching for API responses. Defaults to True.
+            caching_enabled (bool, optional): Whether to enable caching for API responses. Defaults to True.
             cache_size (int, optional): The maximum number of items to store in the cache if caching is enabled. Defaults to 256.   
+            logging_enabled (bool, optional): Whether to enable logging for API requests. Defaults to False.
 
         Raises:
             RuntimeError: If no API key can be resolved from the explicit argument, global setting, or environment variable.
@@ -168,12 +162,12 @@ class Fred:
 
         if api_key:
             set_api_key(api_key, service="fred")
+        if caching_enabled:
+            _set_cache_size(cache_size) # Add logic to core abstraction
 
-        set_cache_size(cache_size) # Add logic to core abstraction
-
-        self.__api_key: Optional[str] = _resolve_api_key(service="fred")
-        self.cache_mode: bool = cache_mode
+        self.caching_enabled: bool = caching_enabled
         self.cache_size: int = cache_size
+        self.logging_enabled: bool = logging_enabled
 
     def __repr__(self) -> str:
         """String representation of the Fred class.
@@ -188,10 +182,10 @@ class Fred:
             >>> import fedfred as fd
             >>> fred = fd.Fred('your_api_key')
             >>> repr(fred)
-            'Fred(api_key='your_api_key', cache_mode=True, cache_size=256)'
+            'Fred(api_key=***your_api_key, caching_enabled=True, cache_size=256)'
         """
 
-        return f"Fred(api_key='{self.__api_key}', cache_mode={self.cache_mode}, cache_size={self.cache_size})"
+        return f"Fred(api_key='{'***' + _resolve_api_key(service='fred')[-4:]}', caching_enabled={self.caching_enabled}, cache_size={self.cache_size})"
 
     def __str__(self) -> str:
         """String representation of the Fred class.
@@ -208,7 +202,7 @@ class Fred:
             >>> print(fred)
             'Fred Instance:'
             '  Base URL: https://api.stlouisfed.org/fred'
-            '  API Key: ****your_api_key'
+            '  API Key: ***your_api_key'
             '  Cache Mode: Enabled'
             '  Cache Size: 256 items'
             '  Max Requests per Minute: 120'
@@ -216,7 +210,7 @@ class Fred:
 
         return (
             f"Fred Instance:\n"
-            f"  Base URL: {self.base_url}\n"
+            f"  Base URL: {_FRED_BASE_URL}\n"
             f"  API Key: {'***' + self.__api_key[-4:] if self.__api_key else 'Not Provided'}\n"
             f"  Cache Mode: {'Enabled' if self.cache_mode else 'Disabled'}\n"
             f"  Cache Size: {self.cache_size}\n"

@@ -373,7 +373,7 @@ def _get_request(endpoint_name: str, data: Optional[Dict[str, Optional[Union[str
                 method="GET",
             ) from exc
 
-@cached(cache=_CACHE)
+@cached(cache=_CACHE.cache)
 def _cached_get_request(url_endpoint: str, hashable_data: Optional[Tuple[Tuple[str, Optional[Union[str, int]]], ...]]=None) -> Dict[str, Any]:
     """Perform a GET request with caching.
 
@@ -473,7 +473,7 @@ async def _get_request_async(endpoint_name: str, data: Optional[Dict[str, Option
                 method="GET",
             ) from exc
 
-@async_cached(cache=_CACHE)
+@async_cached(cache=_CACHE.cache)
 async def _cached_get_request_async(url_endpoint: str, hashable_data: Optional[Tuple[Tuple[str, Optional[Union[str, int]]], ...]]=None) -> Dict[str, Any]:
     """Perform a GET request with caching.
 
