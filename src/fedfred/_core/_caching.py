@@ -27,7 +27,7 @@ This module provides adjustable cache abstractions for the fedfred core package.
 from dataclasses import dataclass, field
 from threading import RLock
 from collections.abc import Hashable
-from typing import Generic, Optional, TypeVar, ItemsView, KeysView, ValuesView, Tuple,
+from typing import Generic, Optional, TypeVar, ItemsView, KeysView, ValuesView, Tuple
 from cachetools import FIFOCache
 
 __all__ = [
