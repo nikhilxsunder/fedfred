@@ -181,7 +181,8 @@ class EndpointSpec:
         None
 
     Notes:
-        This dataclass is used internally to represent the resolved specifications for an API endpoint, including the absolute URL, default parameters, and headers. It is not intended for public use and may be subject to change without warning in future releases.
+        This dataclass is used internally to represent the resolved specifications for an API endpoint, including the absolute URL, default 
+        parameters, and headers. It is not intended for public use and may be subject to change without warning in future releases.
     """
 
     service: str
