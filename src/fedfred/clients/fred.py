@@ -76,7 +76,10 @@ from .._core import (
     _fred_parameter_validator, _fred_parameter_validator_async,
     # Transport
     _get_request, _get_request_async,
-    _cached_get_request, _cached_get_request_async
+    _cached_get_request, _cached_get_request_async,
+    # Caching
+    _set_cache_maxsize, _get_cache_maxsize
+
 )
 from ..models import BulkRelease, Category, Series, Tag, Release, ReleaseDate, Source, Element, VintageDate
 
@@ -158,15 +161,13 @@ class Fred:
             - :class:`fedfred.Helpers`: Helper functions for parameter validation and conversion.
         """
 
-        self.base_url: str = 'https://api.stlouisfed.org/fred'
-
         if api_key:
             set_api_key(api_key, service="fred")
         if caching_enabled:
-            _set_cache_size(cache_size) # Add logic to core abstraction
+            _set_cache_maxsize(cache_size)
 
         self.caching_enabled: bool = caching_enabled
-        self.cache_size: int = cache_size
+        self.cache_size: int = _get_cache_maxsize()
         self.logging_enabled: bool = logging_enabled
 
     def __repr__(self) -> str:

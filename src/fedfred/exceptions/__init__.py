@@ -107,3 +107,18 @@ from .rate_limit import(
     RateLimiterConfigurationError,
     RateLimiterStateError,
 )
+
+from .caching import (
+    CachingError,
+    CacheConfigurationError,
+    CacheInitializationError,
+    CacheResizeError,
+    CacheOperationError,
+    CacheSetError,
+    CacheDeleteError,
+    CacheClearError,
+    CachePopError,
+    CacheAccessError,
+    CacheKeyError,
+    CacheBackendError,
+)

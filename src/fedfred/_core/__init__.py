@@ -54,6 +54,11 @@ from ._transport import (
     _cached_get_request, _cached_get_request_async
 )
 
+from ._caching import (
+    _set_cache_maxsize, _get_cache_maxsize,
+)
+
+
 __all__ = [
     # Converters
     '_dict_type_converter', '_dict_type_converter_async',
@@ -75,5 +80,8 @@ __all__ = [
     '_region_type_parser', '_region_type_parser_async',
     # Transport
     '_get_request', '_get_request_async',
-    '_cached_get_request', '_cached_get_request_async'
+    '_cached_get_request', '_cached_get_request_async',
+    # Caching
+    '_set_cache_maxsize', '_get_cache_maxsize',
+
 ]

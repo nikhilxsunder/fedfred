@@ -29,9 +29,17 @@ from threading import RLock
 from collections.abc import Hashable
 from typing import Generic, Optional, TypeVar, ItemsView, KeysView, ValuesView, Tuple
 from cachetools import FIFOCache
+from..exceptions import (
+    CacheInitializationError,
+    CacheResizeError,
+    CacheKeyError,
+    CacheBackendError,
+    CacheSetError,
+    CacheDeleteError,
+)
 
 __all__ = [
-    "_CACHE"
+    "_set_cache_maxsize", "_get_cache_maxsize",
 ]
 
 K = TypeVar("K", bound=Hashable)
@@ -67,10 +75,14 @@ class AdjustableFIFOCache(Generic[K, V]):
         """Initialize the adjustable FIFO cache.
 
         Raises:
-            ValueError: If ``maxsize`` is less than 1.
+            CacheInitializationError: If ``maxsize`` is less than 1.
         """
         if self.maxsize < 1:
-            raise ValueError("maxsize must be >= 1")
+            raise CacheInitializationError(
+                message="Cache maxsize must be greater than or equal to 1.",
+                parameter="maxsize",
+                value=self.maxsize,
+            )
 
         self._cache = FIFOCache(maxsize=self.maxsize)
         self._lock = RLock()
@@ -93,7 +105,17 @@ class AdjustableFIFOCache(Generic[K, V]):
             KeyError: If the key is not present.
         """
         with self._lock:
-            return self._cache[key]
+            try:
+                return self._cache[key]
+            except KeyError as exc:
+                raise CacheKeyError(
+                    message="Cache key was not found.",
+                    key=key,
+                ) from exc
+            except Exception as exc:
+                raise CacheBackendError(
+                    message="Unexpected backend error occurred during cache retrieval.",
+                ) from exc
 
     def __setitem__(self, key: K, value: V) -> None:
         """Store a key-value pair in the cache.
@@ -103,7 +125,13 @@ class AdjustableFIFOCache(Generic[K, V]):
             value (V): Value to cache.
         """
         with self._lock:
-            self._cache[key] = value
+            try:
+                self._cache[key] = value
+            except Exception as exc:
+                raise CacheSetError(
+                    message="Failed to store item in cache.",
+                    key=key,
+                ) from exc
 
     def __delitem__(self, key: K) -> None:
         """Delete a key from the cache.
@@ -115,7 +143,18 @@ class AdjustableFIFOCache(Generic[K, V]):
             KeyError: If the key is not present.
         """
         with self._lock:
-            del self._cache[key]
+            try:
+                del self._cache[key]
+            except KeyError as exc:
+                raise CacheKeyError(
+                    message="Cache key was not found for deletion.",
+                    key=key,
+                ) from exc
+            except Exception as exc:
+                raise CacheDeleteError(
+                    message="Failed to delete item from cache.",
+                    key=key,
+                ) from exc
 
     def __len__(self) -> int:
         """Return the number of cached entries."""
@@ -179,7 +218,11 @@ class AdjustableFIFOCache(Generic[K, V]):
             evicted first until the cache fits within the new capacity.
         """
         if new_maxsize < 1:
-            raise ValueError("new_maxsize must be >= 1")
+            raise CacheResizeError(
+                message="Cache resize target must be greater than or equal to 1.",
+                parameter="new_maxsize",
+                value=new_maxsize,
+            )
 
         with self._lock:
             if new_maxsize == self.maxsize:
