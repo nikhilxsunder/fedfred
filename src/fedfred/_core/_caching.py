@@ -26,8 +26,7 @@ This module provides adjustable cache abstractions for the fedfred core package.
 
 from dataclasses import dataclass, field
 from threading import RLock
-from collections.abc import Hashable
-from typing import Generic, Optional, TypeVar, ItemsView, KeysView, ValuesView, Tuple
+from typing import Generic, Optional, TypeVar, ItemsView, KeysView, ValuesView, Tuple, Hashable
 from cachetools import FIFOCache
 from..exceptions import (
     CacheInitializationError,
@@ -58,6 +57,13 @@ class AdjustableFIFOCache(Generic[K, V]):
         maxsize (int): Maximum number of entries allowed in the cache.
         cache (FIFOCache): The underlying FIFO cache instance used to store entries.
 
+    Examples:
+        >>> # Internal usage
+        >>> cache = AdjustableFIFOCache(maxsize=10)
+        >>> cache[1] = "a"
+        >>> cache[1]
+        'a'
+
     Notes:
         When the cache is shrunk, the oldest items are evicted first to preserve FIFO semantics.
     """
@@ -76,6 +82,12 @@ class AdjustableFIFOCache(Generic[K, V]):
 
         Raises:
             CacheInitializationError: If ``maxsize`` is less than 1.
+
+        Examples:
+            >>> cache = AdjustableFIFOCache(maxsize=10)
+            >>> cache[1] = "a"
+            >>> cache[1]
+            'a'
         """
         if self.maxsize < 1:
             raise CacheInitializationError(
@@ -88,7 +100,21 @@ class AdjustableFIFOCache(Generic[K, V]):
         self._lock = RLock()
 
     def __contains__(self, key: object) -> bool:
-        """Return whether a key exists in the cache."""
+        """Return whether a key exists in the cache.
+        
+        Args:
+            key (object): Key to check in the cache.
+
+        Returns:
+            bool: True if the key exists in the cache, False otherwise.
+
+        Examples:
+            >>> cache = AdjustableFIFOCache(maxsize=10)
+            >>> cache[1] = "a"
+            >>> 1 in cache
+            True
+        """
+
         with self._lock:
             return key in self._cache
 
@@ -102,8 +128,16 @@ class AdjustableFIFOCache(Generic[K, V]):
             V: Cached value.
 
         Raises:
-            KeyError: If the key is not present.
+            CacheKeyError: If the key is not present in the cache.
+            CacheBackendError: If an unexpected backend error occurs during retrieval.
+
+        Examples:
+            >>> cache = AdjustableFIFOCache(maxsize=10)
+            >>> cache[1] = "a"
+            >>> cache[1]
+            'a'
         """
+
         with self._lock:
             try:
                 return self._cache[key]
@@ -123,7 +157,17 @@ class AdjustableFIFOCache(Generic[K, V]):
         Args:
             key (K): Cache key.
             value (V): Value to cache.
+
+        Raises:
+            CacheSetError: If storing the item in the cache fails.
+
+        Examples:
+            >>> cache = AdjustableFIFOCache(maxsize=10)
+            >>> cache[1] = "a"
+            >>> cache[1]
+            'a'
         """
+
         with self._lock:
             try:
                 self._cache[key] = value
@@ -140,8 +184,17 @@ class AdjustableFIFOCache(Generic[K, V]):
             key (K): Cache key.
 
         Raises:
-            KeyError: If the key is not present.
+            CacheKeyError: If the key is not present in the cache.
+            CacheDeleteError: If deleting the item from the cache fails.
+
+        Examples:
+            >>> cache = AdjustableFIFOCache(maxsize=10)
+            >>> cache[1] = "a"
+            >>> del cache[1]
+            >>> 1 in cache
+            False
         """
+
         with self._lock:
             try:
                 del self._cache[key]
@@ -157,7 +210,17 @@ class AdjustableFIFOCache(Generic[K, V]):
                 ) from exc
 
     def __len__(self) -> int:
-        """Return the number of cached entries."""
+        """Return the number of cached entries.
+        
+        Returns:
+            int: Number of entries currently in the cache.
+
+        Examples:
+            >>> cache = AdjustableFIFOCache(maxsize=10)
+            >>> cache[1] = "a"
+            >>> len(cache)
+            1
+        """
         with self._lock:
             return len(self._cache)
 
@@ -182,7 +245,16 @@ class AdjustableFIFOCache(Generic[K, V]):
 
         Returns:
             Optional[V]: Cached value or ``default``.
+
+        Examples:
+            >>> cache = AdjustableFIFOCache(maxsize=10)
+            >>> cache[1] = "a"
+            >>> cache.get(1)
+            >>> cache.get(2, default="b")
+            'a'
+            'b'
         """
+
         with self._lock:
             return self._cache.get(key, default)
 
@@ -195,12 +267,30 @@ class AdjustableFIFOCache(Generic[K, V]):
 
         Returns:
             Optional[V]: Removed cached value or ``default``.
+
+        Examples:
+            >>> cache = AdjustableFIFOCache(maxsize=10)
+            >>> cache[1] = "a"
+            >>> cache.pop(1)
+            >>> cache.pop(2, default="b")
+            'a'
+            'b'
         """
+
         with self._lock:
             return self._cache.pop(key, default)
 
     def clear(self) -> None:
-        """Remove all cached entries."""
+        """Remove all cached entries.
+        
+        Examples:
+            >>> cache = AdjustableFIFOCache(maxsize=10)
+            >>> cache[1] = "a"
+            >>> cache.clear()
+            >>> len(cache)
+            0
+        """
+
         with self._lock:
             self._cache.clear()
 
@@ -211,12 +301,20 @@ class AdjustableFIFOCache(Generic[K, V]):
             new_maxsize (int): New maximum cache size.
 
         Raises:
-            ValueError: If ``new_maxsize`` is less than 1.
+            CacheResizeError: If ``new_maxsize`` is less than 1.
 
         Notes:
             If the cache is shrunk below the current size, the oldest entries are
             evicted first until the cache fits within the new capacity.
+        
+        Examples:
+            >>> cache = AdjustableFIFOCache(maxsize=10)
+            >>> cache[1] = "a"
+            >>> cache.resize(5)
+            >>> cache.maxsize
+            5
         """
+
         if new_maxsize < 1:
             raise CacheResizeError(
                 message="Cache resize target must be greater than or equal to 1.",
@@ -241,17 +339,50 @@ class AdjustableFIFOCache(Generic[K, V]):
             self.maxsize = new_maxsize
 
     def keys(self) -> KeysView[K]:
-        """Return a dynamic view of cache keys."""
+        """Return a dynamic view of cache keys.
+
+        Returns:
+            KeysView[K]: A dynamic view of the cache keys.
+
+        Examples:
+            >>> cache = AdjustableFIFOCache(maxsize=10)
+            >>> cache[1] = "a"
+            >>> list(cache.keys())
+            [1]
+        """
+
         with self._lock:
             return self._cache.keys()
 
     def values(self) -> ValuesView[V]:
-        """Return a dynamic view of cache values."""
+        """Return a dynamic view of cache values.
+        
+        Returns:
+            ValuesView[V]: A dynamic view of the cache values.
+    
+        Examples:
+            >>> cache = AdjustableFIFOCache(maxsize=10)
+            >>> cache[1] = "a"
+            >>> list(cache.values())
+            ['a']
+        """
+
         with self._lock:
             return self._cache.values()
 
     def items(self) -> ItemsView[K, V]:
-        """Return a dynamic view of cache items."""
+        """Return a dynamic view of cache items.
+        
+        Returns:
+            ItemsView[K, V]: A dynamic view of the cache items.
+
+        Examples:
+            >>> cache = AdjustableFIFOCache(maxsize=10)
+            >>> cache[1] = "a"
+            >>> list(cache.items())
+            [(1, 'a')]
+        """
+
         with self._lock:
             return self._cache.items()
 
@@ -260,36 +391,46 @@ class AdjustableFIFOCache(Generic[K, V]):
 
         Returns:
             dict[K, V]: Snapshot of current cache contents in FIFO order.
+
+        Examples:
+            >>> cache = AdjustableFIFOCache(maxsize=10)
+            >>> cache[1] = "a"
+            >>> cache.snapshot()
+            {1: 'a'}
         """
+
         with self._lock:
             return dict(self._cache.items())
 
 _CACHE: AdjustableFIFOCache[Tuple, object] = AdjustableFIFOCache(maxsize=128)
 
 def set_cache_maxsize(maxsize: int) -> None:
-
     """Set the global transport cache maximum size.
 
     Args:
-
         maxsize (int): New cache maximum size.
 
     Raises:
+        CacheResizeError: If ``maxsize`` is less than 1.
 
-        ValueError: If ``maxsize`` is less than 1.
-
+    Examples:
+        >>> set_cache_maxsize(256)
+        >>> get_cache_maxsize()
+        256
     """
 
     _CACHE.resize(new_maxsize=maxsize)
 
 def get_cache_maxsize() -> int:
-
     """Return the global transport cache maximum size.
 
     Returns:
-
         int: Current global cache maximum size.
 
+    Examples:
+        >>> set_cache_maxsize(256)
+        >>> get_cache_maxsize()
+        256
     """
 
     return _CACHE.maxsize
