@@ -1,38 +1,45 @@
-# fedfred
-
-## A feature-rich python package for interacting with the Federal Reserve Bank of St. Louis Economic Database: FRED
-
 <div align="center">
-    <img src="https://raw.githubusercontent.com/nikhilxsunder/fedfred/main/docs/source/_static/fedfred-logo.png" width="30%" alt="FedFred Logo">
+    <img src="https://raw.githubusercontent.com/nikhilxsunder/fedfred/v4-dev/docs/source/_static/fedfred_banner.png"  alt="FedFred Logo">
 </div>
 
-<div align="center">
-    <a href="https://github.com/nikhilxsunder/fedfred/actions/workflows/main.yml"><img src="https://github.com/nikhilxsunder/fedfred/actions/workflows/main.yml/badge.svg" alt="Build and test GitHub"></a>
-    <a href="https://github.com/nikhilxsunder/fedfred/actions/workflows/analyze.yml"><img src="https://github.com/nikhilxsunder/fedfred/actions/workflows/analyze.yml/badge.svg" alt="Analyze Status"></a>
-    <a href="https://github.com/nikhilxsunder/fedfred/actions/workflows/test.yml"><img src="https://github.com/nikhilxsunder/fedfred/actions/workflows/test.yml/badge.svg" alt="Test Status"></a>
-    <a href="https://github.com/nikhilxsunder/fedfred/actions/workflows/codeql.yml"><img src="https://github.com/nikhilxsunder/fedfred/actions/workflows/codeql.yml/badge.svg" alt="CodeQL"></a>
-    <a href="https://www.bestpractices.dev/projects/10158"><img src="https://www.bestpractices.dev/projects/10158/badge"></a>
-    <a href="https://codecov.io/gh/nikhilxsunder/fedfred"><img src="https://codecov.io/gh/nikhilxsunder/fedfred/graph/badge.svg?token=VVEK415DF6" alt="Code Coverage"></a>
-    <a href="https://socket.dev/pypi/package/fedfred/overview/3.0.0/tar-gz"><img src="https://socket.dev/api/badge/pypi/package/fedfred/3.0.0?artifact_id=tar-gz"></a>
-    <a href="https://repology.org/project/python%3Afedfred/versions"><img src="https://repology.org/badge/tiny-repos/python%3Afedfred.svg" alt="Packaging status"></a>
-    <a href="https://pypi.org/project/fedfred/"><img src="https://img.shields.io/pypi/v/fedfred.svg" alt="PyPI version"></a>
-    <a href="https://pepy.tech/projects/fedfred"><img src="https://static.pepy.tech/badge/fedfred" alt="PyPI Downloads"></a>
-    <a href="https://anaconda.org/conda-forge/fedfred"><img src="https://anaconda.org/conda-forge/fedfred/badges/version.svg" alt="Conda-Forge version"></a>
-    <a href="https://anaconda.org/conda-forge/fedfred"><img src="https://anaconda.org/conda-forge/fedfred/badges/downloads.svg" alt="Conda-Forge downloads"></a>
-    <a href="https://doi.org/10.5281/zenodo.17635942"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.17635942.svg" alt="DOI"></a>
-    <a href="https://github.com/wilsonfreitas/awesome-quant"><img src="https://awesome.re/badge.svg" alt="Awesome"></a>
-</div>
+## A modern python package for interacting with the Federal Reserve Bank of St. Louis FRED, GeoFRED, ALFRED, and FRASER APIs.
 
-### Features
+| | |
+|---|---|
+| **CI / Quality** | [![Build](https://github.com/nikhilxsunder/fedfred/actions/workflows/main.yml/badge.svg)](https://github.com/nikhilxsunder/fedfred/actions/workflows/main.yml) [![Analyze](https://github.com/nikhilxsunder/fedfred/actions/workflows/analyze.yml/badge.svg)](https://github.com/nikhilxsunder/fedfred/actions/workflows/analyze.yml) [![Tests](https://github.com/nikhilxsunder/fedfred/actions/workflows/test.yml/badge.svg)](https://github.com/nikhilxsunder/fedfred/actions/workflows/test.yml) |
+| **Security** | [![CodeQL](https://github.com/nikhilxsunder/fedfred/actions/workflows/codeql.yml/badge.svg)](https://github.com/nikhilxsunder/fedfred/actions/workflows/codeql.yml) [![Best Practices](https://www.bestpractices.dev/projects/10158/badge)](https://www.bestpractices.dev/projects/10158) [![Socket](https://socket.dev/api/badge/pypi/package/fedfred/3.0.0?artifact_id=tar-gz)](https://socket.dev/pypi/package/fedfred/overview/3.0.0/tar-gz) |
+| **Coverage** | [![Coverage](https://codecov.io/gh/nikhilxsunder/fedfred/graph/badge.svg?token=VVEK415DF6)](https://codecov.io/gh/nikhilxsunder/fedfred) |
+| **Packaging** | [![Repology](https://repology.org/badge/tiny-repos/python%3Afedfred.svg)](https://repology.org/project/python%3Afedfred/versions) |
+| **Distribution** | [![PyPI](https://img.shields.io/pypi/v/fedfred.svg)](https://pypi.org/project/fedfred/) [![Conda](https://anaconda.org/conda-forge/fedfred/badges/version.svg)](https://anaconda.org/conda-forge/fedfred) |
+| **Usage** | [![PyPI Downloads](https://static.pepy.tech/badge/fedfred)](https://pepy.tech/projects/fedfred) [![Conda Downloads](https://anaconda.org/conda-forge/fedfred/badges/downloads.svg)](https://anaconda.org/conda-forge/fedfred) |
+| **Research / Index** | [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17635942.svg)](https://doi.org/10.5281/zenodo.17635942) [![Awesome](https://awesome.re/badge.svg)](https://github.com/wilsonfreitas/awesome-quant) |
 
-- Now available on Conda-Forge!
-- Pandas/Polars/Dask DataFrame native support.
-- GeoPandas/Polars-ST/Geopandas-Dask GeoDataframe native support
-- Native support for asynchronous requests (async).
+## Table of Contents
+
+- [Main Features](#main-features)
+- [Used by & Featured In](#used-by--featured-in)
+- [Installation](#installation)
+- [Rest API Usage](#rest-api-usage)
+- [Important Notes](#important-notes)
+- [Continuous Integration](#continuous-integration)
+- [Development](#development)
+- [Testing](#testing)
+- [Security](#security)
+- [Contributing](#contributing)
+- [Citation](#citation)
+- [License](#license)
+
+
+## Main Features
+
+- Full endpoint coverage of FRED, ALFRED, GeoFRED, and FRASER.
+- Pandas DataFrames are the native output for FRED observations.
+- GeoPandas GeoDataFrame as native output for GeoFRED observations
+- Built in support for alternative DataFrame and GeoDataFrame providers such as polars and dask.
+- Intuitive handling of ALFRED data revisions and vintage dates via the Alfred client class.
 - Local caching for easier data access and faster execution times.
-- Built-in rate limiter that doesn't exceed 120 calls per minute (ignores local caching).
 
-### Used by & Featured In
+## Used by & Featured In
 
 > Note: Listing does not imply endorsement or affiliation.
 
@@ -45,7 +52,6 @@
 
 <!--
 #### Companies
-_Add yours here_
 -->
 
 #### Open-source projects / Repositories
