@@ -58,9 +58,6 @@ References:
 from datetime import datetime
 from typing import TYPE_CHECKING, Optional, Dict, Union, List, Any
 import pandas as pd
-
-from fedfred._core._caching import set_cache_maxsize
-
 from ..settings import _resolve_api_key, set_api_key
 from .._core import (
     # Converters
@@ -79,7 +76,6 @@ from .._core import (
     _cached_get_request, _cached_get_request_async,
     # Caching
     set_cache_maxsize, get_cache_maxsize
-
 )
 from ..models import BulkRelease, Category, Series, Tag, Release, ReleaseDate, Source, Element, VintageDate
 
@@ -169,7 +165,6 @@ class Fred:
 
         self.caching_enabled: bool = caching_enabled
         self.cache_size: int = get_cache_maxsize()
-        self.logging_enabled: bool = logging_enabled
 
     def __repr__(self) -> str:
         """String representation of the Fred class.
@@ -212,11 +207,11 @@ class Fred:
 
         return (
             f"Fred Instance:\n"
-            f"  Base URL: {_FRED_BASE_URL}\n"
-            f"  API Key: {'***' + self.__api_key[-4:] if self.__api_key else 'Not Provided'}\n"
-            f"  Cache Mode: {'Enabled' if self.cache_mode else 'Disabled'}\n"
+            f"  Base URL: {_ST_LOUIS_FED_BASE_URL}\n"
+            f"  API Key: {'***' + _resolve_api_key(service='fred')[-4:] or 'Not Provided'}\n"
+            f"  Cache Mode: {'Enabled' if self.caching_enabled else 'Disabled'}\n"
             f"  Cache Size: {self.cache_size}\n"
-            f"  Max Requests Per Minute: {self.max_requests_per_minute}"
+            f"  Max Requests Per Minute: {_FRED_MAX_REQUESTS_PER_MINUTE}"
         )
 
     def __eq__(self, other: object) -> bool:
@@ -429,11 +424,11 @@ class Fred:
         return list(self.cache.keys()) if self.cache_mode else []
 
     # Private Methods
-    def __fred_get_request(self, url_endpoint: str, data: Optional[Dict[str, Optional[Union[str, int]]]]=None) -> Dict[str, Any]:
+    def __fred_get_request(self, endpoint_name: str, data: Optional[Dict[str, Optional[Union[str, int]]]]=None) -> Dict[str, Any]:
         """Helper method to perform a synchronous GET request to the FRED API.
 
         Args:
-            url_endpoint (str): The FRED API endpoint to query.
+            endpoint_name (str): The FRED API endpoint to query.
             data (Dict[str, Optional[str | int]], optional): The query parameters for the request. Defaults to None.
 
         Returns:
@@ -453,11 +448,11 @@ class Fred:
         if data:
             _fred_parameter_validator(data)
 
-        if self.cache_mode:
-            return _cached_get_request(url_endpoint, _hashable_type_converter(data))
+        if self.caching_enabled:
+            return _cached_get_request(endpoint_name, _hashable_type_converter(data))
         
         else:
-            return _get_request(url_endpoint, data)
+            return _get_request(endpoint_name, data)
 
     # Public Methods
     ## Categories
@@ -490,11 +485,11 @@ class Fred:
             - fedfred package documentation: https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.Fred.get_category.html
         """
 
-        url_endpoint = '/category'
+        endpoint_name = 'get_category'
         data: Dict[str, Optional[Union[str, int]]] = {
             'category_id': category_id,
         }
-        response = self.__fred_get_request(url_endpoint, data)
+        response = self.__fred_get_request(endpoint_name, data)
         categories = Category.to_object(response, client=self)
         return categories
 
@@ -534,19 +529,23 @@ class Fred:
             - fedfred package documentation: https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.Fred.get_category_children.html
         """
 
-        url_endpoint = '/category/children'
+        endpoint_name = 'get_category_children'
+
         data: Dict[str, Optional[Union[str, int]]] = {
             'category_id': category_id,
         }
+
         if realtime_start:
             if isinstance(realtime_start, datetime):
                 realtime_start = _datetime_converter(realtime_start)
             data['realtime_start'] = realtime_start
+
         if realtime_end:
             if isinstance(realtime_end, datetime):
                 realtime_end = _datetime_converter(realtime_end)
             data['realtime_end'] = realtime_end
-        response = self.__fred_get_request(url_endpoint, data)
+
+        response = self.__fred_get_request(endpoint_name, data)
         categories = Category.to_object(response, client=self)
         return categories
 
