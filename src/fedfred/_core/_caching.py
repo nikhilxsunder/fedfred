@@ -39,7 +39,7 @@ from..exceptions import (
 )
 
 __all__ = [
-    "_set_cache_maxsize", "_get_cache_maxsize",
+    "set_cache_maxsize", "get_cache_maxsize",
 ]
 
 K = TypeVar("K", bound=Hashable)
@@ -266,7 +266,7 @@ class AdjustableFIFOCache(Generic[K, V]):
 
 _CACHE: AdjustableFIFOCache[Tuple, object] = AdjustableFIFOCache(maxsize=128)
 
-def _set_cache_maxsize(maxsize: int) -> None:
+def set_cache_maxsize(maxsize: int) -> None:
 
     """Set the global transport cache maximum size.
 
@@ -282,7 +282,7 @@ def _set_cache_maxsize(maxsize: int) -> None:
 
     _CACHE.resize(new_maxsize=maxsize)
 
-def _get_cache_maxsize() -> int:
+def get_cache_maxsize() -> int:
 
     """Return the global transport cache maximum size.
 

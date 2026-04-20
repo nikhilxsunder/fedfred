@@ -30,8 +30,6 @@ unified response objects, rate limiting, retries, and typed results.
 Classes:
     Fred: Client for the Federal Reserve FRED/ALFRED API.
     AsyncFred: Asynchronous client for the Federal Reserve FRED/ALFRED API.
-    GeoFred: Client for FRED Maps API endpoints.
-    AsyncGeoFred: Asynchronous client for FRED Maps API endpoints.
 
 Examples:
     >>> import fedfred as fd
@@ -61,6 +59,8 @@ from datetime import datetime
 from typing import TYPE_CHECKING, Optional, Dict, Union, List, Any
 import pandas as pd
 
+from fedfred._core._caching import set_cache_maxsize
+
 from ..settings import _resolve_api_key, set_api_key
 from .._core import (
     # Converters
@@ -78,7 +78,7 @@ from .._core import (
     _get_request, _get_request_async,
     _cached_get_request, _cached_get_request_async,
     # Caching
-    _set_cache_maxsize, _get_cache_maxsize
+    set_cache_maxsize, get_cache_maxsize
 
 )
 from ..models import BulkRelease, Category, Series, Tag, Release, ReleaseDate, Source, Element, VintageDate
@@ -130,7 +130,7 @@ class Fred:
     """
 
     # Dunder Methods
-    def __init__(self, api_key: Optional[str]=None, caching_enabled: bool=True, cache_size: int=256, logging_enabled: bool=False) -> None:
+    def __init__(self, api_key: Optional[str]=None, caching_enabled: bool=True, cache_size: int=256) -> None:
         """Initialize the Fred class that provides functions which query FRED data.
 
         Args:
@@ -163,11 +163,12 @@ class Fred:
 
         if api_key:
             set_api_key(api_key, service="fred")
+        
         if caching_enabled:
-            _set_cache_maxsize(cache_size)
+            set_cache_maxsize(cache_size)
 
         self.caching_enabled: bool = caching_enabled
-        self.cache_size: int = _get_cache_maxsize()
+        self.cache_size: int = get_cache_maxsize()
         self.logging_enabled: bool = logging_enabled
 
     def __repr__(self) -> str:

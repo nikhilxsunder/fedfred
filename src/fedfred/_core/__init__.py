@@ -55,9 +55,8 @@ from ._transport import (
 )
 
 from ._caching import (
-    _set_cache_maxsize, _get_cache_maxsize,
+    set_cache_maxsize, get_cache_maxsize,
 )
-
 
 __all__ = [
     # Converters
@@ -82,6 +81,5 @@ __all__ = [
     '_get_request', '_get_request_async',
     '_cached_get_request', '_cached_get_request_async',
     # Caching
-    '_set_cache_maxsize', '_get_cache_maxsize',
-
+    'set_cache_maxsize', 'get_cache_maxsize',
 ]

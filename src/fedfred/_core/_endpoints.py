@@ -39,14 +39,17 @@ from ..exceptions import (
 
 __all__ = ["_resolve_endpoint", "_resolve_endpoint_async"]
 
-_FRED_BASE_URL: str = "https://api.stlouisfed.org/fred"
-"""Base URL for the FRED API."""
+_ST_LOUIS_FED_BASE_URL: str = "https://api.stlouisfed.org"
+"""Base URL for the St. Louis Fed APIs."""
 
-_GEOFRED_BASE_URL: str = "https://api.stlouisfed.org/geofred"
-"""Base URL for the GeoFRED API."""
+_FRED_PATH: str = "/fred"
+"""Base URL path for the FRED API."""
 
-_FRASER_BASE_URL: str = "https://api.stlouisfed.org/fraser"
-"""Base URL for the FRASER API."""
+_GEOFRED_PATH: str = "/geofred"
+"""Base URL path for the GeoFRED API."""
+
+_FRASER_PATH: str = "/fraser"
+"""Base URL path for the FRASER API."""
 
 _FRED_ENDPOINT_MAP: Dict[str, str] = {
     # Category endpoints
@@ -272,19 +275,19 @@ def _resolve_endpoint(endpoint_name: str) -> EndpointSpec:
     normalized_endpoint_name: str = endpoint_name.strip().lower()
 
     if normalized_endpoint_name in _FRED_ENDPOINT_MAP:
-        path: str = _FRED_ENDPOINT_MAP[normalized_endpoint_name]
+        endpoint: str = _FRED_ENDPOINT_MAP[normalized_endpoint_name]
 
-        if path.startswith("/v2/"):
+        if endpoint.startswith("/v2/"):
             return EndpointSpec(
                 service="fred",
-                url=f"{_FRED_BASE_URL}{path}",
+                url=f"{_ST_LOUIS_FED_BASE_URL}{_FRED_PATH}{endpoint}",
                 headers=_FRED_VERSION_TWO_HEADERS,
                 params=_FRED_VERSION_TWO_BASE_PARAMETERS,
             )
 
         return EndpointSpec(
             service="fred",
-            url=f"{_FRED_BASE_URL}{path}",
+            url=f"{_ST_LOUIS_FED_BASE_URL}{_FRED_PATH}{endpoint}",
             headers=None,
             params=_FRED_BASE_PARAMETERS,
         )
@@ -292,7 +295,7 @@ def _resolve_endpoint(endpoint_name: str) -> EndpointSpec:
     if normalized_endpoint_name in _GEOFRED_ENDPOINT_MAP:
         return EndpointSpec(
             service="geofred",
-            url=f"{_GEOFRED_BASE_URL}{_GEOFRED_ENDPOINT_MAP[normalized_endpoint_name]}",
+            url=f"{_ST_LOUIS_FED_BASE_URL}{_GEOFRED_PATH}{_GEOFRED_ENDPOINT_MAP[normalized_endpoint_name]}",
             headers=None,
             params=_GEOFRED_BASE_PARAMETERS,
         )
@@ -302,7 +305,7 @@ def _resolve_endpoint(endpoint_name: str) -> EndpointSpec:
         if normalized_endpoint_name.startswith("post_"):
             return EndpointSpec(
                 service="fraser",
-                url=f"{_FRASER_BASE_URL}{_FRASER_ENDPOINT_MAP[normalized_endpoint_name]}",
+                url=f"{_ST_LOUIS_FED_BASE_URL}{_FRASER_PATH}{_FRASER_ENDPOINT_MAP[normalized_endpoint_name]}",
                 headers=_FRASER_HEADERS,
                 params=None,
                 payload=_FRASER_BASE_PARAMETERS
@@ -310,7 +313,7 @@ def _resolve_endpoint(endpoint_name: str) -> EndpointSpec:
 
         return EndpointSpec(
             service="fraser",
-            url=f"{_FRASER_BASE_URL}{_FRASER_ENDPOINT_MAP[normalized_endpoint_name]}",
+            url=f"{_ST_LOUIS_FED_BASE_URL}{_FRASER_PATH}{_FRASER_ENDPOINT_MAP[normalized_endpoint_name]}",
             headers=_FRASER_HEADERS,
             params=_FRASER_BASE_PARAMETERS,
         )
