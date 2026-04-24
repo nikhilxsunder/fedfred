@@ -24,6 +24,7 @@
 This module provides internal helper methods for the fedfred package, specifically for extracting data from certain FRED API responses.
 """
 
+from __future__ import annotations
 import asyncio
 from typing import Dict
 from fedfred.exceptions.parsing import ParsingError

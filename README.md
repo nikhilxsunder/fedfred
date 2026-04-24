@@ -29,7 +29,6 @@
 - [Citation](#citation)
 - [License](#license)
 
-
 ## Main Features
 
 - Full endpoint coverage of FRED, ALFRED, GeoFRED, and FRASER.
@@ -43,7 +42,7 @@
 
 > Note: Listing does not imply endorsement or affiliation.
 
-#### Institutions / Organizations
+### Institutions / Organizations
 <a href="https://herbert.miami.edu/" title="University of Miami Herbert Business School">
     <img src="https://ft-bschool-rankings.s3.eu-west-2.amazonaws.com/production/images/5c4bdeb1-1c63-4db1-a083-17788dc9e936-695b4305f38b114a94513f7f0a44085c"
          alt="University of Miami Herbert Business School"
@@ -54,7 +53,7 @@
 #### Companies
 -->
 
-#### Open-source projects / Repositories
+### Open-source projects / Repositories
 <div align="left">
   <a href="https://github.com/wilsonfreitas/awesome-quant" title="Awesome Quant">
     <img src="https://raw.githubusercontent.com/sindresorhus/awesome/main/media/logo.svg"
@@ -69,7 +68,7 @@
   </a>
 </div>
 
-### Installation
+## Installation
 
 You can install the package using pip:
 
@@ -83,30 +82,11 @@ Or install from conda-forge:
 conda install -c conda-forge fedfred
 ```
 
-For type checking support, install with optional type stubs:
-
-```sh
-pip install fedfred[types]
-```
-
-For use with Polars DataFrames and GeoDataFrames, install with:
-
-```sh
-pip install fedfred[polars]
-```
-
-For use with Dask DataFrames and GeoDataFrames, install with:
-
-```sh
-pip install fedfred[dask]
-```
-
 We recommend using a virtual environment with either installation method.
 
-### Rest API Usage
+## Usage
 
-I recommend consulting the documentation at:
-https://nikhilxsunder.github.io/fedfred/
+I recommend consulting the documentation at: https://nikhilxsunder.github.io/fedfred/
 
 Here is a simple example of how to use the package:
 
@@ -129,13 +109,13 @@ async def main():
 asyncio.run(main())
 ```
 
-### Important Notes
+## Important Notes
 
 - Store your API keys and secrets in environment variables or secure storage solutions.
 - Do not hardcode your API keys and secrets in your scripts.
 - XML filetype (file_type='xml') is currently not supported but will be in a future update
 
-### Continuous Integration
+## Continuous Integration
 
 FedFred uses GitHub Actions for continuous integration. The following workflows run automatically:
 
@@ -149,7 +129,7 @@ These checks ensure that all contributions maintain code quality and don't intro
 
 Status badges at the top of this README reflect the current state of our CI pipelines.
 
-### Development
+## Development
 
 FedFred uses standard Python packaging tools:
 
@@ -174,7 +154,7 @@ poetry install
 poetry run pytest
 ```
 
-### Testing
+## Testing
 
 The project uses pytest as its testing framework. Tests are located in the `tests/` directory.
 
@@ -196,7 +176,7 @@ To run a specific test file:
 poetry run pytest tests/specific_module_test.py
 ```
 
-#### Test Coverage
+### Test Coverage
 
 We aim to maintain a minimum of 80% code coverage across the codebase. This includes:
 
@@ -206,7 +186,7 @@ We aim to maintain a minimum of 80% code coverage across the codebase. This incl
 
 Continuous integration automatically runs tests on all pull requests and commits to the main branch.
 
-#### Test Policy
+### Test Policy
 
 FedFred requires tests for all new functionality. When contributing:
 
@@ -218,11 +198,11 @@ FedFred requires tests for all new functionality. When contributing:
 
 For information about reporting security vulnerabilities in FedFred, please see our [Security Policy](https://github.com/nikhilxsunder/fedfred/blob/main/SECURITY.md).
 
-### Contributing
+## Contributing
 
 Contributions are welcome! Please open an issue or submit a pull request.
 
-### Citation
+## Citation
 
 If you use fedfred in your research, projects, or publications, please cite it as follows:
 
@@ -250,6 +230,6 @@ Version 3.0.0. Available at: https://github.com/nikhilxsunder/fedfred
 
 You can also download a ready-made citation file from the GitHub repository
 
-### License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](https://github.com/nikhilxsunder/fedfred/blob/main/LICENSE) file for details.

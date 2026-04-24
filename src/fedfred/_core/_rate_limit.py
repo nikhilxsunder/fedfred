@@ -25,6 +25,7 @@ This module provides an adjustable capacity limiter for managing concurrent acce
 runtime adjustment of the maximum number of concurrent holders, ensuring that resource usage can be controlled dynamically.
 """
 
+from __future__ import annotations
 import asyncio
 from dataclasses import dataclass, field
 import time

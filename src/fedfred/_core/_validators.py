@@ -26,6 +26,7 @@ parameters passed to the various API endpoint methods, ensuring that they confor
 and value constraints before being sent in API requests.
 """
 
+from __future__ import annotations
 from typing import Optional, Dict, Union, Callable, Any
 from datetime import datetime
 import asyncio

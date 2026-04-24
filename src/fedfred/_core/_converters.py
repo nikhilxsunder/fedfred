@@ -24,12 +24,12 @@
 This module provides internal converter functions for the fedfred core package.
 """
 
+from __future__ import annotations
 import asyncio
 from typing import TYPE_CHECKING, Dict, Optional, Union, Tuple
 from datetime import datetime
 import pandas as pd
 import geopandas as gpd
-
 from fedfred.exceptions.conversion import TypeConversionError
 from ..exceptions import DataFrameConversionError, GeoDataFrameConversionError, OptionalDependencyError
 

@@ -24,6 +24,7 @@
 This module provides internal transport functions for the fedfred core package.
 """
 
+from __future__ import annotations
 from typing import  Optional, Dict, Union, Tuple, Any
 import httpx
 from tenacity import retry, wait_fixed, stop_after_attempt, retry_if_exception_type

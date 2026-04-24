@@ -424,7 +424,7 @@ class Fred:
         return list(self.cache.keys()) if self.cache_mode else []
 
     # Private Methods
-    def __fred_get_request(self, endpoint_name: str, data: Optional[Dict[str, Optional[Union[str, int]]]]=None) -> Dict[str, Any]:
+    def __fred_get_request(self, endpoint_name: str, data: Optional[Dict[str, Any]]=None) -> Dict[str, Any]:
         """Helper method to perform a synchronous GET request to the FRED API.
 
         Args:
@@ -450,7 +450,7 @@ class Fred:
 
         if self.caching_enabled:
             return _cached_get_request(endpoint_name, _hashable_type_converter(data))
-        
+
         else:
             return _get_request(endpoint_name, data)
 
@@ -486,11 +486,15 @@ class Fred:
         """
 
         endpoint_name = 'get_category'
-        data: Dict[str, Optional[Union[str, int]]] = {
+
+        data: Dict[str, Any] = {
             'category_id': category_id,
         }
+
         response = self.__fred_get_request(endpoint_name, data)
+
         categories = Category.to_object(response, client=self)
+
         return categories
 
     def get_category_children(self, category_id: int, realtime_start: Optional[Union[str, datetime]]=None,
@@ -531,22 +535,16 @@ class Fred:
 
         endpoint_name = 'get_category_children'
 
-        data: Dict[str, Optional[Union[str, int]]] = {
+        data: Dict[str, Any] = {
             'category_id': category_id,
+            'realtime_start': realtime_start,
+            'realtime_end': realtime_end,
         }
 
-        if realtime_start:
-            if isinstance(realtime_start, datetime):
-                realtime_start = _datetime_converter(realtime_start)
-            data['realtime_start'] = realtime_start
-
-        if realtime_end:
-            if isinstance(realtime_end, datetime):
-                realtime_end = _datetime_converter(realtime_end)
-            data['realtime_end'] = realtime_end
-
         response = self.__fred_get_request(endpoint_name, data)
+
         categories = Category.to_object(response, client=self)
+
         return categories
 
     def get_category_related(self, category_id: int, realtime_start: Optional[Union[str, datetime]]=None,
@@ -588,20 +586,18 @@ class Fred:
             - fedfred package documentation: https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.Fred.get_category_related.html
         """
 
-        url_endpoint = '/category/related'
-        data: Dict[str, Optional[Union[str, int]]] = {
+        endpoint_name = 'get_category_related'
+
+        data: Dict[str, Any] = {
             'category_id': category_id,
+            'realtime_start': realtime_start,
+            'realtime_end': realtime_end
         }
-        if realtime_start:
-            if isinstance(realtime_start, datetime):
-                realtime_start = _datetime_converter(realtime_start)
-            data['realtime_start'] = realtime_start
-        if realtime_end:
-            if isinstance(realtime_end, datetime):
-                realtime_end = _datetime_converter(realtime_end)
-            data['realtime_end'] = realtime_end
-        response = self.__fred_get_request(url_endpoint, data)
+
+        response = self.__fred_get_request(endpoint_name, data)
+
         categories = Category.to_object(response, client=self)
+
         return categories
 
     def get_category_series(self, category_id: int, realtime_start: Optional[Union[str, datetime]]=None,
@@ -651,43 +647,27 @@ class Fred:
             - fedfred package documentation: https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.Fred.get_category_series.html
         """
 
-        if not isinstance(category_id, int) or category_id < 0:
-            raise ValueError("category_id must be a non-negative integer")
-        url_endpoint = '/category/series'
-        data: Dict[str, Optional[Union[str, int]]] = {
+        endpoint_name = 'get_category_series'
+
+        data: Dict[str, Any] = {
             'category_id': category_id,
+            'realtime_start': realtime_start,
+            'realtime_end': realtime_end,
+            'limit': limit,
+            'offset': offset,
+            'order_by': order_by,
+            'sort_order': sort_order,
+            'filter_variable': filter_variable,
+            'filter_value': filter_value,
+            'tag_names': tag_names,
+            'exclude_tag_names': exclude_tag_names
         }
-        if realtime_start:
-            if isinstance(realtime_start, datetime):
-                realtime_start = _datetime_converter(realtime_start)
-            data['realtime_start'] = realtime_start
-        if realtime_end:
-            if isinstance(realtime_end, datetime):
-                realtime_end = _datetime_converter(realtime_end)
-            data['realtime_end'] = realtime_end
-        if limit:
-            data['limit'] = limit
-        if offset:
-            data['offset'] = offset
-        if order_by:
-            data['order_by'] = order_by
-        if sort_order:
-            data['sort_order'] = sort_order
-        if filter_variable:
-            data['filter_variable'] = filter_variable
-        if filter_value:
-            data['filter_value'] = filter_value
-        if tag_names:
-            if isinstance(tag_names, list):
-                tag_names = _liststring_converter(tag_names)
-            data['tag_names'] = tag_names
-        if exclude_tag_names:
-            if isinstance(exclude_tag_names, list):
-                exclude_tag_names = _liststring_converter(exclude_tag_names)
-            data['exclude_tag_names'] = exclude_tag_names
-        response = self.__fred_get_request(url_endpoint, data)
-        seriess = Series.to_object(response, client=self)
-        return seriess
+
+        response = self.__fred_get_request(endpoint_name, data)
+        
+        series = Series.to_object(response, client=self)
+
+        return series
 
     def get_category_tags(self, category_id: int, realtime_start: Optional[Union[str, datetime]]=None,
                           realtime_end: Optional[Union[str, datetime]]=None, tag_names: Optional[Union[str, list[str]]]=None,
@@ -734,36 +714,25 @@ class Fred:
             - fedfred package documentation: https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.Fred.get_category_tags.html
         """
 
-        url_endpoint = '/category/tags'
-        data: Dict[str, Optional[Union[str, int]]] = {
-            'category_id': category_id
+        endpoint_name = 'get_category_tags'
+
+        data: Dict[str, Any] = {
+            'category_id': category_id,
+            'realtime_start': realtime_start,
+            'realtime_end': realtime_end,
+            'tag_names': tag_names,
+            'tag_group_id': tag_group_id,
+            'search_text': search_text,
+            'limit': limit,
+            'offset': offset,
+            'order_by': order_by,
+            'sort_order': sort_order
         }
-        if realtime_start:
-            if isinstance(realtime_start, datetime):
-                realtime_start = _datetime_converter(realtime_start)
-            data['realtime_start'] = realtime_start
-        if realtime_end:
-            if isinstance(realtime_end, datetime):
-                realtime_end = _datetime_converter(realtime_end)
-            data['realtime_end'] = realtime_end
-        if tag_names:
-            if isinstance(tag_names, list):
-                tag_names = _liststring_converter(tag_names)
-            data['tag_names'] = tag_names
-        if tag_group_id:
-            data['tag_group_id'] = tag_group_id
-        if search_text:
-            data['search_text'] = search_text
-        if limit:
-            data['limit'] = limit
-        if offset:
-            data['offset'] = offset
-        if order_by:
-            data['order_by'] = order_by
-        if sort_order:
-            data['sort_order'] = sort_order
-        response = self.__fred_get_request(url_endpoint, data)
+
+        response = self.__fred_get_request(endpoint_name, data)
+
         tags = Tag.to_object(response, client=self)
+
         return tags
 
     def get_category_related_tags(self, category_id: int, realtime_start: Optional[Union[str, datetime]]=None,
@@ -814,40 +783,26 @@ class Fred:
             - fedfred package documentation: https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.Fred.get_category_related_tags.html
         """
 
-        url_endpoint = '/category/related_tags'
-        data: Dict[str, Optional[Union[str, int]]] = {
-            'category_id': category_id
+        endpoint_name = 'get_category_related_tags'
+
+        data: Dict[str, Any] = {
+            'category_id': category_id,
+            'realtime_start': realtime_start,
+            'realtime_end': realtime_end,
+            'tag_names': tag_names,
+            'exclude_tag_names': exclude_tag_names,
+            'tag_group_id': tag_group_id,
+            'search_text': search_text,
+            'limit': limit,
+            'offset': offset,
+            'order_by': order_by,
+            'sort_order': sort_order
         }
-        if realtime_start:
-            if isinstance(realtime_start, datetime):
-                realtime_start = _datetime_converter(realtime_start)
-            data['realtime_start'] = realtime_start
-        if realtime_end:
-            if isinstance(realtime_end, datetime):
-                realtime_end = _datetime_converter(realtime_end)
-            data['realtime_end'] = realtime_end
-        if tag_names:
-            if isinstance(tag_names, list):
-                tag_names = _liststring_converter(tag_names)
-            data['tag_names'] = tag_names
-        if exclude_tag_names:
-            if isinstance(exclude_tag_names, list):
-                exclude_tag_names = _liststring_converter(exclude_tag_names)
-            data['exclude_tag_names'] = exclude_tag_names
-        if tag_group_id:
-            data['tag_group_id'] = tag_group_id
-        if search_text:
-            data['search_text'] = search_text
-        if limit:
-            data['limit'] = limit
-        if offset:
-            data['offset'] = offset
-        if order_by:
-            data['order_by'] = order_by
-        if sort_order:
-            data['sort_order'] = sort_order
-        response = self.__fred_get_request(url_endpoint, data)
+
+        response = self.__fred_get_request(endpoint_name, data)
+
         tags = Tag.to_object(response, client=self)
+
         return tags
 
     ## Releases
@@ -890,26 +845,21 @@ class Fred:
             - fedfred package documentation: https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.Fred.get_releases.html
         """
 
-        url_endpoint = '/releases'
-        data: Dict[str, Optional[Union[str, int]]] = {}
-        if realtime_start:
-            if isinstance(realtime_start, datetime):
-                realtime_start = _datetime_converter(realtime_start)
-            data['realtime_start'] = realtime_start
-        if realtime_end:
-            if isinstance(realtime_end, datetime):
-                realtime_end = _datetime_converter(realtime_end)
-            data['realtime_end'] = realtime_end
-        if limit:
-            data['limit'] = limit
-        if offset:
-            data['offset'] = offset
-        if order_by:
-            data['order_by'] = order_by
-        if sort_order:
-            data['sort_order'] = sort_order
-        response = self.__fred_get_request(url_endpoint, data)
+        endpoint_name = 'get_releases'
+
+        data: Dict[str, Any] = {
+            'realtime_start': realtime_start,
+            'realtime_end': realtime_end,
+            'limit': limit,
+            'offset': offset,
+            'order_by': order_by,
+            'sort_order': sort_order
+        }
+        
+        response = self.__fred_get_request(endpoint_name, data)
+
         releases = Release.to_object(response, client=self)
+
         return releases
 
     def get_releases_dates(self, realtime_start: Optional[Union[str, datetime]]=None,
@@ -954,27 +904,20 @@ class Fred:
             - fedfred package documentation: https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.Fred.get_releases_dates.html
         """
 
-        url_endpoint = '/releases/dates'
-        data: Dict[str, Optional[Union[str, int]]] = {}
-        if realtime_start:
-            if isinstance(realtime_start, datetime):
-                realtime_start = _datetime_converter(realtime_start)
-            data['realtime_start'] = realtime_start
-        if realtime_end:
-            if isinstance(realtime_end, datetime):
-                realtime_end = _datetime_converter(realtime_end)
-            data['realtime_end'] = realtime_end
-        if limit:
-            data['limit'] = limit
-        if offset:
-            data['offset'] = offset
-        if order_by:
-            data['order_by'] = order_by
-        if sort_order:
-            data['sort_order'] = sort_order
-        if include_releases_dates_with_no_data:
-            data['include_releases_dates_with_no_data'] = include_releases_dates_with_no_data
-        response = self.__fred_get_request(url_endpoint, data)
+        endpoint_name = 'get_releases_dates'
+
+        data: Dict[str, Any] = {
+            'realtime_start': realtime_start,
+            'realtime_end': realtime_end,
+            'limit': limit,
+            'offset': offset,
+            'order_by': order_by,
+            'sort_order': sort_order,
+            'include_releases_dates_with_no_data': include_releases_dates_with_no_data
+        }
+
+        response = self.__fred_get_request(endpoint_name, data)
+        
         return ReleaseDate.to_object(response)
 
     def get_release(self, release_id: int, realtime_start: Optional[Union[str, datetime]]=None,

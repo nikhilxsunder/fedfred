@@ -24,6 +24,7 @@
 This module provides internal endpoint resolution for the fedfred core package.
 """
 
+from __future__ import annotations
 from dataclasses import dataclass
 import asyncio
 from typing import Dict, Optional, Any
