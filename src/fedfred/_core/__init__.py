@@ -37,7 +37,9 @@ from ._converters import (
     _datetime_hh_mm_converter, _datetime_hh_mm_converter_async,
     _geopandas_geodataframe_converter, _geopandas_geodataframe_converter_async,
     _dask_geopandas_geodataframe_converter, _dask_geopandas_geodataframe_converter_async,
-    _polars_geodataframe_converter, _polars_geodataframe_converter_async
+    _polars_geodataframe_converter, _polars_geodataframe_converter_async,
+    DATAFRAME_CONVERTER_MAP, ASYNC_DATAFRAME_CONVERTER_MAP,
+    GEODATAFRAME_CONVERTER_MAP, ASYNC_GEODATAFRAME_CONVERTER_MAP,
 )
 
 from ._validators import (

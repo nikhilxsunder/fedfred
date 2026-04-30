@@ -44,9 +44,14 @@ __all__ = [
     "_pandas_dataframe_converter", "_pandas_dataframe_converter_async",
     "_polars_dataframe_converter", "_polars_dataframe_converter_async",
     "_dask_dataframe_converter", "_dask_dataframe_converter_async",
+    # GeoDataFrame Converters
     "_geopandas_geodataframe_converter", "_geopandas_geodataframe_converter_async",
     "_dask_geopandas_geodataframe_converter", "_dask_geopandas_geodataframe_converter_async",
     "_polars_geodataframe_converter", "_polars_geodataframe_converter_async",
+    # DataFrame Converter Maps
+    "DATAFRAME_CONVERTER_MAP", "ASYNC_DATAFRAME_CONVERTER_MAP",
+    # GeoDataFrame Converter Maps
+    "GEODATAFRAME_CONVERTER_MAP", "ASYNC_GEODATAFRAME_CONVERTER_MAP",
     # Single Parameter Converters
     "_liststring_converter", "_liststring_converter_async",
     "_vintage_dates_type_converter", "_vintage_dates_type_converter_async",
@@ -820,6 +825,30 @@ async def _polars_geodataframe_converter_async(shapefile: gpd.GeoDataFrame, meta
 
     gdf = await _geopandas_geodataframe_converter_async(shapefile, meta_data)
     return await asyncio.to_thread(st.from_geopandas, gdf)
+
+DATAFRAME_CONVERTER_MAP = {
+    'pandas': _pandas_dataframe_converter,
+    'polars': _polars_dataframe_converter,
+    'dask': _dask_dataframe_converter,
+}
+
+ASYNC_DATAFRAME_CONVERTER_MAP = {
+    'pandas': _pandas_dataframe_converter_async,
+    'polars': _polars_dataframe_converter_async,
+    'dask': _dask_dataframe_converter_async,
+}
+
+GEODATAFRAME_CONVERTER_MAP = {
+    'geopandas': _geopandas_geodataframe_converter,
+    'dask-geopandas': _dask_geopandas_geodataframe_converter,
+    'polars-st': _polars_geodataframe_converter,
+}
+
+ASYNC_GEODATAFRAME_CONVERTER_MAP = {
+    'geopandas': _geopandas_geodataframe_converter_async,
+    'dask-geopandas': _dask_geopandas_geodataframe_converter_async,
+    'polars-st': _polars_geodataframe_converter_async,
+}
 
 # Single Parameter Converters
 def _liststring_converter(parameter: list[str]) -> str:
