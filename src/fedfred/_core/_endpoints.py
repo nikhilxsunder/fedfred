@@ -38,7 +38,7 @@ from ..exceptions import (
     EndpointURLError
 )
 
-__all__ = ["_resolve_endpoint", "_resolve_endpoint_async"]
+__all__ = ["_resolve_endpoint", "_resolve_endpoint_async", "_ST_LOUIS_FED_BASE_URL"]
 
 _ST_LOUIS_FED_BASE_URL: str = "https://api.stlouisfed.org"
 """Base URL for the St. Louis Fed APIs."""

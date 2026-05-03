@@ -1,0 +1,4 @@
+client_name,successful_requests,total_measured_seconds,client_only_requests_per_second
+httpx,526,105.28337213209306,4.996040584073026
+pycurl,535,93.59861250301765,5.715896696468139
+requests,540,64.81122811094974,8.331889639177628

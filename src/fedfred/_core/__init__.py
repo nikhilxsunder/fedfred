@@ -58,6 +58,17 @@ from ._transport import (
 
 from ._caching import (
     set_cache_maxsize, get_cache_maxsize,
+    _CACHE
+)
+
+from ._endpoints import (
+    _resolve_endpoint, _resolve_endpoint_async,
+    _ST_LOUIS_FED_BASE_URL
+)
+
+from ._rate_limit import (
+    _rate_limiter, _rate_limiter_async,
+    _FRED_MAX_REQUESTS_PER_MINUTE
 )
 
 __all__ = [
@@ -74,6 +85,8 @@ __all__ = [
     '_geopandas_geodataframe_converter', '_geopandas_geodataframe_converter_async',
     '_dask_geopandas_geodataframe_converter', '_dask_geopandas_geodataframe_converter_async',
     '_polars_geodataframe_converter', '_polars_geodataframe_converter_async',
+    'DATAFRAME_CONVERTER_MAP', 'ASYNC_DATAFRAME_CONVERTER_MAP',
+    'GEODATAFRAME_CONVERTER_MAP', 'ASYNC_GEODATAFRAME_CONVERTER_MAP',
     # Validators
     '_fred_parameter_validator', '_fred_parameter_validator_async',
     '_geofred_parameter_validator', '_geofred_parameter_validator_async',
@@ -84,4 +97,11 @@ __all__ = [
     '_cached_get_request', '_cached_get_request_async',
     # Caching
     'set_cache_maxsize', 'get_cache_maxsize',
+    '_CACHE',
+    # Endpoints
+    '_resolve_endpoint', '_resolve_endpoint_async',
+    '_ST_LOUIS_FED_BASE_URL',
+    # Rate Limiting
+    '_rate_limiter', '_rate_limiter_async',
+    '_FRED_MAX_REQUESTS_PER_MINUTE'
 ]

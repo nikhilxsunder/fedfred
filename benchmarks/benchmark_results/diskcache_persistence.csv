@@ -1,0 +1,2 @@
+backend,n_keys,restart_hit_rate,mean_us,median_us,p95_us,min_us,max_us
+diskcache,512,1.0,121.109462890625,115.4795,161.458,109.0,653.125

@@ -1,0 +1,8 @@
+candidate,layer,main_strength,median_hit_us_medium_payload,origin_hit_rate,persistence,recommended_role
+cacheout,application,in-process request-result cache,0.708,,no,default or experimental in-memory backend
+cachetools_lru,application,in-process request-result cache,0.7248,,no,default or experimental in-memory backend
+cachetools_ttl,application,in-process request-result cache,1.3332000000000002,,no,default or experimental in-memory backend
+diskcache,application,in-process request-result cache,113.11680000000001,,yes,optional persistent research/notebook cache
+httpx_uncached,transport,HTTP response caching semantics,13220.6791,1.0,depends on configured storage,uncached baseline
+requests_cache,transport,HTTP response caching semantics,480.3335,0.1,depends on configured storage,requests transport-cache reference
+requests_uncached,transport,HTTP response caching semantics,13638.0625,1.0,depends on configured storage,uncached baseline

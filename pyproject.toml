@@ -70,6 +70,8 @@ sphinx-sitemap = "*"
 sphinxext-opengraph = "*"
 matplotlib = "*"
 toml = "*"
+ipykernel = "^7.2.0"
+notebook = "^7.5.6"
 
 [tool.poetry.extras]
 types = ["pandas-stubs", "types-cachetools", "types-geopandas"]

@@ -43,7 +43,8 @@ from ..exceptions import(
 )
 
 __all__ = [
-    "_rate_limiter", "_rate_limiter_async"
+    "_rate_limiter", "_rate_limiter_async",
+    "_FRED_MAX_REQUESTS_PER_MINUTE"
 ]
 
 @dataclass(slots=True)

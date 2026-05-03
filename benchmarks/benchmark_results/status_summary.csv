@@ -1,0 +1,6 @@
+client_name,status_code,count
+httpx,200,526
+httpx,500,14
+pycurl,200,535
+pycurl,500,5
+requests,200,540

@@ -56,6 +56,7 @@ References:
 """
 
 from datetime import datetime
+import re
 from typing import TYPE_CHECKING, Optional, Dict, Union, List, Any
 import pandas as pd
 from ..settings import _resolve_api_key, set_api_key
@@ -69,7 +70,10 @@ from .._core import (
     _get_request, _get_request_async,
     _cached_get_request, _cached_get_request_async,
     # Caching
-    set_cache_maxsize, get_cache_maxsize
+    set_cache_maxsize, get_cache_maxsize, _CACHE,
+    # Globals
+    _ST_LOUIS_FED_BASE_URL, _FRED_MAX_REQUESTS_PER_MINUTE
+
 )
 from ..models import BulkRelease, Category, Series, Tag, Release, ReleaseDate, Source, Element, VintageDate
 
@@ -232,8 +236,7 @@ class Fred:
         if not isinstance(other, Fred):
             return NotImplemented
         return (
-            self.__api_key == other.__api_key and
-            self.cache_mode == other.cache_mode and
+            self.caching_enabled == other.caching_enabled and
             self.cache_size == other.cache_size
         )
 
@@ -253,7 +256,7 @@ class Fred:
             1234567890 # Example hash value
         """
 
-        return hash((self.__api_key, self.cache_mode, self.cache_size))
+        return hash((_resolve_api_key(service='fred'), self.caching_enabled, self.cache_size))
 
     def __del__(self) -> None:
         """Destructor for the Fred class. Clears the cache when the instance is deleted.
@@ -273,7 +276,7 @@ class Fred:
         """
 
         if hasattr(self, "cache"):
-            self.cache.clear()
+            _CACHE.clear()
 
     def __len__(self) -> int:
         """Get the number of cached items in the Fred instance.
@@ -291,7 +294,7 @@ class Fred:
             256 # Example length of the cache
         """
 
-        return len(self.cache) if self.cache_mode else 0
+        return len(_CACHE) if self.caching_enabled else 0
 
     def __contains__(self, key: str) -> bool:
         """Check if a specific item exists in the cache.
@@ -312,7 +315,7 @@ class Fred:
             True # Example output if 'some_key' exists in the cache
         """
 
-        return key in self.cache.keys() if self.cache_mode else False
+        return key in _CACHE.keys() if self.caching_enabled else False
 
     def __getitem__(self, key: str) -> Any:
         """Get a specific item from the cache.
@@ -336,8 +339,8 @@ class Fred:
             'some_value'
         """
 
-        if key in self.cache.keys():
-            return self.cache[key]
+        if key in _CACHE.keys():
+            return _CACHE[key]
         else:
             raise AttributeError(f"'{key}' not found in cache.")
 
@@ -359,7 +362,7 @@ class Fred:
             'some_value'
         """
 
-        self.cache[key] = value
+        _CACHE[key] = value
 
     def __delitem__(self, key: str) -> None:
         """Delete a specific item from the cache.
@@ -381,8 +384,8 @@ class Fred:
             False
         """
 
-        if key in self.cache.keys():
-            del self.cache[key]
+        if key in _CACHE.keys():
+            del _CACHE[key]
         else:
             raise AttributeError(f"'{key}' not found in cache.")
 
@@ -404,10 +407,10 @@ class Fred:
         """
         return (
             f"Fred Instance:\n"
-            f"  Base URL: {self.base_url}\n"
-            f"  Cache Mode: {'Enabled' if self.cache_mode else 'Disabled'}\n"
-            f"  Cache Size: {len(self.cache)} items\n"
-            f"  API Key: {'****' + self.__api_key[-4:] if self.__api_key else 'Not Set'}\n"
+            f"  Base URL: {_ST_LOUIS_FED_BASE_URL}\n"
+            f"  Cache Mode: {'Enabled' if self.caching_enabled else 'Disabled'}\n"
+            f"  Cache Size: {len(_CACHE)} items\n"
+            f"  API Key: {'****' + _resolve_api_key(service='fred')[-4:] if _resolve_api_key(service='fred') else 'Not Set'}\n"
         )
 
     # Properties
@@ -415,7 +418,7 @@ class Fred:
     def keys(self) -> List[str]:
         """List of keys in the cache."""
 
-        return list(self.cache.keys()) if self.cache_mode else []
+        return list(_CACHE.keys()) if self.caching_enabled else []
 
     # Private Methods
     def __fred_get_request(self, endpoint_name: str, data: Optional[Dict[str, Any]]=None) -> Dict[str, Any]:
@@ -440,7 +443,7 @@ class Fred:
         """
 
         if data:
-            _fred_parameter_validator(data) # TODO: neds conversion handling in mesh with validation, normalization abstraction potentially
+            _fred_parameter_validator(data) # TODO: needs conversion handling in mesh with validation, normalization abstraction potentially
 
         if self.caching_enabled:
             return _cached_get_request(endpoint_name, _hashable_type_converter(data))
@@ -2002,26 +2005,21 @@ class Fred:
             - fedfred package documentation: https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.Fred.get_sources.html
         """
 
-        url_endpoint = '/sources'
-        data: Dict[str, Optional[Union[str, int]]] = {}
-        if realtime_start:
-            if isinstance(realtime_start, datetime):
-                realtime_start = _datetime_converter(realtime_start)
-            data['realtime_start'] = realtime_start
-        if realtime_end:
-            if isinstance(realtime_end, datetime):
-                realtime_end = _datetime_converter(realtime_end)
-            data['realtime_end'] = realtime_end
-        if limit:
-            data['limit'] = limit
-        if offset:
-            data['offset'] = offset
-        if order_by:
-            data['order_by'] = order_by
-        if sort_order:
-            data['sort_order'] = sort_order
-        response = self.__fred_get_request(url_endpoint, data)
+        endpoint_name = 'get_sources'
+
+        data: Dict[str, Any] = {
+            'realtime_start': realtime_start,
+            'realtime_end': realtime_end,
+            'limit': limit,
+            'offset': offset,
+            'order_by': order_by,
+            'sort_order': sort_order
+        }
+
+        response = self.__fred_get_request(endpoint_name, data)
+
         sources = Source.to_object(response, client=self)
+
         return sources
 
     def get_source(self, source_id: int, realtime_start: Optional[Union[str, datetime]]=None,
@@ -2056,20 +2054,18 @@ class Fred:
             - fedfred package documentation: https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.Fred.get_source.html
         """
 
-        url_endpoint = '/source'
-        data: Dict[str, Optional[Union[str, int]]] = {
-            'source_id': source_id
+        endpoint_name = 'get_source'
+
+        data: Dict[str, Any] = {
+            'source_id': source_id,
+            'realtime_start': realtime_start,
+            'realtime_end': realtime_end
         }
-        if realtime_start:
-            if isinstance(realtime_start, datetime):
-                realtime_start = _datetime_converter(realtime_start)
-            data['realtime_start'] = realtime_start
-        if realtime_end:
-            if isinstance(realtime_end, datetime):
-                realtime_end = _datetime_converter(realtime_end)
-            data['realtime_end'] = realtime_end
-        response = self.__fred_get_request(url_endpoint, data)
+
+        response = self.__fred_get_request(endpoint_name, data)
+
         sources = Source.to_object(response, client=self)
+
         return sources
 
     def get_source_releases(self, source_id: int , realtime_start: Optional[Union[str, datetime]]=None,
@@ -2113,28 +2109,22 @@ class Fred:
             - fedfred package documentation: https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.Fred.get_source_releases.html
         """
 
-        url_endpoint = '/source/releases'
-        data: Dict[str, Optional[Union[str, int]]] = {
-            'source_id': source_id
+        endpoint_name = 'get_source_releases'
+
+        data: Dict[str, Any] = {
+            'source_id': source_id,
+            'realtime_start': realtime_start,
+            'realtime_end': realtime_end,
+            'limit': limit,
+            'offset': offset,
+            'order_by': order_by,
+            'sort_order': sort_order
         }
-        if realtime_start:
-            if isinstance(realtime_start, datetime):
-                realtime_start = _datetime_converter(realtime_start)
-            data['realtime_start'] = realtime_start
-        if realtime_end:
-            if isinstance(realtime_end, datetime):
-                realtime_end = _datetime_converter(realtime_end)
-            data['realtime_end'] = realtime_end
-        if limit:
-            data['limit'] = limit
-        if offset:
-            data['offset'] = offset
-        if order_by:
-            data['order_by'] = order_by
-        if sort_order:
-            data['sort_order'] = sort_order
-        response = self.__fred_get_request(url_endpoint, data)
+
+        response = self.__fred_get_request(endpoint_name, data)
+
         releases = Release.to_object(response, client=self)
+
         return releases
 
     ## Tags
@@ -2182,34 +2172,24 @@ class Fred:
             - fedfred package documentation: https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.Fred.get_tags.html
         """
 
-        url_endpoint = '/tags'
-        data: Dict[str, Optional[Union[str, int]]] = {}
-        if realtime_start:
-            if isinstance(realtime_start, datetime):
-                realtime_start = _datetime_converter(realtime_start)
-            data['realtime_start'] = realtime_start
-        if realtime_end:
-            if isinstance(realtime_end, datetime):
-                realtime_end = _datetime_converter(realtime_end)
-            data['realtime_end'] = realtime_end
-        if tag_names:
-            if isinstance(tag_names, list):
-                tag_names = _liststring_converter(tag_names)
-            data['tag_names'] = tag_names
-        if tag_group_id:
-            data['tag_group_id'] = tag_group_id
-        if search_text:
-            data['search_text'] = search_text
-        if limit:
-            data['limit'] = limit
-        if offset:
-            data['offset'] = offset
-        if order_by:
-            data['order_by'] = order_by
-        if sort_order:
-            data['sort_order'] = sort_order
-        response = self.__fred_get_request(url_endpoint, data)
+        endpoint_name = 'get_tags'
+
+        data: Dict[str, Any] = {
+            'realtime_start': realtime_start,
+            'realtime_end': realtime_end,
+            'tag_names': tag_names,
+            'tag_group_id': tag_group_id,
+            'search_text': search_text,
+            'limit': limit,
+            'offset': offset,
+            'order_by': order_by,
+            'sort_order': sort_order
+        }
+
+        response = self.__fred_get_request(endpoint_name, data)
+
         tags = Tag.to_object(response, client=self)
+
         return tags
 
     def get_related_tags(self, tag_names: Union[str, list[str]], realtime_start: Optional[Union[str, datetime]]=None,
@@ -2257,37 +2237,25 @@ class Fred:
             - fedfred package documentation: https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.Fred.get_related_tags.html
         """
 
-        url_endpoint = '/related_tags'
-        data: Dict[str, Optional[Union[str, int]]] = {}
-        if isinstance(tag_names, list):
-            tag_names = _liststring_converter(tag_names)
-        data['tag_names'] = tag_names
-        if realtime_start:
-            if isinstance(realtime_start, datetime):
-                realtime_start = _datetime_converter(realtime_start)
-            data['realtime_start'] = realtime_start
-        if realtime_end:
-            if isinstance(realtime_end, datetime):
-                realtime_end = _datetime_converter(realtime_end)
-            data['realtime_end'] = realtime_end
-        if exclude_tag_names:
-            if isinstance(exclude_tag_names, list):
-                exclude_tag_names = _liststring_converter(exclude_tag_names)
-            data['exclude_tag_names'] = exclude_tag_names
-        if tag_group_id:
-            data['tag_group_id'] = tag_group_id
-        if search_text:
-            data['search_text'] = search_text
-        if limit:
-            data['limit'] = limit
-        if offset:
-            data['offset'] = offset
-        if order_by:
-            data['order_by'] = order_by
-        if sort_order:
-            data['sort_order'] = sort_order
-        response = self.__fred_get_request(url_endpoint, data)
+        endpoint_name = 'get_related_tags'
+
+        data: Dict[str, Any] = {
+            'tag_names': tag_names,
+            'realtime_start': realtime_start,
+            'realtime_end': realtime_end,
+            'exclude_tag_names': exclude_tag_names,
+            'tag_group_id': tag_group_id,
+            'search_text': search_text,
+            'limit': limit,
+            'offset': offset,
+            'order_by': order_by,
+            'sort_order': sort_order
+        }
+
+        response = self.__fred_get_request(endpoint_name, data)
+
         tags = Tag.to_object(response, client=self)
+
         return tags
 
     def get_tags_series(self, tag_names: Union[str, list[str]], exclude_tag_names: Optional[Union[str, list[str]]]=None,
@@ -2332,34 +2300,24 @@ class Fred:
             - fedfred package documentation: https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.Fred.get_tags_series.html
         """
 
-        url_endpoint = '/tags/series'
-        data: Dict[str, Optional[Union[str, int]]] = {}
-        if isinstance(tag_names, list):
-            tag_names = _liststring_converter(tag_names)
-        data['tag_names'] = tag_names
-        if exclude_tag_names:
-            if isinstance(exclude_tag_names, list):
-                exclude_tag_names = _liststring_converter(exclude_tag_names)
-            data['exclude_tag_names'] = exclude_tag_names
-        if realtime_start:
-            if isinstance(realtime_start, datetime):
-                realtime_start = _datetime_converter(realtime_start)
-            data['realtime_start'] = realtime_start
-        if realtime_end:
-            if isinstance(realtime_end, datetime):
-                realtime_end = _datetime_converter(realtime_end)
-            data['realtime_end'] = realtime_end
-        if limit:
-            data['limit'] = limit
-        if offset:
-            data['offset'] = offset
-        if order_by:
-            data['order_by'] = order_by
-        if sort_order:
-            data['sort_order'] = sort_order
-        response = self.__fred_get_request(url_endpoint, data)
-        seriess = Series.to_object(response, client=self)
-        return seriess
+        endpoint_name = 'get_tags_series'
+
+        data: Dict[str, Any] = {
+            'tag_names': tag_names,
+            'exclude_tag_names': exclude_tag_names,
+            'realtime_start': realtime_start,
+            'realtime_end': realtime_end,
+            'limit': limit,
+            'offset': offset,
+            'order_by': order_by,
+            'sort_order': sort_order
+        }
+
+        response = self.__fred_get_request(endpoint_name, data)
+
+        series = Series.to_object(response, client=self)
+
+        return series
 
 class AsyncFred:
     """Asynchronous client for the Federal Reserve FRED/ALFRED API.

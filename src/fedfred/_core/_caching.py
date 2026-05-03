@@ -40,7 +40,7 @@ from..exceptions import (
 )
 
 __all__ = [
-    "set_cache_maxsize", "get_cache_maxsize",
+    "set_cache_maxsize", "get_cache_maxsize", "_CACHE"
 ]
 
 K = TypeVar("K", bound=Hashable)

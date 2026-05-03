@@ -1,0 +1,4 @@
+client,median_us,p95_us,origin_hits,origin_hit_rate,observed_cache_hit_rate,requests_per_s
+httpx_uncached,13220.6791,15950.450200000001,200.0,1.0,,75.76027471941902
+requests_cache,480.3335,14522.025,20.0,0.1,0.9,509.4317466146582
+requests_uncached,13638.0625,15607.4666,200.0,1.0,,73.04772211561858

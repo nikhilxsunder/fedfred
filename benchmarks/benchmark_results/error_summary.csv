@@ -1,0 +1,3 @@
+client_name,workload_name,status_code,error_type,count
+httpx,tags,500,,14
+pycurl,search,500,,5
