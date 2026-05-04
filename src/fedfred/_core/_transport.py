@@ -72,9 +72,17 @@ from ..exceptions import (
 )
 
 __all__ = [
+    # Maps
+    "_HTTP_EXCEPTION_MAP", "_HTTP_STATUS_MAP",
+    # Exception Mapping Functions
+    "_request_url", "_request_method", 
+    "_safe_response_text", 
+    "_map_httpx_exception", "_map_http_status_error", 
+    "_resolve_httpx_exception_class",
+    # Transport Functions
     "_get_request", "_get_request_async",
     "_cached_get_request", "_cached_get_request_async",
-    "_post_request", "_post_request_async",
+    "_post_request", "_post_request_async"
 ]
 
 _HTTP_EXCEPTION_MAP: Dict = {

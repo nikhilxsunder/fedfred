@@ -26,12 +26,11 @@ This module provides internal converter functions for the fedfred core package.
 
 from __future__ import annotations
 import asyncio
-from typing import TYPE_CHECKING, Dict, Optional, Union, Tuple
-from datetime import datetime
+from typing import TYPE_CHECKING, Dict, Optional, Union, Tuple, Any, Callable
+from datetime import datetime, date, time
 import pandas as pd
 import geopandas as gpd
-from fedfred.exceptions.conversion import TypeConversionError
-from ..exceptions import DataFrameConversionError, GeoDataFrameConversionError, OptionalDependencyError
+from ..exceptions import DataFrameConversionError, GeoDataFrameConversionError, OptionalDependencyError,  TypeConversionError
 
 if TYPE_CHECKING:
     import dask.dataframe as dd # pragma: no cover
@@ -40,27 +39,29 @@ if TYPE_CHECKING:
     import polars_st as st # pragma: no cover
 
 __all__ = [
+    # Typing Aliases
+    "ParameterConverter",
     # DataFrame Converters
     "_pandas_dataframe_converter", "_pandas_dataframe_converter_async",
     "_polars_dataframe_converter", "_polars_dataframe_converter_async",
     "_dask_dataframe_converter", "_dask_dataframe_converter_async",
-    # GeoDataFrame Converters
     "_geopandas_geodataframe_converter", "_geopandas_geodataframe_converter_async",
     "_dask_geopandas_geodataframe_converter", "_dask_geopandas_geodataframe_converter_async",
     "_polars_geodataframe_converter", "_polars_geodataframe_converter_async",
     # DataFrame Converter Maps
-    "DATAFRAME_CONVERTER_MAP", "ASYNC_DATAFRAME_CONVERTER_MAP",
-    # GeoDataFrame Converter Maps
-    "GEODATAFRAME_CONVERTER_MAP", "ASYNC_GEODATAFRAME_CONVERTER_MAP",
-    # Single Parameter Converters
-    "_liststring_converter", "_liststring_converter_async",
-    "_vintage_dates_type_converter", "_vintage_dates_type_converter_async",
-    "_datetime_converter", "_datetime_converter_async",
-    "_datetime_hh_mm_converter", "_datetime_hh_mm_converter_async",
-    # Collective Parameter Converters
+    "DATAFRAME_CONVERTER_MAP", "GEODATAFRAME_CONVERTER_MAP",
+    "ASYNC_DATAFRAME_CONVERTER_MAP", "ASYNC_GEODATAFRAME_CONVERTER_MAP",
+    # Scalar Converters
+    "_identity_converter", "_date_parameter_converter", "_time_parameter_converter", 
+    "_semicolon_list_converter", "_comma_date_list_converter",
+    # Cache Key Converters
     "_hashable_type_converter", "_hashable_type_converter_async",
     "_dict_type_converter", "_dict_type_converter_async",
 ]
+
+# Typing Aliases
+ParameterConverter = Callable[[str, Any], Any]
+"""Typing alias for parameter converter functions. These functions take a parameter name and a value, and return a converted value suitable for API requests or caching."""
 
 # DataFrame Converters
 def _pandas_dataframe_converter(data: Dict[str, list]) -> pd.DataFrame:
@@ -826,323 +827,229 @@ async def _polars_geodataframe_converter_async(shapefile: gpd.GeoDataFrame, meta
     gdf = await _geopandas_geodataframe_converter_async(shapefile, meta_data)
     return await asyncio.to_thread(st.from_geopandas, gdf)
 
+# DataFrame Converter Maps
 DATAFRAME_CONVERTER_MAP = {
     'pandas': _pandas_dataframe_converter,
     'polars': _polars_dataframe_converter,
     'dask': _dask_dataframe_converter,
 }
+"""Mapping of dataframe converter functions for different backends."""
 
 ASYNC_DATAFRAME_CONVERTER_MAP = {
     'pandas': _pandas_dataframe_converter_async,
     'polars': _polars_dataframe_converter_async,
     'dask': _dask_dataframe_converter_async,
 }
+"""Mapping of asynchronous dataframe converter functions for different backends."""
 
 GEODATAFRAME_CONVERTER_MAP = {
     'geopandas': _geopandas_geodataframe_converter,
     'dask-geopandas': _dask_geopandas_geodataframe_converter,
     'polars-st': _polars_geodataframe_converter,
 }
+"""Mapping of geodataframe converter functions for different backends."""
 
 ASYNC_GEODATAFRAME_CONVERTER_MAP = {
     'geopandas': _geopandas_geodataframe_converter_async,
     'dask-geopandas': _dask_geopandas_geodataframe_converter_async,
     'polars-st': _polars_geodataframe_converter_async,
 }
+"""Mapping of asynchronous geodataframe converter functions for different backends."""
 
-# Single Parameter Converters
-def _liststring_converter(parameter: list[str]) -> str:
-    """Internal converter function to convert a list of strings to a semicolon-separated string.
-
+# Scalar Converters
+def _identity_converter(parameter: str, value: Any) -> Any: # TODO: Do something with parameter input.
+    """Internal converter function that returns the value as-is.
+    
     Args:
-        parameter (list[str]): List of strings to convert.
+        parameter (str): The name of the parameter.
+        value (Any): The value of the parameter.
 
     Returns:
-        str: Semicolon-separated string.
-
-    Raises:
-        TypeConversionError: If parameter is not a list of strings.
+        Any: The original value without any conversion.
 
     Examples:
-        >>> # Internal use
-        >>> from ._core import _liststring_converter
-        >>> parameter = ["tag1", "tag2", "tag3"]
-        >>> result = _liststring_converter(parameter)
-        >>> # Test output dataframe
+        >>> # Internal use        
+        >>> from ._core import _identity_converter
+        >>> result = _identity_converter("example_parameter", "test_value")
         >>> print(result)
-        tag1;tag2;tag3
-
-    Notes:
-        This method joins the elements of the list with semicolons.
+        test_value
     """
 
-    if not isinstance(parameter, list):
-        raise TypeConversionError(
-            message="Type conversion failed: Parameter must be a list of strings",
-            expected="list[str]",
-            received=type(parameter).__name__,
-        )
+    return value
 
-    if any(not isinstance(i, str) for i in parameter):
-        raise TypeConversionError(
-            message="Type conversion failed: All elements in the list must be strings",
-            expected="list[str]",
-            received=", ".join(type(i).__name__ for i in parameter if not isinstance(i, str)),
-        )
-
-    return ';'.join(parameter)
-
-def _vintage_dates_type_converter(parameter: Union[str, datetime, list[Optional[Union[str, datetime]]]]) -> str:
-    """Internal converter function to convert a vintage_dates or list of vintage_dates parameter to a string in YYYY-MM-DD format.
-
+def _date_parameter_converter(parameter: str, value: Any) -> str:
+    """Internal converter function to convert str, date, or datetime to ISO 8601 date string (YYYY-MM-DD).
+    
     Args:
-        parameter (str | datetime | list[Optional[str | datetime]]): vintage_dates parameter to convert.
+        parameter (str): The name of the parameter.
+        value (Any): The value of the parameter, which can be a string, date, or datetime.
 
     Returns:
-        str: Converted vintage_dates string.
+        str: The converted date string in ISO 8601 format (YYYY-MM-DD).
 
     Raises:
-        TypeConversionError: If parameter is not a string, datetime object, or list of strings/datetime objects.
+        TypeConversionError: If the value cannot be converted to a date string.
 
     Examples:
         >>> # Internal use
-        >>> from datetime import datetime
-        >>> from ._core import _vintage_dates_type_converter
-        >>> parameter = datetime(2020, 1, 1)
-        >>> result1 = _vintage_dates_type_converter(parameter)
-        >>> # Test output dataframe
-        >>> print(result1)
-        2020-01-01
-
-    Notes:
-        This method handles single strings, datetime objects, and lists of strings/datetime objects.
+        >>> from ._core import _date_parameter_converter
+        >>> from datetime import datetime, date
+        >>> result1 = _date_parameter_converter("date_param", datetime(2020, 1, 1))
+        >>> result2 = _date_parameter_converter("date_param", date(2020, 1, 1))
+        >>> result3 = _date_parameter_converter("date_param", "2020-01-01")
+        >>> print(result1)  # Output: 2020-01-01
+        >>> print(result2)  # Output: 2020-01-01
+        >>> print(result3)  # Output: 2020-01-01
     """
 
-    if isinstance(parameter, str):
-        return parameter
+    if isinstance(value, datetime):
+        return value.date().isoformat()
 
-    if isinstance(parameter, datetime):
-        return _datetime_converter(parameter)
+    if isinstance(value, date):
+        return value.isoformat()
 
-    if isinstance(parameter, list):
-        converted_list = [
-            _datetime_converter(i) if isinstance(i, datetime) else i
-            for i in parameter
-            if i is not None
-        ]
+    if isinstance(value, str):
+        return value
 
-        if not all(isinstance(i, str) for i in converted_list):
+    raise TypeConversionError(
+        message="Date parameter conversion failed.",
+        parameter=parameter,
+        expected="str | date | datetime",
+        received=type(value).__name__,
+    )
+
+def _time_parameter_converter(parameter: str, value: Any) -> str:
+    """Internal converter function to convert str, time, or datetime to ISO 8601 time string (HH:MM).
+    
+    Args:
+        parameter (str): The name of the parameter.
+        value (Any): The value of the parameter, which can be a string, time, or datetime.
+
+    Returns:
+        str: The converted time string in ISO 8601 format (HH:MM).
+
+    Raises:
+        TypeConversionError: If the value cannot be converted to a time string.
+
+    Examples:
+        >>> # Internal use
+        >>> from ._core import _time_parameter_converter
+        >>> from datetime import datetime, time
+        >>> result1 = _time_parameter_converter("time_param", datetime(2020, 1, 1, 14, 30))
+        >>> result2 = _time_parameter_converter("time_param", time(14, 30))
+        >>> result3 = _time_parameter_converter("time_param", "14:30")
+        >>> print(result1)  # Output: 14:30
+        >>> print(result2)  # Output: 14:30
+        >>> print(result3)  # Output: 14:30
+    """
+
+    if isinstance(value, datetime):
+        return value.strftime("%H:%M")
+
+    if isinstance(value, time):
+        return value.strftime("%H:%M")
+
+    if isinstance(value, str):
+        return value
+
+    raise TypeConversionError(
+        message="Time parameter conversion failed.",
+        parameter=parameter,
+        expected="str | time | datetime",
+        received=type(value).__name__,
+    )
+
+def _semicolon_list_converter(parameter: str, value: Any) -> str:
+    """Internal converter function to convert str or list[str] to a semicolon-separated string.
+    
+    Args:
+        parameter (str): The name of the parameter.
+        value (Any): The value of the parameter, which can be a string or a list of strings.
+
+    Returns:
+        str: The converted string, which is either the original string or a semicolon-separated string if the input was a list of strings.
+
+    Raises:
+        TypeConversionError: If the value cannot be converted to a semicolon-separated string.
+    
+    Examples:
+        >>> # Internal use
+        >>> from ._core import _semicolon_list_converter
+        >>> result1 = _semicolon_list_converter("list_param", "single_value")
+        >>> result2 = _semicolon_list_converter("list_param", ["value1", "value2", "value3"])
+        >>> print(result1)  # Output: single_value
+        >>> print(result2)  # Output: value1;value2;value3
+    """
+
+    if isinstance(value, str):
+        return value
+
+    if isinstance(value, list):
+        if not all(isinstance(item, str) for item in value):
             raise TypeConversionError(
-                message="Type conversion failed: All elements in the list must be strings or datetime objects",
-                expected="list[Optional[str | datetime]]",
-                received=", ".join(type(i).__name__ for i in converted_list if not isinstance(i, str)),
+                message="List-string parameter conversion failed.",
+                parameter=parameter,
+                expected="str | list[str]",
+                received=", ".join(type(item).__name__ for item in value),
             )
 
-        return ','.join(converted_list)
+        return ";".join(value)
 
-    else:
-        raise TypeConversionError(
-            message="Type conversion failed: Parameter must be a string, datetime object, or list of strings/datetime objects",
-            expected="str | datetime | list[Optional[str | datetime]]",
-            received=type(parameter).__name__,
-        )
+    raise TypeConversionError(
+        message="List-string parameter conversion failed.",
+        parameter=parameter,
+        expected="str | list[str]",
+        received=type(value).__name__,
+    )
 
-def _datetime_converter(parameter: datetime) -> str:
-    """Internal converter function to convert a datetime object to a string in YYYY-MM-DD format.
-
+def _comma_date_list_converter(parameter: str, value: Any) -> str:
+    """Internal converter function to convert str, date, datetime, or list of these types to a comma-separated string of ISO 8601 date strings.
+    
     Args:
-        parameter (datetime): Datetime object to convert.
+        parameter (str): The name of the parameter.
+        value (Any): The value of the parameter, which can be a string, date, datetime, or a list of these types.
 
     Returns:
-        str: Formatted date string.
+        str: The converted string, which is either the original string or a comma-separated string of ISO 8601 date strings if the input was a list of dates.
 
     Raises:
-        TypeConversionError: If parameter is not a datetime object.
+        TypeConversionError: If the value cannot be converted to a comma-separated string of date strings.
 
     Examples:
         >>> # Internal use
-        >>> from datetime import datetime
-        >>> from ._core import _datetime_converter
-        >>> parameter = datetime(2020, 1, 1)
-        >>> result = _datetime_converter(parameter)
-        >>> # Test output dataframe
-        >>> print(result)
-        2020-01-01
+        >>> from ._core import _comma_date_list_converter
+        >>> from datetime import datetime, date
+        >>> result1 = _comma_date_list_converter("date_list_param", "2020-01-01")
+        >>> result2 = _comma_date_list_converter("date_list_param", [datetime(2020, 1, 1), date(2020, 2, 1), "2020-03-01"])
+        >>> print(result1)  # Output: 2020-01-01
+        >>> print(result2)  # Output: 2020-01-01,2020-02-01,2020-03-01
     """
 
-    if not isinstance(parameter, datetime):
-        raise TypeConversionError(
-            message="Type conversion failed: Parameter must be a datetime object",
-            expected="datetime",
-            received=type(parameter).__name__,
-        )
+    if isinstance(value, str):
+        return value
 
-    return parameter.strftime("%Y-%m-%d")
+    if isinstance(value, (date, datetime)):
+        return _date_parameter_converter(parameter, value)
 
-def _datetime_hh_mm_converter(parameter: datetime) -> str:
-    """Internal converter function to convert a datetime object to a string in HH:MM format.
+    if isinstance(value, list):
+        converted: list[str] = []
 
-    Args:
-        parameter (datetime): Datetime object to convert.
+        for item in value:
+            if item is None:
+                continue
 
-    Returns:
-        str: Formatted time string.
+            converted.append(_date_parameter_converter(parameter, item))
 
-    Raises:
-        TypeConversionError: If parameter is not a datetime object.
+        return ",".join(converted)
 
-    Examples:
-        >>> # Internal use
-        >>> from datetime import datetime
-        >>> from ._core import _datetime_hh_mm_converter
-        >>> parameter = datetime(2020, 1, 1, 15, 30)
-        >>> result = _datetime_hh_mm_converter(parameter)
-        >>> # Test output dataframe
-        >>> print(result)
-        15:30
-    """
+    raise TypeConversionError(
+        message="Vintage dates parameter conversion failed.",
+        parameter=parameter,
+        expected="str | date | datetime | list[str | date | datetime | None]",
+        received=type(value).__name__,
+    )
 
-    if not isinstance(parameter, datetime):
-        raise TypeConversionError(
-            message="Type conversion failed: Parameter must be a datetime object",
-            expected="datetime",
-            received=type(parameter).__name__,
-        )
-
-    return parameter.strftime("%H:%M")
-
-async def _liststring_converter_async(parameter: list[str]) -> str:
-    """Internal asynchronous converter function to convert a list of strings to a semicolon-separated string.
-
-    Args:
-        parameter (list[str]): List of strings to convert.
-
-    Returns:
-        str: Semicolon-separated string.
-
-    Raises:
-        TypeConversionError: If parameter is not a list of strings.
-
-    Examples:
-        >>> # Internal use
-        >>> from _core import _liststring_converter_async
-        >>> parameters = ["GDP", "CPI", "UNRATE"]
-        >>> async def main():
-        >>>     result = await _liststring_converter_async(param)
-        >>>     print(result)
-        >>> # Event loops should not be created in the library codebase, so this method should only be used within an existing async context. 
-        >>> # For documentation purposes, the following pattern can be used to check the output data:
-        >>> import asyncio
-        >>> if __name__ == "__main__":
-        >>>     asyncio.run(main())
-        GDP;CPI;UNRATE
-
-    Notes:
-        This method joins the list elements with a semicolon (';') separator.
-    """
-
-    return await asyncio.to_thread(_liststring_converter, parameter)
-
-async def _vintage_dates_type_converter_async(parameter: Union[str, datetime, list[Optional[Union[str, datetime]]]]) -> str:
-    """Internal asynchronous converter function to convert a vintage_dates parameter to a string.
-
-    Args:
-        parameter (str | datetime | list[Optional[str | datetime]]]): vintage_dates parameter to convert.
-
-    Returns:
-        str: Converted vintage_dates string.
-
-    Raises:
-        TypeConversionError: If parameter is not a string, datetime object, or list of strings/datetime objects.
-
-    Examples:
-        >>> # Internal use
-        >>> from datetime import datetime
-        >>> from ._core import _vintage_dates_type_converter_async
-        >>> parameter = datetime(2020, 1, 1)
-        >>> async def main():
-        >>>     result = await _vintage_dates_type_converter_async(parameter)
-        >>>     print(result)
-        >>> # Event loops should not be created in the library codebase, so this method should only be used within an existing async context. 
-        >>> # For documentation purposes, the following pattern can be used to check the output data:
-        >>> import asyncio
-        >>> if __name__ == "__main__":
-        >>>     asyncio.run(main())
-        2020-01-01
-
-    Notes:
-        This method handles single strings, datetime objects, and lists of strings/datetime objects, converting them to a comma-separated string.
-    """
-
-    return await asyncio.to_thread(_vintage_dates_type_converter, parameter)
-
-async def _datetime_converter_async(parameter: datetime) -> str:
-    """Internal asynchronous converter function to convert a datetime object to a string in YYYY-MM-DD format.
-
-    Args:
-        parameter (datetime): Datetime object to convert.
-
-    Returns:
-        str: Formatted date string.
-
-    Raises:
-        TypeConversionError: If parameter is not a datetime object.
-
-    Examples:
-        >>> # Internal use
-        >>> from datetime import datetime
-        >>> from ._core import _datetime_converter_async
-        >>> param = datetime(2020, 1, 1)
-        >>> async def main():
-        >>>     result = await _datetime_converter_async(param)
-        >>>     print(result)
-        >>> # Event loops should not be created in the library codebase, so this method should only be used within an existing async context. 
-        >>> # For documentation purposes, the following pattern can be used to check the output data:
-        >>> import asyncio
-        >>> if __name__ == "__main__":
-        >>>     asyncio.run(main())
-        2020-01-01
-    """
-
-    return await asyncio.to_thread(_datetime_converter, parameter)
-
-async def _datetime_hh_mm_converter_async(parameter: datetime) -> str:
-    """Internal asynchronous converter function to convert a datetime object to a string in HH:MM format.
-
-    Args:
-        parameter (datetime): Datetime object to convert.
-
-    Returns:
-        str: Formatted time string.
-
-    Raises:
-        TypeConversionError: If parameter is not a datetime object.
-
-    Examples:
-        >>> # Internal use
-        >>> from datetime import datetime
-        >>> from ._core import _datetime_hh_mm_converter_async
-        >>> param = datetime(2020, 1, 1, 14, 30)
-        >>> async def main():
-        >>>     result = await _datetime_hh_mm_converter_async(param)
-        >>>     print(result)
-        >>> # Event loops should not be created in the library codebase, so this method should only be used within an existing async context. 
-        >>> # For documentation purposes, the following pattern can be used to check the output data:
-        >>> import asyncio
-        >>> if __name__ == "__main__":
-        >>>     asyncio.run(main())
-
-    References:
-        - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.helpers.AsyncHelpers.datetime_hh_mm_conversion.html
-
-    See Also:
-        - :meth:`AsyncHelpers.datetime_conversion`: Convert a datetime object to a string in YYYY-MM-DD format asynchronously.
-        - :meth:`AsyncHelpers.datetime_hh_mm_conversion`: Validate hh:mm formatted parameters asynchronously.
-    """
-
-    return await asyncio.to_thread(_datetime_hh_mm_converter, parameter)
-
-# Collective Parameter Converters
+# Cache Key Converters
 def _hashable_type_converter(data: Optional[Dict[str, Optional[Union[str, int]]]]) -> Optional[Tuple[Tuple[str, Optional[Union[str, int]]], ...]]:
     """Internal converter function to make the data dictionary hashable for caching.
 

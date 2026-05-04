@@ -56,24 +56,20 @@ References:
 """
 
 from datetime import datetime
-import re
-from typing import TYPE_CHECKING, Optional, Dict, Union, List, Any
+from typing import TYPE_CHECKING, KeysView, Optional, Dict, Union, List, Any, KeysView
 import pandas as pd
 from ..settings import _resolve_api_key, set_api_key
 from .._core import (
     # Converters
     _hashable_type_converter, _hashable_type_converter_async,
-    DATAFRAME_CONVERTER_MAP, ASYNC_DATAFRAME_CONVERTER_MAP,
-    # Validators
-    _fred_parameter_validator, _fred_parameter_validator_async,
+    DATAFRAME_CONVERTER_MAP, #ASYNC_DATAFRAME_CONVERTER_MAP,
+    # Parameters
+    _prepare_fred_parameters, #_prepare_fred_parameters_async,
     # Transport
     _get_request, _get_request_async,
     _cached_get_request, _cached_get_request_async,
     # Caching
     set_cache_maxsize, get_cache_maxsize, _CACHE,
-    # Globals
-    _ST_LOUIS_FED_BASE_URL, _FRED_MAX_REQUESTS_PER_MINUTE
-
 )
 from ..models import BulkRelease, Category, Series, Tag, Release, ReleaseDate, Source, Element, VintageDate
 
@@ -415,10 +411,10 @@ class Fred:
 
     # Properties
     @property
-    def keys(self) -> List[str]:
+    def keys(self) -> Optional[KeysView[tuple[Any, ...]]]:
         """List of keys in the cache."""
 
-        return list(_CACHE.keys()) if self.caching_enabled else []
+        return _CACHE.keys() if self.caching_enabled else None
 
     # Private Methods
     def __fred_get_request(self, endpoint_name: str, data: Optional[Dict[str, Any]]=None) -> Dict[str, Any]:
@@ -443,7 +439,7 @@ class Fred:
         """
 
         if data:
-            _fred_parameter_validator(data) # TODO: needs conversion handling in mesh with validation, normalization abstraction potentially
+            _prepare_fred_parameters(data) # TODO: needs conversion handling in mesh with validation, normalization abstraction potentially
 
         if self.caching_enabled:
             return _cached_get_request(endpoint_name, _hashable_type_converter(data))

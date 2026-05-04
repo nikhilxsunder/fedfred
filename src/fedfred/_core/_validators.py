@@ -27,57 +27,312 @@ and value constraints before being sent in API requests.
 """
 
 from __future__ import annotations
-from typing import Optional, Dict, Union, Callable, Any
+from typing import Callable, Any
 from datetime import datetime
-import asyncio
 from ..exceptions import ValueValidationError, TypeValidationError
 
 __all__ = [
-    "_fred_parameter_validator", "_fred_parameter_validator_async",
-    "_geofred_parameter_validator", "_geofred_parameter_validator_async",
-    "_fraser_parameter_validator", "_fraser_parameter_validator_async",
+    # Typing Aliases
+    "ParameterValidator",
+    # Scalar Validators
+    "_validate_type",
+    "_validate_str",
+    "_validate_nonempty_str",
+    "_validate_bool",
+    "_validate_nonnegative_int",
+    "_validate_choice",
+    "_validate_str_choice",
+    "_validate_yyyy_mm_dd",
+    "_validate_hh_mm",
+    "_validate_semicolon_list_string",
+    "_validate_comma_date_list_string",
+    "_validate_series_id",
 ]
 
-# Single Parameter Validators
-def _datestring_validator(parameter: str, value: str) -> None:
-    """Internal validator function to validate YYYY-MM-DD date-string formatted parameters.
+ParameterValidator = Callable[[str, Any], None]
+"""Typing alias for parameter validator functions. These functions take a parameter name and a value, and raise an exception if the value is invalid."""
 
+# Scalar Validators
+def _validate_type(parameter: str, value: Any, expected_type: type | tuple[type, ...]) -> None:
+    """Internal validator function to check if a parameter value is of the expected type.
+    
     Args:
-        parameter (str): Name of the parameter being validated (for error messages).
-        value (str): Date string to validate.
-    Returns:
-        None
+        parameter (str): The name of the parameter being validated.
+        value (Any): The value of the parameter to validate.
+        expected_type (type | tuple[type, ...]): The expected type or tuple of types for the parameter.
 
     Raises:
-        TypeValidationError: If parameter is not a string.
-        ValueValidationError: If parameter is not a valid date string in YYYY-MM-DD format.
+        TypeValidationError: If the value is not of the expected type.
 
     Examples:
         >>> # Internal use
-        >>> from ._core import _datestring_validator
-        >>> param = "2020-01-01"
-        >>> result = _datestring_validator("param", param)
-        >>> # Test functionality (no output expected if validation passes)
-        >>> print(result)
-        None
+        >>> from ._core import _validate_type
+        >>> _validate_type("limit", 100, int)  # Valid case
+        >>> _validate_type("limit", -5, int)   # Valid case (type is correct, value validation is separate)
+        >>> _validate_type("limit", "100", int) # Invalid case (raises TypeValidationError)
     """
 
-    if not isinstance(value, str):
+    if not isinstance(value, expected_type):
+        if isinstance(expected_type, tuple):
+            expected = " | ".join(t.__name__ for t in expected_type)
+        else:
+            expected = expected_type.__name__
+
         raise TypeValidationError(
-            message="Invalid parameter type. Expected a date string in 'YYYY-MM-DD' format.",
+            message=f"Invalid type for parameter {parameter!r}.",
             parameter=parameter,
             reason="Type mismatch",
-            expected="str",
+            expected=expected,
             received=type(value).__name__,
         )
+
+def _validate_nonnegative_int(parameter: str, value: Any) -> None:
+    """Internal validator function to check if a parameter value is a non-negative integer.
+    
+    Args:
+        parameter (str): The name of the parameter being validated.
+        value (Any): The value of the parameter to validate.
+    
+    Raises:
+        TypeValidationError: If the value is not an integer.
+        ValueValidationError: If the value is a negative integer.
+
+    Examples:
+        >>> # Internal use
+        >>> from ._core import _validate_nonnegative_int
+        >>> _validate_nonnegative_int("limit", 100)  # Valid case
+        >>> _validate_nonnegative_int("limit", 0)    # Valid case
+        >>> _validate_nonnegative_int("limit", -5)   # Invalid case (raises ValueValidationError)
+        >>> _validate_nonnegative_int("limit", "100") # Invalid case (raises TypeValidationError)
+    """
+
+    _validate_type(parameter, value, int)
+
+    if isinstance(value, bool):
+        raise TypeValidationError(
+            message=f"Invalid type for parameter {parameter!r}.",
+            parameter=parameter,
+            reason="Boolean is not accepted where integer is required.",
+            expected="int",
+            received="bool",
+        )
+
+    if value < 0:
+        raise ValueValidationError(
+            message=f"Invalid value for parameter {parameter!r}.",
+            parameter=parameter,
+            reason="Expected non-negative integer.",
+            details={"value": value},
+        )
+
+def _validate_bool(parameter: str, value: Any) -> None:
+    """Internal validator function to check if a parameter value is a boolean.
+    
+    Args:
+        parameter (str): The name of the parameter being validated.
+        value (Any): The value of the parameter to validate.
+    
+    Raises:
+        TypeValidationError: If the value is not a boolean.
+
+    Examples:
+        >>> # Internal use
+        >>> from ._core import _validate_bool
+        >>> _validate_bool("flag", True)  # Valid case
+        >>> _validate_bool("flag", False) # Valid case
+        >>> _validate_bool("flag", "True") # Invalid case (raises TypeValidationError)
+    """
+
+    _validate_type(parameter, value, bool)
+
+def _validate_str(parameter: str, value: Any) -> None:
+    """Internal validator function to check if a parameter value is a string.
+    
+    Args:
+        parameter (str): The name of the parameter being validated.
+        value (Any): The value of the parameter to validate.
+    
+    Raises:
+        TypeValidationError: If the value is not a string.
+
+    Examples:
+        >>> # Internal use
+        >>> from ._core import _validate_str
+        >>> _validate_str("name", "GDP")  # Valid case
+        >>> _validate_str("name", "")     # Valid case (empty string is still a string)
+        >>> _validate_str("name", 123)  # Invalid case (raises TypeValidationError)
+    """
+
+    _validate_type(parameter, value, str)
+
+def _validate_nonempty_str(parameter: str, value: Any) -> None:
+    """Internal validator function to check if a parameter value is a non-empty string.
+    
+    Args:
+        parameter (str): The name of the parameter being validated.
+        value (Any): The value of the parameter to validate.
+
+    Raises:
+        TypeValidationError: If the value is not a string.
+        ValueValidationError: If the value is an empty string.
+
+    Examples:
+        >>> # Internal use
+        >>> from ._core import _validate_nonempty_str
+        >>> _validate_nonempty_str("name", "GDP")  # Valid case
+        >>> _validate_nonempty_str("name", "")     # Invalid case (raises ValueValidationError)
+        >>> _validate_nonempty_str("name", 123)  # Invalid case (raises TypeValidationError)
+    """
+
+    _validate_str(parameter, value)
+
+    if not value:
+        raise ValueValidationError(
+            message=f"Invalid value for parameter {parameter!r}.",
+            parameter=parameter,
+            reason="Expected non-empty string.",
+            details={"value": value},
+        )
+
+def _validate_choice(choices: set[Any]) -> ParameterValidator:
+    """Internal factory function to create a validator that checks if a parameter value is one of a set of allowed choices.
+    
+    Args:
+        choices (set[Any]): A set of allowed values for the parameter.
+
+    Returns:
+        ParameterValidator: A validator function that checks if a parameter value is in the specified set of choices.
+
+    Raises:
+        ValueValidationError: If the value is not one of the allowed choices.
+
+    Examples:
+        >>> # Internal use
+        >>> from ._core import _validate_choice
+        >>> validate_sort_order = _validate_choice({"asc", "desc"})
+        >>> validate_sort_order("sort_order", "asc")  # Valid case
+        >>> validate_sort_order("sort_order", "desc") # Valid case
+        >>> validate_sort_order("sort_order", "ascending") # Invalid case (raises ValueValidationError)
+    """
+
+    def validator(parameter: str, value: Any) -> None:
+        """Validator function to check if a parameter value is one of the allowed choices.
+        
+        Args:
+            parameter (str): The name of the parameter being validated.
+            value (Any): The value of the parameter to validate.
+
+        Raises:
+            ValueValidationError: If the value is not one of the allowed choices.
+
+        Examples:
+            >>> # Internal use
+            >>> from ._core import _validate_choice
+            >>> validate_sort_order = _validate_choice({"asc", "desc"})
+            >>> validate_sort_order("sort_order", "asc")  # Valid case
+            >>> validate_sort_order("sort_order", "desc") # Valid case
+            >>> validate_sort_order("sort_order", "ascending") # Invalid case (raises ValueValidationError)
+        """
+
+        if value not in choices:
+            raise ValueValidationError(
+                message=f"Invalid value for parameter {parameter!r}.",
+                parameter=parameter,
+                reason="Value is not one of the allowed choices.",
+                details={
+                    "value": value,
+                    "choices": tuple(sorted(choices)),
+                },
+            )
+
+    return validator
+
+def _validate_str_choice(choices: set[str]) -> ParameterValidator:
+    """Internal factory function to create a validator that checks if a parameter value is a string and one of a set of allowed choices.
+    
+    Args:
+        choices (set[str]): A set of allowed string values for the parameter.
+
+    Returns:
+        ParameterValidator: A validator function that checks if a parameter value is a string and in the specified set of choices.
+
+    Raises:
+        TypeValidationError: If the value is not a string.
+        ValueValidationError: If the value is not one of the allowed choices.
+
+    Examples:
+        >>> # Internal use
+        >>> from ._core import _validate_str_choice
+        >>> validate_sort_order = _validate_str_choice({"asc", "desc"})
+        >>> validate_sort_order("sort_order", "asc")  # Valid case
+        >>> validate_sort_order("sort_order", "desc") # Valid case
+        >>> validate_sort_order("sort_order", "ascending") # Invalid case (raises ValueValidationError)
+    """
+
+    def validator(parameter: str, value: Any) -> None:
+        """Validator function to check if a parameter value is a string and one of the allowed choices.
+        
+        Args:
+            parameter (str): The name of the parameter being validated.
+            value (Any): The value of the parameter to validate.
+
+        Raises:
+            TypeValidationError: If the value is not a string.
+            ValueValidationError: If the value is not one of the allowed choices.
+
+        Examples:
+            >>> # Internal use
+            >>> from ._core import _validate_str_choice
+            >>> validate_sort_order = _validate_str_choice({"asc", "desc"})
+            >>> validate_sort_order("sort_order", "asc")  # Valid case
+            >>> validate_sort_order("sort_order", "desc") # Valid case
+            >>> validate_sort_order("sort_order", "ascending") # Invalid case (raises ValueValidationError)
+        """
+
+        _validate_str(parameter, value)
+
+        if value not in choices:
+            raise ValueValidationError(
+                message=f"Invalid value for parameter {parameter!r}.",
+                parameter=parameter,
+                reason="Value is not one of the allowed choices.",
+                details={
+                    "value": value,
+                    "choices": tuple(sorted(choices)),
+                },
+            )
+
+    return validator
+
+def _validate_yyyy_mm_dd(parameter: str, value: Any) -> None:
+    """Internal validator function to check if a parameter value is a string in YYYY-MM-DD date format.
+    
+    Args:
+        parameter (str): The name of the parameter being validated.
+        value (Any): The value of the parameter to validate.
+
+    Raises:
+        TypeValidationError: If the value is not a string.
+        ValueValidationError: If the value is not a valid YYYY-MM-DD date string.
+
+    Examples:
+        >>> # Internal use
+        >>> from ._core import _validate_yyyy_mm_dd
+        >>> _validate_yyyy_mm_dd("realtime_start", "2020-01-01")  # Valid case
+        >>> _validate_yyyy_mm_dd("realtime_start", "2020-13-01")  # Invalid case (raises ValueValidationError)
+        >>> _validate_yyyy_mm_dd("realtime_start", "01-01-2020")  # Invalid case (raises ValueValidationError)
+        >>> _validate_yyyy_mm_dd("realtime_start", 20200101)      # Invalid case (raises TypeValidationError)
+    """
+
+    _validate_str(parameter, value)
 
     try:
         datetime.strptime(value, "%Y-%m-%d")
     except ValueError as exc:
         raise ValueValidationError(
-            message="Invalid date string. Expected format YYYY-MM-DD.",
+            message=f"Invalid date string for parameter {parameter!r}.",
             parameter=parameter,
-            reason="Invalid ISO date format",
+            reason="Expected YYYY-MM-DD date string.",
             details={
                 "value": value,
                 "expected_format": "YYYY-MM-DD",
@@ -85,126 +340,123 @@ def _datestring_validator(parameter: str, value: str) -> None:
             original_exception=exc,
         ) from exc
 
-def _liststring_validator(parameter: str, value: str) -> None:
-    """Internal validator function to validate list-string formatted parameters.
-
+def _validate_hh_mm(parameter: str, value: Any) -> None:
+    """Internal validator function to check if a parameter value is a string in HH:MM time format.
+    
     Args:
-        parameter (str): Name of the parameter being validated (for error messages).
-        value (str): Semicolon-separated string to validate.
-
-    Returns:
-        None
+        parameter (str): The name of the parameter being validated.
+        value (Any): The value of the parameter to validate.
 
     Raises:
-        TypeValidationError: If param is not a string.
-        ValueValidationError: If param is not a valid semicolon-separated string.
+        TypeValidationError: If the value is not a string.
+        ValueValidationError: If the value is not a valid HH:MM time string.
 
     Examples:
         >>> # Internal use
-        >>> from ._core import _liststring_validator
-        >>> param = "tag1;tag2;tag3"
-        >>> result = _liststring_validator("param", param)
-        >>> # Test functionality (no output expected if validation passes)
-        >>> print(result)
-        None
+        >>> from ._core import _validate_hh_mm
+        >>> _validate_hh_mm("start_time", "14:30")  # Valid case
+        >>> _validate_hh_mm("start_time", "25:00")  # Invalid case (raises ValueValidationError)
+        >>> _validate_hh_mm("start_time", "14:60")  # Invalid case (raises ValueValidationError)
+        >>> _validate_hh_mm("start_time", "2:30 PM") # Invalid case (raises ValueValidationError)
+        >>> _validate_hh_mm("start_time", 1430)      # Invalid case (raises TypeValidationError)
     """
 
-    if not isinstance(value, str):
-        raise TypeValidationError(
-            message="Invalid parameter type. Expected a semicolon-separated string.",
+    _validate_str(parameter, value)
+
+    try:
+        datetime.strptime(value, "%H:%M")
+    except ValueError as exc:
+        raise ValueValidationError(
+            message=f"Invalid time string for parameter {parameter!r}.",
             parameter=parameter,
-            reason="Type mismatch",
-            expected="str",
-            received=type(value).__name__,
-        )
+            reason="Expected HH:MM time string.",
+            details={
+                "value": value,
+                "expected_format": "HH:MM",
+            },
+            original_exception=exc,
+        ) from exc
 
-    terms = value.split(';')
-
-    for term in terms:
-        if term == '':
-            raise ValueValidationError(
-                message="Invalid semicolon-separated list-string: empty terms are not permitted.",
-                parameter=parameter,
-                reason="Empty term(s) present",
-                details={
-                    "invalid-term": term,
-                    "value": value,
-                    "separator": ";",
-                    "example": "tag1;tag2;tag3",
-                },
-            )
-        if not term.isalnum():
-            raise ValueValidationError(
-                message="Invalid semicolon-separated list-string: each term must be alphanumeric with no whitespace.",
-                parameter=parameter,
-                reason="Non-alphanumeric term(s) present",
-                details={
-                    "invalid-term": term,
-                    "value": value,
-                    "rule": "isalnum()==True for every term",
-                },
-            )
-
-def _vintage_dates_validator(parameter: str, value: str) -> None:
-    """Internal validator function to validate vintage_dates parameters.
+def _validate_semicolon_list_string(parameter: str, value: Any) -> None:
+    """Internal validator function to check if a parameter value is a string that represents a list of terms separated by semicolons.
 
     Args:
-        parameter (str): Name of the parameter being validated (for error messages).
-        value (str): Comma-separated string of vintage dates.
-
-    Returns:
-        None
+        parameter (str): The name of the parameter being validated.
+        value (Any): The value of the parameter to validate.
 
     Raises:
-        TypeValidationError: If param is not a string.
-        ValueValidationError: If param is not a valid vintage_dates string.
+        TypeValidationError: If the value is not a string.
+        ValueValidationError: If the value is an empty string or contains empty terms.
 
     Examples:
         >>> # Internal use
-        >>> from ._core import _vintage_dates_validator
-        >>> param = "2020-01-01"
-        >>> result = _vintage_dates_validator("param", param)
-        >>> # Test functionality (no output expected if validation passes)
-        >>> print(result)
-        None
+        >>> from ._core import _validate_semicolon_list_string
+        >>> _validate_semicolon_list_string("tag_names", "tag1;tag2;tag3")  # Valid case
+        >>> _validate_semicolon_list_string("tag_names", "")  # Invalid case (raises ValueValidationError)
+        >>> _validate_semicolon_list_string("tag_names", "tag1;;tag3")  # Invalid case (raises ValueValidationError)
     """
 
-    if not isinstance(value, str):
-        raise TypeValidationError(
-            message="Invalid parameter type. Expected a comma-separated date string.",
+    _validate_str(parameter, value)
+
+    if value == "":
+        raise ValueValidationError(
+            message=f"Invalid list-string for parameter {parameter!r}.",
             parameter=parameter,
-            reason="Type mismatch",
-            expected="str",
-            received=type(value).__name__,
+            reason="Value cannot be empty.",
+            details={"value": value},
         )
 
-    if value == '':
+    terms = value.split(";")
+
+    if any(term == "" for term in terms):
         raise ValueValidationError(
-            message="Invalid vintage_dates: value cannot be empty.",
+            message=f"Invalid list-string for parameter {parameter!r}.",
             parameter=parameter,
-            reason="Empty string",
-            details={
-                "value": value,
-                "expected_format": "YYYY-MM-DD or YYYY-MM-DD,YYYY-MM-DD,...",
-                "separator": ",",
-            },
+            reason="Empty terms are not permitted.",
+            details={"value": value, "separator": ";"},
         )
 
-    terms = value.split(',')
+def _validate_comma_date_list_string(parameter: str, value: Any) -> None:
+    """Internal validator function to check if a parameter value is a string that represents a list of date terms separated by commas, where each term is in YYYY-MM-DD format.
+    
+    Args:
+        parameter (str): The name of the parameter being validated.
+        value (Any): The value of the parameter to validate.
 
-    if any(t == "" for t in terms):
+    Raises:
+        TypeValidationError: If the value is not a string.
+        ValueValidationError: If the value is an empty string, contains empty terms, or if any term is not a valid YYYY-MM-DD date string.
+
+    Examples:   
+        >>> # Internal use
+        >>> from ._core import _validate_comma_date_list_string
+        >>> _validate_comma_date_list_string("vintage_dates", "2020-01-01,2020-02-01,2020-03-01")  # Valid case
+        >>> _validate_comma_date_list_string("vintage_dates", "")  # Invalid case (raises ValueValidationError)
+        >>> _validate_comma_date_list_string("vintage_dates", "2020-01-01,,2020-03-01")  # Invalid case (raises ValueValidationError)
+    """
+
+    _validate_str(parameter, value)
+
+    if value == "":
         raise ValueValidationError(
-            message="Invalid vintage_dates: empty date term(s) are not permitted.",
+            message=f"Invalid vintage_dates for parameter {parameter!r}.",
             parameter=parameter,
-            reason="Empty term(s) present",
-            details={
-                "value": value,
-                "separator": ",",
-                "example": "2020-01-01,2020-02-01",
-            },
+            reason="Value cannot be empty.",
+            details={"value": value},
+        )
+
+    terms = value.split(",")
+
+    if any(term == "" for term in terms):
+        raise ValueValidationError(
+            message=f"Invalid vintage_dates for parameter {parameter!r}.",
+            parameter=parameter,
+            reason="Empty date terms are not permitted.",
+            details={"value": value, "separator": ","},
         )
 
     invalid_terms: list[str] = []
+
     for term in terms:
         try:
             datetime.strptime(term, "%Y-%m-%d")
@@ -213,916 +465,44 @@ def _vintage_dates_validator(parameter: str, value: str) -> None:
 
     if invalid_terms:
         raise ValueValidationError(
-            message="Invalid vintage_dates: one or more dates are not valid YYYY-MM-DD values.",
+            message=f"Invalid vintage_dates for parameter {parameter!r}.",
             parameter=parameter,
-            reason="Invalid date term(s)",
+            reason="One or more date terms are invalid.",
             details={
                 "value": value,
                 "invalid_terms": tuple(invalid_terms),
                 "expected_format": "YYYY-MM-DD",
-                "separator": ",",
             },
         )
 
-def _hh_mm_datestring_validator(parameter: str, value: str) -> None:
-    """Internal validator function to validate HH:MM datestring formatted parameters.
-
+def _validate_series_id(parameter: str, value: Any) -> None:
+    """Internal validator function to check if a parameter value is a valid series_id string (non-empty, alphanumeric, no spaces).
+    
     Args:
-        parameter (str): Name of the parameter being validated (for error messages).
-        value (str): Time string to validate.
-
-    Returns:
-        None
+        parameter (str): The name of the parameter being validated.
+        value (Any): The value of the parameter to validate.
 
     Raises:
-        TypeValidationError: If param is not a valid string.
-        ValueValidationError: If param is not a valid time string in HH:MM format.
+        TypeValidationError: If the value is not a string.
+        ValueValidationError: If the value is an empty string, contains spaces, or is not alphanumeric.
 
     Examples:
         >>> # Internal use
-        >>> from ._core import _hh_mm_datestring_validator
-        >>> param = "15:30"
-        >>> result = _hh_mm_datestring_validator("param", param)
-        >>> # Test functionality (no output expected if validation passes)
-        >>> print(result)
-        None
+        >>> from ._core import _validate_series_id
+        >>> _validate_series_id("series_id", "GDP")  # Valid case
+        >>> _validate_series_id("series_id", "GDP2020")  # Valid case
+        >>> _validate_series_id("series_id", "")  # Invalid case (raises ValueValidationError)
+        >>> _validate_series_id("series_id", "GDP 2020")  # Invalid case (raises ValueValidationError)
+        >>> _validate_series_id("series_id", "GDP-2020")  # Invalid case (raises ValueValidationError)
+        >>> _validate_series_id("series_id", 12345)  # Invalid case (raises TypeValidationError)
     """
 
-    if not isinstance(value, str):
-        raise TypeValidationError(
-            message="Invalid parameter type. Expected HH:MM time string.",
-            parameter=parameter,
-            reason="Type mismatch",
-            expected="str",
-            received=type(value).__name__,
-        )
-    try:
-        datetime.strptime(value, "%H:%M")
-    except ValueError as exc:
+    _validate_nonempty_str(parameter, value)
+
+    if " " in value:
         raise ValueValidationError(
-            message=f"Invalid time format for parameter '{parameter}'. Expected HH:MM (24-hour).",
+            message=f"Invalid series_id for parameter {parameter!r}.",
             parameter=parameter,
-            reason="Invalid time format",
-            details={
-                "value": value,
-                "expected_format": "HH:MM",
-                "range": "00:00-23:59",
-                "example": "15:30",
-            },
-            original_exception=exc,
-        ) from exc
-
-async def _datestring_validator_async(parameter: str, value: str) -> None:
-    """Internal asynchronous validator function to validate YYYY-MM-DD date-string formatted parameter.
-
-    Args:
-        parameter (str): Name of the parameter being validated (for error messages).
-        value (str): Date string to validate.
-
-    Returns:
-        None
-
-    Raises:
-        TypeValidationError: If param is not a string.
-        ValueValidationError: If param is not a valid date string in YYYY-MM-DD format.
-`
-    Examples:
-        >>> # Internal use
-        >>> from ._core import _datestring_validator_async
-        >>> param = "2020-01-01"
-        >>> async def main():
-        >>>     result = await _datestring_validator_async("param", param)
-        >>>     print(result)
-        >>> # Event loops should not be created in the library codebase, so this method should only be used within an existing async context. 
-        >>> # For documentation purposes, the following pattern can be used to check the functionality (no output expected if validation passes):
-        >>> import asyncio
-        >>> if __name__ == "__main__":
-        >>>     asyncio.run(main())
-        None
-    """
-
-    return await asyncio.to_thread(_datestring_validator, parameter, value)
-
-async def _liststring_validator_async(parameter: str, value: str) -> None:
-    """Internal asynchronous validator function to validate list-string formatted parameters.
-
-    Args:
-        parameter (str): Name of the parameter being validated (for error messages).
-        value (str): Semicolon-separated string to validate.
-
-    Returns:
-        None
-
-    Raises:
-        TypeValidationError: If param is not a string.
-        ValueValidationError: If param is not a valid semicolon-separated string.
-
-    Examples:
-        >>> # Internal use
-        >>> from ._core import _liststring_validator_async
-        >>> param = "GDP;CPI;UNRATE"
-        >>> async def main():
-        >>>     result = await _liststring_validator_async("param", param)
-        >>>     print(result)
-        >>> # Event loops should not be created in the library codebase, so this method should only be used within an existing async context.
-        >>> # For documentation purposes, the following pattern can be used to check the functionality (no output expected if validation passes):
-        >>> import asyncio
-        >>> if __name__ == "__main__":
-        >>>     asyncio.run(main())
-        None
-    """
-
-    return await asyncio.to_thread(_liststring_validator, parameter, value)
-
-async def _vintage_dates_validator_async(parameter: str, value: str) -> None:
-    """Internal asynchronous validator function to validate vintage_dates parameters.
-
-    Args:
-        parameter (str): Name of the parameter being validated (for error messages).
-        value (str): Comma-separated string of vintage dates.
-
-    Returns:
-        None
-
-    Raises:
-        TypeValidationError: If param is not a string.
-        ValueValidationError: If param is not a valid vintage_dates string.
-
-    Examples:
-        >>> # Internal use
-        >>> from ._core import _vintage_dates_validator_async
-        >>> param = "2020-01-01"
-        >>> async def main():
-        >>>     result = await _vintage_dates_validator_async("param", param)
-        >>>     print(result)
-        >>> # Event loops should not be created in the library codebase, so this method should only be used within an existing async context.
-        >>> # For documentation purposes, the following pattern can be used to check the functionality (no output expected if validation passes):
-        >>> import asyncio
-        >>> if __name__ == "__main__":
-        >>>     asyncio.run(main())
-        None
-    """
-
-    return await asyncio.to_thread(_vintage_dates_validator, parameter, value)
-
-async def _hh_mm_datestring_validator_async(parameter: str, value: str) -> None:
-    """Internal asynchronous validator function to validate HH:MM formatted parameters.
-
-    Args:
-        parameter (str): Name of the parameter being validated (for error messages).
-        value (str): Time string to validate.
-
-    Returns:
-        None
-
-    Raises:
-        TypeValidationError: If param is not a string.
-        ValueValidationError: If param is not a valid time string in HH:MM format.
-
-    Examples:
-        >>> # Internal use
-        >>> from ._core import _hh_mm_datestring_validator_async
-        >>> param = "14:30"
-        >>> async def main():
-        >>>     result = await _hh_mm_datestring_validator_async("param", param)
-        >>>     print(result)
-        >>> # Event loops should not be created in the library codebase, so this method should only be used within an existing async context.
-        >>> # For documentation purposes, the following pattern can be used to check the functionality (no output expected if validation passes):
-        >>> import asyncio
-        >>> if __name__ == "__main__":
-        >>>     asyncio.run(main())
-        None
-    """
-
-    return await asyncio.to_thread(_hh_mm_datestring_validator, parameter, value)
-
-# Parameter Specification Maps
-_FRED_PARAMETERS_MAP: Dict[str, Dict[str, Optional[Union[Callable, str]]]] = {
-    'category_id': 
-    {
-        'type_condition': lambda x: isinstance(x, int),
-        'value_condition': lambda x: x >= 0,
-        'error_message': "category_id must be a non-negative integer"
-    },
-    'realtime_start': 
-    {
-        'functional_condition': _datestring_validator,
-        'async_functional_condition': _datestring_validator_async,
-        'error_message': "realtime_start must be a valid date string in 'YYYY-MM-DD' format"
-    },
-    'realtime_end':
-    {
-        'functional_condition': _datestring_validator,
-        'async_functional_condition': _datestring_validator_async,
-        'error_message': "realtime_end must be a valid date string in 'YYYY-MM-DD' format"
-    },
-    'limit': 
-    {
-        'type_condition': lambda x: isinstance(x, int), 
-        'value_condition': lambda x: x >= 0,
-        'error_message': "limit must be a non-negative integer"
-    },
-    'page': 
-    {
-        'type_condition': lambda x: isinstance(x, int), 
-        'value_condition': lambda x: x >= 0,
-        'error_message': "page must be a non-negative integer"
-    },
-    'format':
-    {
-        'type_condition': lambda x: isinstance(x, str), 
-        'value_condition': lambda x: x == 'json', 
-        'error_message': "format must be 'json'"
-    },
-    'offset': 
-    {
-        'type_condition': lambda x: isinstance(x, int), 
-        'value_condition': lambda x: x >= 0,
-        'error_message': "offset must be a non-negative integer"
-    },
-    'sort_order': 
-    {
-        'type_condition': lambda x: isinstance(x, str), 
-        'value_condition': lambda x: x in {'asc', 'desc'},
-        'error_message': "sort_order must be 'asc' or 'desc'"
-    },
-    'order_by': 
-    {
-        'type_condition': lambda x: isinstance(x, str), 
-        'value_condition': lambda x: x in {'series_id', 'title', 'units', 'frequency', 'seasonal_adjustment',
-                                            'realtime_start', 'realtime_end', 'last_updated', 'observation_start',
-                                            'observation_end', 'popularity', 'group_popularity', 'series_count',
-                                            'created', 'name', 'release_id', 'press_release', 'group_id',
-                                            'search_rank'},
-        'error_message': "order_by must be one of the valid options"
-    },
-    'filter_variable':
-    {
-        'type_condition': lambda x: isinstance(x, str), 
-        'value_condition': lambda x: x in {'frequency', 'units', 'seasonal_adjustment'},
-        'error_message': "filter_variable must be one of the valid options: 'frequency', 'units', 'seasonal_adjustment'"
-    },
-    'filter_value': 
-    {
-        'type_condition': lambda x: isinstance(x, str),
-        'value_condition': lambda x: len(x) > 0,
-        'error_message': "filter_value must be a non-empty string"
-    },
-    'tag_names': 
-    {
-        'type_condition': lambda x: isinstance(x, str), 
-        'functional_condition': _liststring_validator,
-        'async_functional_condition': _liststring_validator_async,
-        'error_message': "tag_names must be a valid semicolon-separated string"
-    },
-    'exclude_tag_names': 
-    {
-        'type_condition': lambda x: isinstance(x, str), 
-        'functional_condition':_liststring_validator,
-        'async_functional_condition': _liststring_validator_async,
-        'error_message': "exclude_tag_names must be a valid semicolon-separated string"
-    },
-    'tag_group_id': 
-    {
-        'type_condition': lambda x: isinstance(x, str),
-        'complex_condition': lambda x: isinstance(x, int) and x >= 0,
-        'error_message': "tag_group_id must be a non-negative integer or a valid string"
-    },
-    'search_text': 
-    {
-        'type_condition': lambda x: isinstance(x, str),
-    },
-    'file_type': 
-    {
-        'type_condition': lambda x: isinstance(x, str),
-        'value_condition': lambda x: x == 'json',
-        'error_message': "file_type must be 'json'"
-    },
-    'api_key': 
-    {
-        'type_condition': lambda x: isinstance(x, str)
-    },
-    'include_releases_dates_with_no_data': 
-    {
-        'type_condition': lambda x: isinstance(x, bool)
-    },
-    'release_id': 
-    {
-        'type_condition': lambda x: isinstance(x, int),
-        'value_condition': lambda x: x >= 0,
-        'error_message': "release_id must be a non-negative integer"
-    },
-    'series_id': 
-    {
-        'type_condition': lambda x: isinstance(x, str),
-        'value_condition': lambda x: len(x) > 0 and ' ' not in x and x.isalnum(),
-        'error_message': "series_id must be a non-empty alphanumeric string without spaces"
-    },
-    'frequency': 
-    {
-        'type_condition': lambda x: isinstance(x, str),
-        'value_condition': lambda x: x in {'d', 'w', 'bw', 'm', 'q', 'sa', 'a', 'wef', 'weth', 'wew', 'wetu', 'wem', 'wesu', 'wesa', 'bwew', 'bwem'},
-        'error_message': "frequency must be one of the valid options: 'd', 'w', 'bw', 'm', 'q', 'sa', 'a', 'wef', 'weth', 'wew', 'wetu', 'wem', 'wesu', 'wesa', 'bwew', 'bwem'"
-    },
-    'units': 
-    {
-        'type_condition': lambda x: isinstance(x, str),
-        'value_condition': lambda x: x in {'lin', 'chg', 'ch1', 'pch', 'pc1', 'pca', 'cch', 'cca', 'log'},
-        'error_message': "units must be one of the valid options: 'lin', 'chg', 'ch1', 'pch', 'pc1', 'pca', 'cch', 'cca', 'log'"
-    },
-    'aggregation_method': 
-    {
-        'type_condition': lambda x: isinstance(x, str),
-        'value_condition': lambda x: x in {'sum', 'avg', 'eop'},
-        'error_message': "aggregation_method must be one of the valid options: 'avg', 'sum', 'end_of_period', 'max', 'min'"
-    },
-    'output_type': 
-    {
-        'type_condition': lambda x: isinstance(x, int),
-        'value_condition': lambda x: x in {1,2,3,4},
-        'error_message': "output_type must be one of the valid options: 1, 2, 3, 4"
-    },
-    'vintage_dates': 
-    {
-        'type_condition': lambda x: isinstance(x, str),
-        'functional_condition': _vintage_dates_validator,
-        'async_functional_condition': _vintage_dates_validator_async,
-        'error_message': "vintage_dates must be a valid semicolon-separated string"
-    },
-    'search_type': 
-    {
-        'type_condition': lambda x: isinstance(x, str),
-        'value_condition': lambda x: x in {'full_text', 'series_id'},
-        'error_message': "search_type must be one of the valid options: 'full_text', 'series_id'"
-    },
-    'tag_search_text':
-    {
-        'type_condition': lambda x: isinstance(x, str),
-        'error_message': "tag_search_text must be a string"
-    },
-    'start_time':
-    {
-        'type_condition': lambda x: isinstance(x, str),
-        'functional_condition': _hh_mm_datestring_validator,
-        'async_functional_condition': _hh_mm_datestring_validator_async,
-        'error_message': "start_time must be a valid time string in 'HH:MM' format"
-    },
-    'end_time':
-    {
-        'type_condition': lambda x: isinstance(x, str),
-        'functional_condition': _hh_mm_datestring_validator,
-        'async_functional_condition': _hh_mm_datestring_validator_async,
-        'error_message': "end_time must be a valid time string in 'HH:MM' format"
-    },
-    'season':
-    {
-        'type_condition': lambda x: isinstance(x, str),
-        'value_condition': lambda x: x in {'seasonally_adjusted', 'not_seasonally_adjusted'},
-        'error_message': "season must be one of the valid options: 'seasonally_adjusted', 'not_seasonally_adjusted'"
-    }
-}
-"""Parameter map specifications for FRED API endpoints. Each key corresponds to a parameter name, and the value is a dictionary that may contain the following keys to specify validation rules"""
-
-_GEOFRED_PARAMETERS_MAP: Dict[str, Dict[str, Optional[Union[Callable, str]]]] = {
-    'api_key': 
-    {
-        'type_condition': lambda x: isinstance(x, str),
-        'error_message': "api_key must be a string"
-    },
-    'file_type': 
-    {
-        'type_condition': lambda x: isinstance(x, str),
-        'value_condition': lambda x: x == 'json',
-        'error_message': "file_type must be one of the valid options: 'geojson', 'shp', 'kml', 'gdb', 'gpkg'"
-    },
-    'shape':
-    {
-        'type_condition': lambda x: isinstance(x, str),
-        'value_condition': lambda x: x in {'bea', 'msa', 'frb', 'necta', 'state', 'country', 'county', 'censusregion', 'censusdivision'},
-        'error_message': "shape must be one of the valid options: 'bea', 'msa', 'frb', 'necta', 'state', 'country', 'county', 'censusregion', 'censusdivision'"
-    },
-    'series_id':
-    {
-        'type_condition': lambda x: isinstance(x, str),
-        'value_condition': lambda x: len(x) > 0 and ' ' not in x and x.isalnum(),
-        'error_message': "series_id must be a non-empty alphanumeric string without spaces"
-    },
-    'date':
-    {
-        'functional_condition': _datestring_validator,
-        'async_functional_condition': _datestring_validator_async,
-        'error_message': "date must be a valid date string in 'YYYY-MM-DD' format"
-    },
-    'start_date':
-    {
-        'functional_condition': _datestring_validator,
-        'async_functional_condition': _datestring_validator_async,
-        'error_message': "start_date must be a valid date string in 'YYYY-MM-DD' format"
-    },
-    'series_group':
-    {
-        'type_condition': lambda x: isinstance(x, str),
-        'error_message': "series_group must be a string"
-    },
-    'region_type':
-    {
-        'type_condition': lambda x: isinstance(x, str),
-        'value_condition': lambda x: x in {'bea', 'msa', 'frb', 'necta', 'state', 'country', 'county', 'censusregion', 'censusdivision'},
-        'error_message': "region_type must be one of the valid options: 'bea', 'msa', 'frb', 'necta', 'state', 'country', 'county', 'censusregion', 'censusdivision'"
-    },
-    'aggregation_method':
-    {
-        'type_condition': lambda x: isinstance(x, str),
-        'value_condition': lambda x: x in {'sum', 'avg', 'eop'},
-        'error_message': "aggregation_method must be one of the valid options: 'avg', 'sum', 'end_of_period', 'max', 'min'"
-    },
-    'units':
-    {
-        'type_condition': lambda x: isinstance(x, str),
-        'error_message': "units must be a valid string"
-    },
-    'season':
-    {
-        'type_condition': lambda x: isinstance(x, str),
-        'value_condition': lambda x: x in {'NSA', 'SA', 'SSA', 'SAAR', 'NSAAR'},
-        'error_message': "season must be one of the valid options: 'NSA', 'SA', 'SSA', 'SAAR', 'NSAAR'"
-    },
-    'transformation':
-    {
-        'type_condition': lambda x: isinstance(x, str),
-        'value_condition': lambda x: x in {'lin', 'chg', 'ch1', 'pch', 'pc1', 'pca', 'cch', 'cca', 'log'},
-        'error_message': "transformation must be one of the valid options: 'lin', 'chg', 'ch1', 'pch', 'pc1', 'pca', 'cch', 'cca', 'log'"
-    }
-}
-"""Parameter map specifications for GeoFRED API endpoints. Each key corresponds to a parameter name, and the value is a dictionary that may contain the following keys to specify validation rules"""
-
-_FRASER_PARAMETERS_MAP: Dict[str, Dict[str, Optional[Union[Callable, str]]]] = {
-    'limit':
-    {
-        'type_condition': lambda x: isinstance(x, int),
-        'value_condition': lambda x: x >= 0,
-        'error_message': "limit must be a non-negative integer"
-    },
-    'page':
-    {
-        'type_condition': lambda x: isinstance(x, int),
-        'value_condition': lambda x: x >= 0,
-        'error_message': "page must be a non-negative integer"
-    },
-    'format':
-    {
-        'type_condition': lambda x: isinstance(x, str),
-        'value_condition': lambda x: x == 'json',
-        'error_message': "format must be 'json'"
-    },
-    'role':
-    {
-        'type_condition': lambda x: isinstance(x, str),
-        'value_condition': lambda x: x in {'creator', 'contributor', 'editor', 'repository', 'uncertain', 'subject'},
-        'error_message': "role must be one of the valid options: 'creator', 'contributor', 'editor', 'repository', 'uncertain', 'subject'"
-    },
-}
-"""Parameter map specifications for FRASER API endpoints. Each key corresponds to a parameter name, and the value is a dictionary that may contain the following keys to specify validation rules"""
-
-# Collective Parameter Validators
-def _fred_parameter_validator(parameters: Dict[str, Any]) -> None:
-    """Internal validator function to validate parameters prior to making a get request to the FRED API.
-
-    Args:
-        parameters (Dict[str, Optional[str | int | bool]]): Dictionary of parameters to validate.
-
-    Returns:
-        None
-
-    Raises:
-        TypeValidationError: If any parameter fails a type validation check.
-        ValueValidationError: If any parameter fails a value validation check.
-
-    Examples:
-        >>> # Internal use
-        >>> from ._core import _fred_parameter_validator
-        >>> params = {
-        >>>     "category_id": 125,
-        >>>     "realtime_start": "2020-01-01",
-        >>>     "limit": 100,
-        >>>     "sort_order": "asc",
-        >>> }
-        >>> result = _fred_parameter_validator(params)
-        >>> # Test functionality (no output expected if validation passes)
-        >>> print(result)
-        None
-
-    Notes:
-        This method checks each parameter against expected types and formats, raising an error for any invalid parameters.
-    """
-
-    for key, value in parameters.items():
-        spec = _FRED_PARAMETERS_MAP.get(key)
-        assert spec is None or isinstance(spec, dict)
-        if spec is None:
-            continue
-
-        type_pred = spec.get("type_condition")
-        if callable(type_pred):
-            ok = bool(type_pred(value))
-            if not ok:
-                expected = spec.get("expected_type", "valid type")
-                raise TypeValidationError(
-                    message=f"Invalid type for parameter '{key}'.",
-                    parameter=key,
-                    reason=str(spec.get("error_message", "Type validation failed")),
-                    expected=str(expected),
-                    received=type(value).__name__,
-                )
-
-        value_pred = spec.get("value_condition")
-        if callable(value_pred):
-            ok = bool(value_pred(value))
-            if not ok:
-                raise ValueValidationError(
-                    message=f"Invalid value for parameter '{key}'.",
-                    parameter=key,
-                    reason=str(spec.get("error_message", "Value validation failed")),
-                    details={"value": value},
-                )
-
-        func = spec.get("functional_condition")
-        if callable(func):
-            func(key, value)
-
-        complex_pred = spec.get("complex_condition")
-        if callable(complex_pred):
-            ok = bool(complex_pred(value, parameters))
-            if not ok:
-                raise ValueValidationError(
-                    message=f"Invalid value for parameter '{key}'.",
-                    parameter=key,
-                    reason=str(spec.get("error_message", "Complex validation failed")),
-                    details={"value": value, "params": dict(parameters)},
-                )
-
-def _geofred_parameter_validator(parameters: Dict[str, Any]) -> None:
-    """Internal validator function to validate parameters prior to making a get request to the GeoFRED API.
-
-    Args:
-        parameters (Dict[str, Optional[str | int | bool]]): Dictionary of parameters to validate
-
-    Returns:
-        None
-
-    Raises:
-        TypeValidationError: If any parameter fails a type validation check.
-        ValueValidationError: If any parameter fails a value validation check.
-
-    Examples:
-        >>> # Internal use
-        >>> from ._core import _geofred_parameter_validator
-        >>> params = {
-        >>>     "api_key": "your_api_key",
-        >>>     "file_type": "json",
-        >>>     "shape": "state",
-        >>>     "series_id": "GDP",
-        >>>     "date": "2020-01-01",
-        >>>     "start_date": "2010-01-01",
-        >>>     "series_group": "group1",
-        >>>     "region_type": "state",
-        >>>     "aggregation_method": "sum",
-        >>>     "units": "lin",
-        >>>     "season": "SA",
-        >>>     "transformation": "chg",
-        >>> }
-        >>> result = _geofred_parameter_validator(params)
-        >>> # Test functionality (no output expected if validation passes)
-        >>> print(result)
-        None
-
-    Notes:
-        This method checks for valid types and values for geo-related parameters.
-    """
-
-    for key, value in parameters.items():
-        spec = _GEOFRED_PARAMETERS_MAP.get(key)
-        assert spec is None or isinstance(spec, dict)
-        if spec is None:
-            continue
-
-        type_pred = spec.get("type_condition")
-        if callable(type_pred):
-            ok = bool(type_pred(value))
-            if not ok:
-                expected = spec.get("expected_type", "valid type")
-                raise TypeValidationError(
-                    message=f"Invalid type for parameter '{key}'.",
-                    parameter=key,
-                    reason=str(spec.get("error_message", "Type validation failed")),
-                    expected=str(expected),
-                    received=type(value).__name__,
-                )
-
-        value_pred = spec.get("value_condition")
-        if callable(value_pred):
-            ok = bool(value_pred(value))
-            if not ok:
-                raise ValueValidationError(
-                    message=f"Invalid value for parameter '{key}'.",
-                    parameter=key,
-                    reason=str(spec.get("error_message", "Value validation failed")),
-                    details={"value": value},
-                )
-
-        func = spec.get("functional_condition")
-        if callable(func):
-            func(key, value)
-
-def _fraser_parameter_validator(parameters: Dict[str, Any]) -> None:
-    """Internal validator function to validate parameters prior to making a get request to the FRASER API.
-
-    Args:
-        parameters (Dict[str, Optional[str | int]]): Dictionary of parameters to validate
-
-    Raises:
-        TypeValidationError: If any parameter fails a type validation check.
-        ValueValidationError: If any parameter fails a value validation check.
-
-    Examples:
-        >>> # Internal use
-        >>> from ._core import _fraser_parameter_validator
-        >>> parameters = {
-        >>>     "limit": 100,
-        >>>     "page": 1,
-        >>>     "role": "creator",
-        >>> }
-        >>> result = _fraser_parameter_validator(parameters)
-        >>> # Test functionality (no output expected if validation passes)
-        >>> print(result)
-        None
-
-    Notes:
-        This method checks for valid types and values for FRASER-related parameters.
-    """
-
-    for key, value in parameters.items():
-        spec = _FRASER_PARAMETERS_MAP.get(key)
-        assert spec is None or isinstance(spec, dict)
-        if spec is None:
-            continue
-
-        type_pred = spec.get("type_condition")
-        if callable(type_pred):
-            ok = bool(type_pred(value))
-            if not ok:
-                expected = spec.get("expected_type", "valid type")
-                raise TypeValidationError(
-                    message=f"Invalid type for parameter '{key}'.",
-                    parameter=key,
-                    reason=str(spec.get("error_message", "Type validation failed")),
-                    expected=str(expected),
-                    received=type(value).__name__,
-                )
-
-        value_pred = spec.get("value_condition")
-        if callable(value_pred):
-            ok = bool(value_pred(value))
-            if not ok:
-                raise ValueValidationError(
-                    message=f"Invalid value for parameter '{key}'.",
-                    parameter=key,
-                    reason=str(spec.get("error_message", "Value validation failed")),
-                    details={"value": value},
-                )
-
-async def _fred_parameter_validator_async(parameters: Dict[str, Any]) -> None:
-    """Internal asynchronous validator function to validate parameters prior to making a get request to the FRED API.
-
-    Args:
-        parameters (Dict[str, Optional[str | int | bool ]]): Dictionary of parameters to validate.
-
-    Returns:
-        None
-
-    Raises:
-        TypeValidationError: If any parameter fails a type validation check.
-        ValueValidationError: If any parameter fails a value validation check.
-
-    Examples:
-        >>> # Internal use
-        >>> from ._core import _fred_parameter_validator_async
-        >>> params = {
-        >>>     "category_id": 125,
-        >>>     "realtime_start": "2020-01-01",
-        >>>     "realtime_end": "2020-12-31",
-        >>>     "limit": 100,
-        >>>     "offset": 0,
-        >>>     "sort_order": "asc",
-        >>>     "order_by": "series_id",
-        >>>     "filter_variable": "frequency",
-        >>>     "filter_value": "m",
-        >>>     "tag_names": "GDP;CPI",
-        >>>     "exclude_tag_names": "UNRATE",
-        >>>     "tag_group_id": 123,
-        >>>     "search_text": "economic",
-        >>>     "file_type": "json",
-        >>>     "api_key": "your_api_key",
-        >>>     "include_releases_dates_with_no_data": True,
-        >>>     "release_id": 10,
-        >>>     "series_id": "GDP",
-        >>>     "frequency": "m",
-        >>>     "units": "lin",
-        >>>     "aggregation_method": "avg",
-        >>>     "output_type": 1
-        >>> }
-        >>> async def main():
-        >>>     result = await _fred_parameter_validator_async(params)
-        >>>     print(result)
-        >>> # Event loops should not be created in the library codebase, so this method should only be used within an existing async context.
-        >>> # For documentation purposes, the following pattern can be used to check the functionality (no output expected if validation passes):
-        >>> import asyncio
-        >>> if __name__ == "__main__":
-        >>>     asyncio.run(main())
-        None
-
-    Notes:
-        This method checks each parameter for correct type and value, raising an error if any parameter is invalid.
-    """
-
-    for key, value in parameters.items():
-        spec = _FRED_PARAMETERS_MAP.get(key)
-        assert spec is None or isinstance(spec, dict)
-        if spec is None:
-            continue
-
-        type_pred = spec.get("type_condition")
-        if callable(type_pred):
-            ok = bool(type_pred(value))
-            if not ok:
-                expected = spec.get("expected_type", "valid type")
-                raise TypeValidationError(
-                    message=f"Invalid type for parameter '{key}'.",
-                    parameter=key,
-                    reason=str(spec.get("error_message", "Type validation failed")),
-                    expected=str(expected),
-                    received=type(value).__name__,
-                )
-
-        value_pred = spec.get("value_condition")
-        if callable(value_pred):
-            ok = bool(value_pred(value))
-            if not ok:
-                raise ValueValidationError(
-                    message=f"Invalid value for parameter '{key}'.",
-                    parameter=key,
-                    reason=str(spec.get("error_message", "Value validation failed")),
-                    details={"value": value},
-                )
-
-        func = spec.get("async_functional_condition")
-        if callable(func):
-            await func(key, value)
-
-        complex_pred = spec.get("complex_condition")
-        if callable(complex_pred):
-            ok = bool(complex_pred(value, parameters))
-            if not ok:
-                raise ValueValidationError(
-                    message=f"Invalid value for parameter '{key}'.",
-                    parameter=key,
-                    reason=str(spec.get("error_message", "Complex validation failed")),
-                    details={"value": value, "params": dict(parameters)},
-                )
-
-async def _geofred_parameter_validator_async(parameters: Dict[str, Any]) -> None:
-    """Internal async asynchronous validator function to validate parameters prior to making a get request to the GeoFRED API.
-
-    Args:
-        parameters (Dict[str, Optional[Union[str, int, bool]]]): Dictionary of parameters to validate
-
-    Returns:
-        None
-
-    Raises:
-        TypeValidationError: If any parameter fails a type validation check.
-        ValueValidationError: If any parameter fails a value validation check.
-
-    Examples:
-        >>> # Internal use
-        >>> from ._core import _geofred_parameter_validator_async
-        >>> params = {
-        >>>     "api_key": "your_api_key",
-        >>>     "file_type": "json",
-        >>>     "shape": "state",
-        >>>     "series_id": "GDP",
-        >>>     "date": "2020-01-01",
-        >>>     "start_date": "2020-01-01",
-        >>>     "series_group": "group1",
-        >>>     "region_type": "state",
-        >>>     "aggregation_method": "avg",
-        >>>     "units": "lin",
-        >>>     "season": "SA",
-        >>>     "transformation": "chg"
-        >>> }
-        >>> async def main():
-        >>>     result = await fd.AsyncHelpers.geo_parameter_validation(params)
-        >>>     print(result)
-        >>> # Event loops should not be created in the library codebase, so this method should only be used within an existing async context.
-        >>> # For documentation purposes, the following pattern can be used to check the functionality (no output expected if validation passes):
-        >>> import asyncio
-        >>> if __name__ == "__main__":
-        >>>     asyncio.run(main())
-        None
-
-    Notes:
-        This method checks each parameter for correct type and value, raising a ValueError if any parameter is invalid.
-    """
-
-    for key, value in parameters.items():
-        spec = _GEOFRED_PARAMETERS_MAP.get(key)
-        assert spec is None or isinstance(spec, dict)
-        if spec is None:
-            continue
-
-        type_pred = spec.get("type_condition")
-        if callable(type_pred):
-            ok = bool(type_pred(value))
-            if not ok:
-                expected = spec.get("expected_type", "valid type")
-                raise TypeValidationError(
-                    message=f"Invalid type for parameter '{key}'.",
-                    parameter=key,
-                    reason=str(spec.get("error_message", "Type validation failed")),
-                    expected=str(expected),
-                    received=type(value).__name__,
-                )
-
-        value_pred = spec.get("value_condition")
-        if callable(value_pred):
-            ok = bool(value_pred(value))
-            if not ok:
-                raise ValueValidationError(
-                    message=f"Invalid value for parameter '{key}'.",
-                    parameter=key,
-                    reason=str(spec.get("error_message", "Value validation failed")),
-                    details={"value": value},
-                )
-
-        func = spec.get("async_functional_condition")
-        if callable(func):
-            await func(key, value)
-
-async def _fraser_parameter_validator_async(parameters: Dict[str, Any]) -> None:
-    """Internal asynchronous validator function to validate parameters prior to making a request to the FRASER API.
-
-    Args:
-        parameters (Dict[str, Any]): Dictionary of parameters to validate.
-
-    Raises:
-        TypeValidationError: If any parameter fails a type validation check.
-        ValueValidationError: If any parameter fails a value validation check.
-
-    Examples:
-        >>> # Internal use
-        >>> from ._core import _fraser_parameter_validator_async
-        >>> params = {
-        >>>     "limit": 100,
-        >>>     "page": 1,
-        >>>     "role": "creator",
-        >>> }
-        >>> async def main():
-        >>>     result = await _fraser_parameter_validator_async(params)
-        >>>     print(result)
-        >>> # Event loops should not be created in the library codebase, so this method should only be used within an existing async context.
-        >>> # For documentation purposes, the following pattern can be used to check the functionality (no output expected if validation passes):
-        >>> import asyncio
-        >>> if __name__ == "__main__":
-        >>>     asyncio.run(main())
-        None
-    """
-
-    for key, value in parameters.items():
-        spec = _FRASER_PARAMETERS_MAP.get(key)
-        assert spec is None or isinstance(spec, dict)
-        if spec is None:
-            continue
-
-        type_pred = spec.get("type_condition")
-        if callable(type_pred):
-            ok = bool(type_pred(value))
-            if not ok:
-                expected = spec.get("expected_type", "valid type")
-                raise TypeValidationError(
-                    message=f"Invalid type for parameter '{key}'.",
-                    parameter=key,
-                    reason=str(spec.get("error_message", "Type validation failed")),
-                    expected=str(expected),
-                    received=type(value).__name__,
-                )
-
-        value_pred = spec.get("value_condition")
-        if callable(value_pred):
-            ok = bool(value_pred(value))
-            if not ok:
-                raise ValueValidationError(
-                    message=f"Invalid value for parameter '{key}'.",
-                    parameter=key,
-                    reason=str(spec.get("error_message", "Value validation failed")),
-                    details={"value": value},
-                )
+            reason="Series ID cannot contain whitespace.",
+            details={"value": value},
+        )

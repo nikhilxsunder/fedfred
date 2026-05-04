@@ -40,7 +40,13 @@ from..exceptions import (
 )
 
 __all__ = [
-    "set_cache_maxsize", "get_cache_maxsize", "_CACHE"
+    # Typing Aliases
+    "K", "V",
+    # Cache Abstractions
+    "AdjustableFIFOCache",
+    # Global Cache Interface
+    "set_cache_maxsize", "get_cache_maxsize", 
+    "_CACHE",
 ]
 
 K = TypeVar("K", bound=Hashable)
@@ -223,18 +229,21 @@ class AdjustableFIFOCache(Generic[K, V]):
             >>> len(cache)
             1
         """
+
         with self._lock:
             return len(self._cache)
 
     @property
     def cache(self) -> FIFOCache:
         """Return the underlying FIFO cache instance."""
+
         with self._lock:
             return self._cache
 
     @property
     def currsize(self) -> float:
         """Return the current number of cached entries."""
+
         with self._lock:
             return self._cache.currsize
 
@@ -405,6 +414,7 @@ class AdjustableFIFOCache(Generic[K, V]):
             return dict(self._cache.items())
 
 _CACHE: AdjustableFIFOCache[Tuple, object] = AdjustableFIFOCache(maxsize=128)
+"""Global adjustable FIFO cache instance used for transport caching in the fedfred core package. Initialized with a default maximum size of 128 entries."""
 
 def set_cache_maxsize(maxsize: int) -> None:
     """Set the global transport cache maximum size.
