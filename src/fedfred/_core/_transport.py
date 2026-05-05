@@ -34,6 +34,7 @@ from ._converters import _dict_type_converter, _dict_type_converter_async
 from ._rate_limit import _rate_limiter, _rate_limiter_async
 from ._caching import _CACHE
 from ._endpoints import _resolve_endpoint, _resolve_endpoint_async
+from ._parameters import _resolve_preparation_function
 from ..exceptions import (
     TransportError,
     RequestPreparationError,
@@ -361,12 +362,12 @@ def _get_request(endpoint_name: str, data: Optional[Dict[str, Optional[Union[str
             method="GET",
         ) from exc
 
-    _rate_limiter(service=spec.service)
-
     params: Dict[str, Any] = {
         **(spec.params or {}),
-        **(data or {}),
+        **(_resolve_preparation_function(data, spec.service) or {}),
     }
+
+    _rate_limiter(service=spec.service)
 
     with httpx.Client() as client:
         try:
@@ -382,7 +383,7 @@ def _get_request(endpoint_name: str, data: Optional[Dict[str, Optional[Union[str
                 method="GET",
             ) from exc
 
-@cached(cache=_CACHE.cache)
+@cached(cache=_CACHE)
 def _cached_get_request(url_endpoint: str, hashable_data: Optional[Tuple[Tuple[str, Optional[Union[str, int]]], ...]]=None) -> Dict[str, Any]:
     """Perform a GET request with caching.
 
@@ -461,12 +462,12 @@ async def _get_request_async(endpoint_name: str, data: Optional[Dict[str, Option
             method="GET",
         ) from exc
 
-    await _rate_limiter_async(service=spec.service)
-
     params: Dict[str, Any] = {
         **(spec.params or {}),
-        **(data or {}),
+        **(_resolve_preparation_function(data, spec.service) or {}),
     }
+
+    await _rate_limiter_async(service=spec.service)
 
     async with httpx.AsyncClient() as client:
         try:
@@ -482,7 +483,7 @@ async def _get_request_async(endpoint_name: str, data: Optional[Dict[str, Option
                 method="GET",
             ) from exc
 
-@async_cached(cache=_CACHE.cache)
+@async_cached(cache=_CACHE)
 async def _cached_get_request_async(url_endpoint: str, hashable_data: Optional[Tuple[Tuple[str, Optional[Union[str, int]]], ...]]=None) -> Dict[str, Any]:
     """Perform a GET request with caching.
 

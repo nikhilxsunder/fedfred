@@ -27,8 +27,8 @@ This module provides adjustable cache abstractions for the fedfred core package.
 from __future__ import annotations
 from dataclasses import dataclass, field
 from threading import RLock
-from collections.abc import Hashable
-from typing import Generic, Optional, TypeVar, ItemsView, KeysView, ValuesView, Tuple
+from collections.abc import Hashable, MutableMapping, Iterator
+from typing import Generic, TypeVar, ItemsView, KeysView, ValuesView, Tuple, overload
 from cachetools import FIFOCache
 from..exceptions import (
     CacheInitializationError,
@@ -41,7 +41,9 @@ from..exceptions import (
 
 __all__ = [
     # Typing Aliases
-    "K", "V",
+    "K", "V", "T",
+    # Sentinel
+    "_MISSING",
     # Cache Abstractions
     "AdjustableFIFOCache",
     # Global Cache Interface
@@ -49,14 +51,22 @@ __all__ = [
     "_CACHE",
 ]
 
+# Typing aliases
 K = TypeVar("K", bound=Hashable)
 """Type variable for cache keys, bounded to hashable types."""
 
 V = TypeVar("V")
 """Type variable for cache values."""
 
+T = TypeVar("T")
+"""Generic type variable for cache entries."""
+
+_MISSING = object()
+"""Sentinel value for missing cache entries."""
+
+# Cache Abstractions
 @dataclass(slots=True)
-class AdjustableFIFOCache(Generic[K, V]):
+class AdjustableFIFOCache(MutableMapping[K, V], Generic[K, V]):
     """Runtime-adjustable FIFO cache wrapper.
 
     This class wraps :class:`cachetools.FIFOCache` and provides an explicit, validated API for runtime cache resizing.
@@ -106,6 +116,24 @@ class AdjustableFIFOCache(Generic[K, V]):
 
         self._cache = FIFOCache(maxsize=self.maxsize)
         self._lock = RLock()
+
+    def __iter__(self) -> Iterator[K]:
+        """Return an iterator over cache keys in FIFO order.
+        
+        Returns:
+            Iterator[K]: An iterator over the cache keys in FIFO order.
+
+        Examples:
+            >>> cache = AdjustableFIFOCache(maxsize=10)
+            >>> cache[1] = "a"
+            >>> cache[2] = "b"
+            >>> list(cache)
+            [1, 2]
+        """
+
+        with self._lock:
+
+            return iter(list(self._cache.keys()))
 
     def __contains__(self, key: object) -> bool:
         """Return whether a key exists in the cache.
@@ -247,29 +275,49 @@ class AdjustableFIFOCache(Generic[K, V]):
         with self._lock:
             return self._cache.currsize
 
-    def get(self, key: K, default: Optional[V] = None) -> Optional[V]:
+    @overload
+    def get(self, key: K, /) -> V | None:
+        ...
+
+    @overload
+    def get(self, key: K, /, default: V | T) -> V | T:
+        ...
+
+    def get(self, key: K, /, default: V | T | None = None) -> V | T | None:
         """Return a cached value if present.
 
         Args:
-            key (K): Cache key.
-            default (Optional[V]): Value to return if key is absent.
+            key: Cache key.
+            default: Value to return if key is absent.
 
         Returns:
-            Optional[V]: Cached value or ``default``.
+            Cached value or ``default``.
 
         Examples:
-            >>> cache = AdjustableFIFOCache(maxsize=10)
+            >>> cache = AdjustableFIFOCache[int, str](maxsize=10)
             >>> cache[1] = "a"
             >>> cache.get(1)
-            >>> cache.get(2, default="b")
             'a'
+            >>> cache.get(2, default="b")
             'b'
         """
 
         with self._lock:
             return self._cache.get(key, default)
 
-    def pop(self, key: K, default: Optional[V] = None) -> Optional[V]:
+    @overload
+    def pop(self, key: K, /) -> V:
+        ...
+
+    @overload
+    def pop(self, key: K, /, default: V) -> V:
+        ...
+
+    @overload
+    def pop(self, key: K, /, default: T) -> V | T:
+        ...
+
+    def pop(self, key: K, /, default: object = _MISSING) -> V | object:
         """Remove and return a cached value.
 
         Args:
@@ -287,8 +335,10 @@ class AdjustableFIFOCache(Generic[K, V]):
             'a'
             'b'
         """
-
         with self._lock:
+            if default is _MISSING:
+                return self._cache.pop(key)
+
             return self._cache.pop(key, default)
 
     def clear(self) -> None:

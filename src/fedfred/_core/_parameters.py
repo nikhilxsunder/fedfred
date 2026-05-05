@@ -29,7 +29,7 @@ to these specifications. This module is intended for internal use within the fed
 from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Mapping, Optional, Dict
-from ..exceptions import ValueValidationError
+from ..exceptions import ValueValidationError, ParameterServiceError
 from ._converters import (
     ParameterConverter,
     _semicolon_list_converter,
@@ -70,6 +70,8 @@ __all__ = [
     "_prepare_fred_parameters",
     "_prepare_geofred_parameters",
     "_prepare_fraser_parameters",
+    # Service Resolution
+    "_resolve_preparation_function",
 ]
 
 @dataclass(frozen=True, slots=True)
@@ -413,3 +415,42 @@ def _prepare_fraser_parameters(parameters: Optional[Mapping[str, Any]]) -> Dict[
         service="FRASER",
         allow_unknown=True,
     )
+
+FRED_PREPERATION_FUNCTIONS: Dict[str, Any] = {
+    "fred": _prepare_fred_parameters,
+    "geofred": _prepare_geofred_parameters,
+    "fraser": _prepare_fraser_parameters,
+}
+"""Mapping of service names to their respective parameter preparation functions."""
+
+def _resolve_preparation_function(parameters: Optional[Mapping[str, Any]], service: str) -> Optional[Dict[str, Any]]:
+    """Internal helper function to resolve the appropriate parameter preparation function based on the service name.
+
+    Args:
+        service: The name of the service (e.g., "FRED", "GeoFRED", "FRASER").
+
+    Returns:
+        Optional[Dict[str, Any]]: The prepared parameters dictionary, or None if the service is unrecognized.
+
+    Raises:
+        TypeConversionError: If any parameter value fails to convert properly.
+        TypeValidationError: If any parameter value fails type validation.
+        ValueValidationError: If any parameter value fails value validation, or if required parameters are missing.
+    
+    Examples:
+        >>> from ._core import _resolve_preparation_function
+        >>> _resolve_preparation_function({"limit": "100"}, service="fred")
+        {'limit': 100}
+    """
+
+    service = service.lower()
+
+    try:
+        return FRED_PREPERATION_FUNCTIONS[service](parameters)
+    except KeyError as exc:
+        raise ParameterServiceError(
+            message=f"Unknown service {service!r} for parameter preparation.",
+            service=service,
+            reason="Unrecognized service name.",
+            details={"service": service, "expected_services": tuple(FRED_PREPERATION_FUNCTIONS)},
+        ) from exc

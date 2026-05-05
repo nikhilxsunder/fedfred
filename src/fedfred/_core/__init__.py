@@ -30,10 +30,6 @@ from ._converters import (
     DATAFRAME_CONVERTER_MAP, #ASYNC_DATAFRAME_CONVERTER_MAP,
 )
 
-from ._parameters import (
-    _prepare_fred_parameters, #_prepare_fred_parameters_async,
-)
-
 from ._transport import (
     _get_request, _get_request_async,
     _cached_get_request, _cached_get_request_async,

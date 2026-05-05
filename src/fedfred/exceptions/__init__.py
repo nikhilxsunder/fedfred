@@ -122,3 +122,7 @@ from .caching import (
     CacheKeyError,
     CacheBackendError,
 )
+
+from .parameters import (
+    ParameterServiceError,
+)

@@ -55,7 +55,7 @@ References:
     Federal Reserve Bank of St. Louis, FRED API documentation. https://fred.stlouisfed.org/docs/api/fred/
 """
 
-from datetime import datetime
+from datetime import datetime, date, time
 from typing import TYPE_CHECKING, KeysView, Optional, Dict, Union, List, Any, KeysView
 import pandas as pd
 from ..settings import _resolve_api_key, set_api_key
@@ -63,8 +63,6 @@ from .._core import (
     # Converters
     _hashable_type_converter, _hashable_type_converter_async,
     DATAFRAME_CONVERTER_MAP, #ASYNC_DATAFRAME_CONVERTER_MAP,
-    # Parameters
-    _prepare_fred_parameters, #_prepare_fred_parameters_async,
     # Transport
     _get_request, _get_request_async,
     _cached_get_request, _cached_get_request_async,
@@ -77,6 +75,11 @@ if TYPE_CHECKING:
     import polars as pl # pragma: no cover
     import dask.dataframe as dd # pragma: no cover
 
+__all__ = [
+    "Fred",
+    "AsyncFred",
+]
+
 class Fred:
     """Client for the Federal Reserve FRED/ALFRED API.
     
@@ -87,7 +90,6 @@ class Fred:
     Attributes:
         caching_enabled (bool): Whether caching is enabled for API responses.
         cache_size (int): The maximum number of items to store in the cache if caching is enabled.
-        logging_enabled (bool): Whether logging is enabled for API requests.
         keys (List[str]): List of keys in the cache if caching is enabled.
 
     Args:
@@ -126,8 +128,7 @@ class Fred:
         Args:
             api_key (str, optional): Your FRED API key.
             caching_enabled (bool, optional): Whether to enable caching for API responses. Defaults to True.
-            cache_size (int, optional): The maximum number of items to store in the cache if caching is enabled. Defaults to 256.   
-            logging_enabled (bool, optional): Whether to enable logging for API requests. Defaults to False.
+            cache_size (int, optional): The maximum number of items to store in the cache if caching is enabled. Defaults to 256.
 
         Raises:
             RuntimeError: If no API key can be resolved from the explicit argument, global setting, or environment variable.
@@ -438,9 +439,6 @@ class Fred:
             caching to work correctly.
         """
 
-        if data:
-            _prepare_fred_parameters(data) # TODO: needs conversion handling in mesh with validation, normalization abstraction potentially
-
         if self.caching_enabled:
             return _cached_get_request(endpoint_name, _hashable_type_converter(data))
 
@@ -490,16 +488,16 @@ class Fred:
 
         return categories
 
-    def get_category_children(self, category_id: int, realtime_start: Optional[Union[str, datetime]]=None,
-                              realtime_end: Optional[Union[str, datetime]]=None) -> List[Category]:
+    def get_category_children(self, category_id: int, realtime_start: Optional[Union[str, datetime, date]]=None,
+                              realtime_end: Optional[Union[str, datetime, date]]=None) -> List[Category]:
         """Get a FRED Category's Child Categories
 
         Get the child categories for a specified category ID from the FRED API.
 
         Args:
             category_id (int): The ID for the category whose children are to be retrieved.
-            realtime_start (str | datetime, optional): The start of the real-time period. String format: YYYY-MM-DD.
-            realtime_end (str | datetime, optional): The end of the real-time period. String format: YYYY-MM-DD.
+            realtime_start (str | datetime | date, optional): The start of the real-time period. String format: YYYY-MM-DD.
+            realtime_end (str | datetime | date, optional): The end of the real-time period. String format: YYYY-MM-DD.
 
         Returns:
             List[Category]: A list of child Category objects.
@@ -540,16 +538,16 @@ class Fred:
 
         return categories
 
-    def get_category_related(self, category_id: int, realtime_start: Optional[Union[str, datetime]]=None,
-                             realtime_end: Optional[Union[str, datetime]]=None) -> List[Category]:
+    def get_category_related(self, category_id: int, realtime_start: Optional[Union[str, datetime, date]]=None,
+                             realtime_end: Optional[Union[str, datetime, date]]=None) -> List[Category]:
         """Get a FRED Category's Related Categories
 
         Get related categories for a given category ID from the FRED API.
 
         Args:
             category_id (int): The ID for the category.
-            realtime_start (str | datetime, optional): The start of the real-time period. String format: YYYY-MM-DD.
-            realtime_end (str | datetime, optional): The end of the real-time period. String format: YYYY-MM-DD.
+            realtime_start (str | datetime | date, optional): The start of the real-time period. String format: YYYY-MM-DD.
+            realtime_end (str | datetime| date, optional): The end of the real-time period. String format: YYYY-MM-DD.
 
         Returns:
             List[Category]: A list of related Category objects.
@@ -593,8 +591,8 @@ class Fred:
 
         return categories
 
-    def get_category_series(self, category_id: int, realtime_start: Optional[Union[str, datetime]]=None,
-                            realtime_end: Optional[Union[str, datetime]]=None, limit: Optional[int]=None,
+    def get_category_series(self, category_id: int, realtime_start: Optional[Union[str, datetime, date]]=None,
+                            realtime_end: Optional[Union[str, datetime, date]]=None, limit: Optional[int]=None,
                             offset: Optional[int]=None, order_by: Optional[str]=None,
                             sort_order: Optional[str]=None, filter_variable: Optional[str]=None,
                             filter_value: Optional[str]=None, tag_names: Optional[Union[str, list[str]]]=None,
@@ -605,8 +603,8 @@ class Fred:
 
         Args:
             category_id (int): The ID for a category.
-            realtime_start (str | datetime, optional): The start of the real-time period. String format: YYYY-MM-DD.
-            realtime_end (str | datetime, optional): The end of the real-time period. String format: YYYY-MM-DD.
+            realtime_start (str | datetime | date, optional): The start of the real-time period. String format: YYYY-MM-DD.
+            realtime_end (str | datetime | date, optional): The end of the real-time period. String format: YYYY-MM-DD.
             limit (int, optional): The maximum number of results to return. Default is 1000.
             offset (int, optional): The offset for the results. Used for pagination.
             order_by (str, optional): Order results by values. Options are 'series_id', 'title', 'units', 'frequency', 'seasonal_adjustment', 'realtime_start', 'realtime_end', 'last_updated', 'observation_start', 'observation_end', 'popularity', 'group_popularity'.
@@ -657,13 +655,13 @@ class Fred:
         }
 
         response = self.__fred_get_request(endpoint_name, data)
-        
+
         series = Series.to_object(response, client=self)
 
         return series
 
-    def get_category_tags(self, category_id: int, realtime_start: Optional[Union[str, datetime]]=None,
-                          realtime_end: Optional[Union[str, datetime]]=None, tag_names: Optional[Union[str, list[str]]]=None,
+    def get_category_tags(self, category_id: int, realtime_start: Optional[Union[str, datetime, date]]=None,
+                          realtime_end: Optional[Union[str, datetime, date]]=None, tag_names: Optional[Union[str, list[str]]]=None,
                           tag_group_id: Optional[int]=None, search_text: Optional[str]=None,
                           limit: Optional[int]=None, offset: Optional[int]=None,
                           order_by: Optional[int]=None, sort_order: Optional[str]=None) -> List[Tag]:
@@ -673,8 +671,8 @@ class Fred:
 
         Args:
             category_id (int): The ID for a category.
-            realtime_start (str | datetime, optional): The start of the real-time period. String format: YYYY-MM-DD.
-            realtime_end (str | datetime, optional): The end of the real-time period. String format: YYYY-MM-DD.
+            realtime_start (str | datetime | date, optional): The start of the real-time period. String format: YYYY-MM-DD.
+            realtime_end (str | datetime | date, optional): The end of the real-time period. String format: YYYY-MM-DD.
             tag_names (str | list, optional): A semicolon delimited list of tag names to filter tags by.
             tag_group_id (int, optional): A tag group ID to filter tags by type.
             search_text (str, optional): The words to find matching tags with.
@@ -728,8 +726,8 @@ class Fred:
 
         return tags
 
-    def get_category_related_tags(self, category_id: int, realtime_start: Optional[Union[str, datetime]]=None,
-                                  realtime_end: Optional[Union[str, datetime]]=None, tag_names: Optional[Union[str, list[str]]]=None,
+    def get_category_related_tags(self, category_id: int, realtime_start: Optional[Union[str, datetime, date]]=None,
+                                  realtime_end: Optional[Union[str, datetime, date]]=None, tag_names: Optional[Union[str, list[str]]]=None,
                                   exclude_tag_names: Optional[Union[str, list[str]]]=None,
                                   tag_group_id: Optional[str]=None, search_text: Optional[str]=None,
                                   limit: Optional[int]=None, offset: Optional[int]=None,
@@ -740,8 +738,8 @@ class Fred:
 
         Args:
             category_id (int): The ID for the category.
-            realtime_start (str | datetime, optional): The start of the real-time period. String format: YYYY-MM-DD.
-            realtime_end (str | datetime, optional): The end of the real-time period. String format: YYYY-MM-DD.
+            realtime_start (str | datetime | date, optional): The start of the real-time period. String format: YYYY-MM-DD.
+            realtime_end (str | datetime | date, optional): The end of the real-time period. String format: YYYY-MM-DD.
             tag_names (str | list, optional): A semicolon-delimited list of tag names to include.
             exclude_tag_names (str | list, optional): A semicolon-delimited list of tag names to exclude.
             tag_group_id (int, optional): The ID for a tag group.
@@ -799,7 +797,7 @@ class Fred:
         return tags
 
     ## Releases
-    def get_releases(self, realtime_start: Optional[Union[str, datetime]]=None, realtime_end: Optional[Union[str, datetime]]=None,
+    def get_releases(self, realtime_start: Optional[Union[str, datetime, date]]=None, realtime_end: Optional[Union[str, datetime, date]]=None,
                      limit: Optional[int]=None, offset: Optional[int]=None,
                      order_by: Optional[str]=None, sort_order: Optional[str]=None) -> List[Release]:
         """Get FRED releases
@@ -807,15 +805,15 @@ class Fred:
         Get all economic data releases from the FRED API.
 
         Args:
-            realtime_start (str | datetime, optional): The start of the real-time period. String format: YYYY-MM-DD.
-            realtime_end (str | datetime, optional): The end of the real-time period. String format: YYYY-MM-DD.
+            realtime_start (str | datetime | date, optional): The start of the real-time period. String format: YYYY-MM-DD.
+            realtime_end (str | datetime | date, optional): The end of the real-time period. String format: YYYY-MM-DD.
             limit (int, optional): The maximum number of results to return. Default is None.
             offset (int, optional): The offset for the results. Default is None.
             order_by (str, optional): Order results by values such as 'release_id', 'name', 'press_release', 'realtime_start', 'realtime_end'. Default is None.
             sort_order (str, optional): Sort results in 'asc' (ascending) or 'desc' (descending) order. Default is None.
 
         Returns:
-            List[Releases]: If multiple Releases are returned.
+            List[Release]: If multiple Releases are returned.
 
         Raises:
             ValueError: If the API request fails or returns an error.
@@ -855,8 +853,8 @@ class Fred:
 
         return releases
 
-    def get_releases_dates(self, realtime_start: Optional[Union[str, datetime]]=None,
-                           realtime_end: Optional[Union[str, datetime]]=None, limit: Optional[int]=None,
+    def get_releases_dates(self, realtime_start: Optional[Union[str, datetime, date]]=None,
+                           realtime_end: Optional[Union[str, datetime, date]]=None, limit: Optional[int]=None,
                            offset: Optional[int]=None, order_by: Optional[str]=None,
                            sort_order: Optional[str]=None,
                            include_releases_dates_with_no_data: Optional[bool]=None) -> List[ReleaseDate]:
@@ -865,8 +863,8 @@ class Fred:
         Get all release dates for economic data releases from the FRED API.
 
         Args:
-            realtime_start (str | datetime, optional): The start of the real-time period. String format: YYYY-MM-DD.
-            realtime_end (str | datetime, optional): The end of the real-time period. String format: YYYY-MM-DD.
+            realtime_start (str | datetime | date, optional): The start of the real-time period. String format: YYYY-MM-DD.
+            realtime_end (str | datetime | date, optional): The end of the real-time period. String format: YYYY-MM-DD.
             limit (int, optional): The maximum number of results to return. Default is None.
             offset (int, optional): The offset for the results. Default is None.
             order_by (str, optional): Order results by values. Options include 'release_id', 'release_name', 'release_date', 'realtime_start', 'realtime_end'. Default is None.
@@ -913,16 +911,16 @@ class Fred:
         
         return ReleaseDate.to_object(response)
 
-    def get_release(self, release_id: int, realtime_start: Optional[Union[str, datetime]]=None,
-                    realtime_end: Optional[Union[str, datetime]]=None) -> List[Release]:
+    def get_release(self, release_id: int, realtime_start: Optional[Union[str, datetime, date]]=None,
+                    realtime_end: Optional[Union[str, datetime, date]]=None) -> List[Release]:
         """Get a FRED release
 
         Get the release for a given release ID from the FRED API.
 
         Args:
             release_id (int): The ID for the release.
-            realtime_start (str | datetime, optional): The start of the real-time period. String format: YYYY-MM-DD.
-            realtime_end (str | datetime, optional): The end of the real-time period. String format: YYYY-MM-DD.
+            realtime_start (str | datetime | date, optional): The start of the real-time period. String format: YYYY-MM-DD.
+            realtime_end (str | datetime | date, optional): The end of the real-time period. String format: YYYY-MM-DD.
 
         Returns:
             List[Release]: If multiple releases are returned.
@@ -959,8 +957,8 @@ class Fred:
 
         return releases
 
-    def get_release_dates(self, release_id: int, realtime_start: Optional[Union[str, datetime]]=None,
-                          realtime_end: Optional[Union[str, datetime]]=None, limit: Optional[int]=None,
+    def get_release_dates(self, release_id: int, realtime_start: Optional[Union[str, datetime, date]]=None,
+                          realtime_end: Optional[Union[str, datetime, date]]=None, limit: Optional[int]=None,
                           offset: Optional[int]=None, sort_order: Optional[str]=None,
                           include_releases_dates_with_no_data: Optional[bool]=None) -> List[ReleaseDate]:
         """Get FRED release dates
@@ -969,8 +967,8 @@ class Fred:
 
         Args:
             release_id (int): The ID for the release.
-            realtime_start (str | datetime, optional): The start of the real-time period. String format: YYYY-MM-DD.
-            realtime_end (str | datetime, optional): The end of the real-time period. String format: YYYY-MM-DD.
+            realtime_start (str | datetime | date, optional): The start of the real-time period. String format: YYYY-MM-DD.
+            realtime_end (str | datetime | date, optional): The end of the real-time period. String format: YYYY-MM-DD.
             limit (int, optional): The maximum number of results to return.
             offset (int, optional): The offset for the results.
             sort_order (str, optional): The order of the results. Possible values are 'asc' or 'desc'.
@@ -1016,8 +1014,8 @@ class Fred:
 
         return ReleaseDate.to_object(response)
 
-    def get_release_series(self, release_id: int, realtime_start: Optional[Union[str, datetime]]=None,
-                           realtime_end: Optional[Union[str, datetime]]=None, limit: Optional[int]=None,
+    def get_release_series(self, release_id: int, realtime_start: Optional[Union[str, datetime, date]]=None,
+                           realtime_end: Optional[Union[str, datetime, date]]=None, limit: Optional[int]=None,
                            offset: Optional[int]=None, sort_order: Optional[str]=None,
                            filter_variable: Optional[str]=None, filter_value: Optional[str]=None,
                            exclude_tag_names: Optional[Union[str, list[str]]]=None) -> List[Series]:
@@ -1027,8 +1025,8 @@ class Fred:
 
         Args:
             release_id (int): The ID for the release.
-            realtime_start (str | datetime, optional): The start of the real-time period. String format: YYYY-MM-DD.
-            realtime_end (str | datetime, optional): The end of the real-time period. String format: YYYY-MM-DD.
+            realtime_start (str | datetime | date, optional): The start of the real-time period. String format: YYYY-MM-DD.
+            realtime_end (str | datetime | date, optional): The end of the real-time period. String format: YYYY-MM-DD.
             limit (int, optional): The maximum number of results to return. Default is 1000.
             offset (int, optional): The offset for the results. Default is 0.
             sort_order (str, optional): Order results by values. Options are 'asc' or 'desc'.
@@ -1079,15 +1077,15 @@ class Fred:
 
         return seriess
 
-    def get_release_sources(self, release_id: int, realtime_start: Optional[Union[str, datetime]]=None,
-                            realtime_end: Optional[Union[str, datetime]]=None) -> List[Source]:
+    def get_release_sources(self, release_id: int, realtime_start: Optional[Union[str, datetime, date]]=None,
+                            realtime_end: Optional[Union[str, datetime, date]]=None) -> List[Source]:
         """Get FRED release sources
 
         Retrieve the sources for a specified release from the FRED API.
 
         Args:
             release_id (int): The ID of the release for which to retrieve sources.
-            realtime_start (str | datetime, optional): The start of the real-time period. String format: YYYY-MM-DD. Defaults to None.
+            realtime_start (str | datetime | date, optional): The start of the real-time period. String format: YYYY-MM-DD. Defaults to None.
             realtime_end (str| datetime, optional): The end of the real-time period. String format: YYYY-MM-DD. Defaults to None.
 
         Returns:
@@ -1127,8 +1125,8 @@ class Fred:
 
         return sources
 
-    def get_release_tags(self, release_id: int, realtime_start: Optional[Union[str, datetime]]=None,
-                         realtime_end: Optional[Union[str, datetime]]=None, tag_names: Optional[Union[str, list[str]]]=None,
+    def get_release_tags(self, release_id: int, realtime_start: Optional[Union[str, datetime, date]]=None,
+                         realtime_end: Optional[Union[str, datetime, date]]=None, tag_names: Optional[Union[str, list[str]]]=None,
                          tag_group_id: Optional[int]=None, search_text: Optional[str]=None,
                          limit: Optional[int]=None, offset: Optional[int]=None,
                          order_by: Optional[str]=None) -> List[Tag]:
@@ -1138,8 +1136,8 @@ class Fred:
 
         Args:
             release_id (int): The ID for the release.
-            realtime_start (str | datetime, optional): The start of the real-time period. String format: YYYY-MM-DD.
-            realtime_end (str | datetime, optional): The end of the real-time period. String format: YYYY-MM-DD.
+            realtime_start (str | datetime | date, optional): The start of the real-time period. String format: YYYY-MM-DD.
+            realtime_end (str | datetime | date, optional): The end of the real-time period. String format: YYYY-MM-DD.
             tag_names (str | list, optional): A semicolon delimited list of tag names.
             tag_group_id (int, optional): The ID for a tag group.
             search_text (str, optional): The words to find matching tags with.
@@ -1191,8 +1189,8 @@ class Fred:
 
         return tags
 
-    def get_release_related_tags(self, release_id: int, realtime_start: Optional[Union[str, datetime]]=None,
-                                 realtime_end: Optional[Union[str, datetime]]=None, tag_names: Optional[Union[str, list[str]]]=None,
+    def get_release_related_tags(self, release_id: int, realtime_start: Optional[Union[str, datetime, date]]=None,
+                                 realtime_end: Optional[Union[str, datetime, date]]=None, tag_names: Optional[Union[str, list[str]]]=None,
                                  exclude_tag_names: Optional[Union[str, list[str]]]=None, tag_group_id: Optional[str]=None,
                                  search_text: Optional[str]=None, limit: Optional[int]=None,
                                  offset: Optional[int]=None, order_by: Optional[str]=None,
@@ -1203,8 +1201,8 @@ class Fred:
 
         Args:
             series_search_text (str, optional): The text to match against economic data series.
-            realtime_start (str | datetime, optional): The start of the real-time period. String format: YYYY-MM-DD.
-            realtime_end (str | datetime, optional): The end of the real-time period. String format: YYYY-MM-DD.
+            realtime_start (str | datetime | date, optional): The start of the real-time period. String format: YYYY-MM-DD.
+            realtime_end (str | datetime | date, optional): The end of the real-time period. String format: YYYY-MM-DD.
             tag_names (str | list, optional): A semicolon delimited list of tag names to match.
             exclude_tag_names (str | list, optional): A semicolon-separated list of tag names to exclude results by.
             tag_group_id (str, optional): A tag group id to filter tags by type.
@@ -1261,7 +1259,7 @@ class Fred:
 
     def get_release_tables(self, release_id: int, element_id: Optional[int]=None,
                            include_observation_values: Optional[bool]=None,
-                           observation_date: Optional[Union[str, datetime]]=None) -> List[Element]: # TODO: needs complete implementation/redesign, FRED changed output schema and this method is currently not working
+                           observation_date: Optional[Union[str, datetime, date]]=None) -> List[Element]: # TODO: needs complete implementation/redesign, FRED changed output schema and this method is currently not working
         """Get FRED release tables
 
         Fetches release tables from the FRED API.
@@ -1270,7 +1268,7 @@ class Fred:
             release_id (int): The ID for the release.
             element_id (int, optional): The ID for the element. Defaults to None.
             include_observation_values (bool, optional): Whether to include observation values. Defaults to None.
-            observation_date (str | datetime, optional): The observation date in YYYY-MM-DD string format. Defaults to None.
+            observation_date (str | datetime | date, optional): The observation date in YYYY-MM-DD string format. Defaults to None.
 
         Returns:
             List[Element]: If multiple elements are returned.
@@ -1367,16 +1365,16 @@ class Fred:
         return return_list
 
     ## Series
-    def get_series(self, series_id: str, realtime_start: Optional[Union[str, datetime]]=None,
-                   realtime_end: Optional[Union[str, datetime]]=None) -> List[Series]:
+    def get_series(self, series_id: str, realtime_start: Optional[Union[str, datetime, date]]=None,
+                   realtime_end: Optional[Union[str, datetime, date]]=None) -> List[Series]:
         """Get a FRED series
 
         Retrieve economic data series information from the FRED API.
 
         Args:
             series_id (str): The ID for the economic data series.
-            realtime_start (str | datetime, optional): The start of the real-time period. String format: YYYY-MM-DD.
-            realtime_end (str | datetime, optional): The end of the real-time period. String format: YYYY-MM-DD.
+            realtime_start (str | datetime | date, optional): The start of the real-time period. String format: YYYY-MM-DD.
+            realtime_end (str | datetime | date, optional): The end of the real-time period. String format: YYYY-MM-DD.
 
         Returns:
             List[Series]: If multiple series are returned.
@@ -1413,16 +1411,16 @@ class Fred:
 
         return series
 
-    def get_series_categories(self, series_id: str, realtime_start: Optional[Union[str, datetime]]=None,
-                              realtime_end: Optional[Union[str, datetime]]=None) -> List[Category]:
+    def get_series_categories(self, series_id: str, realtime_start: Optional[Union[str, datetime, date]]=None,
+                              realtime_end: Optional[Union[str, datetime, date]]=None) -> List[Category]:
         """Get FRED series categories
 
         Get the categories for a specified series.
 
         Args:
             series_id (str): The ID for the series.
-            realtime_start (str | datetime, optional): The start of the real-time period. String format: YYYY-MM-DD.
-            realtime_end (str | datetime, optional): The end of the real-time period. String format: YYYY-MM-DD.
+            realtime_start (str | datetime | date, optional): The start of the real-time period. String format: YYYY-MM-DD.
+            realtime_end (str | datetime | date, optional): The end of the real-time period. String format: YYYY-MM-DD.
 
         Returns:
             List[Category]: If multiple categories are returned.
@@ -1462,14 +1460,14 @@ class Fred:
         return categories
 
     def get_series_observations(self, series_id: str, dataframe_method: str = 'pandas',
-                                realtime_start: Optional[Union[str, datetime]]=None, realtime_end: Optional[Union[str, datetime]]=None,
+                                realtime_start: Optional[Union[str, datetime, date]]=None, realtime_end: Optional[Union[str, datetime, date]]=None,
                                 limit: Optional[int]=None, offset: Optional[int]=None,
                                 sort_order: Optional[str]=None,
-                                observation_start: Optional[Union[str, datetime]]=None,
-                                observation_end: Optional[Union[str, datetime]]=None, units: Optional[str]=None,
+                                observation_start: Optional[Union[str, datetime, date]]=None,
+                                observation_end: Optional[Union[str, datetime, date]]=None, units: Optional[str]=None,
                                 frequency: Optional[str]=None,
                                 aggregation_method: Optional[str]=None,
-                                output_type: Optional[int]=None, vintage_dates: Optional[Union[str, datetime, list[Optional[Union[str, datetime]]]]]=None) -> Union[pd.DataFrame, 'pl.DataFrame', 'dd.DataFrame']:
+                                output_type: Optional[int]=None, vintage_dates: Optional[Union[str, datetime, list[Optional[Union[str, datetime, date]]]]]=None) -> Union[pd.DataFrame, 'pl.DataFrame', 'dd.DataFrame']:
         """Get FRED series observations
 
         Get observations for a FRED series as a pandas or polars DataFrame.
@@ -1477,13 +1475,13 @@ class Fred:
         Args:
             series_id (str): The ID for a series.
             dataframe_method (str, optional): The method to use to convert the response to a DataFrame. Options: 'pandas', 'polars', or 'dask'. Default is 'pandas'.
-            realtime_start (str | datetime, optional): The start of the real-time period. String format: YYYY-MM-DD.
-            realtime_end (str | datetime, optional): The end of the real-time period. String format: YYYY-MM-DD.
+            realtime_start (str | datetime | date, optional): The start of the real-time period. String format: YYYY-MM-DD.
+            realtime_end (str | datetime | date, optional): The end of the real-time period. String format: YYYY-MM-DD.
             limit (int, optional): The maximum number of results to return. Default is 100000.
             offset (int, optional): The offset for the results. Used for pagination.
             sort_order (str, optional): Sort results by observation date. Options: 'asc', 'desc'.
-            observation_start (str | datetime, optional): The start of the observation period. String format: YYYY-MM-DD.
-            observation_end (str | datetime, optional): The end of the observation period. String format: YYYY-MM-DD.
+            observation_start (str | datetime | date, optional): The start of the observation period. String format: YYYY-MM-DD.
+            observation_end (str | datetime | date, optional): The end of the observation period. String format: YYYY-MM-DD.
             units (str, optional): A key that indicates a data transformation. Options: 'lin', 'chg', 'ch1', 'pch', 'pc1', 'pca', 'cch', 'cca', 'log'.
             frequency (str, optional): An optional parameter to change the frequency of the observations. Options: 'd', 'w', 'bw', 'm', 'q', 'sa', 'a', 'wef', 'weth', 'wew', 'wetu', 'wem', 'wesu', 'wesa', 'bwew', 'bwem'.
             aggregation_method (str, optional): A key that indicates the aggregation method used for frequency aggregation. Options: 'avg', 'sum', 'eop'.
@@ -1541,16 +1539,16 @@ class Fred:
         except KeyError:
             raise ValueError("dataframe_method must be a string, options are: 'pandas', 'polars', or 'dask'") # TODO: this error needs to be internally defined and raised as a custom error, not a ValueError
 
-    def get_series_release(self, series_id: str, realtime_start: Optional[Union[str, datetime]]=None,
-                           realtime_end: Optional[Union[str, datetime]]=None) -> List[Release]:
+    def get_series_release(self, series_id: str, realtime_start: Optional[Union[str, datetime, date]]=None,
+                           realtime_end: Optional[Union[str, datetime, date]]=None) -> List[Release]:
         """Get FRED series release
 
         Get the release for a specified series from the FRED API.
 
         Args:
             series_id (str): The ID for the series.
-            realtime_start (str | datetime, optional): The start of the real-time period. String format: YYYY-MM-DD. Defaults to None.
-            realtime_end (str | datetime, optional): The end of the real-time period. String format: YYYY-MM-DD. Defaults to None.
+            realtime_start (str | datetime | date, optional): The start of the real-time period. String format: YYYY-MM-DD. Defaults to None.
+            realtime_end (str | datetime | date, optional): The end of the real-time period. String format: YYYY-MM-DD. Defaults to None.
 
         Returns:
             List[Release]: If multiple releases are returned.
@@ -1588,7 +1586,7 @@ class Fred:
         return releases
 
     def get_series_search(self, search_text: str, search_type: Optional[str]=None,
-                          realtime_start: Optional[Union[str, datetime]]=None, realtime_end: Optional[Union[str, datetime]]=None,
+                          realtime_start: Optional[Union[str, datetime, date]]=None, realtime_end: Optional[Union[str, datetime, date]]=None,
                           limit: Optional[int]=None, offset: Optional[int]=None,
                           order_by: Optional[str]=None, sort_order: Optional[str]=None,
                           filter_variable: Optional[str]=None, filter_value: Optional[str]=None,
@@ -1600,8 +1598,8 @@ class Fred:
         Args:
             search_text (str): The text to search for in economic data series. if 'search_type'='series_id', it's possible to put an '*' in the middle of a string. 'm*sl' finds any series starting with 'm' and ending with 'sl'.
             search_type (str, optional): The type of search to perform. Options include 'full_text' or 'series_id'. Defaults to None.
-            realtime_start (str | datetime, optional): The start of the real-time period. String format: YYYY-MM-DD. Defaults to None.
-            realtime_end (str | datetime, optional): The end of the real-time period. String format: YYYY-MM-DD. Defaults to None.
+            realtime_start (str | datetime | date, optional): The start of the real-time period. String format: YYYY-MM-DD. Defaults to None.
+            realtime_end (str | datetime | date, optional): The end of the real-time period. String format: YYYY-MM-DD. Defaults to None.
             limit (int, optional): The maximum number of results to return. Defaults to None.
             offset (int, optional): The offset for the results. Defaults to None.
             order_by (str, optional): The attribute to order results by. Options include 'search_rank', 'series_id', 'title', etc. Defaults to None.
@@ -1658,8 +1656,8 @@ class Fred:
 
         return series
 
-    def get_series_search_tags(self, series_search_text: str, realtime_start: Optional[Union[str, datetime]]=None,
-                               realtime_end: Optional[Union[str, datetime]]=None, tag_names: Optional[Union[str, list[str]]]=None,
+    def get_series_search_tags(self, series_search_text: str, realtime_start: Optional[Union[str, datetime, date]]=None,
+                               realtime_end: Optional[Union[str, datetime, date]]=None, tag_names: Optional[Union[str, list[str]]]=None,
                                tag_group_id: Optional[str]=None,
                                tag_search_text: Optional[str]=None, limit: Optional[int]=None,
                                offset: Optional[int]=None, order_by: Optional[str]=None,
@@ -1670,8 +1668,8 @@ class Fred:
 
         Args:
             series_search_text (str): The words to match against economic data series.
-            realtime_start (str | datetime, optional): The start of the real-time period. String format: YYYY-MM-DD.
-            realtime_end (str | datetime, optional): The end of the real-time period. String format: YYYY-MM-DD.
+            realtime_start (str | datetime | date, optional): The start of the real-time period. String format: YYYY-MM-DD.
+            realtime_end (str | datetime | date, optional): The end of the real-time period. String format: YYYY-MM-DD.
             tag_names (str | list, optional): A semicolon-delimited list of tag names to match.
             tag_group_id (str, optional): A tag group id to filter tags by type.
             tag_search_text (str, optional): The words to match against tags.
@@ -1726,7 +1724,7 @@ class Fred:
         return tags
 
     def get_series_search_related_tags(self, series_search_text: str, tag_names: Union[str,list[str]],
-                                       realtime_start: Optional[Union[str, datetime]]=None, realtime_end: Optional[Union[str,datetime]]=None,
+                                       realtime_start: Optional[Union[str, datetime, date]]=None, realtime_end: Optional[Union[str,datetime]]=None,
                                        exclude_tag_names: Optional[Union[str, list[str]]]=None,tag_group_id: Optional[str]=None,
                                        tag_search_text: Optional[str]=None, limit: Optional[int]=None,
                                        offset: Optional[int]=None, order_by: Optional[str]=None,
@@ -1738,8 +1736,8 @@ class Fred:
         Args:
             series_search_text (str): The text to search for series.
             tag_names (str | list): A semicolon-delimited list of tag names to include.
-            realtime_start (str | datetime, optional): The start of the real-time period. String format: YYYY-MM-DD.
-            realtime_end (str | datetime, optional): The end of the real-time period. String format: YYYY-MM-DD.
+            realtime_start (str | datetime | date, optional): The start of the real-time period. String format: YYYY-MM-DD.
+            realtime_end (str | datetime | date, optional): The end of the real-time period. String format: YYYY-MM-DD.
             exclude_tag_names (str | list, optional): A semicolon-delimited list of tag names to exclude.
             tag_group_id (str, optional): The tag group id to filter tags by type.
             tag_search_text (str, optional): The text to search for tags.
@@ -1794,8 +1792,8 @@ class Fred:
 
         return tags
 
-    def get_series_tags(self, series_id: str, realtime_start: Optional[Union[str, datetime]]=None,
-                        realtime_end: Optional[Union[str, datetime]]=None, order_by: Optional[str]=None,
+    def get_series_tags(self, series_id: str, realtime_start: Optional[Union[str, datetime, date]]=None,
+                        realtime_end: Optional[Union[str, datetime, date]]=None, order_by: Optional[str]=None,
                         sort_order: Optional[str]=None) -> List[Tag]:
         """Get FRED series tags
 
@@ -1803,8 +1801,8 @@ class Fred:
 
         Args:
             series_id (str): The ID for a series.
-            realtime_start (str | datetime, optional): The start of the real-time period. String format: YYYY-MM-DD.
-            realtime_end (str | datetime, optional): The end of the real-time period. String format: YYYY-MM-DD.
+            realtime_start (str | datetime | date, optional): The start of the real-time period. String format: YYYY-MM-DD.
+            realtime_end (str | datetime | date, optional): The end of the real-time period. String format: YYYY-MM-DD.
             order_by (str, optional): Order results by values such as 'series_id', 'name', 'popularity', etc.
             sort_order (str, optional): Sort results in 'asc' (ascending) or 'desc' (descending) order.
 
@@ -1848,22 +1846,22 @@ class Fred:
 
         return tags
 
-    def get_series_updates(self, realtime_start: Optional[Union[str, datetime]]=None,
-                           realtime_end: Optional[Union[str, datetime]]=None, limit: Optional[int]=None,
+    def get_series_updates(self, realtime_start: Optional[Union[str, datetime, date]]=None,
+                           realtime_end: Optional[Union[str, datetime, date]]=None, limit: Optional[int]=None,
                            offset: Optional[int]=None, filter_value: Optional[str]=None,
-                           start_time: Optional[Union[str, datetime]]=None, end_time: Optional[Union[str, datetime]]=None) -> List[Series]:
+                           start_time: Optional[Union[str, datetime, time]]=None, end_time: Optional[Union[str, datetime, time]]=None) -> List[Series]:
         """Get FRED series updates
 
         Retrieves updates for a series from the FRED API.
 
         Args:
-            realtime_start (str | datetime, optional): The start of the real-time period. String format: YYYY-MM-DD.
-            realtime_end (str | datetime, optional): The end of the real-time period. String format: YYYY-MM-DD.
+            realtime_start (str | datetime | date, optional): The start of the real-time period. String format: YYYY-MM-DD.
+            realtime_end (str | datetime | date, optional): The end of the real-time period. String format: YYYY-MM-DD.
             limit (int, optional): The maximum number of results to return. Default is 1000.
             offset (int, optional): The offset for the results. Used for pagination.
             filter_value (str, optional): Filter results by this value.
-            start_time (str | datetime, optional): The start time for the updates. String format: HH:MM.
-            end_time (str | datetime, optional): The end time for the updates. String format: HH:MM.
+            start_time (str | datetime | time, optional): The start time for the updates. String format: HH:MM.
+            end_time (str | datetime | time, optional): The end time for the updates. String format: HH:MM.
 
         Returns:
             List[Series]: If multiple series are returned.
@@ -1907,8 +1905,8 @@ class Fred:
 
         return series
 
-    def get_series_vintagedates(self, series_id: str, realtime_start: Optional[Union[str, datetime]]=None,
-                                realtime_end: Optional[Union[str, datetime]]=None, limit: Optional[int]=None,
+    def get_series_vintagedates(self, series_id: str, realtime_start: Optional[Union[str, datetime, date]]=None,
+                                realtime_end: Optional[Union[str, datetime, date]]=None, limit: Optional[int]=None,
                                 offset: Optional[int]=None, sort_order: Optional[str]=None) -> List[VintageDate]:
         """Get FRED series vintage dates
 
@@ -1916,8 +1914,8 @@ class Fred:
 
         Args:
             series_id (str): The ID for the FRED series.
-            realtime_start (str | datetime, optional): The start of the real-time period. String format: YYYY-MM-DD.
-            realtime_end (str | datetime, optional): The end of the real-time period. String format: YYYY-MM-DD.
+            realtime_start (str | datetime | date, optional): The start of the real-time period. String format: YYYY-MM-DD.
+            realtime_end (str | datetime | date, optional): The end of the real-time period. String format: YYYY-MM-DD.
             limit (int, optional): The maximum number of results to return.
             offset (int, optional): The offset for the results.
             sort_order (str, optional): The order of the results. Possible values: 'asc' or 'desc'.
@@ -1962,7 +1960,7 @@ class Fred:
         return VintageDate.to_object(response)
 
     ## Sources
-    def get_sources(self, realtime_start: Optional[Union[str, datetime]]=None, realtime_end: Optional[Union[str, datetime]]=None,
+    def get_sources(self, realtime_start: Optional[Union[str, datetime, date]]=None, realtime_end: Optional[Union[str, datetime, date]]=None,
                     limit: Optional[int]=None, offset: Optional[int]=None,
                     order_by: Optional[str]=None, sort_order: Optional[str]=None) -> List[Source]:
         """Get FRED sources
@@ -1970,8 +1968,8 @@ class Fred:
         Retrieve sources of economic data from the FRED API.
 
         Args:
-            realtime_start (str | datetime, optional): The start of the real-time period. String format: YYYY-MM-DD.
-            realtime_end (str | datetime, optional): The end of the real-time period. String format: YYYY-MM-DD.
+            realtime_start (str | datetime | date, optional): The start of the real-time period. String format: YYYY-MM-DD.
+            realtime_end (str | datetime | date, optional): The end of the real-time period. String format: YYYY-MM-DD.
             limit (int, optional): The maximum number of results to return. Default is 1000, maximum is 1000.
             offset (int, optional): The offset for the results. Used for pagination.
             order_by (str, optional): Order results by values. Options are 'source_id', 'name', 'realtime_start', 'realtime_end'.
@@ -2018,16 +2016,16 @@ class Fred:
 
         return sources
 
-    def get_source(self, source_id: int, realtime_start: Optional[Union[str, datetime]]=None,
-                   realtime_end: Optional[Union[str, datetime]]=None) -> List[Source]:
+    def get_source(self, source_id: int, realtime_start: Optional[Union[str, datetime, date]]=None,
+                   realtime_end: Optional[Union[str, datetime, date]]=None) -> List[Source]:
         """Get a FRED source
 
         Retrieves information about a source from the FRED API.
 
         Args:
             source_id (int): The ID for the source.
-            realtime_start (str | datetime, optional): The start of the real-time period. String format: YYYY-MM-DD. Defaults to None.
-            realtime_end (str | datetime, optional): The end of the real-time period. String format: YYYY-MM-DD. Defaults to None.
+            realtime_start (str | datetime | date, optional): The start of the real-time period. String format: YYYY-MM-DD. Defaults to None.
+            realtime_end (str | datetime | date, optional): The end of the real-time period. String format: YYYY-MM-DD. Defaults to None.
 
         Returns:
             List[Source]: If multiple sources are returned.
@@ -2064,8 +2062,8 @@ class Fred:
 
         return sources
 
-    def get_source_releases(self, source_id: int , realtime_start: Optional[Union[str, datetime]]=None,
-                            realtime_end: Optional[Union[str, datetime]]=None, limit: Optional[int]=None,
+    def get_source_releases(self, source_id: int , realtime_start: Optional[Union[str, datetime, date]]=None,
+                            realtime_end: Optional[Union[str, datetime, date]]=None, limit: Optional[int]=None,
                             offset: Optional[int]=None, order_by: Optional[str]=None,
                             sort_order: Optional[str]=None) -> List[Release]:
         """Get FRED source releases
@@ -2074,8 +2072,8 @@ class Fred:
 
         Args:
             source_id (int): The ID for the source.
-            realtime_start (str | datetime, optional): The start of the real-time period. String format: YYYY-MM-DD.
-            realtime_end (str | datetime, optional): The end of the real-time period. String format: YYYY-MM-DD.
+            realtime_start (str | datetime | date, optional): The start of the real-time period. String format: YYYY-MM-DD.
+            realtime_end (str | datetime | date, optional): The end of the real-time period. String format: YYYY-MM-DD.
             limit (int, optional): The maximum number of results to return.
             offset (int, optional): The offset for the results.
             order_by (str, optional): Order results by values such as 'release_id', 'name', etc.
@@ -2124,7 +2122,7 @@ class Fred:
         return releases
 
     ## Tags
-    def get_tags(self, realtime_start: Optional[Union[str, datetime]]=None, realtime_end: Optional[Union[str,datetime]]=None,
+    def get_tags(self, realtime_start: Optional[Union[str, datetime, date]]=None, realtime_end: Optional[Union[str,datetime]]=None,
                  tag_names: Optional[Union[str, list[str]]]=None, tag_group_id: Optional[str]=None,
                  search_text: Optional[str]=None, limit: Optional[int]=None,
                  offset: Optional[int]=None, order_by: Optional[str]=None,
@@ -2134,8 +2132,8 @@ class Fred:
         Retrieve FRED tags based on specified parameters.
 
         Args:
-            realtime_start (str | datetime, optional): The start of the real-time period. String format: YYYY-MM-DD.
-            realtime_end (str | datetime, optional): The end of the real-time period. String format: YYYY-MM-DD.
+            realtime_start (str | datetime | date, optional): The start of the real-time period. String format: YYYY-MM-DD.
+            realtime_end (str | datetime | date, optional): The end of the real-time period. String format: YYYY-MM-DD.
             tag_names (str | list, optional): A semicolon-delimited list of tag names to filter results.
             tag_group_id (str, optional): A tag group ID to filter results.
             search_text (str, optional): The words to match against tag names and descriptions.
@@ -2188,8 +2186,8 @@ class Fred:
 
         return tags
 
-    def get_related_tags(self, tag_names: Union[str, list[str]], realtime_start: Optional[Union[str, datetime]]=None,
-                         realtime_end: Optional[Union[str, datetime]]=None, exclude_tag_names: Optional[Union[str, list[str]]]=None,
+    def get_related_tags(self, tag_names: Union[str, list[str]], realtime_start: Optional[Union[str, datetime, date]]=None,
+                         realtime_end: Optional[Union[str, datetime, date]]=None, exclude_tag_names: Optional[Union[str, list[str]]]=None,
                          tag_group_id: Optional[str]=None, search_text: Optional[str]=None,
                          limit: Optional[int]=None, offset: Optional[int]=None,
                          order_by: Optional[str]=None, sort_order: Optional[str]=None) -> List[Tag]:
@@ -2199,8 +2197,8 @@ class Fred:
 
         Args:
             tag_names (str | list): A semicolon-delimited list of tag names to include in the search.
-            realtime_start (str | datetime, optional): The start of the real-time period. Strinng format: YYYY-MM-DD.
-            realtime_end (str | datetime, optional): The end of the real-time period. String format: YYYY-MM-DD.
+            realtime_start (str | datetime | date, optional): The start of the real-time period. Strinng format: YYYY-MM-DD.
+            realtime_end (str | datetime | date, optional): The end of the real-time period. String format: YYYY-MM-DD.
             exclude_tag_names (str | list, optional): A semicolon-delimited list of tag names to exclude from the search.
             tag_group_id (str, optional): A tag group ID to filter tags by group.
             search_text (str, optional): The words to match against tag names and descriptions.
@@ -2255,7 +2253,7 @@ class Fred:
         return tags
 
     def get_tags_series(self, tag_names: Union[str, list[str]], exclude_tag_names: Optional[Union[str, list[str]]]=None,
-                        realtime_start: Optional[Union[str, datetime]]=None, realtime_end: Optional[Union[str, datetime]]=None,
+                        realtime_start: Optional[Union[str, datetime, date]]=None, realtime_end: Optional[Union[str, datetime, date]]=None,
                         limit: Optional[int]=None, offset: Optional[int]=None,
                         order_by: Optional[str]=None, sort_order: Optional[str]=None) -> List[Series]:
         """Get FRED tags series
@@ -2323,30 +2321,28 @@ class AsyncFred:
     response objects, rate limiting, retries, and typed results.
     
     Attributes:
-        cache_mode (bool): Whether caching is enabled for API responses.
-        cache (FIFOCache): The cache object for storing API responses.
-        base_url (str): The base URL for the FRED API.
-        AsyncGeoFred (AsyncGeoFred): Attached instance for asynchronous FRED Maps API endpoints.
+        caching_enabled (bool): Whether caching is enabled for API responses.
+        cache_size (int): The maximum number of items to store in the cache if caching is enabled.
+        keys (str): List of keys in the cache if caching is enabled.
     
     Args:
-        parent (Fred): The parent Fred instance.
+        api_key (str, optional): Your FRED API key.
+        caching_enabled (bool, optional): Whether to enable caching for API responses. Defaults to False.
+        cache_size (int, optional): The maximum number of items to store in the cache if caching is enabled. Defaults to 256.
 
     Raises:
-        ValueError: If the provided parent is not an instance of Fred.
+        RuntimeError: If no API key can be resolved from the explicit argument, global setting, or environment variable.
 
     Notes:
-        This class is designed to be used as part of the fedfred package and should be accessed
-        through an instance of the Fred class.
+        API keys can be set globally using `fedfred.set_api_key(...)`, or can be provided explicitly
+        when instantiating the `Fred` class. If neither is provided, the class will attempt to
+        resolve the API key from the environment variable `FRED_API_KEY`.
 
     Examples:
         >>> import fedfred as fd
         >>> import asyncio
         >>> async def main():
-        >>>     fred = fd.Fred('your_api_key')
-        >>>     # Use AsyncFred property to access asynchronous endpoints
-        >>>     async_fred = fred.AsyncFred
-        >>>     # Also acceptable to initialize directly with a Fred instance
-        >>>     async_fred = fd.AsyncFred(fred)
+        >>>     fred = fd.AsyncFred(api_key='your_api_key')
         >>> asyncio.run(main())
 
     Warnings:
@@ -2358,38 +2354,41 @@ class AsyncFred:
     """
 
     # Dunder Methods
-    def __init__(self, parent: 'Fred') -> None:
-        """Initialize the AsyncFred class with a reference to the parent Fred instance.
+    def __init__(self, api_key: str, caching_enabled: bool = False, cache_size: int = 256) -> None:
+        """Initialize the AsyncFred class with an API key and optional caching.
 
         Args:
-            parent (Fred): The parent Fred instance.
+            api_key (str, optional): Your FRED API key.
+            caching_enabled (bool, optional): Whether to enable caching for API responses. Defaults to True.
+            cache_size (int, optional): The maximum number of items to store in the cache if caching is enabled. Defaults to 256.
 
         Raises:
-            ValueError: If the provided parent is not an instance of Fred.
+            RuntimeError: If no API key can be resolved from the explicit argument, global setting, or environment variable.
 
         Examples:
             >>> import fedfred as fd
             >>> import asyncio
             >>> async def main():
-            >>>     fred = fd.Fred('your_api_key')
-            >>>     async_fred = fred.AsyncFred
-            >>>     # Also acceptable to initialize directly with a Fred instance
-            >>>     async_fred = fd.AsyncFred(fred)
+            >>>     async_fred = fd.AsyncFred(api_key='your_api_key')
             >>> asyncio.run(main())
 
         Notes:
-            This constructor sets up the AsyncFred instance with references to the parent Fred's
-            configuration, including caching and base URL.
+            This constructor sets up the AsyncFred instance with the provided API key
+            and optional caching.
 
         See Also:
             - :class:`fedfred.Fred`: The main synchronous client for the FRED API.
             - :func:`fedfred.set_api_key`: Function to set the global FRED API key.
         """
 
-        if not isinstance(parent, Fred):
-            raise ValueError("parent must be an instance of Fred")
+        if api_key:
+            set_api_key(api_key, service="fred")
 
-        self._parent: Fred = parent
+        if caching_enabled:
+            set_cache_maxsize(cache_size)
+
+        self.caching_enabled: bool = caching_enabled
+        self.cache_size: int = get_cache_maxsize()
 
     def __repr__(self) -> str:
         """String representation of the AsyncFred class.
@@ -2655,10 +2654,10 @@ class AsyncFred:
 
     # Properties
     @property
-    def keys(self) -> List[str]:
+    def keys(self) -> Optional[KeysView[tuple[Any, ...]]]:
         """List of keys in the cache."""
 
-        return list(self.cache.keys()) if self.cache_mode else []
+        return _CACHE.keys() if self.caching_enabled else None
 
     # Private Methods
     async def __fred_get_request(self, url_endpoint: str, data: Optional[Dict[str, Optional[Union[str, int]]]]=None) -> Dict[str, Any]:
@@ -2726,23 +2725,26 @@ class AsyncFred:
             - fedfred package documentation: https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.AsyncFred.get_category.html
         """
 
-        url_endpoint = '/category'
-        data: Dict[str, Optional[Union[str, int]]] = {
+        url_endpoint = 'get_category'
+
+        data: Dict[str, Any] = {
             'category_id': category_id
         }
+
         response = await self.__fred_get_request(url_endpoint, data)
+
         return await Category.to_object_async(response)
 
-    async def get_category_children(self, category_id: int, realtime_start: Optional[Union[str, datetime]]=None,
-                                    realtime_end: Optional[Union[str, datetime]]=None) -> List[Category]:
+    async def get_category_children(self, category_id: int, realtime_start: Optional[Union[str, datetime, date]]=None,
+                                    realtime_end: Optional[Union[str, datetime, date]]=None) -> List[Category]:
         """Get a FRED Category's Child Categories
 
         Get the child categories for a specified category ID from the FRED API.
 
         Args:
             category_id (int): The ID for the category whose children are to be retrieved.
-            realtime_start (str | datetime, optional): The start of the real-time period. String format: YYYY-MM-DD.
-            realtime_end (str | datetime, optional): The end of the real-time period. String format: YYYY-MM-DD.
+            realtime_start (str | datetime | date, optional): The start of the real-time period. String format: YYYY-MM-DD.
+            realtime_end (str | datetime | date, optional): The end of the real-time period. String format: YYYY-MM-DD.
 
         Returns:
             List[Category]: If multiple categories are returned.
@@ -2787,16 +2789,16 @@ class AsyncFred:
         response = await self.__fred_get_request(url_endpoint, data)
         return await Category.to_object_async(response)
 
-    async def get_category_related(self, category_id: int, realtime_start: Optional[Union[str, datetime]]=None,
-                                   realtime_end: Optional[Union[str, datetime]]=None) -> List[Category]:
+    async def get_category_related(self, category_id: int, realtime_start: Optional[Union[str, datetime, date]]=None,
+                                   realtime_end: Optional[Union[str, datetime, date]]=None) -> List[Category]:
         """Get a FRED Category's Related Categories
 
         Get related categories for a given category ID from the FRED API.
 
         Args:
             category_id (int): The ID for the category.
-            realtime_start (str | datetime, optional): The start of the real-time period. String format: YYYY-MM-DD.
-            realtime_end (str | datetime, optional): The end of the real-time period. String format: YYYY-MM-DD.
+            realtime_start (str | datetime | date, optional): The start of the real-time period. String format: YYYY-MM-DD.
+            realtime_end (str | datetime | date, optional): The end of the real-time period. String format: YYYY-MM-DD.
 
         Returns:
             List[Category]: If multiple categories are returned.
@@ -2844,8 +2846,8 @@ class AsyncFred:
         response = await self.__fred_get_request(url_endpoint, data)
         return await Category.to_object_async(response)
 
-    async def get_category_series(self, category_id: int, realtime_start: Optional[Union[str, datetime]]=None,
-                                  realtime_end: Optional[Union[str, datetime]]=None, limit: Optional[int]=None,
+    async def get_category_series(self, category_id: int, realtime_start: Optional[Union[str, datetime, date]]=None,
+                                  realtime_end: Optional[Union[str, datetime, date]]=None, limit: Optional[int]=None,
                                   offset: Optional[int]=None, order_by: Optional[str]=None,
                                   sort_order: Optional[str]=None, filter_variable: Optional[str]=None,
                                   filter_value: Optional[str]=None, tag_names: Optional[Union[str, list[str]]]=None,
@@ -2856,8 +2858,8 @@ class AsyncFred:
 
         Args:
             category_id (int): The ID for a category.
-            realtime_start (str | datetime, optional): The start of the real-time period. String format: YYYY-MM-DD.
-            realtime_end (str | datetime, optional): The end of the real-time period. String format: YYYY-MM-DD.
+            realtime_start (str | datetime | date, optional): The start of the real-time period. String format: YYYY-MM-DD.
+            realtime_end (str | datetime | date, optional): The end of the real-time period. String format: YYYY-MM-DD.
             limit (int, optional): The maximum number of results to return. Default is 1000.
             offset (int, optional): The offset for the results. Used for pagination.
             order_by (str, optional): Order results by values. Options are 'series_id', 'title', 'units', 'frequency', 'seasonal_adjustment', 'realtime_start', 'realtime_end', 'last_updated', 'observation_start', 'observation_end', 'popularity', 'group_popularity'.
@@ -2929,8 +2931,8 @@ class AsyncFred:
         response = await self.__fred_get_request(url_endpoint, data)
         return await Series.to_object_async(response)
 
-    async def get_category_tags(self, category_id: int, realtime_start: Optional[Union[str, datetime]]=None,
-                                realtime_end: Optional[Union[str, datetime]]=None, tag_names: Optional[Union[str, list[str]]]=None,
+    async def get_category_tags(self, category_id: int, realtime_start: Optional[Union[str, datetime, date]]=None,
+                                realtime_end: Optional[Union[str, datetime, date]]=None, tag_names: Optional[Union[str, list[str]]]=None,
                                 tag_group_id: Optional[int]=None, search_text: Optional[str]=None,
                                 limit: Optional[int]=None, offset: Optional[int]=None,
                                 order_by: Optional[int]=None, sort_order: Optional[str]=None) -> List[Tag]:
@@ -2940,8 +2942,8 @@ class AsyncFred:
 
         Args:
             category_id (int): The ID for a category.
-            realtime_start (str | datetime, optional): The start of the real-time period. String format: YYYY-MM-DD.
-            realtime_end (str | datetime, optional): The end of the real-time period. String format: YYYY-MM-DD.
+            realtime_start (str | datetime | date, optional): The start of the real-time period. String format: YYYY-MM-DD.
+            realtime_end (str | datetime | date, optional): The end of the real-time period. String format: YYYY-MM-DD.
             tag_names (str | list, optional): A semicolon delimited list of tag names to filter tags by.
             tag_group_id (int, optional): A tag group ID to filter tags by type.
             search_text (str, optional): The words to find matching tags with.
@@ -3008,8 +3010,8 @@ class AsyncFred:
         response = await self.__fred_get_request(url_endpoint, data)
         return await Tag.to_object_async(response)
 
-    async def get_category_related_tags(self, category_id: int, realtime_start: Optional[Union[str, datetime]]=None,
-                                        realtime_end: Optional[Union[str, datetime]]=None, tag_names: Optional[Union[str, list[str]]]=None,
+    async def get_category_related_tags(self, category_id: int, realtime_start: Optional[Union[str, datetime, date]]=None,
+                                        realtime_end: Optional[Union[str, datetime, date]]=None, tag_names: Optional[Union[str, list[str]]]=None,
                                         exclude_tag_names: Optional[Union[str, list[str]]]=None,
                                         tag_group_id: Optional[str]=None, search_text: Optional[str]=None,
                                         limit: Optional[int]=None, offset: Optional[int]=None,
@@ -3020,8 +3022,8 @@ class AsyncFred:
 
         Args:
             category_id (int): The ID for the category.
-            realtime_start (str | datetime, optional): The start of the real-time period. String format: YYYY-MM-DD.
-            realtime_end (str | datetime, optional): The end of the real-time period. String format: YYYY-MM-DD.
+            realtime_start (str | datetime | date, optional): The start of the real-time period. String format: YYYY-MM-DD.
+            realtime_end (str | datetime | date, optional): The end of the real-time period. String format: YYYY-MM-DD.
             tag_names (str | list, optional): A semicolon-delimited list of tag names to include.
             exclude_tag_names (str | list, optional): A semicolon-delimited list of tag names to exclude.
             tag_group_id (int, optional): The ID for a tag group.
@@ -3095,8 +3097,8 @@ class AsyncFred:
         return await Tag.to_object_async(response)
 
     ## Releases
-    async def get_releases(self, realtime_start: Optional[Union[str, datetime]]=None,
-                           realtime_end: Optional[Union[str, datetime]]=None,
+    async def get_releases(self, realtime_start: Optional[Union[str, datetime, date]]=None,
+                           realtime_end: Optional[Union[str, datetime, date]]=None,
                            limit: Optional[int]=None, offset: Optional[int]=None, order_by: Optional[str]=None,
                            sort_order: Optional[str]=None) -> List[Release]:
         """Get FRED releases
@@ -3104,8 +3106,8 @@ class AsyncFred:
         Get all economic data releases from the FRED API.
 
         Args:
-            realtime_start (str | datetime, optional): The start of the real-time period. String format: YYYY-MM-DD.
-            realtime_end (str | datetime, optional): The end of the real-time period. String format: YYYY-MM-DD.
+            realtime_start (str | datetime | date, optional): The start of the real-time period. String format: YYYY-MM-DD.
+            realtime_end (str | datetime | date, optional): The end of the real-time period. String format: YYYY-MM-DD.
             limit (int, optional): The maximum number of results to return. Default is None.
             offset (int, optional): The offset for the results. Default is None.
             order_by (str, optional): Order results by values such as 'release_id', 'name', 'press_release', 'realtime_start', 'realtime_end'. Default is None.
@@ -3159,8 +3161,8 @@ class AsyncFred:
         response = await self.__fred_get_request(url_endpoint, data)
         return await Release.to_object_async(response)
 
-    async def get_releases_dates(self, realtime_start: Optional[Union[str, datetime]]=None,
-                                 realtime_end: Optional[Union[str, datetime]]=None, limit: Optional[int]=None,
+    async def get_releases_dates(self, realtime_start: Optional[Union[str, datetime, date]]=None,
+                                 realtime_end: Optional[Union[str, datetime, date]]=None, limit: Optional[int]=None,
                                  offset: Optional[int]=None, order_by: Optional[str]=None,
                                  sort_order: Optional[str]=None,
                                  include_releases_dates_with_no_data: Optional[bool]=None) -> List[ReleaseDate]:
@@ -3227,16 +3229,16 @@ class AsyncFred:
         response = await self.__fred_get_request(url_endpoint, data)
         return await ReleaseDate.to_object_async(response)
 
-    async def get_release(self, release_id: int, realtime_start: Optional[Union[str, datetime]]=None,
-                          realtime_end: Optional[Union[str, datetime]]=None) -> List[Release]:
+    async def get_release(self, release_id: int, realtime_start: Optional[Union[str, datetime, date]]=None,
+                          realtime_end: Optional[Union[str, datetime, date]]=None) -> List[Release]:
         """Get a FRED release
 
         Get the release for a given release ID from the FRED API.
 
         Args:
             release_id (int): The ID for the release.
-            realtime_start (str | datetime, optional): The start of the real-time period. String format: YYYY-MM-DD.
-            realtime_end (str | datetime, optional): The end of the real-time period. String format: YYYY-MM-DD.
+            realtime_start (str | datetime | date, optional): The start of the real-time period. String format: YYYY-MM-DD.
+            realtime_end (str | datetime | date, optional): The end of the real-time period. String format: YYYY-MM-DD.
 
         Returns:
             List[Release]: If multiple releases are returned.
@@ -3277,8 +3279,8 @@ class AsyncFred:
         response = await self.__fred_get_request(url_endpoint, data)
         return await Release.to_object_async(response)
 
-    async def get_release_dates(self, release_id: int, realtime_start: Optional[Union[str, datetime]]=None,
-                                realtime_end: Optional[Union[str, datetime]]=None, limit: Optional[int]=None,
+    async def get_release_dates(self, release_id: int, realtime_start: Optional[Union[str, datetime, date]]=None,
+                                realtime_end: Optional[Union[str, datetime, date]]=None, limit: Optional[int]=None,
                                 offset: Optional[int]=None, sort_order: Optional[str]=None,
                                 include_releases_dates_with_no_data: Optional[bool]=None) -> List[ReleaseDate]:
         """Get FRED release dates
@@ -3287,8 +3289,8 @@ class AsyncFred:
 
         Args:
             release_id (int): The ID for the release.
-            realtime_start (str | datetime, optional): The start of the real-time period. String format: YYYY-MM-DD.
-            realtime_end (str | datetime, optional): The end of the real-time period. String format: YYYY-MM-DD.
+            realtime_start (str | datetime | date, optional): The start of the real-time period. String format: YYYY-MM-DD.
+            realtime_end (str | datetime | date, optional): The end of the real-time period. String format: YYYY-MM-DD.
             limit (int, optional): The maximum number of results to return.
             offset (int, optional): The offset for the results.
             sort_order (str, optional): The order of the results. Possible values are 'asc' or 'desc'.
@@ -3346,8 +3348,8 @@ class AsyncFred:
         response = await self.__fred_get_request(url_endpoint, data)
         return await ReleaseDate.to_object_async(response)
 
-    async def get_release_series(self, release_id: int, realtime_start: Optional[Union[str, datetime]]=None,
-                                 realtime_end: Optional[Union[str, datetime]]=None, limit: Optional[int]=None,
+    async def get_release_series(self, release_id: int, realtime_start: Optional[Union[str, datetime, date]]=None,
+                                 realtime_end: Optional[Union[str, datetime, date]]=None, limit: Optional[int]=None,
                                  offset: Optional[int]=None, sort_order: Optional[str]=None,
                                  filter_variable: Optional[str]=None, filter_value: Optional[str]=None,
                                  exclude_tag_names: Optional[Union[str, list[str]]]=None) -> List[Series]:
@@ -3357,8 +3359,8 @@ class AsyncFred:
 
         Args:
             release_id (int): The ID for the release.
-            realtime_start (str | datetime, optional): The start of the real-time period. String format: YYYY-MM-DD.
-            realtime_end (str | datetime, optional): The end of the real-time period. String format: YYYY-MM-DD.
+            realtime_start (str | datetime | date, optional): The start of the real-time period. String format: YYYY-MM-DD.
+            realtime_end (str | datetime | date, optional): The end of the real-time period. String format: YYYY-MM-DD.
             limit (int, optional): The maximum number of results to return. Default is 1000.
             offset (int, optional): The offset for the results. Default is 0.
             sort_order (str, optional): Order results by values. Options are 'asc' or 'desc'.
@@ -3422,15 +3424,15 @@ class AsyncFred:
         response = await self.__fred_get_request(url_endpoint, data)
         return await Series.to_object_async(response)
 
-    async def get_release_sources(self, release_id: int, realtime_start: Optional[Union[str, datetime]]=None,
-                                  realtime_end: Optional[Union[str, datetime]]=None) -> List[Source]:
+    async def get_release_sources(self, release_id: int, realtime_start: Optional[Union[str, datetime, date]]=None,
+                                  realtime_end: Optional[Union[str, datetime, date]]=None) -> List[Source]:
         """Get FRED release sources
 
         Retrieve the sources for a specified release from the FRED API.
 
         Args:
             release_id (int): The ID of the release for which to retrieve sources.
-            realtime_start (str | datetime, optional): The start of the real-time period. String format: YYYY-MM-DD. Defaults to None.
+            realtime_start (str | datetime | date, optional): The start of the real-time period. String format: YYYY-MM-DD. Defaults to None.
             realtime_end (str| datetime, optional): The end of the real-time period. String format: YYYY-MM-DD. Defaults to None.
 
         Returns:
@@ -3474,8 +3476,8 @@ class AsyncFred:
         response = await self.__fred_get_request(url_endpoint, data)
         return await Source.to_object_async(response)
 
-    async def get_release_tags(self, release_id: int, realtime_start: Optional[Union[str, datetime]]=None,
-                               realtime_end: Optional[Union[str, datetime]]=None, tag_names: Optional[Union[str, list[str]]]=None,
+    async def get_release_tags(self, release_id: int, realtime_start: Optional[Union[str, datetime, date]]=None,
+                               realtime_end: Optional[Union[str, datetime, date]]=None, tag_names: Optional[Union[str, list[str]]]=None,
                                tag_group_id: Optional[int]=None, search_text: Optional[str]=None,
                                limit: Optional[int]=None, offset: Optional[int]=None,
                                order_by: Optional[str]=None) -> List[Tag]:
@@ -3485,8 +3487,8 @@ class AsyncFred:
 
         Args:
             release_id (int): The ID for the release.
-            realtime_start (str | datetime, optional): The start of the real-time period. String format: YYYY-MM-DD.
-            realtime_end (str | datetime, optional): The end of the real-time period. String format: YYYY-MM-DD.
+            realtime_start (str | datetime | date, optional): The start of the real-time period. String format: YYYY-MM-DD.
+            realtime_end (str | datetime | date, optional): The end of the real-time period. String format: YYYY-MM-DD.
             tag_names (str | list, optional): A semicolon delimited list of tag names.
             tag_group_id (int, optional): The ID for a tag group.
             search_text (str, optional): The words to find matching tags with.
@@ -3550,8 +3552,8 @@ class AsyncFred:
         response = await self.__fred_get_request(url_endpoint, data)
         return await Tag.to_object_async(response)
 
-    async def get_release_related_tags(self, release_id: int, realtime_start: Optional[Union[str, datetime]]=None,
-                                       realtime_end: Optional[Union[str, datetime]]=None, tag_names: Optional[Union[str, list[str]]]=None,
+    async def get_release_related_tags(self, release_id: int, realtime_start: Optional[Union[str, datetime, date]]=None,
+                                       realtime_end: Optional[Union[str, datetime, date]]=None, tag_names: Optional[Union[str, list[str]]]=None,
                                        exclude_tag_names: Optional[Union[str, list[str]]]=None, tag_group_id: Optional[str]=None,
                                        search_text: Optional[str]=None, limit: Optional[int]=None,
                                        offset: Optional[int]=None, order_by: Optional[str]=None,
@@ -3562,8 +3564,8 @@ class AsyncFred:
 
         Args:
             series_search_text (str, optional): The text to match against economic data series.
-            realtime_start (str | datetime, optional): The start of the real-time period. String format: YYYY-MM-DD.
-            realtime_end (str | datetime, optional): The end of the real-time period. String format: YYYY-MM-DD.
+            realtime_start (str | datetime | date, optional): The start of the real-time period. String format: YYYY-MM-DD.
+            realtime_end (str | datetime | date, optional): The end of the real-time period. String format: YYYY-MM-DD.
             tag_names (str | list, optional): A semicolon delimited list of tag names to match.
             exclude_tag_names (str | list, optional): A semicolon-separated list of tag names to exclude results by.
             tag_group_id (str, optional): A tag group id to filter tags by type.
@@ -3636,7 +3638,7 @@ class AsyncFred:
 
     async def get_release_tables(self, release_id: int, element_id: Optional[int]=None,
                                  include_observation_values: Optional[bool]=None,
-                                 observation_date: Optional[Union[str, datetime]]=None) -> List[Element]:
+                                 observation_date: Optional[Union[str, datetime, date]]=None) -> List[Element]:
         """Get FRED release tables
 
         Fetches release tables from the FRED API.
@@ -3645,7 +3647,7 @@ class AsyncFred:
             release_id (int): The ID for the release.
             element_id (int, optional): The ID for the element. Defaults to None.
             include_observation_values (bool, optional): Whether to include observation values. Defaults to None.
-            observation_date (str | datetime, optional): The observation date in YYYY-MM-DD string format. Defaults to None.
+            observation_date (str | datetime | date, optional): The observation date in YYYY-MM-DD string format. Defaults to None.
 
         Returns:
             List[Element]: If multiple elements are returned.
@@ -3746,16 +3748,16 @@ class AsyncFred:
         return return_list
 
     ## Series
-    async def get_series(self, series_id: str, realtime_start: Optional[Union[str, datetime]]=None,
-                         realtime_end: Optional[Union[str, datetime]]=None) -> List[Series]:
+    async def get_series(self, series_id: str, realtime_start: Optional[Union[str, datetime, date]]=None,
+                         realtime_end: Optional[Union[str, datetime, date]]=None) -> List[Series]:
         """Get a FRED series
 
         Retrieve economic data series information from the FRED API.
 
         Args:
             series_id (str): The ID for the economic data series.
-            realtime_start (str | datetime, optional): The start of the real-time period. String format: YYYY-MM-DD.
-            realtime_end (str | datetime, optional): The end of the real-time period. String format: YYYY-MM-DD.
+            realtime_start (str | datetime | date, optional): The start of the real-time period. String format: YYYY-MM-DD.
+            realtime_end (str | datetime | date, optional): The end of the real-time period. String format: YYYY-MM-DD.
 
         Returns:
             List[Series]: If multiple series are returned.
@@ -3796,16 +3798,16 @@ class AsyncFred:
         response = await self.__fred_get_request(url_endpoint, data)
         return await Series.to_object_async(response)
 
-    async def get_series_categories(self, series_id: str, realtime_start: Optional[Union[str, datetime]]=None,
-                                    realtime_end: Optional[Union[str, datetime]]=None) -> List[Category]:
+    async def get_series_categories(self, series_id: str, realtime_start: Optional[Union[str, datetime, date]]=None,
+                                    realtime_end: Optional[Union[str, datetime, date]]=None) -> List[Category]:
         """Get FRED series categories
 
         Get the categories for a specified series.
 
         Args:
             series_id (str): The ID for the series.
-            realtime_start (str | datetime, optional): The start of the real-time period. String format: YYYY-MM-DD.
-            realtime_end (str | datetime, optional): The end of the real-time period. String format: YYYY-MM-DD.
+            realtime_start (str | datetime | date, optional): The start of the real-time period. String format: YYYY-MM-DD.
+            realtime_end (str | datetime | date, optional): The end of the real-time period. String format: YYYY-MM-DD.
 
         Returns:
             List[Category]: If multiple categories are returned.
@@ -3849,16 +3851,16 @@ class AsyncFred:
         return await Category.to_object_async(response)
 
     async def get_series_observations(self, series_id: str, dataframe_method: str = 'pandas',
-                                      realtime_start: Optional[Union[str, datetime]]=None,
-                                      realtime_end: Optional[Union[str, datetime]]=None,
+                                      realtime_start: Optional[Union[str, datetime, date]]=None,
+                                      realtime_end: Optional[Union[str, datetime, date]]=None,
                                       limit: Optional[int]=None, offset: Optional[int]=None,
                                       sort_order: Optional[str]=None,
-                                      observation_start: Optional[Union[str, datetime]]=None,
-                                      observation_end: Optional[Union[str, datetime]]=None,
+                                      observation_start: Optional[Union[str, datetime, date]]=None,
+                                      observation_end: Optional[Union[str, datetime, date]]=None,
                                       units: Optional[str]=None, frequency: Optional[str]=None,
                                       aggregation_method: Optional[str]=None,
                                       output_type: Optional[int]=None,
-                                      vintage_dates: Optional[Union[str, datetime, list[Optional[Union[str, datetime]]]]]=None
+                                      vintage_dates: Optional[Union[str, datetime, list[Optional[Union[str, datetime, date]]]]]=None
                                       ) -> Union[pd.DataFrame, 'pl.DataFrame', 'dd.DataFrame']:
         """Get FRED series observations
 
@@ -3867,13 +3869,13 @@ class AsyncFred:
         Args:
             series_id (str): The ID for a series.
             dataframe_method (str, optional): The method to use to convert the response to a DataFrame. Options: 'pandas', 'polars', or 'dask'. Default is 'pandas'.
-            realtime_start (str | datetime, optional): The start of the real-time period. String format: YYYY-MM-DD.
-            realtime_end (str | datetime, optional): The end of the real-time period. String format: YYYY-MM-DD.
+            realtime_start (str | datetime | date, optional): The start of the real-time period. String format: YYYY-MM-DD.
+            realtime_end (str | datetime | date, optional): The end of the real-time period. String format: YYYY-MM-DD.
             limit (int, optional): The maximum number of results to return. Default is 100000.
             offset (int, optional): The offset for the results. Used for pagination.
             sort_order (str, optional): Sort results by observation date. Options: 'asc', 'desc'.
-            observation_start (str | datetime, optional): The start of the observation period. String format: YYYY-MM-DD.
-            observation_end (str | datetime, optional): The end of the observation period. String format: YYYY-MM-DD.
+            observation_start (str | datetime | date, optional): The start of the observation period. String format: YYYY-MM-DD.
+            observation_end (str | datetime | date, optional): The end of the observation period. String format: YYYY-MM-DD.
             units (str, optional): A key that indicates a data transformation. Options: 'lin', 'chg', 'ch1', 'pch', 'pc1', 'pca', 'cch', 'cca', 'log'.
             frequency (str, optional): An optional parameter to change the frequency of the observations. Options: 'd', 'w', 'bw', 'm', 'q', 'sa', 'a', 'wef', 'weth', 'wew', 'wetu', 'wem', 'wesu', 'wesa', 'bwew', 'bwem'.
             aggregation_method (str, optional): A key that indicates the aggregation method used for frequency aggregation. Options: 'avg', 'sum', 'eop'.
@@ -3956,8 +3958,8 @@ class AsyncFred:
         else:
             raise ValueError("dataframe_method must be a string, options are: 'pandas', 'polars', or 'dask'")
 
-    async def get_series_release(self, series_id: str, realtime_start: Optional[Union[str, datetime]]=None,
-                                 realtime_end: Optional[Union[str, datetime]]=None) -> List[Release]:
+    async def get_series_release(self, series_id: str, realtime_start: Optional[Union[str, datetime, date]]=None,
+                                 realtime_end: Optional[Union[str, datetime, date]]=None) -> List[Release]:
         """Get FRED series release
 
         Get the release for a specified series from the FRED API.
@@ -4007,7 +4009,7 @@ class AsyncFred:
         return await Release.to_object_async(response)
 
     async def get_series_search(self, search_text: str, search_type: Optional[str]=None,
-                                realtime_start: Optional[Union[str, datetime]]=None, realtime_end: Optional[Union[str, datetime]]=None,
+                                realtime_start: Optional[Union[str, datetime, date]]=None, realtime_end: Optional[Union[str, datetime, date]]=None,
                                 limit: Optional[int]=None, offset: Optional[int]=None,
                                 order_by: Optional[str]=None, sort_order: Optional[str]=None,
                                 filter_variable: Optional[str]=None, filter_value: Optional[str]=None,
@@ -4019,8 +4021,8 @@ class AsyncFred:
         Args:
             search_text (str): The text to search for in economic data series. if 'search_type'='series_id', it's possible to put an '*' in the middle of a string. 'm*sl' finds any series starting with 'm' and ending with 'sl'.
             search_type (str, optional): The type of search to perform. Options include 'full_text' or 'series_id'. Defaults to None.
-            realtime_start (str | datetime, optional): The start of the real-time period. String format: YYYY-MM-DD. Defaults to None.
-            realtime_end (str | datetime, optional): The end of the real-time period. String format: YYYY-MM-DD. Defaults to None.
+            realtime_start (str | datetime | date, optional): The start of the real-time period. String format: YYYY-MM-DD. Defaults to None.
+            realtime_end (str | datetime | date, optional): The end of the real-time period. String format: YYYY-MM-DD. Defaults to None.
             limit (int, optional): The maximum number of results to return. Defaults to None.
             offset (int, optional): The offset for the results. Defaults to None.
             order_by (str, optional): The attribute to order results by. Options include 'search_rank', 'series_id', 'title', etc. Defaults to None.
@@ -4094,8 +4096,8 @@ class AsyncFred:
         response = await self.__fred_get_request(url_endpoint, data)
         return await Series.to_object_async(response)
 
-    async def get_series_search_tags(self, series_search_text: str, realtime_start: Optional[Union[str, datetime]]=None,
-                                     realtime_end: Optional[Union[str, datetime]]=None, tag_names: Optional[Union[str, list[str]]]=None,
+    async def get_series_search_tags(self, series_search_text: str, realtime_start: Optional[Union[str, datetime, date]]=None,
+                                     realtime_end: Optional[Union[str, datetime, date]]=None, tag_names: Optional[Union[str, list[str]]]=None,
                                      tag_group_id: Optional[str]=None,
                                      tag_search_text: Optional[str]=None, limit: Optional[int]=None,
                                      offset: Optional[int]=None, order_by: Optional[str]=None,
@@ -4106,8 +4108,8 @@ class AsyncFred:
 
         Args:
             series_search_text (str): The words to match against economic data series.
-            realtime_start (str | datetime, optional): The start of the real-time period. String format: YYYY-MM-DD.
-            realtime_end (str | datetime, optional): The end of the real-time period. String format: YYYY-MM-DD.
+            realtime_start (str | datetime | date, optional): The start of the real-time period. String format: YYYY-MM-DD.
+            realtime_end (str | datetime | date, optional): The end of the real-time period. String format: YYYY-MM-DD.
             tag_names (str | list, optional): A semicolon-delimited list of tag names to match.
             tag_group_id (str, optional): A tag group id to filter tags by type.
             tag_search_text (str, optional): The words to match against tags.
@@ -4175,7 +4177,7 @@ class AsyncFred:
         return await Tag.to_object_async(response)
 
     async def get_series_search_related_tags(self, series_search_text: str, tag_names: Union[str, list[str]],
-                                             realtime_start: Optional[Union[str, datetime]]=None, realtime_end: Optional[Union[str,datetime]]=None,
+                                             realtime_start: Optional[Union[str, datetime, date]]=None, realtime_end: Optional[Union[str,datetime]]=None,
                                              exclude_tag_names: Optional[Union[str, list[str]]]=None,tag_group_id: Optional[str]=None,
                                              tag_search_text: Optional[str]=None, limit: Optional[int]=None,
                                              offset: Optional[int]=None, order_by: Optional[str]=None,
@@ -4187,8 +4189,8 @@ class AsyncFred:
         Args:
             series_search_text (str): The text to search for series.
             tag_names (str | list): A semicolon-delimited list of tag names to include.
-            realtime_start (str | datetime, optional): The start of the real-time period. String format: YYYY-MM-DD.
-            realtime_end (str | datetime, optional): The end of the real-time period. String format: YYYY-MM-DD.
+            realtime_start (str | datetime | date, optional): The start of the real-time period. String format: YYYY-MM-DD.
+            realtime_end (str | datetime | date, optional): The end of the real-time period. String format: YYYY-MM-DD.
             exclude_tag_names (str | list, optional): A semicolon-delimited list of tag names to exclude.
             tag_group_id (str, optional): The tag group id to filter tags by type.
             tag_search_text (str, optional): The text to search for tags.
@@ -4258,8 +4260,8 @@ class AsyncFred:
         response = await self.__fred_get_request(url_endpoint, data)
         return await Tag.to_object_async(response)
 
-    async def get_series_tags(self, series_id: str, realtime_start: Optional[Union[str, datetime]]=None,
-                              realtime_end: Optional[Union[str, datetime]]=None, order_by: Optional[str]=None,
+    async def get_series_tags(self, series_id: str, realtime_start: Optional[Union[str, datetime, date]]=None,
+                              realtime_end: Optional[Union[str, datetime, date]]=None, order_by: Optional[str]=None,
                               sort_order: Optional[str]=None) -> List[Tag]:
         """Get FRED series tags
 
@@ -4267,8 +4269,8 @@ class AsyncFred:
 
         Args:
             series_id (str): The ID for a series.
-            realtime_start (str | datetime, optional): The start of the real-time period. String format: YYYY-MM-DD.
-            realtime_end (str | datetime, optional): The end of the real-time period. String format: YYYY-MM-DD.
+            realtime_start (str | datetime | date, optional): The start of the real-time period. String format: YYYY-MM-DD.
+            realtime_end (str | datetime | date, optional): The end of the real-time period. String format: YYYY-MM-DD.
             order_by (str, optional): Order results by values such as 'series_id', 'name', 'popularity', etc.
             sort_order (str, optional): Sort results in 'asc' (ascending) or 'desc' (descending) order.
 
@@ -4318,22 +4320,22 @@ class AsyncFred:
         response = await self.__fred_get_request(url_endpoint, data)
         return await Tag.to_object_async(response)
 
-    async def get_series_updates(self, realtime_start: Optional[Union[str, datetime]]=None,
-                                 realtime_end: Optional[Union[str, datetime]]=None, limit: Optional[int]=None,
+    async def get_series_updates(self, realtime_start: Optional[Union[str, datetime, date]]=None,
+                                 realtime_end: Optional[Union[str, datetime, date]]=None, limit: Optional[int]=None,
                                  offset: Optional[int]=None, filter_value: Optional[str]=None,
-                                 start_time: Optional[Union[str, datetime]]=None, end_time: Optional[Union[str, datetime]]=None) -> List[Series]:
+                                 start_time: Optional[Union[str, datetime, time]]=None, end_time: Optional[Union[str, datetime, time]]=None) -> List[Series]:
         """Get FRED series updates
 
         Retrieves updates for a series from the FRED API.
 
         Args:
-            realtime_start (str | datetime, optional): The start of the real-time period. String format: YYYY-MM-DD.
-            realtime_end (str | datetime, optional): The end of the real-time period. String format: YYYY-MM-DD.
+            realtime_start (str | datetime | date, optional): The start of the real-time period. String format: YYYY-MM-DD.
+            realtime_end (str | datetime | date, optional): The end of the real-time period. String format: YYYY-MM-DD.
             limit (int, optional): The maximum number of results to return. Default is 1000.
             offset (int, optional): The offset for the results. Used for pagination.
             filter_value (str, optional): Filter results by this value.
-            start_time (str| datetime, optional): The start time for the updates. String format: HH:MM.
-            end_time (str | datetime, optional): The end time for the updates. String format: HH:MM.
+            start_time (str | datetime | time, optional): The start time for the updates. String format: HH:MM.
+            end_time (str | datetime | time, optional): The end time for the updates. String format: HH:MM.
 
         Returns:
             List[Series]: If multiple series are returned.
@@ -4389,8 +4391,8 @@ class AsyncFred:
         response = await self.__fred_get_request(url_endpoint, data)
         return await Series.to_object_async(response)
 
-    async def get_series_vintagedates(self, series_id: str, realtime_start: Optional[Union[str, datetime]]=None,
-                                      realtime_end: Optional[Union[str, datetime]]=None, limit: Optional[int]=None,
+    async def get_series_vintagedates(self, series_id: str, realtime_start: Optional[Union[str, datetime, date]]=None,
+                                      realtime_end: Optional[Union[str, datetime, date]]=None, limit: Optional[int]=None,
                                       offset: Optional[int]=None, sort_order: Optional[str]=None) -> List[VintageDate]:
         """Get FRED series vintage dates
 
@@ -4398,8 +4400,8 @@ class AsyncFred:
 
         Args:
             series_id (str): The ID for the FRED series.
-            realtime_start (str | datetime, optional): The start of the real-time period. String format: YYYY-MM-DD.
-            realtime_end (str | datetime, optional): The end of the real-time period. String format: YYYY-MM-DD.
+            realtime_start (str | datetime | date, optional): The start of the real-time period. String format: YYYY-MM-DD.
+            realtime_end (str | datetime | date, optional): The end of the real-time period. String format: YYYY-MM-DD.
             limit (int, optional): The maximum number of results to return.
             offset (int, optional): The offset for the results.
             sort_order (str, optional): The order of the results. Possible values: 'asc' or 'desc'.
@@ -4455,7 +4457,7 @@ class AsyncFred:
         return await VintageDate.to_object_async(response)
 
     ## Sources
-    async def get_sources(self, realtime_start: Optional[Union[str, datetime]]=None, realtime_end: Optional[Union[str, datetime]]=None,
+    async def get_sources(self, realtime_start: Optional[Union[str, datetime, date]]=None, realtime_end: Optional[Union[str, datetime, date]]=None,
                           limit: Optional[int]=None, offset: Optional[int]=None,
                           order_by: Optional[str]=None, sort_order: Optional[str]=None) -> List[Source]:
         """Get FRED sources
@@ -4519,16 +4521,16 @@ class AsyncFred:
         response = await self.__fred_get_request(url_endpoint, data)
         return await Source.to_object_async(response)
 
-    async def get_source(self, source_id: int, realtime_start: Optional[Union[str, datetime]]=None,
-                         realtime_end: Optional[Union[str, datetime]]=None) -> List[Source]:
+    async def get_source(self, source_id: int, realtime_start: Optional[Union[str, datetime, date]]=None,
+                         realtime_end: Optional[Union[str, datetime, date]]=None) -> List[Source]:
         """Get a FRED source
 
         Retrieves information about a source from the FRED API.
 
         Args:
             source_id (int): The ID for the source.
-            realtime_start (str | datetime, optional): The start of the real-time period. String format: YYYY-MM-DD. Defaults to None.
-            realtime_end (str | datetime, optional): The end of the real-time period. String format: YYYY-MM-DD. Defaults to None.
+            realtime_start (str | datetime | date, optional): The start of the real-time period. String format: YYYY-MM-DD. Defaults to None.
+            realtime_end (str | datetime | date, optional): The end of the real-time period. String format: YYYY-MM-DD. Defaults to None.
 
         Returns:
             List[Source]: If multiple sources are returned.
@@ -4569,8 +4571,8 @@ class AsyncFred:
         response = await self.__fred_get_request(url_endpoint, data)
         return await Source.to_object_async(response)
 
-    async def get_source_releases(self, source_id: int , realtime_start: Optional[Union[str, datetime]]=None,
-                                  realtime_end: Optional[Union[str, datetime]]=None, limit: Optional[int]=None,
+    async def get_source_releases(self, source_id: int , realtime_start: Optional[Union[str, datetime, date]]=None,
+                                  realtime_end: Optional[Union[str, datetime, date]]=None, limit: Optional[int]=None,
                                   offset: Optional[int]=None, order_by: Optional[str]=None,
                                   sort_order: Optional[str]=None) -> List[Release]:
         """Get FRED source releases
@@ -4579,8 +4581,8 @@ class AsyncFred:
 
         Args:
             source_id (int): The ID for the source.
-            realtime_start (str | datetime, optional): The start of the real-time period. String format: YYYY-MM-DD.
-            realtime_end (str | datetime, optional): The end of the real-time period. String format: YYYY-MM-DD.
+            realtime_start (str | datetime | date, optional): The start of the real-time period. String format: YYYY-MM-DD.
+            realtime_end (str | datetime | date, optional): The end of the real-time period. String format: YYYY-MM-DD.
             limit (int, optional): The maximum number of results to return.
             offset (int, optional): The offset for the results.
             order_by (str, optional): Order results by values such as 'release_id', 'name', etc.
@@ -4637,7 +4639,7 @@ class AsyncFred:
         return await Release.to_object_async(response)
 
     ## Tags
-    async def get_tags(self, realtime_start: Optional[Union[str, datetime]]=None, realtime_end: Optional[Union[str,datetime]]=None,
+    async def get_tags(self, realtime_start: Optional[Union[str, datetime, date]]=None, realtime_end: Optional[Union[str,datetime]]=None,
                        tag_names: Optional[Union[str, list[str]]]=None, tag_group_id: Optional[str]=None,
                        search_text: Optional[str]=None, limit: Optional[int]=None,
                        offset: Optional[int]=None, order_by: Optional[str]=None,
@@ -4647,8 +4649,8 @@ class AsyncFred:
         Retrieve FRED tags based on specified parameters.
 
         Args:
-            realtime_start (str | datetime, optional): The start of the real-time period. String format: YYYY-MM-DD.
-            realtime_end (str | datetime, optional): The end of the real-time period. String format: YYYY-MM-DD.
+            realtime_start (str | datetime | date, optional): The start of the real-time period. String format: YYYY-MM-DD.
+            realtime_end (str | datetime | date, optional): The end of the real-time period. String format: YYYY-MM-DD.
             tag_names (str | list, optional): A semicolon-delimited list of tag names to filter results.
             tag_group_id (str, optional): A tag group ID to filter results.
             search_text (str, optional): The words to match against tag names and descriptions.
@@ -4713,7 +4715,7 @@ class AsyncFred:
         response = await self.__fred_get_request(url_endpoint, data)
         return await Tag.to_object_async(response)
 
-    async def get_related_tags(self, realtime_start: Optional[Union[str, datetime]]=None, realtime_end: Optional[Union[str, datetime]]=None,
+    async def get_related_tags(self, realtime_start: Optional[Union[str, datetime, date]]=None, realtime_end: Optional[Union[str, datetime, date]]=None,
                                tag_names: Optional[Union[str, list[str]]]=None, exclude_tag_names: Optional[Union[str, list[str]]]=None,
                                tag_group_id: Optional[str]=None, search_text: Optional[str]=None,
                                limit: Optional[int]=None, offset: Optional[int]=None,
@@ -4723,8 +4725,8 @@ class AsyncFred:
         Retrieve related tags for a given set of tags from the FRED API.
 
         Args:
-            realtime_start (str | datetime, optional): The start of the real-time period. Strinng format: YYYY-MM-DD.
-            realtime_end (str | datetime, optional): The end of the real-time period. String format: YYYY-MM-DD.
+            realtime_start (str | datetime | date, optional): The start of the real-time period. Strinng format: YYYY-MM-DD.
+            realtime_end (str | datetime | date, optional): The end of the real-time period. String format: YYYY-MM-DD.
             tag_names (str | list, optional): A semicolon-delimited list of tag names to include in the search.
             exclude_tag_names (str | list, optional): A semicolon-delimited list of tag names to exclude from the search.
             tag_group_id (str, optional): A tag group ID to filter tags by group.
@@ -4795,7 +4797,7 @@ class AsyncFred:
         return await Tag.to_object_async(response)
 
     async def get_tags_series(self, tag_names: Optional[Union[str, list[str]]]=None, exclude_tag_names: Optional[Union[str, list[str]]]=None,
-                              realtime_start: Optional[Union[str, datetime]]=None, realtime_end: Optional[Union[str, datetime]]=None,
+                              realtime_start: Optional[Union[str, datetime, date]]=None, realtime_end: Optional[Union[str, datetime, date]]=None,
                               limit: Optional[int]=None, offset: Optional[int]=None,
                               order_by: Optional[str]=None, sort_order: Optional[str]=None) -> List[Series]:
         """Get FRED tags series
