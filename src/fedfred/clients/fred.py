@@ -2681,10 +2681,7 @@ class AsyncFred:
             caching to work correctly.
         """
 
-        if data:
-            await _fred_parameter_validator_async(data)
-
-        if self._parent.cache_mode:
+        if self.caching_enabled:
             return await _cached_get_request_async(url_endpoint, await _hashable_type_converter_async(data))
 
         else:
