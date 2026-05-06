@@ -27,7 +27,7 @@ methods for data conversion, validation, and extraction used across the fedfred 
 
 from ._converters import (
     _hashable_type_converter, _hashable_type_converter_async,
-    DATAFRAME_CONVERTER_MAP, #ASYNC_DATAFRAME_CONVERTER_MAP,
+    DATAFRAME_CONVERTER_MAP, ASYNC_DATAFRAME_CONVERTER_MAP,
 )
 
 from ._transport import (

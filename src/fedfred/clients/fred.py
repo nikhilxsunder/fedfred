@@ -62,7 +62,7 @@ from ..settings import _resolve_api_key, set_api_key
 from .._core import (
     # Converters
     _hashable_type_converter, _hashable_type_converter_async,
-    DATAFRAME_CONVERTER_MAP, #ASYNC_DATAFRAME_CONVERTER_MAP,
+    DATAFRAME_CONVERTER_MAP, ASYNC_DATAFRAME_CONVERTER_MAP,
     # Transport
     _get_request, _get_request_async,
     _cached_get_request, _cached_get_request_async,
@@ -664,7 +664,7 @@ class Fred:
                           realtime_end: Optional[Union[str, datetime, date]]=None, tag_names: Optional[Union[str, list[str]]]=None,
                           tag_group_id: Optional[int]=None, search_text: Optional[str]=None,
                           limit: Optional[int]=None, offset: Optional[int]=None,
-                          order_by: Optional[int]=None, sort_order: Optional[str]=None) -> List[Tag]:
+                          order_by: Optional[str]=None, sort_order: Optional[str]=None) -> List[Tag]:
         """Get a FRED Category's Tags
 
         Get the all the tags for a category from the FRED API.
@@ -731,7 +731,7 @@ class Fred:
                                   exclude_tag_names: Optional[Union[str, list[str]]]=None,
                                   tag_group_id: Optional[str]=None, search_text: Optional[str]=None,
                                   limit: Optional[int]=None, offset: Optional[int]=None,
-                                  order_by: Optional[int]=None, sort_order: Optional[int]=None) -> List[Tag]:
+                                  order_by: Optional[str]=None, sort_order: Optional[str]=None) -> List[Tag]:
         """Get a FRED Category's Related Tags
 
         Retrieve all tags related to a specified category from the FRED API.
@@ -742,7 +742,7 @@ class Fred:
             realtime_end (str | datetime | date, optional): The end of the real-time period. String format: YYYY-MM-DD.
             tag_names (str | list, optional): A semicolon-delimited list of tag names to include.
             exclude_tag_names (str | list, optional): A semicolon-delimited list of tag names to exclude.
-            tag_group_id (int, optional): The ID for a tag group.
+            tag_group_id (str, optional): The ID for a tag group.
             search_text (str, optional): The words to find matching tags with.
             limit (int, optional): The maximum number of results to return.
             offset (int, optional): The offset for the results.
@@ -1259,7 +1259,7 @@ class Fred:
 
     def get_release_tables(self, release_id: int, element_id: Optional[int]=None,
                            include_observation_values: Optional[bool]=None,
-                           observation_date: Optional[Union[str, datetime, date]]=None) -> List[Element]: # TODO: needs complete implementation/redesign, FRED changed output schema and this method is currently not working
+                           observation_date: Optional[Union[str, datetime, date]]=None) -> List[Element]:
         """Get FRED release tables
 
         Fetches release tables from the FRED API.
@@ -1314,14 +1314,14 @@ class Fred:
 
         Args:
             release_id (int): The ID for the release.
-            limit (int, optional): The maximum number of results to return per request.
+            limit (int, optional): The maximum number of results to return per request.1
 
         Returns:
             List[BulkRelease]: If multiple bulk release observations are returned.
 
         Raises:
             ValueError: If the API request fails or returns an error.
-            
+        
         Example:
             >>> import fedfred as fd
             >>> fred = fd.Fred('your_api_key')
@@ -2722,13 +2722,13 @@ class AsyncFred:
             - fedfred package documentation: https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.AsyncFred.get_category.html
         """
 
-        url_endpoint = 'get_category'
+        endpoint_name = 'get_category'
 
         data: Dict[str, Any] = {
             'category_id': category_id
         }
 
-        response = await self.__fred_get_request(url_endpoint, data)
+        response = await self.__fred_get_request(endpoint_name, data)
 
         return await Category.to_object_async(response)
 
@@ -2771,19 +2771,16 @@ class AsyncFred:
             - fedfred package documentation: https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.AsyncFred.get_category_children.html
         """
 
-        url_endpoint = '/category/children'
-        data: Dict[str, Optional[Union[str, int]]] = {
-            'category_id': category_id
+        endpoint_name = 'get_category_children'
+
+        data: Dict[str, Any] = {
+            'category_id': category_id,
+            'realtime_start': realtime_start,
+            'realtime_end': realtime_end
         }
-        if realtime_start:
-            if isinstance(realtime_start, datetime):
-                realtime_start = await _datetime_converter_async(realtime_start)
-            data['realtime_start'] = realtime_start
-        if realtime_end:
-            if isinstance(realtime_end, datetime):
-                realtime_end = await _datetime_converter_async(realtime_end)
-            data['realtime_end'] = realtime_end
-        response = await self.__fred_get_request(url_endpoint, data)
+
+        response = await self.__fred_get_request(endpoint_name, data)
+
         return await Category.to_object_async(response)
 
     async def get_category_related(self, category_id: int, realtime_start: Optional[Union[str, datetime, date]]=None,
@@ -2828,19 +2825,16 @@ class AsyncFred:
             - fedfred package documentation: https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.AsyncFred.get_category_related.html
         """
 
-        url_endpoint = '/category/related'
-        data: Dict[str, Optional[Union[str, int]]] = {
-            'category_id': category_id
+        endpoint_name = 'get_category_related'
+
+        data: Dict[str, Any] = {
+            'category_id': category_id,
+            'realtime_start': realtime_start,
+            'realtime_end': realtime_end
         }
-        if realtime_start:
-            if isinstance(realtime_start, datetime):
-                realtime_start = await _datetime_converter_async(realtime_start)
-            data['realtime_start'] = realtime_start
-        if realtime_end:
-            if isinstance(realtime_end, datetime):
-                realtime_end = await _datetime_converter_async(realtime_end)
-            data['realtime_end'] = realtime_end
-        response = await self.__fred_get_request(url_endpoint, data)
+
+        response = await self.__fred_get_request(endpoint_name, data)
+
         return await Category.to_object_async(response)
 
     async def get_category_series(self, category_id: int, realtime_start: Optional[Union[str, datetime, date]]=None,
@@ -2893,46 +2887,31 @@ class AsyncFred:
             - fedfred package documentation: https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.AsyncFred.get_category_series.html
         """
 
-        url_endpoint = '/category/series'
-        data: Dict[str, Optional[Union[str, int]]] = {
-            'category_id': category_id
+        endpoint_name = 'get_category_series'
+
+        data: Dict[str, Any] = {
+            'category_id': category_id,
+            'realtime_start': realtime_start,
+            'realtime_end': realtime_end,
+            'limit': limit,
+            'offset': offset,
+            'order_by': order_by,
+            'sort_order': sort_order,
+            'filter_variable': filter_variable,
+            'filter_value': filter_value,
+            'tag_names': tag_names,
+            'exclude_tag_names': exclude_tag_names
         }
-        if realtime_start:
-            if isinstance(realtime_start, datetime):
-                realtime_start = await _datetime_converter_async(realtime_start)
-            data['realtime_start'] = realtime_start
-        if realtime_end:
-            if isinstance(realtime_end, datetime):
-                realtime_end = await _datetime_converter_async(realtime_end)
-            data['realtime_end'] = realtime_end
-        if limit:
-            data['limit'] = limit
-        if offset:
-            data['offset'] = offset
-        if order_by:
-            data['order_by'] = order_by
-        if sort_order:
-            data['sort_order'] = sort_order
-        if filter_variable:
-            data['filter_variable'] = filter_variable
-        if filter_value:
-            data['filter_value'] = filter_value
-        if tag_names:
-            if isinstance(tag_names, list):
-                tag_names = await _liststring_converter_async(tag_names)
-            data['tag_names'] = tag_names
-        if exclude_tag_names:
-            if isinstance(exclude_tag_names, list):
-                exclude_tag_names = await _liststring_converter_async(exclude_tag_names)
-            data['exclude_tag_names'] = exclude_tag_names
-        response = await self.__fred_get_request(url_endpoint, data)
+
+        response = await self.__fred_get_request(endpoint_name, data)
+
         return await Series.to_object_async(response)
 
     async def get_category_tags(self, category_id: int, realtime_start: Optional[Union[str, datetime, date]]=None,
                                 realtime_end: Optional[Union[str, datetime, date]]=None, tag_names: Optional[Union[str, list[str]]]=None,
                                 tag_group_id: Optional[int]=None, search_text: Optional[str]=None,
                                 limit: Optional[int]=None, offset: Optional[int]=None,
-                                order_by: Optional[int]=None, sort_order: Optional[str]=None) -> List[Tag]:
+                                order_by: Optional[str]=None, sort_order: Optional[str]=None) -> List[Tag]:
         """Get a FRED Category's Tags
 
         Get the all the tags for a category from the FRED API.
@@ -2976,35 +2955,23 @@ class AsyncFred:
             - fedfred package documentation: https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.AsyncFred.get_category_tags.html
         """
 
-        url_endpoint = '/category/tags'
-        data: Dict[str, Optional[Union[str, int]]] = {
-            'category_id': category_id
+        endpoint_name = 'get_category_tags'
+
+        data: Dict[str, Any] = {
+            'category_id': category_id,
+            'realtime_start': realtime_start,
+            'realtime_end': realtime_end,
+            'tag_names': tag_names,
+            'tag_group_id': tag_group_id,
+            'search_text': search_text,
+            'limit': limit,
+            'offset': offset,
+            'order_by': order_by,
+            'sort_order': sort_order
         }
-        if realtime_start:
-            if isinstance(realtime_start, datetime):
-                realtime_start = await _datetime_converter_async(realtime_start)
-            data['realtime_start'] = realtime_start
-        if realtime_end:
-            if isinstance(realtime_end, datetime):
-                realtime_end = await _datetime_converter_async(realtime_end)
-            data['realtime_end'] = realtime_end
-        if tag_names:
-            if isinstance(tag_names, list):
-                tag_names = await _liststring_converter_async(tag_names)
-            data['tag_names'] = tag_names
-        if tag_group_id:
-            data['tag_group_id'] = tag_group_id
-        if search_text:
-            data['search_text'] = search_text
-        if limit:
-            data['limit'] = limit
-        if offset:
-            data['offset'] = offset
-        if order_by:
-            data['order_by'] = order_by
-        if sort_order:
-            data['sort_order'] = sort_order
-        response = await self.__fred_get_request(url_endpoint, data)
+
+        response = await self.__fred_get_request(endpoint_name, data)
+
         return await Tag.to_object_async(response)
 
     async def get_category_related_tags(self, category_id: int, realtime_start: Optional[Union[str, datetime, date]]=None,
@@ -3012,7 +2979,7 @@ class AsyncFred:
                                         exclude_tag_names: Optional[Union[str, list[str]]]=None,
                                         tag_group_id: Optional[str]=None, search_text: Optional[str]=None,
                                         limit: Optional[int]=None, offset: Optional[int]=None,
-                                        order_by: Optional[int]=None, sort_order: Optional[int]=None) -> List[Tag]:
+                                        order_by: Optional[str]=None, sort_order: Optional[str]=None) -> List[Tag]:
         """Get a FRED Category's Related Tags
 
         Retrieve all tags related to a specified category from the FRED API.
@@ -3023,7 +2990,7 @@ class AsyncFred:
             realtime_end (str | datetime | date, optional): The end of the real-time period. String format: YYYY-MM-DD.
             tag_names (str | list, optional): A semicolon-delimited list of tag names to include.
             exclude_tag_names (str | list, optional): A semicolon-delimited list of tag names to exclude.
-            tag_group_id (int, optional): The ID for a tag group.
+            tag_group_id (str, optional): The ID for a tag group.
             search_text (str, optional): The words to find matching tags with.
             limit (int, optional): The maximum number of results to return.
             offset (int, optional): The offset for the results.
@@ -3058,39 +3025,24 @@ class AsyncFred:
             - fedfred package documentation: https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.AsyncFred.get_category_related_tags.html
         """
 
-        url_endpoint = '/category/related_tags'
-        data: Dict[str, Optional[Union[str, int]]] = {
-            'category_id': category_id
+        endpoint_name = 'get_category_related_tags'
+
+        data: Dict[str, Any] = {
+            'category_id': category_id,
+            'realtime_start': realtime_start,
+            'realtime_end': realtime_end,
+            'tag_names': tag_names,
+            'exclude_tag_names': exclude_tag_names,
+            'tag_group_id': tag_group_id,
+            'search_text': search_text,
+            'limit': limit,
+            'offset': offset,
+            'order_by': order_by,
+            'sort_order': sort_order
         }
-        if realtime_start:
-            if isinstance(realtime_start, datetime):
-                realtime_start = await _datetime_converter_async(realtime_start)
-            data['realtime_start'] = realtime_start
-        if realtime_end:
-            if isinstance(realtime_end, datetime):
-                realtime_end = await _datetime_converter_async(realtime_end)
-            data['realtime_end'] = realtime_end
-        if tag_names:
-            if isinstance(tag_names, list):
-                tag_names = await _liststring_converter_async(tag_names)
-            data['tag_names'] = tag_names
-        if exclude_tag_names:
-            if isinstance(exclude_tag_names, list):
-                exclude_tag_names = await _liststring_converter_async(exclude_tag_names)
-            data['exclude_tag_names'] = exclude_tag_names
-        if tag_group_id:
-            data['tag_group_id'] = tag_group_id
-        if search_text:
-            data['search_text'] = search_text
-        if limit:
-            data['limit'] = limit
-        if offset:
-            data['offset'] = offset
-        if order_by:
-            data['order_by'] = order_by
-        if sort_order:
-            data['sort_order'] = sort_order
-        response = await self.__fred_get_request(url_endpoint, data)
+
+        response = await self.__fred_get_request(endpoint_name, data)
+
         return await Tag.to_object_async(response)
 
     ## Releases
@@ -3111,7 +3063,7 @@ class AsyncFred:
             sort_order (str, optional): Sort results in 'asc' (ascending) or 'desc' (descending) order. Default is None.
 
         Returns:
-            List[Releases]: If multiple Releases are returned.
+            List[Release]: If multiple Releases are returned.
 
         Raises:
             ValueError: If the API request fails or returns an error.
@@ -3137,25 +3089,19 @@ class AsyncFred:
             - fedfred package documentation: https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.AsyncFred.get_releases.html
         """
 
-        url_endpoint = '/releases'
-        data: Dict[str, Optional[Union[str, int]]] = {}
-        if realtime_start:
-            if isinstance(realtime_start, datetime):
-                realtime_start = await _datetime_converter_async(realtime_start)
-            data['realtime_start'] = realtime_start
-        if realtime_end:
-            if isinstance(realtime_end, datetime):
-                realtime_end = await _datetime_converter_async(realtime_end)
-            data['realtime_end'] = realtime_end
-        if limit:
-            data['limit'] = limit
-        if offset:
-            data['offset'] = offset
-        if order_by:
-            data['order_by'] = order_by
-        if sort_order:
-            data['sort_order'] = sort_order
-        response = await self.__fred_get_request(url_endpoint, data)
+        endpoint_name = 'get_releases'
+
+        data: Dict[str, Any] = {
+            'realtime_start': realtime_start,
+            'realtime_end': realtime_end,
+            'limit': limit,
+            'offset': offset,
+            'order_by': order_by,
+            'sort_order': sort_order
+        }
+
+        response = await self.__fred_get_request(endpoint_name, data)
+
         return await Release.to_object_async(response)
 
     async def get_releases_dates(self, realtime_start: Optional[Union[str, datetime, date]]=None,
@@ -3203,27 +3149,20 @@ class AsyncFred:
             - fedfred package documentation: https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.AsyncFred.get_releases_dates.html
         """
 
-        url_endpoint = '/releases/dates'
-        data: Dict[str, Optional[Union[str, int]]] = {}
-        if realtime_start:
-            if isinstance(realtime_start, datetime):
-                realtime_start = await _datetime_converter_async(realtime_start)
-            data['realtime_start'] = realtime_start
-        if realtime_end:
-            if isinstance(realtime_end, datetime):
-                realtime_end = await _datetime_converter_async(realtime_end)
-            data['realtime_end'] = realtime_end
-        if limit:
-            data['limit'] = limit
-        if offset:
-            data['offset'] = offset
-        if order_by:
-            data['order_by'] = order_by
-        if sort_order:
-            data['sort_order'] = sort_order
-        if include_releases_dates_with_no_data:
-            data['include_releases_dates_with_no_data'] = include_releases_dates_with_no_data
-        response = await self.__fred_get_request(url_endpoint, data)
+        endpoint_name = 'get_releases_dates'
+
+        data: Dict[str, Any] = {
+            'realtime_start': realtime_start,
+            'realtime_end': realtime_end,
+            'limit': limit,
+            'offset': offset,
+            'order_by': order_by,
+            'sort_order': sort_order,
+            'include_releases_dates_with_no_data': include_releases_dates_with_no_data
+        }
+
+        response = await self.__fred_get_request(endpoint_name, data)
+
         return await ReleaseDate.to_object_async(response)
 
     async def get_release(self, release_id: int, realtime_start: Optional[Union[str, datetime, date]]=None,
@@ -3261,19 +3200,16 @@ class AsyncFred:
             - fedfred package documentation: https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.AsyncFred.get_release.html
         """
 
-        url_endpoint = '/release/'
-        data: Dict[str, Optional[Union[str, int]]] = {
-            'release_id': release_id
+        endpoint_name = 'get_release'
+
+        data: Dict[str, Any] = {
+            'release_id': release_id,
+            'realtime_start': realtime_start,
+            'realtime_end': realtime_end
         }
-        if realtime_start:
-            if isinstance(realtime_start, datetime):
-                realtime_start = await _datetime_converter_async(realtime_start)
-            data['realtime_start'] = realtime_start
-        if realtime_end:
-            if isinstance(realtime_end, datetime):
-                realtime_end = await _datetime_converter_async(realtime_end)
-            data['realtime_end'] = realtime_end
-        response = await self.__fred_get_request(url_endpoint, data)
+
+        response = await self.__fred_get_request(endpoint_name, data)
+
         return await Release.to_object_async(response)
 
     async def get_release_dates(self, release_id: int, realtime_start: Optional[Union[str, datetime, date]]=None,
@@ -3320,29 +3256,20 @@ class AsyncFred:
             - fedfred package documentation: https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.AsyncFred.get_release_dates.html
         """
 
-        url_endpoint = '/release/dates'
-        data: Dict[str, Optional[Union[str, int]]] = {
-            'release_id': release_id
+        endpoint_name = 'get_release_dates'
+
+        data: Dict[str, Any] = {
+            'release_id': release_id,
+            'realtime_start': realtime_start,
+            'realtime_end': realtime_end,
+            'limit': limit,
+            'offset': offset,
+            'sort_order': sort_order,
+            'include_releases_dates_with_no_data': include_releases_dates_with_no_data
         }
-        if not isinstance(release_id, int) or release_id < 0:
-            raise ValueError("category_id must be a non-negative integer")
-        if realtime_start:
-            if isinstance(realtime_start, datetime):
-                realtime_start = await _datetime_converter_async(realtime_start)
-            data['realtime_start'] = realtime_start
-        if realtime_end:
-            if isinstance(realtime_end, datetime):
-                realtime_end = await _datetime_converter_async(realtime_end)
-            data['realtime_end'] = realtime_end
-        if limit:
-            data['limit'] = limit
-        if offset:
-            data['offset'] = offset
-        if sort_order:
-            data['sort_order'] = sort_order
-        if include_releases_dates_with_no_data:
-            data['include_releases_dates_with_no_data'] = include_releases_dates_with_no_data
-        response = await self.__fred_get_request(url_endpoint, data)
+
+        response = await self.__fred_get_request(endpoint_name, data)
+
         return await ReleaseDate.to_object_async(response)
 
     async def get_release_series(self, release_id: int, realtime_start: Optional[Union[str, datetime, date]]=None,
@@ -3392,33 +3319,22 @@ class AsyncFred:
             - fedfred package documentation: https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.AsyncFred.get_release_series.html
         """
 
-        url_endpoint = '/release/series'
-        data: Dict[str, Optional[Union[str, int]]] = {
-            'release_id': release_id
+        endpoint_name = 'get_release_series'
+
+        data: Dict[str, Any] = {
+            'release_id': release_id,
+            'realtime_start': realtime_start,
+            'realtime_end': realtime_end,
+            'limit': limit,
+            'offset': offset,
+            'sort_order': sort_order,
+            'filter_variable': filter_variable,
+            'filter_value': filter_value,
+            'exclude_tag_names': exclude_tag_names
         }
-        if realtime_start:
-            if isinstance(realtime_start, datetime):
-                realtime_start = await _datetime_converter_async(realtime_start)
-            data['realtime_start'] = realtime_start
-        if realtime_end:
-            if isinstance(realtime_end, datetime):
-                realtime_end = await _datetime_converter_async(realtime_end)
-            data['realtime_end'] = realtime_end
-        if limit:
-            data['limit'] = limit
-        if offset:
-            data['offset'] = offset
-        if sort_order:
-            data['sort_order'] = sort_order
-        if filter_variable:
-            data['filter_variable'] = filter_variable
-        if filter_value:
-            data['filter_value'] = filter_value
-        if exclude_tag_names:
-            if isinstance(exclude_tag_names, list):
-                exclude_tag_names = await _liststring_converter_async(exclude_tag_names)
-            data['exclude_tag_names'] = exclude_tag_names
-        response = await self.__fred_get_request(url_endpoint, data)
+
+        response = await self.__fred_get_request(endpoint_name, data)
+
         return await Series.to_object_async(response)
 
     async def get_release_sources(self, release_id: int, realtime_start: Optional[Union[str, datetime, date]]=None,
@@ -3458,19 +3374,16 @@ class AsyncFred:
             - fedfred package documentation: https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.AsyncFred.get_release_sources.html
         """
 
-        url_endpoint = '/release/sources'
-        data: Dict[str, Optional[Union[str, int]]] = {
-            'release_id': release_id
+        endpoint_name = 'get_release_sources'
+
+        data: Dict[str, Any] = {
+            'release_id': release_id,
+            'realtime_start': realtime_start,
+            'realtime_end': realtime_end
         }
-        if realtime_start:
-            if isinstance(realtime_start, datetime):
-                realtime_start = await _datetime_converter_async(realtime_start)
-            data['realtime_start'] = realtime_start
-        if realtime_end:
-            if isinstance(realtime_end, datetime):
-                realtime_end = await _datetime_converter_async(realtime_end)
-            data['realtime_end'] = realtime_end
-        response = await self.__fred_get_request(url_endpoint, data)
+
+        response = await self.__fred_get_request(endpoint_name, data)
+
         return await Source.to_object_async(response)
 
     async def get_release_tags(self, release_id: int, realtime_start: Optional[Union[str, datetime, date]]=None,
@@ -3520,33 +3433,22 @@ class AsyncFred:
             - fedfred package documentation: https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.AsyncFred.get_release_tags.html
         """
 
-        url_endpoint = '/release/tags'
-        data: Dict[str, Optional[Union[str, int]]] = {
-            'release_id': release_id
+        endpoint_name = 'get_release_tags'
+
+        data: Dict[str, Any] = {
+            'release_id': release_id,
+            'realtime_start': realtime_start,
+            'realtime_end': realtime_end,
+            'tag_names': tag_names,
+            'tag_group_id': tag_group_id,
+            'search_text': search_text,
+            'limit': limit,
+            'offset': offset,
+            'order_by': order_by
         }
-        if realtime_start:
-            if isinstance(realtime_start, datetime):
-                realtime_start = await _datetime_converter_async(realtime_start)
-            data['realtime_start'] = realtime_start
-        if realtime_end:
-            if isinstance(realtime_end, datetime):
-                realtime_end = await _datetime_converter_async(realtime_end)
-            data['realtime_end'] = realtime_end
-        if tag_names:
-            if isinstance(tag_names, list):
-                tag_names = await _liststring_converter_async(tag_names)
-            data['tag_names'] = tag_names
-        if tag_group_id:
-            data['tag_group_id'] = tag_group_id
-        if search_text:
-            data['search_text'] = search_text
-        if limit:
-            data['limit'] = limit
-        if offset:
-            data['offset'] = offset
-        if order_by:
-            data['order_by'] = order_by
-        response = await self.__fred_get_request(url_endpoint, data)
+
+        response = await self.__fred_get_request(endpoint_name, data)
+
         return await Tag.to_object_async(response)
 
     async def get_release_related_tags(self, release_id: int, realtime_start: Optional[Union[str, datetime, date]]=None,
@@ -3598,39 +3500,24 @@ class AsyncFred:
             - fedfred package documentation: https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.AsyncFred.get_release_related_tags.html
         """
 
-        url_endpoint = '/release/related_tags'
-        data: Dict[str, Optional[Union[str, int]]] = {
-            'release_id': release_id
+        endpoint_name = 'get_release_related_tags'
+
+        data: Dict[str, Any] = {
+            'release_id': release_id,
+            'realtime_start': realtime_start,
+            'realtime_end': realtime_end,
+            'tag_names': tag_names,
+            'exclude_tag_names': exclude_tag_names,
+            'tag_group_id': tag_group_id,
+            'search_text': search_text,
+            'limit': limit,
+            'offset': offset,
+            'order_by': order_by,
+            'sort_order': sort_order
         }
-        if realtime_start:
-            if isinstance(realtime_start, datetime):
-                realtime_start = await _datetime_converter_async(realtime_start)
-            data['realtime_start'] = realtime_start
-        if realtime_end:
-            if isinstance(realtime_end, datetime):
-                realtime_end = await _datetime_converter_async(realtime_end)
-            data['realtime_end'] = realtime_end
-        if tag_names:
-            if isinstance(tag_names, list):
-                tag_names = await _liststring_converter_async(tag_names)
-            data['tag_names'] = tag_names
-        if exclude_tag_names:
-            if isinstance(exclude_tag_names, list):
-                exclude_tag_names = await _liststring_converter_async(exclude_tag_names)
-            data['exclude_tag_names'] = exclude_tag_names
-        if tag_group_id:
-            data['tag_group_id'] = tag_group_id
-        if search_text:
-            data['search_text'] = search_text
-        if limit:
-            data['limit'] = limit
-        if offset:
-            data['offset'] = offset
-        if order_by:
-            data['order_by'] = order_by
-        if sort_order:
-            data['sort_order'] = sort_order
-        response = await self.__fred_get_request(url_endpoint, data)
+
+        response = await self.__fred_get_request(endpoint_name, data)
+
         return await Tag.to_object_async(response)
 
     async def get_release_tables(self, release_id: int, element_id: Optional[int]=None,
@@ -3673,19 +3560,17 @@ class AsyncFred:
             - fedfred package documentation: https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.AsyncFred.get_release_tables.html
         """
 
-        url_endpoint = '/release/tables'
-        data: Dict[str, Optional[Union[str, int]]] = {
-            'release_id': release_id
+        endpoint_name = 'get_release_tables'
+
+        data: Dict[str, Any] = {
+            'release_id': release_id,
+            'element_id': element_id,
+            'include_observation_values': include_observation_values,
+            'observation_date': observation_date
         }
-        if element_id:
-            data['element_id'] = element_id
-        if include_observation_values:
-            data['include_observation_values'] = include_observation_values
-        if observation_date:
-            if isinstance(observation_date, datetime):
-                observation_date = await _datetime_converter_async(observation_date)
-            data['observation_date'] = observation_date
-        response = await self.__fred_get_request(url_endpoint, data)
+
+        response = await self.__fred_get_request(endpoint_name, data)
+
         return await Element.to_object_async(response)
 
     async def get_release_observations(self, release_id: int, limit: Optional[int]=None) -> List[BulkRelease]:
@@ -3726,22 +3611,31 @@ class AsyncFred:
             - :class:`fedfred.BulkRelease`: Class representing bulk release observations.
         """
 
-        url_endpoint = '/v2/release/observations'
+        endpoint_name = 'get_release_observations'
+
         return_list = []
+
         has_more = True
-        data: Dict[str, Optional[Union[str, int]]] = {
-            'release_id': release_id
+
+        data: Dict[str, Any] = {
+            'release_id': release_id,
+            'limit': limit
         }
-        if limit:
-            data['limit'] = limit
+
         while has_more:
-            response = await self.__fred_get_request(url_endpoint, data)
+
+            response = await self.__fred_get_request(endpoint_name, data)
+
             converted = await BulkRelease.to_object_async(response)
+
             return_list.append(converted)
+
             if response['has_more']:
                 data['next_cursor'] = response['next_cursor']
+
             else:
                 has_more = False
+
         return return_list
 
     ## Series
@@ -3780,19 +3674,16 @@ class AsyncFred:
             - fedfred package documentation: https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.AsyncFred.get_series.html
         """
 
-        url_endpoint = '/series'
-        data: Dict[str, Optional[Union[str, int]]] = {
-            'series_id': series_id
+        endpoint_name = 'get_series'
+
+        data: Dict[str, Any] = {
+            'series_id': series_id,
+            'realtime_start': realtime_start,
+            'realtime_end': realtime_end
         }
-        if realtime_start:
-            if isinstance(realtime_start, datetime):
-                realtime_start = await _datetime_converter_async(realtime_start)
-            data['realtime_start'] = realtime_start
-        if realtime_end:
-            if isinstance(realtime_end, datetime):
-                realtime_end = await _datetime_converter_async(realtime_end)
-            data['realtime_end'] = realtime_end
-        response = await self.__fred_get_request(url_endpoint, data)
+
+        response = await self.__fred_get_request(endpoint_name, data)
+
         return await Series.to_object_async(response)
 
     async def get_series_categories(self, series_id: str, realtime_start: Optional[Union[str, datetime, date]]=None,
@@ -3832,19 +3723,16 @@ class AsyncFred:
             - fedfred package documentation: https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.AsyncFred.get_series_categories.html
         """
 
-        url_endpoint = '/series/categories'
-        data: Dict[str, Optional[Union[str, int]]] = {
-            'series_id': series_id
+        endpoint_name = 'get_series_categories'
+
+        data: Dict[str, Any] = {
+            'series_id': series_id,
+            'realtime_start': realtime_start,
+            'realtime_end': realtime_end
         }
-        if realtime_start:
-            if isinstance(realtime_start, datetime):
-                realtime_start = await _datetime_converter_async(realtime_start)
-            data['realtime_start'] = realtime_start
-        if realtime_end:
-            if isinstance(realtime_end, datetime):
-                realtime_end = await _datetime_converter_async(realtime_end)
-            data['realtime_end'] = realtime_end
-        response = await self.__fred_get_request(url_endpoint, data)
+
+        response = await self.__fred_get_request(endpoint_name, data)
+
         return await Category.to_object_async(response)
 
     async def get_series_observations(self, series_id: str, dataframe_method: str = 'pandas',
@@ -3908,52 +3796,31 @@ class AsyncFred:
             - fedfred package documentation: https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.AsyncFred.get_series_observations.html
         """
 
-        url_endpoint = '/series/observations'
-        data: Dict[str, Optional[Union[str, int]]] = {
-            'series_id': series_id
+        endpoint_name = 'get_series_observations'
+
+        data: Dict[str, Any] = {
+            'series_id': series_id,
+            'realtime_start': realtime_start,
+            'realtime_end': realtime_end,
+            'limit': limit,
+            'offset': offset,
+            'sort_order': sort_order,
+            'observation_start': observation_start,
+            'observation_end': observation_end,
+            'units': units,
+            'frequency': frequency,
+            'aggregation_method': aggregation_method,
+            'output_type': output_type,
+            'vintage_dates': vintage_dates
         }
-        if realtime_start:
-            if isinstance(realtime_start, datetime):
-                realtime_start = await _datetime_converter_async(realtime_start)
-            data['realtime_start'] = realtime_start
-        if realtime_end:
-            if isinstance(realtime_end, datetime):
-                realtime_end = await _datetime_converter_async(realtime_end)
-            data['realtime_end'] = realtime_end
-        if limit:
-            data['limit'] = limit
-        if offset:
-            data['offset'] = offset
-        if sort_order:
-            data['sort_order'] = sort_order
-        if observation_start:
-            if isinstance(observation_start, datetime):
-                observation_start = await _datetime_converter_async(observation_start)
-            data['observation_start'] = observation_start
-        if observation_end:
-            if isinstance(observation_end, datetime):
-                observation_end = await _datetime_converter_async(observation_end)
-            data['observation_end'] = observation_end
-        if units:
-            data['units'] = units
-        if frequency:
-            data['frequency'] = frequency
-        if aggregation_method:
-            data['aggregation_method'] = aggregation_method
-        if output_type:
-            data['output_type'] = output_type
-        if vintage_dates:
-            vintage_dates = await _vintage_dates_type_converter_async(vintage_dates)
-            data['vintage_dates'] = vintage_dates
-        response = await self.__fred_get_request(url_endpoint, data)
-        if dataframe_method == 'pandas':
-            return await _pandas_dataframe_converter_async(response)
-        elif dataframe_method == 'polars':
-            return await _polars_dataframe_converter_async(response)
-        elif dataframe_method == 'dask':
-            return await _dask_dataframe_converter_async(response)
-        else:
-            raise ValueError("dataframe_method must be a string, options are: 'pandas', 'polars', or 'dask'")
+
+        response = await self.__fred_get_request(endpoint_name, data)
+
+        try:
+            return await ASYNC_DATAFRAME_CONVERTER_MAP[dataframe_method](response)
+
+        except KeyError:
+            raise ValueError("dataframe_method must be a string, options are: 'pandas', 'polars', or 'dask'") # TODO: this error needs to be internally defined and raised as a custom error, not a ValueError
 
     async def get_series_release(self, series_id: str, realtime_start: Optional[Union[str, datetime, date]]=None,
                                  realtime_end: Optional[Union[str, datetime, date]]=None) -> List[Release]:
@@ -3990,19 +3857,16 @@ class AsyncFred:
             - fedfred package documentation: https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.AsyncFred.get_series_release.html
         """
 
-        url_endpoint = '/series/release'
-        data: Dict[str, Optional[Union[str, int]]] = {
-            'series_id': series_id
+        endpoint_name = 'get_series_release'
+
+        data: Dict[str, Any] = {
+            'series_id': series_id,
+            'realtime_start': realtime_start,
+            'realtime_end': realtime_end
         }
-        if realtime_start:
-            if isinstance(realtime_start, datetime):
-                realtime_start = await _datetime_converter_async(realtime_start)
-            data['realtime_start'] = realtime_start
-        if realtime_end:
-            if isinstance(realtime_end, datetime):
-                realtime_end = await _datetime_converter_async(realtime_end)
-            data['realtime_end'] = realtime_end
-        response = await self.__fred_get_request(url_endpoint, data)
+
+        response = await self.__fred_get_request(endpoint_name, data)
+
         return await Release.to_object_async(response)
 
     async def get_series_search(self, search_text: str, search_type: Optional[str]=None,
@@ -4056,41 +3920,25 @@ class AsyncFred:
             - fedfred package documentation: https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.AsyncFred.get_series_search.html
         """
 
-        url_endpoint = '/series/search'
-        data: Dict[str, Optional[Union[str, int]]] = {
-            'search_text': search_text
+        endpoint_name = 'get_series_search'
+
+        data: Dict[str, Any] = {
+            'search_text': search_text,
+            'search_type': search_type,
+            'realtime_start': realtime_start,
+            'realtime_end': realtime_end,
+            'limit': limit,
+            'offset': offset,
+            'order_by': order_by,
+            'sort_order': sort_order,
+            'filter_variable': filter_variable,
+            'filter_value': filter_value,
+            'tag_names': tag_names,
+            'exclude_tag_names': exclude_tag_names
         }
-        if search_type:
-            data['search_type'] = search_type
-        if realtime_start:
-            if isinstance(realtime_start, datetime):
-                realtime_start = await _datetime_converter_async(realtime_start)
-            data['realtime_start'] = realtime_start
-        if realtime_end:
-            if isinstance(realtime_end, datetime):
-                realtime_end = await _datetime_converter_async(realtime_end)
-            data['realtime_end'] = realtime_end
-        if limit:
-            data['limit'] = limit
-        if offset:
-            data['offset'] = offset
-        if order_by:
-            data['order_by'] = order_by
-        if sort_order:
-            data['sort_order'] = sort_order
-        if filter_variable:
-            data['filter_variable'] = filter_variable
-        if filter_value:
-            data['filter_value'] = filter_value
-        if tag_names:
-            if isinstance(tag_names, list):
-                tag_names = await _liststring_converter_async(tag_names)
-            data['tag_names'] = tag_names
-        if exclude_tag_names:
-            if isinstance(exclude_tag_names, list):
-                exclude_tag_names = await _liststring_converter_async(exclude_tag_names)
-            data['exclude_tag_names'] = exclude_tag_names
-        response = await self.__fred_get_request(url_endpoint, data)
+
+        response = await self.__fred_get_request(endpoint_name, data)
+
         return await Series.to_object_async(response)
 
     async def get_series_search_tags(self, series_search_text: str, realtime_start: Optional[Union[str, datetime, date]]=None,
@@ -4142,35 +3990,23 @@ class AsyncFred:
             - fedfred package documentation: https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.AsyncFred.get_series_search_tags.html
         """
 
-        url_endpoint = '/series/search/tags'
-        data: Dict[str, Optional[Union[str, int]]] = {
-            'series_search_text': series_search_text
+        endpoint_name = 'get_series_search_tags'
+
+        data: Dict[str, Any] = {
+            'series_search_text': series_search_text,
+            'realtime_start': realtime_start,
+            'realtime_end': realtime_end,
+            'tag_names': tag_names,
+            'tag_group_id': tag_group_id,
+            'tag_search_text': tag_search_text,
+            'limit': limit,
+            'offset': offset,
+            'order_by': order_by,
+            'sort_order': sort_order
         }
-        if realtime_start:
-            if isinstance(realtime_start, datetime):
-                realtime_start = await _datetime_converter_async(realtime_start)
-            data['realtime_start'] = realtime_start
-        if realtime_end:
-            if isinstance(realtime_end, datetime):
-                realtime_end = await _datetime_converter_async(realtime_end)
-            data['realtime_end'] = realtime_end
-        if tag_names:
-            if isinstance(tag_names, list):
-                tag_names = await _liststring_converter_async(tag_names)
-            data['tag_names'] = tag_names
-        if tag_group_id:
-            data['tag_group_id'] = tag_group_id
-        if tag_search_text:
-            data['tag_search_text'] = tag_search_text
-        if limit:
-            data['limit'] = limit
-        if offset:
-            data['offset'] = offset
-        if order_by:
-            data['order_by'] = order_by
-        if sort_order:
-            data['sort_order'] = sort_order
-        response = await self.__fred_get_request(url_endpoint, data)
+
+        response = await self.__fred_get_request(endpoint_name, data)
+
         return await Tag.to_object_async(response)
 
     async def get_series_search_related_tags(self, series_search_text: str, tag_names: Union[str, list[str]],
