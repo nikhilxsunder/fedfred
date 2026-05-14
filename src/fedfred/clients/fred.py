@@ -57,6 +57,7 @@ References:
 
 from datetime import datetime, date, time
 from typing import TYPE_CHECKING, KeysView, Optional, Dict, Union, List, Any, KeysView
+from types import TracebackType, NotImplementedType
 import pandas as pd
 from ..settings import _resolve_api_key, set_api_key
 from .._core import (
@@ -68,6 +69,10 @@ from .._core import (
     _cached_get_request, _cached_get_request_async,
     # Caching
     set_cache_maxsize, get_cache_maxsize, _CACHE,
+    # Endpoints
+    _ST_LOUIS_FED_BASE_URL, _FRED_PATH,
+    # Rate Limit
+    _FRED_MAX_REQUESTS_PER_MINUTE
 )
 from ..models import BulkRelease, Category, Series, Tag, Release, ReleaseDate, Source, Element, VintageDate
 
@@ -98,7 +103,7 @@ class Fred:
         cache_size (int, optional): The maximum number of items to store in the cache if caching is enabled. Defaults to 256.
 
     Raises:
-        RuntimeError: If no API key can be resolved from the explicit argument, global setting, or environment variable. # TODO: Add custom exception for missing API key.
+        RuntimeError: If no API key can be resolved from the explicit argument, global setting, or environment variable.
 
     Notes:
         API keys can be set globally using `fedfred.set_api_key(...)`, or can be provided explicitly
@@ -148,7 +153,7 @@ class Fred:
 
         See Also:
             - :func:`fedfred.set_api_key`: Function to set the global FRED API key.
-            - :class:`fedfred.Helpers`: Helper functions for parameter validation and conversion.
+            - :class:`fedfred.GeoFred`: GeoFred client for geospatial data from the FRED Maps API.
         """
 
         if api_key:
@@ -158,62 +163,85 @@ class Fred:
             set_cache_maxsize(cache_size)
 
         self.caching_enabled: bool = caching_enabled
-        self.cache_size: int = get_cache_maxsize()
+        self.cache_size: int = get_cache_maxsize() if caching_enabled else cache_size
 
     def __repr__(self) -> str:
-        """String representation of the Fred class.
+        """Developer facing string representation of the Fred class.
 
         Returns:
-            str: A string representation of the Fred class.
-
-        Notes:
-            This method provides a concise representation of the Fred instance.
+            str: A string representation of the Fred class for developers.
 
         Examples:
             >>> import fedfred as fd
             >>> fred = fd.Fred('your_api_key')
             >>> repr(fred)
-            'Fred(api_key=***your_api_key, caching_enabled=True, cache_size=256)'
+            Fred(api_key='<set>', caching_enabled=True, cache_size=256)
         """
 
-        return f"Fred(api_key='{'***' + _resolve_api_key(service='fred')[-4:]}', caching_enabled={self.caching_enabled}, cache_size={self.cache_size})"
+        try:
+            has_key = bool(_resolve_api_key(service="fred"))
+        except RuntimeError:                        # TODO: Add custom exception for missing API key and catch that instead.
+            has_key = False
+
+        auth = "<set>" if has_key else "None"
+
+                                                    # TODO: include size of instance object in the repr string for debugging purposes (can use sys.getsizeof() for that).
+
+        return (
+            f"{type(self).__name__}("
+            f"api_key={auth}, "
+            f"caching_enabled={self.caching_enabled}, "
+            f"cache_size={self.cache_size}"
+            f")"
+        )
 
     def __str__(self) -> str:
-        """String representation of the Fred class.
+        """Human-readable summary string representation of the Fred class instance's configuration.
 
         Returns:
             str: A user-friendly string representation of the Fred instance.
-
-        Notes: 
-            This method provides a detailed summary of the Fred instance's configuration.
 
         Examples:
             >>> import fedfred as fd
             >>> fred = fd.Fred('your_api_key')
             >>> print(fred)
-            'Fred Instance:'
-            '  Base URL: https://api.stlouisfed.org/fred'
-            '  API Key: ***your_api_key'
-            '  Cache Mode: Enabled'
-            '  Cache Size: 256 items'
-            '  Max Requests per Minute: 120'
+            Fred Instance:
+              Service: FRED (https://api.stlouisfed.org/fred)
+              API Key: configured
+              Cache: enabled (FIFO, maxsize=256)
+              Rate Limit: 120 req/min
         """
 
-        return (
-            f"Fred Instance:\n"
-            f"  API Key: {'***' + _resolve_api_key(service='fred')[-4:] or 'Not Provided'}\n"
-            f"  Cache Mode: {'Enabled' if self.caching_enabled else 'Disabled'}\n"
-            f"  Cache Size: {self.cache_size}\n"
+        try:
+            has_key = bool(_resolve_api_key(service="fred"))
+        except RuntimeError:                           # TODO: Add custom exception for missing API key and catch that instead.
+            has_key = False
+
+        auth_line = "configured" if has_key else "not configured"
+
+        cache_line = (
+            f"enabled (FIFO, maxsize={self.cache_size})"
+            if self.caching_enabled
+            else "disabled"
         )
 
-    def __eq__(self, other: object) -> bool:
-        """Equality comparison for the Fred class.
+        return (
+            f"{type(self).__name__} Instance:\n"
+            f"  Service: FRED ({_ST_LOUIS_FED_BASE_URL}{_FRED_PATH})\n"
+            f"  API Key: {auth_line}\n"
+            f"  Cache: {cache_line}\n"
+            f"  Rate Limit: {_FRED_MAX_REQUESTS_PER_MINUTE} req/min\n"
+        )
+
+    def __eq__(self, other: object) -> Union[bool, NotImplementedType]:
+        """Equality comparison for the Fred class against another object's observable configuration.
 
         Args:
             other (object): The object to compare with.
 
         Returns:
             bool: True if the objects are equal, False otherwise.
+            NotImplemented: If the other object is not an instance of AsyncFred.
 
         Notes:
             This method compares two Fred instances based on their attributes. If the other object is not a Fred 
@@ -227,11 +255,14 @@ class Fred:
             True
         """
 
-        if not isinstance(other, Fred):
+        try:
+            assert isinstance(other, type(self))
+        except AssertionError:
             return NotImplemented
+
         return (
-            self.caching_enabled == other.caching_enabled and
-            self.cache_size == other.cache_size
+            self.caching_enabled == other.caching_enabled
+            and self.cache_size == other.cache_size
         )
 
     def __hash__(self) -> int:
@@ -246,31 +277,12 @@ class Fred:
         Examples:
             >>> import fedfred as fd
             >>> fred = fd.Fred('your_api_key')
-            >>> hash(fred)
+            >>> hashed_fred = hash(fred)
+            >>> print(hashed_fred)
             1234567890 # Example hash value
         """
 
-        return hash((_resolve_api_key(service='fred'), self.caching_enabled, self.cache_size))
-
-    def __del__(self) -> None:
-        """Destructor for the Fred class. Clears the cache when the instance is deleted.
-
-        Notes:
-            This method ensures that the cache is cleared when the Fred instance is deleted.
-
-        Warnings:
-            Avoid relying on destructors for critical resource management, as their execution timing 
-            is not guaranteed.
-
-        Examples:
-            >>> import fedfred as fd
-            >>> fred = fd.Fred('your_api_key')
-            >>> del fred
-            >>> # Cache is cleared when fred is deleted
-        """
-
-        if hasattr(self, "cache"):
-            _CACHE.clear()
+        return hash((type(self).__name__, self.caching_enabled, self.cache_size))
 
     def __len__(self) -> int:
         """Get the number of cached items in the Fred instance.
@@ -278,13 +290,11 @@ class Fred:
         Returns:
             int: The number of cached items in the Fred instance.
 
-        Notes:
-            This method returns the size of the cache if caching is enabled.
-
         Examples:
             >>> import fedfred as fd
             >>> fred = fd.Fred('your_api_key')
-            >>> print(len(fred))
+            >>> cache_length = len(fred)
+            >>> print(cache_length)
             256 # Example length of the cache
         """
 
@@ -309,7 +319,7 @@ class Fred:
             True # Example output if 'some_key' exists in the cache
         """
 
-        return key in _CACHE.keys() if self.caching_enabled else False
+        return self.caching_enabled and key in _CACHE
 
     def __getitem__(self, key: str) -> Any:
         """Get a specific item from the cache.
@@ -333,79 +343,45 @@ class Fred:
             'some_value'
         """
 
-        if key in _CACHE.keys():
-            return _CACHE[key]
-        else:
-            raise AttributeError(f"'{key}' not found in cache.")
+        if not self.caching_enabled:
+            raise KeyError(key)         # TODO: Add custom exception for cache disabled and catch that instead.
 
-    def __setitem__(self, key: str, value: Any) -> None:
-        """Set a specific item in the cache.
+        return _CACHE.cache[key]
 
-        Args:
-            key (str): The name of the attribute to set.
-            value (Any): The value to set.
-
-        Notes:
-            This method allows setting cached items using the indexing syntax.
-
-        Examples:
-            >>> import fedfred as fd
-            >>> fred = fd.Fred('your_api_key')
-            >>> fred['some_key'] = 'some_value'
-            >>> print(fred['some_key'])
-            'some_value'
-        """
-
-        _CACHE[key] = value
-
-    def __delitem__(self, key: str) -> None:
-        """Delete a specific item from the cache.
-
-        Args:
-            key (str): The name of the attribute to delete.
-
-        Raises:
-            AttributeError: If the key does not exist.
-
-        Notes:
-            This method allows deletion of cached items using the indexing syntax.
-
-        Examples:
-            >>> import fedfred as fd
-            >>> fred = fd.Fred('your_api_key')
-            >>> del fred['some_key']
-            >>> print('some_key' in fred)
-            False
-        """
-
-        if key in _CACHE.keys():
-            del _CACHE[key]
-        else:
-            raise AttributeError(f"'{key}' not found in cache.")
-
-    def __call__(self) -> str:
-        """Call the Fred instance to get a summary of its configuration.
+    def __enter__(self) -> "Fred":
+        """Enter the runtime context.
 
         Returns:
-            str: A string representation of the Fred instance's configuration.
+            Fred: The Fred instance itself.
+
+        Notes:
+            The Fred client does not currently own per-instance resources requiring explicit cleanup — transport opens and closes httpx.Client per request,
+            and the cache and rate-limit buckets are module-global. The context manager exists for ergonomic parity with httpx/requests and as a
+            forward-compatible seam for future per-instance connection pooling.
 
         Examples:
             >>> import fedfred as fd
-            >>> fred = fd.Fred('your_api_key')
-            >>> print(fred())
-            'Fred Instance:'
-            '  Base URL: https://api.stlouisfed.org/fred'
-            '  Cache Mode: Enabled'
-            '  Cache Size: 256 items'
-            '  API Key: ****your_api_key'
+            >>> with fd.Fred("your_api_key") as fred:
+            ...     categories = fred.get_category(125)
         """
-        return (
-            f"Fred Instance:\n"
-            f"  Base URL: {_ST_LOUIS_FED_BASE_URL}\n"
-            f"  Cache Mode: {'Enabled' if self.caching_enabled else 'Disabled'}\n"
-            f"  Cache Size: {len(_CACHE)} items\n"
-            f"  API Key: {'****' + _resolve_api_key(service='fred')[-4:] if _resolve_api_key(service='fred') else 'Not Set'}\n"
-        )
+
+        return self
+
+    def __exit__(self, exc_type: Optional[type[BaseException]], exc: Optional[BaseException], tb: Optional[TracebackType]) -> None:
+        """Exit the runtime context. No-op.
+
+        Args:
+            exc_type: Exception type if one was raised in the with-block.
+            exc: Exception instance, if any.
+            tb: Traceback, if any.
+
+        Notes:
+            Does not clear the cache or rate-limit buckets — those are shared
+            across all live Fred and AsyncFred instances. Clearing them here
+            would corrupt other clients.
+        """
+
+        return None
 
     # Properties
     @property
@@ -843,7 +819,7 @@ class Fred:
             'order_by': order_by,
             'sort_order': sort_order
         }
-        
+
         response = self.__fred_get_request(endpoint_name, data)
 
         releases = Release.to_object(response, client=self)
@@ -905,7 +881,7 @@ class Fred:
         }
 
         response = self.__fred_get_request(endpoint_name, data)
-        
+
         return ReleaseDate.to_object(response)
 
     def get_release(self, release_id: int, realtime_start: Optional[Union[str, datetime, date]]=None,
@@ -947,7 +923,7 @@ class Fred:
             'realtime_start': realtime_start,
             'realtime_end': realtime_end
         }
-        
+
         response = self.__fred_get_request(endpoint_name, data)
 
         releases = Release.to_object(response, client=self)
@@ -1067,7 +1043,7 @@ class Fred:
             'filter_value': filter_value,
             'exclude_tag_names': exclude_tag_names
         }
-        
+
         response = self.__fred_get_request(endpoint_name, data)
 
         seriess = Series.to_object(response, client=self)
@@ -1247,7 +1223,7 @@ class Fred:
             'order_by': order_by,
             'sort_order': sort_order
         }
-        
+
         response = self.__fred_get_request(endpoint_name, data)
 
         tags = Tag.to_object(response, client=self)
@@ -1464,7 +1440,9 @@ class Fred:
                                 observation_end: Optional[Union[str, datetime, date]]=None, units: Optional[str]=None,
                                 frequency: Optional[str]=None,
                                 aggregation_method: Optional[str]=None,
-                                output_type: Optional[int]=None, vintage_dates: Optional[Union[str, datetime, list[Optional[Union[str, datetime, date]]]]]=None) -> Union[pd.DataFrame, 'pl.DataFrame', 'dd.DataFrame']:
+                                output_type: Optional[int]=None,
+                                vintage_dates: Optional[Union[str, datetime, list[Optional[Union[str, datetime, date]]]]]=None
+                                ) -> Union[pd.DataFrame, 'pl.DataFrame', 'dd.DataFrame']:
         """Get FRED series observations
 
         Get observations for a FRED series as a pandas or polars DataFrame.
@@ -1512,6 +1490,7 @@ class Fred:
         """
 
         endpoint_name = 'get_series_observations'
+
         data: Dict[str, Any] = {
             'series_id': series_id,
             'realtime_start': realtime_start,
@@ -1532,9 +1511,8 @@ class Fred:
 
         try:
             return DATAFRAME_CONVERTER_MAP[dataframe_method](response)
-
-        except KeyError:
-            raise ValueError("dataframe_method must be a string, options are: 'pandas', 'polars', or 'dask'") # TODO: this error needs to be internally defined and raised as a custom error, not a ValueError
+        except KeyError as exc:
+            raise ValueError("dataframe_method must be a string, options are: 'pandas', 'polars', or 'dask'") from exc # TODO: this error needs to be internally defined and raised as a custom error, not a ValueError
 
     def get_series_release(self, series_id: str, realtime_start: Optional[Union[str, datetime, date]]=None,
                            realtime_end: Optional[Union[str, datetime, date]]=None) -> List[Release]:
@@ -2338,20 +2316,18 @@ class AsyncFred:
     Examples:
         >>> import fedfred as fd
         >>> import asyncio
-        >>> async def main():
-        >>>     fred = fd.AsyncFred(api_key='your_api_key')
-        >>> asyncio.run(main())
+        >>> fred = fd.AsyncFred(api_key='your_api_key')
 
     Warnings:
         Ensure that the parent Fred instance is properly configured before using AsyncFred.
 
     See Also:
-        - :class:`fedfred.Fred`: The main synchronous client for the FRED API.
+        - :class:`fedfred.AsyncGeoFred`: The asynchronous client for the FRED Maps API.
         - :func:`fedfred.set_api_key`: Function to set the global FRED API key.
     """
 
     # Dunder Methods
-    def __init__(self, api_key: str, caching_enabled: bool = False, cache_size: int = 256) -> None:
+    def __init__(self, api_key: str, caching_enabled: bool = True, cache_size: int = 256) -> None:
         """Initialize the AsyncFred class with an API key and optional caching.
 
         Args:
@@ -2362,19 +2338,18 @@ class AsyncFred:
         Raises:
             RuntimeError: If no API key can be resolved from the explicit argument, global setting, or environment variable.
 
+        Notes:
+            API keys can be set globally using `fedfred.set_api_key(...)`, or can be provided explicitly
+            when instantiating the `Fred` class. If neither is provided, the class will attempt to
+            resolve the API key from the environment variable `FRED_API_KEY`.
+
         Examples:
             >>> import fedfred as fd
             >>> import asyncio
-            >>> async def main():
-            >>>     async_fred = fd.AsyncFred(api_key='your_api_key')
-            >>> asyncio.run(main())
-
-        Notes:
-            This constructor sets up the AsyncFred instance with the provided API key
-            and optional caching.
+            >>> async_fred = fd.AsyncFred(api_key='your_api_key')
 
         See Also:
-            - :class:`fedfred.Fred`: The main synchronous client for the FRED API.
+            - :class:`fedfred.AsyncGeoFred`: The main asynchronous client for the FRED Maps API.
             - :func:`fedfred.set_api_key`: Function to set the global FRED API key.
         """
 
@@ -2385,67 +2360,86 @@ class AsyncFred:
             set_cache_maxsize(cache_size)
 
         self.caching_enabled: bool = caching_enabled
-        self.cache_size: int = get_cache_maxsize()
+        self.cache_size: int = get_cache_maxsize() if caching_enabled else cache_size
 
     def __repr__(self) -> str:
-        """String representation of the AsyncFred class.
+        """Developer facing string representation of the Fred class.
 
         Returns:
-            str: A string representation of the AsyncFred class.
-
-        Notes:
-            This method provides a detailed representation of the AsyncFred instance, including its parent Fred instance.
+            str: A string representation of the AsyncFred class for developers.
 
         Examples:
             >>> import fedfred as fd
             >>> import asyncio
-            >>> fred = fd.Fred('your_api_key')
-            >>> async_fred = fred.AsyncFred
+            >>> async_fred = fd.AsyncFred('your_api_key')
             >>> print(repr(async_fred))
-            'Fred(api_key=****your_api_key, cache_mode=True, cache_size=256).AsyncFred'
+            AsyncFred(api_key='<set>', caching_enabled=True, cache_size=256)
         """
 
-        return f"{self._parent.__repr__()}.AsyncFred"
+        try:
+            has_key = bool(_resolve_api_key(service="fred"))
+        except RuntimeError:                        # TODO: Add custom exception for missing API key and catch that instead.
+            has_key = False
+
+        auth = "<set>" if has_key else "None"
+
+                                                    # TODO: include size of instance object in the repr string for debugging purposes (can use sys.getsizeof() for that).
+
+        return (
+            f"{type(self).__name__}("
+            f"api_key={auth}, "
+            f"caching_enabled={self.caching_enabled}, "
+            f"cache_size={self.cache_size}"
+            f")"
+        )
 
     def __str__(self) -> str:
-        """String representation of the AsyncFred class.
+        """Human-readable summary string representation of the AsyncFred class instance's configuration.
 
         Returns:
             str: A user-friendly string representation of the AsyncFred class.
 
-        Notes:
-            This method provides a detailed string representation of the AsyncFred instance, including 
-            its parent Fred instance.
-
         Examples:
             >>> import fedfred as fd
-            >>> fred = fd.Fred('your_api_key')
-            >>> async_fred = fred.AsyncFred
-            >>> print(str(async_fred))
-            'Fred Instance:'
-            '  Base URL: https://api.stlouisfed.org/fred'
-            '  API Key: ****your_api_key'
-            '  Cache Mode: Enabled'
-            '  Cache Size: 256 items'
-            '  Max Requests per Minute: 120'
-            '  AsyncFred Instance:'
-            '    Base URL: https://api.stlouisfed.org/fred'
+            >>> async_fred = fd.AsyncFred('your_api_key')
+            >>> print(async_fred)
+            AsyncFred Instance:
+              Service: FRED (https://api.stlouisfed.org/fred/)
+              API Key: configured
+              Cache: enabled (FIFO, maxsize=256)
+              Rate Limit: 120 req/min
         """
 
-        return (
-            f"{self._parent.__str__()}"
-            f"  AsyncFred Instance:\n"
-            f"    Base URL: {self.base_url}\n"
+        try:
+            has_key = bool(_resolve_api_key(service="fred"))
+        except RuntimeError:
+            has_key = False
+
+        auth_line = "configured" if has_key else "not configured"
+
+        cache_line = (
+            f"enabled (FIFO, maxsize={self.cache_size})"
+            if self.caching_enabled
+            else "disabled"
         )
 
-    def __eq__(self, other: object) -> bool:
-        """Equality comparison for the AsyncFred class.
+        return (
+            f"{type(self).__name__} Instance:\n"
+            f"  Service: FRED ({_ST_LOUIS_FED_BASE_URL}{_FRED_PATH})\n"
+            f"  API Key: {auth_line}\n"
+            f"  Cache: {cache_line}\n"
+            f"  Rate Limit: {_FRED_MAX_REQUESTS_PER_MINUTE} req/min\n"
+        )
+
+    def __eq__(self, other: object) -> Union[bool, NotImplementedType]:
+        """Equality comparison for the AsyncFred class against another object's observable configuration.
 
         Args:
             other (object): The object to compare with.
 
         Returns:
             bool: True if the objects are equal, False otherwise.
+            NotImplemented: If the other object is not an instance of AsyncFred.
 
         Notes:
             This method compares two AsyncFred instances based on their attributes. If the other object is not an AsyncFred 
@@ -2453,17 +2447,21 @@ class AsyncFred:
 
         Examples:
             >>> import fedfred as fd
-            >>> fred1 = fd.Fred('your_api_key')
-            >>> async_fred1 = fred1.AsyncFred
-            >>> fred2 = fd.Fred('your_api_key')
-            >>> async_fred2 = fred2.AsyncFred
+            >>> async_fred1 = fd.AsyncFred('your_api_key')
+            >>> async_fred2 = fd.AsyncFred('your_api_key')
             >>> print(async_fred1 == async_fred2)
             True
         """
 
-        if not isinstance(other, AsyncFred):
+        try:
+            assert isinstance(other, type(self))
+        except AssertionError:
             return NotImplemented
-        return self._parent == other._parent
+
+        return (
+            self.caching_enabled == other.caching_enabled
+            and self.cache_size == other.cache_size
+        )
 
     def __hash__(self) -> int:
         """Hash function for the AsyncFred Class.
@@ -2476,33 +2474,13 @@ class AsyncFred:
 
         Examples:
             >>> import fedfred as fd
-            >>> fred = fd.Fred('your_api_key')
-            >>> async_fred = fred.AsyncFred
-            >>> print(hash(async_fred))
+            >>> async_fred = fd.AsyncFred('your_api_key')
+            >>> hashed_async_fred = hash(async_fred)
+            >>> print(hashed_async_fred)
             1234567890 # Example hash value
         """
-        return hash((self._parent.api_key, self._parent.cache_mode, self._parent.cache_size))
 
-    def __del__(self) -> None:
-        """Destructor for the AsyncFred class. Clears the cache when the instance is deleted.
-
-        Notes:
-            This method ensures that the cache is cleared when the AsyncFred instance is deleted.
-
-        Warnings:
-            Avoid relying on destructors for critical resource management, as their execution timing 
-            is not guaranteed.
-
-        Examples:
-            >>> import fedfred as fd
-            >>> fred = fd.Fred('your_api_key')
-            >>> async_fred = fred.AsyncFred
-            >>> del async_fred
-            >>> # Cache is cleared when async_fred is deleted
-        """
-
-        if hasattr(self, "cache"):
-            self.cache.clear()
+        return hash((type(self).__name__, self.caching_enabled, self.cache_size))
 
     def __len__(self) -> int:
         """Get the number of cached items in the AsyncFred instance.
@@ -2510,18 +2488,15 @@ class AsyncFred:
         Returns:
             int: The number of cached items in the AsyncFred instance.
 
-        Notes:
-            This method returns the size of the cache if caching is enabled for the parent Fred instance.
-
         Examples:
             >>> import fedfred as fd
-            >>> fred = fd.Fred('your_api_key')
-            >>> async_fred = fred.AsyncFred
-            >>> print(len(async_fred))
+            >>> async_fred = fd.AsyncFred('your_api_key')
+            >>> cache_length = len(async_fred)
+            >>> print(cache_length)
             256 # Example length of the cache
         """
 
-        return len(self.cache)
+        return len(_CACHE) if self.caching_enabled else 0
 
     def __contains__(self, key: str) -> bool:
         """Check if a specific item exists in the cache.
@@ -2543,7 +2518,7 @@ class AsyncFred:
             True # Example output if 'some_key' exists in the cache
         """
 
-        return key in self.cache.keys()
+        return self.caching_enabled and key in _CACHE
 
     def __getitem__(self, key: str) -> Any:
         """Get a specific item from the cache.
@@ -2569,85 +2544,47 @@ class AsyncFred:
             'some_value'
         """
 
-        if key in self.cache.keys():
-            return self.cache[key]
-        else:
-            raise AttributeError(f"'{key}' not found in cache.")
+        if not self.caching_enabled:
+            raise KeyError(key)         # TODO: Add custom exception for cache disabled and catch that instead.
 
-    def __setitem__(self, key: str, value: Any) -> None:
-        """Set a specific item in the cache.
+        return _CACHE.cache[key]
 
-        Args:
-            key (str): The name of the attribute to set.
-            value (Any): The value to set.
-
-        Notes:
-            This method allows setting cached items using the indexing syntax.
-
-        Examples:
-            >>> import fedfred as fd
-            >>> fred = fd.Fred('your_api_key')
-            >>> async_fred = fred.AsyncFred
-            >>> async_fred['some_key'] = 'some_value'
-            >>> print(async_fred['some_key'])
-            'some_value'
-        """
-
-        self.cache[key] = value
-
-    def __delitem__(self, key: str) -> None:
-        """Delete a specific item from the cache.
-
-        Args:
-            key (str): The name of the attribute to delete.
-
-        Raises:
-            AttributeError: If the key does not exist.
-
-        Notes:
-            This method allows deletion of cached items using the indexing syntax.
-
-        Examples:
-            >>> import fedfred as fd
-            >>> fred = fd.Fred('your_api_key')
-            >>> async_fred = fred.AsyncFred
-            >>> del async_fred['some_key']
-            >>> print('some_key' in async_fred)
-            False
-        """
-
-        if key in self.cache.keys():
-            del self.cache[key]
-        else:
-            raise AttributeError(f"'{key}' not found in cache.")
-
-    def __call__(self) -> str:
-        """Call the AsyncFred instance to get a summary of its configuration.
+    async def __aenter__(self) -> "AsyncFred":
+        """Enter the asynchronous runtime context.
 
         Returns:
-            str: A string representation of the AsyncFred instance's configuration.
+            AsyncFred: The AsyncFred instance itself.
+
+        Notes:
+            AsyncFred does not currently own per-instance resources requiring explicit cleanup — transport opens and closes httpx.AsyncClient per
+            request, and the cache and rate-limit buckets are module-global. The context manager exists for ergonomic parity with httpx and as a
+            forward-compatible seam for future per-instance connection pooling.
 
         Examples:
             >>> import fedfred as fd
-            >>> fred = fd.Fred('your_api_key')
-            >>> async_fred = fred.AsyncFred
-            >>> print(async_fred())
-            'Fred Instance:'
-            '  AsyncFred Instance:'
-            '    Base URL: https://api.stlouisfed.org/fred'
-            '    Cache Mode: Enabled'
-            '    Cache Size: 256 items'
-            '    API Key: ****your_api_key'
+            >>> import asyncio
+            >>> async def main():
+            ...     async with fd.AsyncFred("your_api_key") as fred:
+            ...         categories = await fred.get_category(125)
+            >>> asyncio.run(main())
         """
 
-        return (
-            f"Fred Instance:\n"
-            f"  AsyncFred Instance:\n"
-            f"    Base URL: {self.base_url}\n"
-            f"    Cache Mode: {'Enabled' if self.cache_mode else 'Disabled'}\n"
-            f"    Cache Size: {len(self.cache)} items\n"
-            f"    API Key: {'****' + self._parent.api_key[-4:] if self._parent.api_key else 'Not Set'}\n"
-        )
+        return self
+
+    async def __aexit__(self, exc_type: Optional[type[BaseException]], exc: Optional[BaseException], tb: Optional[TracebackType]) -> None:
+        """Exit the asynchronous runtime context. No-op.
+
+        Args:
+            exc_type: Exception type if one was raised in the async-with-block.
+            exc: Exception instance, if any.
+            tb: Traceback, if any.
+
+        Notes:
+            Does not clear the cache or rate-limit buckets — those are shared
+            across all live Fred and AsyncFred instances.
+        """
+
+        return None
 
     # Properties
     @property
@@ -3815,9 +3752,8 @@ class AsyncFred:
 
         try:
             return await ASYNC_DATAFRAME_CONVERTER_MAP[dataframe_method](response)
-
-        except KeyError:
-            raise ValueError("dataframe_method must be a string, options are: 'pandas', 'polars', or 'dask'") # TODO: this error needs to be internally defined and raised as a custom error, not a ValueError
+        except KeyError as exc:
+            raise ValueError("dataframe_method must be a string, options are: 'pandas', 'polars', or 'dask'") from exc # TODO: this error needs to be internally defined and raised as a custom error, not a ValueError
 
     async def get_series_release(self, series_id: str, realtime_start: Optional[Union[str, datetime, date]]=None,
                                  realtime_end: Optional[Union[str, datetime, date]]=None) -> List[Release]:
