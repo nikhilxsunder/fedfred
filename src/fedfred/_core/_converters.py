@@ -828,31 +828,31 @@ async def _polars_geodataframe_converter_async(shapefile: gpd.GeoDataFrame, meta
     return await asyncio.to_thread(st.from_geopandas, gdf)
 
 # DataFrame Converter Maps
-DATAFRAME_CONVERTER_MAP = {
+DATAFRAME_CONVERTER_MAP: Dict[str, Callable] = {
     'pandas': _pandas_dataframe_converter,
     'polars': _polars_dataframe_converter,
     'dask': _dask_dataframe_converter,
 }
 """Mapping of dataframe converter functions for different backends."""
 
-ASYNC_DATAFRAME_CONVERTER_MAP = {
+ASYNC_DATAFRAME_CONVERTER_MAP: Dict[str, Callable] = {
     'pandas': _pandas_dataframe_converter_async,
     'polars': _polars_dataframe_converter_async,
     'dask': _dask_dataframe_converter_async,
 }
 """Mapping of asynchronous dataframe converter functions for different backends."""
 
-GEODATAFRAME_CONVERTER_MAP = {
+GEODATAFRAME_CONVERTER_MAP: Dict[str, Callable] = {
     'geopandas': _geopandas_geodataframe_converter,
-    'dask-geopandas': _dask_geopandas_geodataframe_converter,
-    'polars-st': _polars_geodataframe_converter,
+    'dask': _dask_geopandas_geodataframe_converter,
+    'polars': _polars_geodataframe_converter,
 }
 """Mapping of geodataframe converter functions for different backends."""
 
-ASYNC_GEODATAFRAME_CONVERTER_MAP = {
+ASYNC_GEODATAFRAME_CONVERTER_MAP: Dict[str, Callable] = {
     'geopandas': _geopandas_geodataframe_converter_async,
-    'dask-geopandas': _dask_geopandas_geodataframe_converter_async,
-    'polars-st': _polars_geodataframe_converter_async,
+    'dask': _dask_geopandas_geodataframe_converter_async,
+    'polars': _polars_geodataframe_converter_async,
 }
 """Mapping of asynchronous geodataframe converter functions for different backends."""
 

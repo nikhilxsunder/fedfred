@@ -45,9 +45,10 @@ from .fred import (
     Source,
     Element,
     VintageDate,
-    SeriesGroup,
     BulkRelease
 )
+
+from .geofred import SeriesGroup
 
 __all__ = [
     "Category",

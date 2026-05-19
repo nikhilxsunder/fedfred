@@ -53,18 +53,20 @@ from typing import Optional, Literal, Dict
 import os
 from .__about__ import __title__, __version__, __author__, __email__, __license__, __copyright__, __description__, __docs__, __repository__
 
-Service = Literal["fred", "fraser"]
+Service = Literal["fred", "fraser", "geofred"]
 """Type alias for supported services in fedfred package."""
 
 ENV_VARS: Dict[Service, str] = {
     "fred": "FRED_API_KEY",
     "fraser": "FRASER_API_KEY",
+    "geofred": "FRED_API_KEY"
 }
 """Mapping of services to their respective environment variable names for API keys."""
 
 _GLOBAL_KEYS: Dict[Service, Optional[str]] = {
     "fred": None,
     "fraser": None,
+    "geofred": None,
 }
 """Global storage for API keys for each service."""
 
@@ -82,7 +84,7 @@ def set_api_key(api_key: str, service: Service = "fred") -> None:
     if not isinstance(api_key, str) or not api_key.strip():
         raise ValueError("api_key must be a non-empty string.")
     if service not in _GLOBAL_KEYS:
-        raise ValueError(f"Unknown service: {service!r}. Expected 'fred' or 'fraser'.")
+        raise ValueError(f"Unknown service: {service!r}. Expected 'fred', 'geofred' or 'fraser'.")
     _GLOBAL_KEYS[service] = api_key.strip()
 
 def get_api_key(service: Service = "fred") -> Optional[str]:
@@ -99,7 +101,7 @@ def get_api_key(service: Service = "fred") -> Optional[str]:
     """
 
     if service not in _GLOBAL_KEYS:
-        raise ValueError(f"Unknown service: {service!r}. Expected 'fred' or 'fraser'.")
+        raise ValueError(f"Unknown service: {service!r}. Expected 'fred', 'geofred' or 'fraser'.")
     return _GLOBAL_KEYS[service]
 
 def clear_api_key(service: Service = "fred") -> None:
@@ -112,7 +114,7 @@ def clear_api_key(service: Service = "fred") -> None:
         ValueError: If an unknown service is specified.
     """
     if service not in _GLOBAL_KEYS:
-        raise ValueError(f"Unknown service: {service!r}. Expected 'fred' or 'fraser'.")
+        raise ValueError(f"Unknown service: {service!r}. Expected 'fred', 'geofred' or 'fraser'.")
     _GLOBAL_KEYS[service] = None
 
 def _resolve_api_key(*, service: Service = "fred", env_var: Optional[str] = None,) -> str:
@@ -132,7 +134,7 @@ def _resolve_api_key(*, service: Service = "fred", env_var: Optional[str] = None
     """
 
     if service not in _GLOBAL_KEYS:
-        raise ValueError(f"Unknown service: {service!r}. Expected 'fred' or 'fraser'.")
+        raise ValueError(f"Unknown service: {service!r}. Expected 'fred', 'geofred' or 'fraser'.")
 
     # 2) global
     global_key = _GLOBAL_KEYS.get(service)

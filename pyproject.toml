@@ -83,7 +83,7 @@ files = "fedfred"
 ignore_missing_imports = true
 
 [tool.pylint]
-max-line-length = 300
+max-line-length = 400
 disable = ["C0302",]
 ignore-patterns = [".*\\.pyi$"]
 

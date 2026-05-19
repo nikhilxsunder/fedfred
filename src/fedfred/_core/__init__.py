@@ -28,6 +28,7 @@ methods for data conversion, validation, and extraction used across the fedfred 
 from ._converters import (
     _hashable_type_converter, _hashable_type_converter_async,
     DATAFRAME_CONVERTER_MAP, ASYNC_DATAFRAME_CONVERTER_MAP,
+    GEODATAFRAME_CONVERTER_MAP, ASYNC_GEODATAFRAME_CONVERTER_MAP,
 )
 
 from ._transport import (
@@ -40,9 +41,14 @@ from._caching import (
 )
 
 from ._endpoints import (
-    _ST_LOUIS_FED_BASE_URL, _FRED_PATH
+    _ST_LOUIS_FED_BASE_URL, _FRED_PATH, _GEOFRED_PATH,
 )
 
 from ._rate_limit import(
     _FRED_MAX_REQUESTS_PER_MINUTE,
+)
+
+from ._parsers import(
+    _region_type_parser,
+    _region_type_parser_async
 )

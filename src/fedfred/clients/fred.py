@@ -56,7 +56,7 @@ References:
 """
 
 from datetime import datetime, date, time
-from typing import TYPE_CHECKING, KeysView, Optional, Dict, Union, List, Any, KeysView
+from typing import TYPE_CHECKING, KeysView, Optional, Dict, Union, List, Any, KeysView, Tuple
 from types import TracebackType, NotImplementedType
 import pandas as pd
 from ..settings import _resolve_api_key, set_api_key
@@ -79,6 +79,8 @@ from ..models import BulkRelease, Category, Series, Tag, Release, ReleaseDate, S
 if TYPE_CHECKING:
     import polars as pl # pragma: no cover
     import dask.dataframe as dd # pragma: no cover
+
+# TODO: Fix all docstrings post error design.
 
 __all__ = [
     "Fred",
@@ -2588,7 +2590,7 @@ class AsyncFred:
 
     # Properties
     @property
-    def keys(self) -> Optional[KeysView[tuple[Any, ...]]]:
+    def keys(self) -> Optional[KeysView[Tuple[Any, ...]]]:
         """List of keys in the cache."""
 
         return _CACHE.keys() if self.caching_enabled else None
