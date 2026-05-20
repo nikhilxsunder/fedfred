@@ -1,23 +1,29 @@
 ### Roadmap
 
-The following outlines the planned direction for the FedFred project over the next year:
+#### v4 Release (Current Focus)
+The v4 branch represents a major backend rewrite with focus on:
+- Complete internal refactor: `_core` and `_internals` subpackage architecture
+- Unified endpoint resolution across FRED, ALFRED, GeoFRED, FRASER
+- Sync/async parity throughout the public surface
+- Full 100% test coverage and Codecov compliance
+- Comprehensive documentation with endpoint coverage and advanced workflows
 
-1. **Short-Term Goals (Next 3-6 Months):**
+#### Post-v4 Stability Phase (12+ Months)
+After v4 stabilizes, expansions are limited to three targeted areas:
 
-   - Add a C++ implementation for faster execution times
-   - Improve test coverage to exceed 80% across the codebase.
-   - Enhance documentation with more advanced usage examples and tutorials.
+1. **Low-Latency Revisions**
+   - Runtime optimization for high-frequency API workflows
+   - Improved rate-limit handling and request batching
+   - Connection pooling and request pipelining enhancements
 
-2. **Mid-Term Goals (6-12 Months):**
+2. **Exception Hierarchy Revisions**
+   - Structured exception taxonomy for FRED/ALFRED/GeoFRED/FRASER-specific errors
+   - Enhanced error context and recovery guidance
+   - Backwards-compatible exception handling improvements
 
-   - Implement support for cuDF and RAPIDS.
-   - Introduce support for custom data transformations and visualizations.
-   - Improve caching mechanisms for better performance in high-frequency use cases.
+3. **GPU and Machine Learning Framework Support**
+   - cuDF integration for large-scale data operations
+   - PyTorch tensor conversion and streaming support
+   - Efficient data pipelines for ML workflows
 
-3. **Long-Term Goals (Beyond 12 Months):**
-
-   - Add multi-language support for international users.
-   - Develop a web-based interface for easier interaction with the FRED API.
-   - Explore integration with machine learning frameworks for economic forecasting.
-
-This roadmap is subject to change based on community feedback and evolving project priorities.
+This roadmap prioritizes stability and proven integration patterns over speculative expansions. Changes are subject to community feedback and usage patterns that emerge during v4 adoption.

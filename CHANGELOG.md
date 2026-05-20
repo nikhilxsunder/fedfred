@@ -7,36 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [4.0.0] - 2026-02-08
+## [4.0.0] - 2026-05-30
 
 ### Added
 
-- [codecov.yml](https://github.com/nikhilxsunder/fedfred/blob/main/codecov.yml) config for test coverage
-- [AUTHORS.md](https://github.com/nikhilxsunder/fedfred/blob/main/AUTHORS.md)
-- [/.github/workflows/dependency-review.yml](https://github.com/nikhilxsunder/fedfred/blob/main/.github/workflows/dependency-review.yml) for dependency and PR security
-- [/.github/workflows/scorecards.yml](https://github.com/nikhilxsunder/fedfred/blob/main/.github/workflows/scorecards.yml) for OpenSSF Scorecard generation
-- [/.github/CODEOWNERS](https://github.com/nikhilxsunder/fedfred/blob/main/.github/CODEOWNERS) for code ownership and future delegation of responsibilities
-- [/.github/dependabot.yml](https://github.com/nikhilxsunder/fedfred/blob/main/.github/dependabot.yml) for dependabot config
-- [/.github/pull_request_template.md](https://github.com/nikhilxsunder/fedfred/blob/main/.github/pull_request_template.md)
-- [/docs/source/_templates/autosummary/function.rst](https://github.com/nikhilxsunder/fedfred/blob/main/docs/source/_templates/autosummary/function.rst) for function template in sphinx documentation
-- added subpackaging for hygenic architecture:
-  - [/src/fedfred](https://github.com/nikhilxsunder/fedfred/blob/main/src/fedfred) base level package
-    - [/__about__.py](https://github.com/nikhilxsunder/fedfred/blob/main/src/fedfred/__about__.py) contains package metadata
-    - [/__init__.py](https://github.com/nikhilxsunder/fedfred/blob/main/src/fedfred/__init__.py) exposes the api for use
-    - [/_compat.py](https://github.com/nikhilxsunder/fedfred/blob/main/src/fedfred/_compat.py) contains classes and methods for backwards compatibility with old fedfred architecture
-    - [/_internals](https://github.com/nikhilxsunder/fedfred/blob/main/src/fedfred/_internals) 
-
-
 ### Changed
 
-- renamed /.github/workflows/main.yml to [/.github/workflows/release.yml](https://github.com/nikhilxsunder/fedfred/blob/main/.github/workflows/release.yml)
-- package is now restructured into subpackages
--
-
 ### Fixed
-
-- [/src/fedfred/fred/clients.py](https://github.com/nikhilxsunder/fedfred/blob/main/src/fedfred/fred/clients.py) architecture and class structure has been flattened with no more sub classing.
-- [SECURITY.md](https://github.com/nikhilxsunder/fedfred/blob/main/SECURITY.md) updated versioned sections and version support
 
 ### Removed
 
