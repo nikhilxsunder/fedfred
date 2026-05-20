@@ -401,7 +401,7 @@ class GeoFred:
 
         return _CACHE.keys() if self.caching_enabled else None
 
-    def __fred_get_request(self, endpoint_name: str, data: Optional[Dict[str, Any]]=None) -> Dict[str, Any]:
+    def __geofred_get_request(self, endpoint_name: str, data: Optional[Dict[str, Any]]=None) -> Dict[str, Any]:
         """Helper method to perform a synchronous GET request to the FRED Maps API.
 
         Args:
@@ -471,7 +471,7 @@ class GeoFred:
             'shape': shape
         }
 
-        response = self.__fred_get_request(endpoint_name, data)
+        response = self.__geofred_get_request(endpoint_name, data)
 
         # ----------------------------Needs-Abstraction-----------------------------------------------------------------
         if geodataframe_method == 'geopandas':
@@ -535,7 +535,7 @@ class GeoFred:
             'file_type': 'json'
         }
 
-        response = self.__fred_get_request(endpoint_name, data)
+        response = self.__geofred_get_request(endpoint_name, data)
 
         return SeriesGroup.to_object(response)
 
@@ -588,7 +588,7 @@ class GeoFred:
         }
 
         # ----------------------------Needs-Abstraction-----------------------------------------------------------------
-        response = self.__fred_get_request(endpoint_name, data)
+        response = self.__geofred_get_request(endpoint_name, data)
         meta_data = response.get('meta', {})
         region_type = _region_type_parser(response)
         shapefile = self.get_shape_files(region_type)
@@ -667,7 +667,7 @@ class GeoFred:
         }
 
         # ----------------------------Needs-Abstraction-----------------------------------------------------------------
-        response = self.__fred_get_request(endpoint_name, data)
+        response = self.__geofred_get_request(endpoint_name, data)
         meta_data = response.get('meta', {})
         region_type = _region_type_parser(response)
         shapefile = self.get_shape_files(region_type)
@@ -1008,7 +1008,7 @@ class AsyncGeoFred:
         return _CACHE.keys() if self.caching_enabled else None
 
     # Private Methods
-    async def __fred_get_request(self, url_endpoint: str, data: Optional[Dict[str, Any]]=None) -> Dict[str, Any]:
+    async def __geofred_get_request(self, url_endpoint: str, data: Optional[Dict[str, Any]]=None) -> Dict[str, Any]:
         """Helper method to perform an asynchronous GET request to the FRED Maps API.
 
         Args:
@@ -1081,7 +1081,7 @@ class AsyncGeoFred:
             'shape': shape
         }
 
-        response = await self.__fred_get_request(endpoint_name, data)
+        response = await self.__geofred_get_request(endpoint_name, data)
 
         # ----------------------------Needs-Abstraction-----------------------------------------------------------------
         if geodataframe_method == 'geopandas':
@@ -1148,7 +1148,7 @@ class AsyncGeoFred:
             'file_type': 'json'
         }
 
-        response = await self.__fred_get_request(endpoint_name, data)
+        response = await self.__geofred_get_request(endpoint_name, data)
 
         return await SeriesGroup.to_object_async(response)
 
@@ -1203,7 +1203,7 @@ class AsyncGeoFred:
         }
 
         # ----------------------------Needs-Abstraction-----------------------------------------------------------------
-        response = await self.__fred_get_request(endpoint_name, data)
+        response = await self.__geofred_get_request(endpoint_name, data)
         meta_data = response.get('meta', {})
         region_type = await _region_type_parser_async(response)
         shapefile = await self.get_shape_files(region_type)
@@ -1282,7 +1282,7 @@ class AsyncGeoFred:
         }
 
         # ----------------------------Needs-Abstraction-----------------------------------------------------------------
-        response = await self.__fred_get_request(url_endpoint, data)
+        response = await self.__geofred_get_request(url_endpoint, data)
         meta_data = response.get('meta', {})
         region_type = await _region_type_parser_async(response)
         shapefile = await self.get_shape_files(region_type)

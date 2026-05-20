@@ -34,14 +34,17 @@ Imports:
 
 from .fred import Fred, AsyncFred
 from .geofred import GeoFred, AsyncGeoFred
-from.alfred import Alfred
+from.alfred import Alfred, AsyncAlfred
 from .fraser import Fraser
 
 __all__ = [
+    # Fred Family
     "Fred",
     "AsyncFred",
     "GeoFred",
     "AsyncGeoFred",
     "Alfred",
+    "AsyncAlfred",
+    # Fraser
     "Fraser",
 ]

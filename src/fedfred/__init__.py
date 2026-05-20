@@ -71,6 +71,7 @@ from .models import (
     Source,
     Element,
     VintageDate,
+    VintageDates,
     SeriesGroup,
     BulkRelease,
 )
@@ -82,7 +83,8 @@ from .clients import (
     GeoFred,
     AsyncGeoFred,
     Fraser,
-    Alfred
+    Alfred,
+    AsyncAlfred
 )
 
 # Exceptions
@@ -133,6 +135,7 @@ __all__ = [
     "AsyncGeoFred",
     "Fraser",
     "Alfred",
+    "AsyncAlfred",
     # Models
     "Category",
     "Series",
@@ -142,6 +145,7 @@ __all__ = [
     "Source",
     "Element",
     "VintageDate",
+    "VintageDates",
     "SeriesGroup",
     "BulkRelease",
     # Exceptions

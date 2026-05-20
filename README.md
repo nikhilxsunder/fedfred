@@ -7,7 +7,7 @@
 | | |
 |---|---|
 | **CI / Quality** | [![Build](https://github.com/nikhilxsunder/fedfred/actions/workflows/main.yml/badge.svg)](https://github.com/nikhilxsunder/fedfred/actions/workflows/main.yml) [![Analyze](https://github.com/nikhilxsunder/fedfred/actions/workflows/analyze.yml/badge.svg)](https://github.com/nikhilxsunder/fedfred/actions/workflows/analyze.yml) [![Tests](https://github.com/nikhilxsunder/fedfred/actions/workflows/test.yml/badge.svg)](https://github.com/nikhilxsunder/fedfred/actions/workflows/test.yml) |
-| **Security** | [![CodeQL](https://github.com/nikhilxsunder/fedfred/actions/workflows/codeql.yml/badge.svg)](https://github.com/nikhilxsunder/fedfred/actions/workflows/codeql.yml) [![Best Practices](https://www.bestpractices.dev/projects/10158/badge)](https://www.bestpractices.dev/projects/10158) [![Socket](https://socket.dev/api/badge/pypi/package/fedfred/3.0.0?artifact_id=tar-gz)](https://socket.dev/pypi/package/fedfred/overview/3.0.0/tar-gz) |
+| **Security** | [![CodeQL](https://github.com/nikhilxsunder/fedfred/actions/workflows/codeql.yml/badge.svg)](https://github.com/nikhilxsunder/fedfred/actions/workflows/codeql.yml) [![Best Practices](https://www.bestpractices.dev/projects/10158/badge)](https://www.bestpractices.dev/projects/10158) [![Socket](https://socket.dev/api/badge/pypi/package/fedfred/4.0.0?artifact_id=tar-gz)](https://socket.dev/pypi/package/fedfred/overview/4.0.0/tar-gz) |
 | **Coverage** | [![Coverage](https://codecov.io/gh/nikhilxsunder/fedfred/graph/badge.svg?token=VVEK415DF6)](https://codecov.io/gh/nikhilxsunder/fedfred) |
 | **Packaging** | [![Repology](https://repology.org/badge/tiny-repos/python%3Afedfred.svg)](https://repology.org/project/python%3Afedfred/versions) |
 | **Distribution** | [![PyPI](https://img.shields.io/pypi/v/fedfred.svg)](https://pypi.org/project/fedfred/) [![Conda](https://anaconda.org/conda-forge/fedfred/badges/version.svg)](https://anaconda.org/conda-forge/fedfred) |
@@ -209,8 +209,8 @@ If you use fedfred in your research, projects, or publications, please cite it a
 **Plain Text**:
 
 ```
-Sunder, Nikhil. (2025). fedfred: A Python client for the Federal Reserve Economic Database (FRED) API.
-Version 3.0.0. Available at: https://github.com/nikhilxsunder/fedfred
+Sunder, Nikhil. (2026). fedfred: A Python client for the Federal Reserve Economic Database (FRED) API.
+Version 4.0.0. Available at: https://github.com/nikhilxsunder/fedfred
 ```
 
 **BibTeX**:
@@ -221,7 +221,7 @@ Version 3.0.0. Available at: https://github.com/nikhilxsunder/fedfred
   title        = {fedfred: A Python client for the Federal Reserve Economic Database (FRED) API},
   year         = {2026},
   publisher    = {GitHub},
-  version      = {3.0.0},
+  version      = {4.0.0},
   doi          = {10.5281/zenodo.17635942},
   url          = {https://github.com/nikhilxsunder/fedfred},
   orcid        = {https://orcid.org/0009-0007-3323-1760}
