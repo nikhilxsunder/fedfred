@@ -18,34 +18,19 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Install Poetry
-        uses: snok/install-poetry@v1
-        with:
-          virtualenvs-create: true
-          virtualenvs-in-project: true
-
-      - name: Cache Poetry dependencies
-        uses: actions/cache@v3
-        with:
-          path: ~/.cache/pypoetry
-          key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-poetry-
-
       - name: Install dependencies
-        run: |
-          poetry install --no-interaction
+        run: uv sync --group dev
 
       - name: Run tests with coverage
         env:
           FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
         run: |
-          poetry run pytest tests --disable-warnings --cov=src --cov-report=xml --cov-report=term > coverage_output.txt
+          uv run pytest tests --disable-warnings --cov=src --cov-report=xml --cov-report=term > coverage_output.txt
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
@@ -65,10 +50,7 @@ jobs:
       - name: Update TEST_COVERAGE.md
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         run: |
-          # Get the current date
           DATE=$(date +"%Y-%m-%d")
-
-          # Create or update TEST_COVERAGE.md
           cat > TEST_COVERAGE.md << EOF
           # Test Coverage Report
 

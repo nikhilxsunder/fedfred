@@ -31,29 +31,19 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
         with:
           python-version: "3.10"
 
-      - name: Install Poetry
-        uses: snok/install-poetry@v1
-        with:
-          version: 2.1.1
-          virtualenvs-create: true
-          virtualenvs-in-project: true
-
       - name: Install dependencies
-        run: |
-          poetry install --no-interaction
+        run: uv sync --group dev
 
       - name: Build package
-        run: poetry build
+        run: uv build
 
       - name: Sync conda recipe
-        run: |
-          pip install tomli
-          python scripts/sync_conda_recipe.py
+        run: uv run python scripts/sync_conda_recipe.py
 
       - name: Store the distribution packages
         uses: actions/upload-artifact@v4
@@ -88,24 +78,16 @@ jobs:
           name: python-package-distributions
           path: dist/
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
         with:
           python-version: "3.10"
 
-      - name: Install Poetry
-        uses: snok/install-poetry@v1
-        with:
-          version: 2.1.1
-
       - name: Publish to PyPI
-        env:
-          POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI_API_TOKEN }}
-        run: |
-          poetry config pypi-token.pypi $POETRY_PYPI_TOKEN_PYPI
-          poetry publish --no-interaction
+        run: uv publish dist/*
 
   publish-to-anaconda:
+    # unchanged — conda-only job, no Poetry/uv involved
     name: >-
       Publish Python distribution to Anaconda
     if: startsWith(github.ref, 'refs/tags/') || (github.event_name == 'workflow_dispatch' && github.event.inputs.publish_to_anaconda == 'true')
@@ -145,19 +127,12 @@ jobs:
       - name: Build conda package
         shell: bash -el {0}
         run: |
-          # Update the source URL in meta.yaml to use the local tarball
           VERSION=$(ls dist/fedfred-*.tar.gz | grep -oP 'fedfred-\K[0-9]+\.[0-9]+\.[0-9]+' | head -n 1)
           TARBALL_PATH=$(realpath dist/fedfred-${VERSION}.tar.gz)
-
-          # Calculate SHA256 of the tarball
           SHA256=$(sha256sum $TARBALL_PATH | cut -d ' ' -f 1)
-
-          # Update meta.yaml with the correct info
           sed -i "s/version:.*/version: $VERSION/" conda-recipe/meta.yaml
           sed -i "s|url:.*|url: \"file://$TARBALL_PATH\"|" conda-recipe/meta.yaml
           sed -i "s/sha256:.*/sha256: \"$SHA256\"/" conda-recipe/meta.yaml
-
-          # Build the conda package
           conda build conda-recipe/
 
       - name: Publish to Anaconda
@@ -165,10 +140,7 @@ jobs:
         env:
           ANACONDA_API_TOKEN: ${{ secrets.ANACONDA_API_TOKEN }}
         run: |
-          # Get the built package path
           CONDA_PACKAGE=$(conda build conda-recipe/ --output)
-
-          # Sign the package with Anaconda
           anaconda upload --user nikhil.sunder --force $CONDA_PACKAGE
 
   update-feedstock:
@@ -180,7 +152,7 @@ jobs:
 
     steps:
       - name: Checkout the repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4                          # was @v3
 
       - name: Download all the dists
         uses: actions/download-artifact@v4
@@ -214,28 +186,19 @@ jobs:
       - name: Update feedstock meta.yaml with correct sha256
         shell: bash -el {0}
         run: |
-          # Extract version and tarball path
           VERSION=$(ls dist/fedfred-*.tar.gz | grep -oP 'fedfred-\K[0-9]+\.[0-9]+\.[0-9]+' | head -n 1)
           TARBALL_PATH=$(realpath dist/fedfred-${VERSION}.tar.gz)
-
-          # Calculate SHA256 of the tarball
           SHA256=$(sha256sum $TARBALL_PATH | cut -d ' ' -f 1)
-
-          # Update meta.yaml with the correct info
           sed -i "s/version:.*/version: $VERSION/" conda-recipe/meta.yaml
           sed -i "s|url:.*|url: \"https://pypi.io/packages/source/f/fedfred/fedfred-${VERSION}.tar.gz\"|" conda-recipe/meta.yaml
           sed -i "s/sha256:.*/sha256: \"$SHA256\"/" conda-recipe/meta.yaml
-
-          # Copy updated meta.yaml to the feedstock repository
           cp conda-recipe/meta.yaml feedstock/recipe/meta.yaml
 
       - name: Regenerate the feedstock with conda-smithy
         run: |
           cd feedstock
-          # Configure git first
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
-          # Then run conda smithy
           conda smithy rerender -c auto
 
       - name: Commit and push changes
@@ -246,15 +209,11 @@ jobs:
           git checkout -b update-${{ github.event.inputs.release_version || github.ref_name }}
           git add .
           git commit -m "Update to version ${{ github.event.inputs.release_version || github.ref_name }}"
-
-          # Set the remote URL with authentication token
           git remote set-url origin https://nikhilxsunder:${{ secrets.FEEDSTOCK_TOKEN }}@github.com/nikhilxsunder/fedfred-feedstock.git
-
-          # Push to the remote repository
           git push origin HEAD:update-${{ github.event.inputs.release_version || github.ref_name }}
 
       - name: Checkout the repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4                          # was @v3
         with:
           ref: main
 
@@ -271,6 +230,7 @@ jobs:
             The `meta.yaml` file has been updated with the correct version and sha256 hash.
 
   sign-and-release:
+    # unchanged — no package manager involvement
     name: >-
       Sign and publish GitHub Release
     if: startsWith(github.ref, 'refs/tags/') || (github.event_name == 'workflow_dispatch' && (github.event.inputs.publish_to_pypi == 'true' || github.event.inputs.publish_to_anaconda == 'true'))
@@ -314,7 +274,6 @@ jobs:
               gpg --detach-sign --armor "$file"
             fi
           done
-          # List all files for debugging
           ls -la dist/
 
       - name: Create GitHub Release

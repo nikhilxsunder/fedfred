@@ -1,20 +1,23 @@
 [build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
-[tool.poetry]
+[project]
 name = "fedfred"
 version = "4.0.0"
 description = "A feature-rich python package for interacting with the Federal Reserve Bank of St. Louis Economic Database: FRED"
-authors = [
-    "Nikhil Sunder <nsunder724@gmail.com>"
-]
 readme = "README.md"
-license = "MIT"
-repository = "https://github.com/nikhilxsunder/fedfred"
-documentation = "https://nikhilxsunder.github.io/fedfred/"
-packages = [{include = "fedfred", from = "src"}]
-include = ["src/fedfred/py.typed"]
+license = { text = "MIT" }
+authors = [
+    { name = "Nikhil Sunder", email = "nsunder724@gmail.com" }
+]
+requires-python = ">=3.10,<4.0"
+keywords = [
+    "fred", "federal reserve", "api", "economics", "finance", "economic data", "financial data",
+    "fred pandas", "fred polars", "fred dask", "fred geopandas", "async", "pandas", "polars",
+    "dask", "geopandas", "cache", "financial analysis", "economic analysis", "data analysis",
+    "data science", "data visualization", "data mining", "data wrangling", "data cleaning"
+]
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
@@ -23,68 +26,72 @@ classifiers = [
     "Intended Audience :: Financial and Insurance Industry",
     "Topic :: Office/Business :: Financial :: Investment"
 ]
-keywords = [
-    "fred", "federal reserve", "api", "economics", "finance", "economic data", "financial data",
-    "fred pandas", "fred polars", "fred dask", "fred geopandas", "async", "pandas", "polars",
-    "dask", "geopandas", "cache", "financial analysis", "economic analysis", "data analysis",
-    "data science", "data visualization", "data mining", "data wrangling", "data cleaning"
+dependencies = [
+    "httpx",
+    "cachetools",
+    "asyncache",
+    "tenacity",
+    "pandas",
+    "geopandas",
 ]
 
-[tool.poetry.dependencies]
-python = ">=3.10, <4.0"
-httpx = "*"
-cachetools = "*"
-asyncache ="*"
-tenacity = "*"
-pandas = "*"
-geopandas = "*"
-
-[tool.poetry.group.dev.dependencies]
-pandas-stubs = "*"
-types-cachetools = "*"
-types-geopandas = "*"
-polars = "*"
-polars-st = "*"
-dask = "*"
-dask-geopandas = "*"
-pytest = "*"
-pytest-cov = "*"
-pylint = "*"
-mypy = "*"
-bandit = "*"
-pip-audit = "*"
-pre-commit = "*"
-hypothesis = "*"
-sphinx = "*"
-pydata-sphinx-theme = "*"
-sphinx-design = "*"
-sphinx-autodoc-typehints = "*"
-myst-parser = "*"
-linkify-it-py = "* "
-sphinxcontrib-googleanalytics = "*"
-tox = "*"
-pytest-asyncio = "*"
-pytest-mock = "*"
-tomli = "*"
-sphinx-sitemap = "*"
-sphinxext-opengraph = "*"
-matplotlib = "*"
-toml = "*"
-ipykernel = "^7.2.0"
-notebook = "^7.5.6"
-
-[tool.poetry.extras]
-types = ["pandas-stubs", "types-cachetools", "types-geopandas"]
-dask = ["dask", "dask-geopandas"]
+[project.optional-dependencies]
+types  = ["pandas-stubs", "types-cachetools", "types-geopandas"]
+dask   = ["dask", "dask-geopandas"]
 polars = ["polars", "polars-st"]
 
+[project.urls]
+Repository    = "https://github.com/nikhilxsunder/fedfred"
+Documentation = "https://nikhilxsunder.github.io/fedfred/"
+
+[dependency-groups]
+dev = [
+    "pandas-stubs",
+    "types-cachetools",
+    "types-geopandas",
+    "polars",
+    "polars-st",
+    "dask",
+    "dask-geopandas",
+    "pytest",
+    "pytest-cov",
+    "pylint",
+    "mypy",
+    "bandit",
+    "pip-audit",
+    "pre-commit",
+    "hypothesis",
+    "sphinx",
+    "pydata-sphinx-theme",
+    "sphinx-design",
+    "sphinx-autodoc-typehints",
+    "myst-parser",
+    "linkify-it-py",
+    "sphinxcontrib-googleanalytics",
+    "tox",
+    "pytest-asyncio",
+    "pytest-mock",
+    "tomli",
+    "sphinx-sitemap",
+    "sphinxext-opengraph",
+    "matplotlib",
+    "toml",
+    "ipykernel>=7.2.0",
+    "notebook>=7.5.6",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/fedfred"]
+
+# ── tool configs below are unchanged except the mypy fix noted below ──────────
+
 [tool.mypy]
-files = "fedfred"
+files = "src/fedfred"          # was "fedfred" — wrong for src layout
 ignore_missing_imports = true
 
 [tool.pylint]
 max-line-length = 400
-disable = ["C0302",]
+disable = ["C0302"]
 ignore-patterns = [".*\\.pyi$"]
 
 [tool.bandit]
