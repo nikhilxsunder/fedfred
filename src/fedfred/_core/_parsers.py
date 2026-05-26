@@ -27,7 +27,7 @@ This module provides internal helper methods for the fedfred package, specifical
 from __future__ import annotations
 import asyncio
 from typing import Dict
-from fedfred.exceptions.parsing import ParsingError
+from ..exceptions.parsing import ParsingError
 
 __all__ = [
     "_region_type_parser", "_region_type_parser_async"
@@ -114,3 +114,5 @@ async def _region_type_parser_async(response: Dict) -> str:
     """
 
     return await asyncio.to_thread(_region_type_parser, response)
+
+

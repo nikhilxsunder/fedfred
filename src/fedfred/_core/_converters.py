@@ -31,6 +31,7 @@ from datetime import datetime, date, time
 import pandas as pd
 import geopandas as gpd
 from ..exceptions import DataFrameConversionError, GeoDataFrameConversionError, OptionalDependencyError,  TypeConversionError
+from ..settings import _resolve_dataframe_backend, _resolve_geodataframe_backend
 
 if TYPE_CHECKING:
     import dask.dataframe as dd # pragma: no cover
@@ -51,6 +52,9 @@ __all__ = [
     # DataFrame Converter Maps
     "DATAFRAME_CONVERTER_MAP", "GEODATAFRAME_CONVERTER_MAP",
     "ASYNC_DATAFRAME_CONVERTER_MAP", "ASYNC_GEODATAFRAME_CONVERTER_MAP",
+    # DataFrame Converter Resolvers
+    "_resolve_dataframe_converter", "_resolve_geodataframe_converter",
+    "_resolve_dataframe_converter_async", "_resolve_geodataframe_converter_async",
     # Scalar Converters
     "_identity_converter", "_date_parameter_converter", "_time_parameter_converter", 
     "_semicolon_list_converter", "_comma_date_list_converter",
@@ -855,6 +859,95 @@ ASYNC_GEODATAFRAME_CONVERTER_MAP: Dict[str, Callable] = {
     'polars': _polars_geodataframe_converter_async,
 }
 """Mapping of asynchronous geodataframe converter functions for different backends."""
+
+# Dataframe Resolvers
+def _resolve_dataframe_converter(backend: Optional[str] = None) -> Callable:
+    """Internal function to resolve the appropriate dataframe converter function based on the specified backend.
+
+    Args:
+        backend (str): The name of the backend for which to resolve the converter function. Supported values are 'pandas', 'polars', and 'dask'.
+
+    Returns:
+        Callable: The corresponding dataframe converter function for the specified backend.
+
+    Examples:
+        >>> # Internal use
+        >>> from ._core import _resolve_dataframe_converter
+        >>> converter_func = _resolve_dataframe_converter("pandas")
+        >>> print(converter_func)
+        <function _pandas_dataframe_converter at 0x...>
+    """
+
+    if backend is None:
+        backend = _resolve_dataframe_backend()
+
+    return DATAFRAME_CONVERTER_MAP[backend]
+
+def _resolve_geodataframe_converter(backend: Optional[str] = None) -> Callable:
+    """Internal function to resolve the appropriate asynchronous geodataframe converter function based on the specified backend.
+
+    Args:
+        backend (str): The name of the backend for which to resolve the converter function. Supported values are 'geopandas', 'dask', and 'polars'.
+
+    Returns:
+        Callable: The corresponding asynchronous geodataframe converter function for the specified backend.
+
+    Examples:
+        >>> # Internal use
+        >>> from ._core import _resolve_geodataframe_converter
+        >>> converter_func = _resolve_geodataframe_converter("geopandas")
+        >>> print(converter_func)
+        <function _geopandas_geodataframe_converter at 0x...>
+    """
+
+    if backend is None:
+        backend = _resolve_geodataframe_backend()
+
+    return GEODATAFRAME_CONVERTER_MAP[backend]
+
+async def _resolve_dataframe_converter_async(backend: Optional[str] = None) -> Callable:
+    """Internal asynchronous function to resolve the appropriate dataframe converter function based on the specified backend.
+    
+    Args:
+        backend (str): The name of the backend for which to resolve the converter function. Supported values are 'pandas', 'polars', and 'dask'.
+
+    Returns:
+        Callable: The corresponding asynchronous dataframe converter function for the specified backend.
+
+    Examples:
+        >>> # Internal use
+        >>> from ._core import _resolve_dataframe_converter_async
+        >>> converter_func = await _resolve_dataframe_converter_async("pandas")
+        >>> print(converter_func)
+        <function _pandas_dataframe_converter_async at 0x...>
+    """
+
+    if backend is None:
+        backend = _resolve_dataframe_backend()
+
+    return ASYNC_DATAFRAME_CONVERTER_MAP[backend]
+
+async def _resolve_geodataframe_converter_async(backend: Optional[str] = None) -> Callable:
+    """Internal asynchronous function to resolve the appropriate geodataframe converter function based on the specified backend.
+
+    Args:
+        backend (str): The name of the backend for which to resolve the converter function. Supported values are 'geopandas', 'dask', and 'polars'.
+
+    Returns:
+        Callable: The corresponding asynchronous geodataframe converter function for the specified backend.
+
+    Examples:
+        >>> # Internal use
+        >>> from ._core import _resolve_geodataframe_converter_async
+        >>> converter_func = await _resolve_geodataframe_converter_async("geopandas")
+        >>> print(converter_func)
+        <function _geopandas_geodataframe_converter_async at 0x...>
+    """
+
+    if backend is None:
+        backend = _resolve_geodataframe_backend()
+
+    return ASYNC_GEODATAFRAME_CONVERTER_MAP[backend]
 
 # Scalar Converters
 def _identity_converter(parameter: str, value: Any) -> Any: # TODO: Do something with parameter input.

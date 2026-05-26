@@ -27,7 +27,7 @@ jobs:
           python-version: "3.13"
 
       - name: Install dependencies
-        run: uv sync --group dev
+        run: uv sync --group lint
 
       - name: Create report directory
         run: mkdir -p "${REPORT_DIR}"

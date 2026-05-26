@@ -1,4 +1,4 @@
-# filepath: /src/fedfred/_core/_transport.py
+# filepath: /src/fedfred/_internals/_transport.py
 #
 # Copyright (c) 2025–2026 Nikhil Sunder
 #
@@ -19,7 +19,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""fedfred._core._transport
+"""fedfred._internals._transport
 
 This module provides internal transport functions for the fedfred core package.
 """
@@ -30,11 +30,11 @@ import httpx
 from tenacity import retry, wait_fixed, stop_after_attempt, retry_if_exception_type
 from cachetools import cached
 from asyncache import cached as async_cached
-from ._converters import _dict_type_converter, _dict_type_converter_async
+from .._core._converters import _dict_type_converter, _dict_type_converter_async
 from ._rate_limit import _rate_limiter, _rate_limiter_async
 from ._caching import _CACHE
-from ._endpoints import _resolve_endpoint, _resolve_endpoint_async
-from ._parameters import _resolve_preparation_function
+from .._core._endpoints import _resolve_endpoint, _resolve_endpoint_async
+from .._core._parameters import _resolve_preparation_function
 from ..exceptions import (
     TransportError,
     RequestPreparationError,

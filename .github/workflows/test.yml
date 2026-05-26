@@ -11,8 +11,9 @@ jobs:
   test:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        python-version: ["3.11"]
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
 
     steps:
       - name: Checkout code
@@ -24,15 +25,18 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Install dependencies
-        run: uv sync --group dev
+        run: uv sync --group test
 
       - name: Run tests with coverage
         env:
           FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+        shell: bash
         run: |
-          uv run pytest tests --disable-warnings --cov=src --cov-report=xml --cov-report=term > coverage_output.txt
+          set -o pipefail
+          uv run pytest tests --disable-warnings --cov=src --cov-report=xml --cov-report=term 2>&1 | tee coverage_output.txt
 
       - name: Upload coverage to Codecov
+        if: matrix.python-version == '3.13'
         uses: codecov/codecov-action@v3
         with:
           file: ./coverage.xml
@@ -42,13 +46,13 @@ jobs:
           verbose: true
 
       - name: Extract coverage percentage
-        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        if: matrix.python-version == '3.13' && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         run: |
           COVERAGE=$(grep "TOTAL" coverage_output.txt | awk '{print $NF}' | sed 's/%//')
           echo "COVERAGE=$COVERAGE" >> $GITHUB_ENV
 
       - name: Update TEST_COVERAGE.md
-        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        if: matrix.python-version == '3.13' && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         run: |
           DATE=$(date +"%Y-%m-%d")
           cat > TEST_COVERAGE.md << EOF
@@ -90,7 +94,7 @@ jobs:
           EOF
 
       - name: Commit changes
-        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        if: matrix.python-version == '3.13' && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"

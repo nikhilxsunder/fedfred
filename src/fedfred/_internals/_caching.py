@@ -1,4 +1,4 @@
-# filepath: /src/fedfred/_core/_caching.py
+# filepath: /src/fedfred/_internals/_caching.py
 #
 # Copyright (c) 2025–2026 Nikhil Sunder
 #
@@ -19,7 +19,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""fedfred._core._caching
+"""fedfred._internals._caching
 
 This module provides adjustable cache abstractions for the fedfred core package.
 """
@@ -30,7 +30,7 @@ from threading import RLock
 from collections.abc import Hashable, MutableMapping, Iterator
 from typing import Generic, TypeVar, ItemsView, KeysView, ValuesView, Tuple, overload
 from cachetools import FIFOCache
-from..exceptions import (
+from ..exceptions import (
     CacheInitializationError,
     CacheResizeError,
     CacheKeyError,

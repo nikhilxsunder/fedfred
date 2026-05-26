@@ -1,4 +1,4 @@
-# filepath: /src/fedfred/_core/__init__.py
+# filepath: /src/fedfred/_internals/__init__.py
 #
 # Copyright (c) 2026 Nikhil Sunder
 #
@@ -19,23 +19,21 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""fedfred._core.__init__
+"""fedfred._internals.__init__
 
-This module initializes the _core subpackage of fedfred. It imports and exposes the core helper 
-methods for data conversion, validation, and extraction used across the fedfred package.
+This module initializes the _internals subpackage of fedfred. It imports and exposes the internal helper 
+methods for transport, caching, and rate limiting used across the fedfred package.
 """
 
-from ._converters import (
-    _hashable_type_converter, _hashable_type_converter_async,
-    _resolve_dataframe_converter, _resolve_geodataframe_converter,
-    _resolve_dataframe_converter_async, _resolve_geodataframe_converter_async,
+from ._transport import (
+    _get_request, _get_request_async,
+    _cached_get_request, _cached_get_request_async,
 )
 
-from ._endpoints import (
-    _ST_LOUIS_FED_BASE_URL, _FRED_PATH, _GEOFRED_PATH,
+from._caching import (
+    set_cache_maxsize, get_cache_maxsize, _CACHE,
 )
 
-from ._parsers import(
-    _region_type_parser,
-    _region_type_parser_async
+from ._rate_limit import(
+    _FRED_MAX_REQUESTS_PER_MINUTE,
 )

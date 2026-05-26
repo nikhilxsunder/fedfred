@@ -1,4 +1,4 @@
-# filepath: /src/fedfred/_core/_rate_limit.py
+# filepath: /src/fedfred/_internals/_rate_limit.py
 #
 # Copyright (c) 2025–2026 Nikhil Sunder
 #
@@ -19,7 +19,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""fedfred._core._rate_limit
+"""fedfred._internals._rate_limit
 
 This module provides an adjustable capacity limiter for managing concurrent access to resources. The AdjustableLimiter class allows for 
 runtime adjustment of the maximum number of concurrent holders, ensuring that resource usage can be controlled dynamically.
@@ -68,7 +68,7 @@ class AdjustableLimiter:
 
     Examples:
         >>> # Internal use
-        >>> from ._core import AdjustableLimiter
+        >>> from ._internals._rate_limit import AdjustableLimiter
         >>> limiter = AdjustableLimiter(limit=5)
         >>> _FRED_SEMAPHORE = limiter(max_requests_per_minute=60)
 

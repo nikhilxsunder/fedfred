@@ -56,23 +56,26 @@ References:
 """
 
 from datetime import datetime, date, time
-from typing import TYPE_CHECKING, KeysView, Optional, Dict, Union, List, Any, KeysView, Tuple
+from typing import TYPE_CHECKING, KeysView, Optional, Dict, Union, List, Any, Tuple
 from types import TracebackType, NotImplementedType
 import pandas as pd
 from ..settings import _resolve_api_key, set_api_key
 from .._core import (
     # Converters
     _hashable_type_converter, _hashable_type_converter_async,
-    DATAFRAME_CONVERTER_MAP, ASYNC_DATAFRAME_CONVERTER_MAP,
+    _resolve_dataframe_converter, _resolve_geodataframe_converter,
+    _resolve_dataframe_converter_async, _resolve_geodataframe_converter_async,
+    # Endpoints
+    _ST_LOUIS_FED_BASE_URL, _FRED_PATH,
+)
+from .._internals import (
     # Transport
     _get_request, _get_request_async,
     _cached_get_request, _cached_get_request_async,
     # Caching
     set_cache_maxsize, get_cache_maxsize, _CACHE,
-    # Endpoints
-    _ST_LOUIS_FED_BASE_URL, _FRED_PATH,
-    # Rate Limit
-    _FRED_MAX_REQUESTS_PER_MINUTE
+    # Rate Limit    
+    _FRED_MAX_REQUESTS_PER_MINUTE,
 )
 from ..models import BulkRelease, Category, Series, Tag, Release, ReleaseDate, Source, Element, VintageDate
 
@@ -1434,7 +1437,7 @@ class Fred:
 
         return categories
 
-    def get_series_observations(self, series_id: str, dataframe_method: str = 'pandas',
+    def get_series_observations(self, series_id: str, dataframe_method: Optional[str] = None,
                                 realtime_start: Optional[Union[str, datetime, date]]=None, realtime_end: Optional[Union[str, datetime, date]]=None,
                                 limit: Optional[int]=None, offset: Optional[int]=None,
                                 sort_order: Optional[str]=None,
@@ -1511,10 +1514,9 @@ class Fred:
 
         response = self.__fred_get_request(endpoint_name, data)
 
-        try:
-            return DATAFRAME_CONVERTER_MAP[dataframe_method](response)
-        except KeyError as exc:
-            raise ValueError("dataframe_method must be a string, options are: 'pandas', 'polars', or 'dask'") from exc # TODO: this error needs to be internally defined and raised as a custom error, not a ValueError
+        df_method = _resolve_dataframe_converter(dataframe_method)
+
+        return df_method(response)
 
     def get_series_release(self, series_id: str, realtime_start: Optional[Union[str, datetime, date]]=None,
                            realtime_end: Optional[Union[str, datetime, date]]=None) -> List[Release]:
@@ -3671,7 +3673,7 @@ class AsyncFred:
 
         return await Category.to_object_async(response)
 
-    async def get_series_observations(self, series_id: str, dataframe_method: str = 'pandas',
+    async def get_series_observations(self, series_id: str, dataframe_method: Optional[str] = None,
                                       realtime_start: Optional[Union[str, datetime, date]]=None,
                                       realtime_end: Optional[Union[str, datetime, date]]=None,
                                       limit: Optional[int]=None, offset: Optional[int]=None,
@@ -3752,10 +3754,9 @@ class AsyncFred:
 
         response = await self.__fred_get_request(endpoint_name, data)
 
-        try:
-            return await ASYNC_DATAFRAME_CONVERTER_MAP[dataframe_method](response)
-        except KeyError as exc:
-            raise ValueError("dataframe_method must be a string, options are: 'pandas', 'polars', or 'dask'") from exc # TODO: this error needs to be internally defined and raised as a custom error, not a ValueError
+        df_method = await _resolve_dataframe_converter_async(dataframe_method)
+
+        return await df_method(response)
 
     async def get_series_release(self, series_id: str, realtime_start: Optional[Union[str, datetime, date]]=None,
                                  realtime_end: Optional[Union[str, datetime, date]]=None) -> List[Release]:

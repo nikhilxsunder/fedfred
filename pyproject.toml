@@ -44,23 +44,33 @@ polars = ["polars", "polars-st"]
 Repository    = "https://github.com/nikhilxsunder/fedfred"
 Documentation = "https://nikhilxsunder.github.io/fedfred/"
 
+# ── Composable dependency groups ─────────────────────────────────────────────
+# Each group is independently installable; `dev` composes all of them.
+# CI jobs use the minimal group they need (e.g. --group test for test runs).
+
 [dependency-groups]
-dev = [
+types = [
     "pandas-stubs",
     "types-cachetools",
     "types-geopandas",
-    "polars",
-    "polars-st",
-    "dask",
-    "dask-geopandas",
+]
+test = [
     "pytest",
     "pytest-cov",
+    "pytest-asyncio",
+    "pytest-mock",
+    "hypothesis",
+    "tomli",
+    { include-group = "types" },
+]
+lint = [
     "pylint",
     "mypy",
     "bandit",
     "pip-audit",
-    "pre-commit",
-    "hypothesis",
+    { include-group = "types" },
+]
+docs = [
     "sphinx",
     "pydata-sphinx-theme",
     "sphinx-design",
@@ -68,25 +78,42 @@ dev = [
     "myst-parser",
     "linkify-it-py",
     "sphinxcontrib-googleanalytics",
-    "tox",
-    "pytest-asyncio",
-    "pytest-mock",
-    "tomli",
     "sphinx-sitemap",
     "sphinxext-opengraph",
     "matplotlib",
-    "toml",
+]
+notebooks = [
     "ipykernel>=7.2.0",
     "notebook>=7.5.6",
 ]
+extras = [
+    "polars",
+    "polars-st",
+    "dask",
+    "dask-geopandas",
+]
+dev = [
+    { include-group = "test" },
+    { include-group = "lint" },
+    { include-group = "docs" },
+    { include-group = "notebooks" },
+    { include-group = "extras" },
+]
+
+# ── uv config ────────────────────────────────────────────────────────────────
+
+[tool.uv]
+managed = true
+
+# ── build ────────────────────────────────────────────────────────────────────
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/fedfred"]
 
-# ── tool configs below are unchanged except the mypy fix noted below ──────────
+# ── tool configs ─────────────────────────────────────────────────────────────
 
 [tool.mypy]
-files = "src/fedfred"          # was "fedfred" — wrong for src layout
+files = "src/fedfred"
 ignore_missing_imports = true
 
 [tool.pylint]

@@ -52,7 +52,6 @@ from dataclasses import dataclass, field
 import asyncio
 import pandas as pd
 from ..__about__ import __title__, __version__, __author__, __email__, __license__, __copyright__, __description__, __docs__, __repository__
-from .._core import _pandas_dataframe_converter, _pandas_dataframe_converter_async
 
 if TYPE_CHECKING:
     from ..clients.fred import Fred # pragma: no cover

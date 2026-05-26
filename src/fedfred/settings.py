@@ -154,3 +154,47 @@ def _resolve_api_key(*, service: Service = "fred", env_var: Optional[str] = None
         f"Provide api_key=..., call set_api_key(..., service={service!r}), "
         f"or set the environment variable {env_name}."
     )
+
+_DEFAULT_DATAFRAME_BACKEND = "pandas"
+_VALID_DATAFRAME_BACKENDS = ("pandas", "polars", "dask")
+_GLOBAL_DATAFRAME_BACKEND: Optional[str] = None
+
+def set_dataframe_backend(backend: str) -> None:
+
+    if backend not in _VALID_DATAFRAME_BACKENDS:
+        raise ValueError(f"backend must be one of {_VALID_DATAFRAME_BACKENDS}, got {backend!r}.")
+    global _GLOBAL_DATAFRAME_BACKEND
+    _GLOBAL_DATAFRAME_BACKEND = backend
+
+def get_dataframe_backend() -> str:
+
+    return _GLOBAL_DATAFRAME_BACKEND or _DEFAULT_DATAFRAME_BACKEND
+
+def _resolve_dataframe_backend(explicit: Optional[str] = None) -> str:
+
+    backend = explicit or _GLOBAL_DATAFRAME_BACKEND or _DEFAULT_DATAFRAME_BACKEND
+    if backend not in _VALID_DATAFRAME_BACKENDS:
+        raise ValueError(f"backend must be one of {_VALID_DATAFRAME_BACKENDS}, got {backend!r}.")
+    return backend
+
+_DEFAULT_GEODATAFRAME_BACKEND = "pandas"
+_VALID_GEODATAFRAME_BACKENDS = ("pandas", "polars", "dask")
+_GLOBAL_GEODATAFRAME_BACKEND: Optional[str] = None
+
+def set_geodataframe_backend(backend: str) -> None:
+
+    if backend not in _VALID_GEODATAFRAME_BACKENDS:
+        raise ValueError(f"backend must be one of {_VALID_GEODATAFRAME_BACKENDS}, got {backend!r}.")
+    global _GLOBAL_GEODATAFRAME_BACKEND
+    _GLOBAL_GEODATAFRAME_BACKEND = backend
+
+def get_geodataframe_backend() -> str:
+
+    return _GLOBAL_GEODATAFRAME_BACKEND or _DEFAULT_GEODATAFRAME_BACKEND
+
+def _resolve_geodataframe_backend(explicit: Optional[str] = None) -> str:
+
+    backend = explicit or _GLOBAL_GEODATAFRAME_BACKEND or _DEFAULT_GEODATAFRAME_BACKEND
+    if backend not in _VALID_GEODATAFRAME_BACKENDS:
+        raise ValueError(f"backend must be one of {_VALID_GEODATAFRAME_BACKENDS}, got {backend!r}.")
+    return backend

@@ -27,7 +27,7 @@ from typing import Optional, Union, Any, TYPE_CHECKING, Dict, List
 from types import TracebackType, NotImplementedType
 import pandas as pd
 from ..settings import _resolve_api_key, set_api_key
-from ..models import Series, VintageDates
+from ..models import Series
 from .._core import (
     # Converters
     _hashable_type_converter, _hashable_type_converter_async,
@@ -55,8 +55,24 @@ __all__ = [
 # TODO: Fix all docstrings post error design.
 
 class Alfred:
+    """Client for the Federal Reserve FRED API's ALFRED endpoints.
 
+    The Alfred class contains methods for interacting with the Federal Reserve Bank of St. Louis
+    ALFRED® API and provides synchronous endpoints with intuitive handling of vintage dates and data revisions.
+
+    Attributes:
+        caching_enabled (bool): Whether caching is enabled for API responses.
+        cache_size (int): The maximum number of items to store in the cache if caching is enabled.
+        keys (List[str] | None): A list of keys currently stored in the cache if caching is enabled, otherwise None.
+
+    Args:
+        api_key (str, optional): Your FRED API key. Can also be set globally.
+        caching_enabled (bool, optional): Whether caching is enabled for API responses. Defaults to True.
+        cache_size (int, optional): The maximum number of items to store in the cache if caching is enabled. Defaults to 256.
+    """
+    # Dunder Methods
     def __init__(self, api_key: Optional[str]=None, caching_enabled: bool=True, cache_size: int=256) -> None:
+        """"""
 
         if api_key:
             set_api_key(api_key, service="alfred")
@@ -290,12 +306,14 @@ class Alfred:
     # Properties
     @property
     def keys(self):
+        """List of keys in the cache."""
+
         return _CACHE.keys() if self.caching_enabled else None
 
     # Public Methods
     def get_series_vintage_dates(self, series_id: str, realtime_start: Optional[Union[str, datetime, date]]=None,
                                  realtime_end: Optional[Union[str, datetime, date]]=None, limit: Optional[int]=None,
-                                 offset: Optional[int]=None, sort_order: Optional[str]=None) -> VintageDates:
+                                 offset: Optional[int]=None, sort_order: Optional[str]=None):
         """Get the vintage dates for an ALFRED series.
 
         Returns the dates on which new releases or revisions of a series became
@@ -348,7 +366,7 @@ class Alfred:
 
         response = self.__alfred_get_request(endpoint_name, data)
 
-        return VintageDates.to_object(response, series_id=series_id)
+        pass
 
     def get_series_info_as_of_date(self,):
         pass
@@ -672,6 +690,8 @@ class AsyncAlfred:
     # Properties
     @property
     def keys(self):
+        """List of keys in the cache."""
+
         return _CACHE.keys() if self.caching_enabled else None
 
     # Public Methods
@@ -679,15 +699,6 @@ class AsyncAlfred:
                                        realtime_end: Optional[Union[str, datetime, date]]=None, limit: Optional[int]=None,
                                        offset: Optional[int]=None, sort_order: Optional[str]=None) -> VintageDates:
         """Asynchronously get the vintage dates for an ALFRED series.
-
-        Returns the dates on which new releases or revisions of a series became
-        available — the answer to "when was this series revised?". The result is a
-        :class:`fedfred.VintageDates` object that behaves like a sequence of
-        ``datetime.date`` and renders as a compact summary in Jupyter.
-
-        By default FRED returns the full vintage history (real-time window
-        1776-07-04 to 9999-12-31); pass ``realtime_start``/``realtime_end`` to
-        restrict the window.
 
         Args:
             series_id (str): The ID for the FRED series.
