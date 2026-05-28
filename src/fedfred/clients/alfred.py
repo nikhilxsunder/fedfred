@@ -26,22 +26,9 @@ from datetime import datetime, date
 from typing import Optional, Union, Any, TYPE_CHECKING, Dict, List
 from types import TracebackType, NotImplementedType
 import pandas as pd
-from ..settings import _resolve_api_key, set_api_key
+from .._internals import _BaseClient, _AsyncBaseClient
 from ..models import Series
-from .._core import (
-    # Converters
-    _hashable_type_converter, _hashable_type_converter_async,
-    DATAFRAME_CONVERTER_MAP, ASYNC_DATAFRAME_CONVERTER_MAP,
-    # Transport
-    _get_request, _get_request_async,
-    _cached_get_request, _cached_get_request_async,
-    # Caching
-    set_cache_maxsize, get_cache_maxsize, _CACHE,
-    # Endpoints
-    _ST_LOUIS_FED_BASE_URL, _FRED_PATH,
-    # Rate Limit
-    _FRED_MAX_REQUESTS_PER_MINUTE
-)
+
 
 if TYPE_CHECKING:
     import polars as pl # pragma: no cover
@@ -54,7 +41,7 @@ __all__ = [
 
 # TODO: Fix all docstrings post error design.
 
-class Alfred:
+class Alfred(_BaseClient):
     """Client for the Federal Reserve FRED API's ALFRED endpoints.
 
     The Alfred class contains methods for interacting with the Federal Reserve Bank of St. Louis
@@ -70,245 +57,6 @@ class Alfred:
         caching_enabled (bool, optional): Whether caching is enabled for API responses. Defaults to True.
         cache_size (int, optional): The maximum number of items to store in the cache if caching is enabled. Defaults to 256.
     """
-    # Dunder Methods
-    def __init__(self, api_key: Optional[str]=None, caching_enabled: bool=True, cache_size: int=256) -> None:
-        """"""
-
-        if api_key:
-            set_api_key(api_key, service="alfred")
-
-        if caching_enabled:
-            set_cache_maxsize(cache_size)
-
-        self.caching_enabled = caching_enabled
-        self.cache_size = cache_size
-
-    def __repr__(self) -> str:
-
-        try:
-            has_key = bool(_resolve_api_key(service="alfred"))
-        except RuntimeError:                        # TODO: Add custom exception for missing API key and catch that instead.
-            has_key = False
-
-        auth = "<set>" if has_key else "<not set>"
-
-                                                    # TODO: include size of instance object in the repr string for debugging purposes (can use sys.getsizeof() for that).
-
-        return (
-            f"{type(self).__name__}("
-            f"api_key={auth}, "
-            f"caching_enabled={self.caching_enabled}, "
-            f"cache_size={self.cache_size}"
-            f")"
-        )
-
-    def __str__(self) -> str:
-
-        try:
-            has_key = bool(_resolve_api_key(service="alfred"))
-        except RuntimeError:                           # TODO: Add custom exception for missing API key and catch that instead.
-            has_key = False
-
-        auth_line = "configured" if has_key else "not configured"
-
-        cache_line = (
-            f"enabled (FIFO, maxsize={self.cache_size})"
-            if self.caching_enabled
-            else "disabled"
-        )
-
-        return (
-            f"{type(self).__name__} Instance:\n"
-            f"  Service: ALFRED ({_ST_LOUIS_FED_BASE_URL}{_FRED_PATH})\n"
-            f"  API Key: {auth_line}\n"
-            f"  Cache: {cache_line}\n"
-            f"  Rate Limit: {_FRED_MAX_REQUESTS_PER_MINUTE} req/min\n"
-        )
-
-    def __eq__(self, other: object) -> Union[bool, NotImplementedType]:
-        """Equality comparison for the Fred class against another object's observable configuration.
-
-        Args:
-            other (object): The object to compare with.
-
-        Returns:
-            bool: True if the objects are equal, False otherwise.
-            NotImplemented: If the other object is not an instance of AsyncFred.
-
-        Notes:
-            This method compares two Fred instances based on their attributes. If the other object is not a Fred 
-            instance, it returns NotImplemented.
-
-        Examples:
-            >>> import fedfred as fd
-            >>> fred1 = fd.Fred('your_api_key')
-            >>> fred2 = fd.Fred('your_api_key')
-            >>> fred1 == fred2
-            True
-        """
-
-        try:
-            assert isinstance(other, type(self))
-        except AssertionError:
-            return NotImplemented
-
-        return (
-            self.caching_enabled == other.caching_enabled
-            and self.cache_size == other.cache_size
-        )
-
-    def __hash__(self) -> int:
-        """Hash function for the Fred class.
-
-        Returns:
-            int: A hash value for the Fred instance.
-
-        Notes:
-            This method generates a hash based on the Fred instance's attributes.
-
-        Examples:
-            >>> import fedfred as fd
-            >>> fred = fd.Fred('your_api_key')
-            >>> hashed_fred = hash(fred)
-            >>> print(hashed_fred)
-            1234567890 # Example hash value
-        """
-
-        return hash((type(self).__name__, self.caching_enabled, self.cache_size))
-
-    def __len__(self) -> int:
-        """Get the number of cached items in the Fred instance.
-
-        Returns:
-            int: The number of cached items in the Fred instance.
-
-        Examples:
-            >>> import fedfred as fd
-            >>> fred = fd.Fred('your_api_key')
-            >>> cache_length = len(fred)
-            >>> print(cache_length)
-            256 # Example length of the cache
-        """
-
-        return len(_CACHE) if self.caching_enabled else 0
-
-    def __contains__(self, key: str) -> bool:
-        """Check if a specific item exists in the cache.
-
-        Args:
-            key (str): The name of the attribute to check.
-
-        Returns:
-            bool: True if the attribute exists, False otherwise.
-
-        Notes:
-            This method checks for the existence of a key in the cache if caching is enabled.
-
-        Examples:
-            >>> import fedfred as fd
-            >>> fred = fd.Fred('your_api_key')
-            >>> print('some_key' in fred)
-            True # Example output if 'some_key' exists in the cache
-        """
-
-        return self.caching_enabled and key in _CACHE
-
-    def __getitem__(self, key: str) -> Any:
-        """Get a specific item from the cache.
-
-        Args:
-            key (str): The name of the attribute to get.
-
-        Returns:
-            Any: The value of the attribute.
-
-        Raises:
-            AttributeError: If the key does not exist.
-
-        Notes:
-            This method allows access to cached items using the indexing syntax.
-
-        Examples:
-            >>> import fedfred as fd
-            >>> fred = fd.Fred('your_api_key')
-            >>> fred['some_key']
-            'some_value'
-        """
-
-        if not self.caching_enabled:
-            raise KeyError(key)         # TODO: Add custom exception for cache disabled and catch that instead.
-
-        return _CACHE.cache[key]
-
-    def __enter__(self) -> "Alfred":
-        """Enter the runtime context.
-
-        Returns:
-            Alfred: The Alfred instance itself.
-
-        Notes:
-            The Alfred client does not currently own per-instance resources requiring explicit cleanup — transport opens and closes httpx.Client per request,
-            and the cache and rate-limit buckets are module-global. The context manager exists for ergonomic parity with httpx/requests and as a
-            forward-compatible seam for future per-instance connection pooling.
-
-        Examples:
-            >>> import fedfred as fd
-            >>> with fd.Alfred("your_api_key") as alfred:
-            ...     categories = alfred.get_category(125)
-        """
-
-        return self
-
-    def __exit__(self, exc_type: Optional[type[BaseException]], exc: Optional[BaseException], tb: Optional[TracebackType]) -> None:
-        """Exit the runtime context. No-op.
-
-        Args:
-            exc_type: Exception type if one was raised in the with-block.
-            exc: Exception instance, if any.
-            tb: Traceback, if any.
-
-        Notes:
-            Does not clear the cache or rate-limit buckets — those are shared
-            across all live Alfred and AsyncAlfred instances. Clearing them here
-            would corrupt other clients.
-        """
-
-        return None
-
-    # Private Methods
-    def __alfred_get_request(self, endpoint_name: str, data: Optional[Dict[str, Any]]=None) -> Dict[str, Any]:
-        """Helper method to perform a synchronous GET request to the FRED API.
-
-        Args:
-            endpoint_name (str): The FRED API endpoint to query.
-            data (Dict[str, Optional[str | int]], optional): The query parameters for the request. Defaults to None.
-
-        Returns:
-            Dict[str, Any]: The JSON response from the FRED API.
-
-        Raises:
-            httpx.HTTPError: If the HTTP request fails.
-
-        Notes:
-            This method handles rate limiting and caching for synchronous GET requests to the FRED API.
-
-        Warnings:
-            Caching is only applied if `cache_mode` is enabled. Ensure that the `data` parameter is hashable for 
-            caching to work correctly.
-        """
-
-        if self.caching_enabled:
-            return _cached_get_request(endpoint_name, _hashable_type_converter(data))
-
-        else:
-            return _get_request(endpoint_name, data)
-
-    # Properties
-    @property
-    def keys(self):
-        """List of keys in the cache."""
-
-        return _CACHE.keys() if self.caching_enabled else None
 
     # Public Methods
     def get_series_vintage_dates(self, series_id: str, realtime_start: Optional[Union[str, datetime, date]]=None,
@@ -364,7 +112,7 @@ class Alfred:
             'sort_order': sort_order
         }
 
-        response = self.__alfred_get_request(endpoint_name, data)
+        response = self._client_get_request(endpoint_name, data)
 
         pass
 
@@ -660,7 +408,7 @@ class AsyncAlfred:
         return None
 
     # Private Methods
-    async def __alfred_get_request(self, url_endpoint: str, data: Optional[Dict[str, Optional[Union[str, int]]]]=None) -> Dict[str, Any]:
+    async def _client_get_request(self, url_endpoint: str, data: Optional[Dict[str, Optional[Union[str, int]]]]=None) -> Dict[str, Any]:
         """Helper method to perform an asynchronous GET request to the FRED API.
 
         Args:
@@ -742,7 +490,7 @@ class AsyncAlfred:
             'sort_order': sort_order
         }
 
-        response = await self.__alfred_get_request(endpoint_name, data)
+        response = await self._client_get_request(endpoint_name, data)
 
         return await VintageDates.to_object_async(response, series_id=series_id)
 

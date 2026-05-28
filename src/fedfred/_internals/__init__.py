@@ -25,15 +25,6 @@ This module initializes the _internals subpackage of fedfred. It imports and exp
 methods for transport, caching, and rate limiting used across the fedfred package.
 """
 
-from ._transport import (
-    _get_request, _get_request_async,
-    _cached_get_request, _cached_get_request_async,
-)
-
-from._caching import (
-    set_cache_maxsize, get_cache_maxsize, _CACHE,
-)
-
-from ._rate_limit import(
-    _FRED_MAX_REQUESTS_PER_MINUTE,
+from ._clients import (
+    _BaseClient, _AsyncBaseClient,
 )

@@ -30,11 +30,13 @@ import httpx
 from tenacity import retry, wait_fixed, stop_after_attempt, retry_if_exception_type
 from cachetools import cached
 from asyncache import cached as async_cached
-from .._core._converters import _dict_type_converter, _dict_type_converter_async
 from ._rate_limit import _rate_limiter, _rate_limiter_async
 from ._caching import _CACHE
-from .._core._endpoints import _resolve_endpoint, _resolve_endpoint_async
-from .._core._parameters import _resolve_preparation_function
+from .._core import(
+    _dict_type_converter, _dict_type_converter_async,
+    _resolve_endpoint, _resolve_endpoint_async,
+    _resolve_preparation_function
+)
 from ..exceptions import (
     TransportError,
     RequestPreparationError,

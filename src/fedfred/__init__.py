@@ -77,7 +77,7 @@ from .models import (
 )
 
 # Clients
-from .clients import (
+from ._internals.clients import (
     Fred,
     AsyncFred,
     GeoFred,

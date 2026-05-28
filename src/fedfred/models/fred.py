@@ -47,14 +47,28 @@ References:
     - Federal Reserve Bank of St. Louis, FRED API documentation. https://fred.stlouisfed.org/docs/api/fred/
 """
 
-from typing import Optional, List, Dict, TYPE_CHECKING
+from typing import Optional, List, Dict, TYPE_CHECKING, ClassVar
 from dataclasses import dataclass, field
 import asyncio
 import pandas as pd
 from ..__about__ import __title__, __version__, __author__, __email__, __license__, __copyright__, __description__, __docs__, __repository__
 
 if TYPE_CHECKING:
-    from ..clients.fred import Fred # pragma: no cover
+    from .._internals.clients.fred import Fred # pragma: no cover
+
+# TODO: Fix all docstrings post error design.
+
+__all__ = [
+    "Category", "Categories",
+    "Series", "Seriess",
+    "Tag", "Tags",
+    "Release", "Releases",
+    "ReleaseDate", "ReleaseDates",
+    "Source", "Sources",
+    "Element", "Elements",
+    "VintageDate", "VintageDates",
+    "BulkRelease",
+]
 
 @dataclass(slots=True)
 class Category:
@@ -109,6 +123,8 @@ class Category:
         compare=False,
     )
     """The Fred client instance associated with this Category. Used for making further API calls related to this Category."""
+
+    _response_key: ClassVar[str] = "categories"
 
     # Class Methods
     @classmethod

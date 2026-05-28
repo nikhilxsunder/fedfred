@@ -26,11 +26,11 @@ This module provides internal helper methods for the fedfred package, specifical
 
 from __future__ import annotations
 import asyncio
-from typing import Dict
+from typing import Dict, Any, Tuple, List
 from ..exceptions.parsing import ParsingError
 
 __all__ = [
-    "_region_type_parser", "_region_type_parser_async"
+    "_region_type_parser", "_region_type_parser_async", "_require_list", "_require_first_list"
 ]
 
 def _region_type_parser(response: Dict) -> str:
@@ -46,6 +46,7 @@ def _region_type_parser(response: Dict) -> str:
         ParsingError: If no meta data or region type is found in the response.
     
     Examples:
+        >>> # Internal use
         >>> from ._core import _region_type_parser
         >>> response = {
         >>>     "meta": {
@@ -90,6 +91,7 @@ async def _region_type_parser_async(response: Dict) -> str:
         ParsingError: If no meta data or region type is found in the response.
 
     Examples:
+        >>> # Internal use
         >>> from ._core import _region_type_parser_async
         >>> response = {
         >>>     "meta": {
@@ -115,4 +117,73 @@ async def _region_type_parser_async(response: Dict) -> str:
 
     return await asyncio.to_thread(_region_type_parser, response)
 
+def _require_list(response: Dict[str, Any], key: str) -> List[Any]:
+    """Validate a response has ``key`` pointing to a list. Raise otherwise.
+    
+    Args:
+        response (Dict[str, Any]): The API response to validate.
+        key (str): The key that should point to a list.
 
+    Returns:
+        List[Any]: The list found under ``key``.
+
+    Raises:
+        ParsingError: If the response is not a dict, if ``key`` is missing, or if the value under ``key`` is not a list.
+
+    Examples:
+        >>> # Internal use
+        >>> from ._core import _require_list
+        >>> response = {
+        >>>     "data": {
+        >>>         "observations": []
+        >>>     }
+        >>> }
+        >>> data = _require_list(response["data"], "observations")
+        >>> print(data)
+        []
+    """
+
+    if not isinstance(response, dict) or key not in response:
+        raise ParsingError(f"Invalid API response: missing {key!r} field")
+
+    raw = response[key]
+
+    if not isinstance(raw, list):
+        raise ParsingError(f"Invalid API response: {key!r} must be a list")
+
+    return raw
+
+def _require_first_list(response: Dict[str, Any], keys: Tuple[str, ...]) -> List[Any]:
+    """Return the list under the first matching key in ``keys``, or raise.
+
+    Args:
+        response (Dict[str, Any]): The API response to validate.
+        keys (Tuple[str, ...]): The keys to check for a list value.
+
+    Returns:
+        List[Any]: The list found under the first matching key.
+
+    Raises:
+        ParsingError: If the response is not a dict, if none of the keys are present, or if the value under the first matching key is not a list.
+
+    Note: 
+        FRED's ``series`` and ``release`` endpoints sometimes return data under the plural key (``seriess``/``releases``) and sometimes 
+        the singular (``series``/``release``); this lets a single parser handle both shapes.
+    """
+
+    if not isinstance(response, dict):
+        raise ParsingError(
+            f"Invalid API response: expected a mapping, got {type(response).__name__}"
+        )
+
+    for key in keys:
+        if key in response:
+            raw = response[key]
+            if not isinstance(raw, list):
+                raise ParsingError(f"Invalid API response: {key!r} must be a list")
+
+            return raw
+
+    pretty = " or ".join(repr(k) for k in keys)
+
+    raise ParsingError(f"Invalid API response: missing {pretty} field")

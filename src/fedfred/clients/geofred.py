@@ -46,9 +46,9 @@ from datetime import datetime, date
 from typing import TYPE_CHECKING, Optional, Dict, Union, List, Tuple, Any, KeysView
 from types import TracebackType
 import geopandas as gpd
-from ..settings import set_api_key, _resolve_api_key
-from ..__about__ import __title__, __version__, __author__, __email__, __license__, __copyright__, __description__, __docs__, __repository__
-from .._core import (
+from ...settings import set_api_key, _resolve_api_key
+from ...__about__ import __title__, __version__, __author__, __email__, __license__, __copyright__, __description__, __docs__, __repository__
+from ..._core import (
     # Converters
     _hashable_type_converter, _hashable_type_converter_async,
     GEODATAFRAME_CONVERTER_MAP, ASYNC_GEODATAFRAME_CONVERTER_MAP,
@@ -64,7 +64,7 @@ from .._core import (
     # Parsers
     _region_type_parser, _region_type_parser_async
 )
-from ..models import SeriesGroup
+from ...models import SeriesGroup
 
 if TYPE_CHECKING:
     import dask_geopandas as dd_gpd # pragma: no cover
