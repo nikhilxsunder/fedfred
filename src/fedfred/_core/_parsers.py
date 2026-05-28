@@ -30,7 +30,9 @@ from typing import Dict, Any, Tuple, List
 from ..exceptions.parsing import ParsingError
 
 __all__ = [
-    "_region_type_parser", "_region_type_parser_async", "_require_list", "_require_first_list"
+    "_region_type_parser", "_region_type_parser_async", 
+    "_require_list", "_require_first_list",
+    "_objects_iter_dict_or_list",
 ]
 
 def _region_type_parser(response: Dict) -> str:
@@ -187,3 +189,15 @@ def _require_first_list(response: Dict[str, Any], keys: Tuple[str, ...]) -> List
     pretty = " or ".join(repr(k) for k in keys)
 
     raise ParsingError(f"Invalid API response: missing {pretty} field")
+
+def _objects_iter_dict_or_list(response: Dict[str, Any], key: str) -> List[Dict[str, Any]]:
+    """Helper for Element/Elements: FRED returns 'elements' as a dict-keyed-by-id, not a list."""
+
+    if not isinstance(response, dict) or key not in response:
+        raise ParsingError(f"Invalid API response: missing {key!r} field")
+    raw = response[key]
+    if isinstance(raw, dict):
+        return list(raw.values())
+    if isinstance(raw, list):
+        return raw
+    raise ParsingError(f"Invalid API response: {key!r} must be a dict or list")

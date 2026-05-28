@@ -28,7 +28,7 @@ from __future__ import annotations
 import asyncio
 from dataclasses import dataclass, field
 from collections.abc import Sequence
-from typing import Any, ClassVar, Dict, Iterable, Iterator, Optional, Self, Tuple, Union, overload
+from typing import Any, ClassVar, Dict, Iterable, Iterator, Optional, Self, Tuple, Union, overload, TypeVar
 from .._core import _require_list
 from ._clients import _ClientModel  # pragma: no cover
 
@@ -36,7 +36,7 @@ from ._clients import _ClientModel  # pragma: no cover
 
 __all__ = ["_ModelSequence", "_ModelBase"]
 
-@dataclass
+@dataclass(slots=True, kw_only=True)
 class _ModelBase:
     """Base class for FRED model objects. This class is not meant to be instantiated directly, but provides common functionality for all FRED model classes, such as storing a reference to the client instance for lazy loading of related data when accessing attributes of the model objects. """
 
@@ -47,12 +47,12 @@ class _ModelBase:
 
 
     @classmethod
-    def _from_dict(cls, data: Dict[str, Any], client: Optional[_ClientModel] = None) -> "_ModelBase":
+    def _from_dict(cls, data: Dict[str, Any], client: Optional[_ClientModel] = None) -> Self:
 
         raise NotImplementedError
 
     @classmethod
-    def to_object(cls, response: Dict[str, Any], client: Optional[_ClientModel] = None) -> "_ModelBase":
+    def to_object(cls, response: Dict[str, Any], client: Optional[_ClientModel] = None) -> Self:
 
         raw = _require_list(response, cls._response_key)
 
@@ -62,18 +62,20 @@ class _ModelBase:
         return cls._from_dict(raw[0], client=client)
 
     @classmethod
-    async def to_object_async(cls, response: Dict[str, Any], client: Optional[_ClientModel] = None) -> "_ModelBase":
+    async def to_object_async(cls, response: Dict[str, Any], client: Optional[_ClientModel] = None) -> Self:
 
         return await asyncio.to_thread(cls.to_object, response, client)
 
-    def _require_client(self) -> "_ClientModel":
+    def _require_client(self) -> _ClientModel:
 
         if self.client is None:
             raise ModelError("Client not set for this instance.") # TODO: Define ModelError
-        
+
         return self.client
 
-class _ModelSequence(Sequence[_ModelBase]):
+T = TypeVar("T", bound="_ModelBase")
+
+class _ModelSequence(Sequence[T]):
     """Immutable, notebook-friendly sequence of FRED model objects.
     
     This class is used for attributes of FRED model objects that return multiple related objects, such as the ``observations`` attribute 
@@ -88,62 +90,62 @@ class _ModelSequence(Sequence[_ModelBase]):
     
     """
 
-    __slots__ = ("_items", "client", "_response_key")
+    __slots__ = ("_items", "client")
     """Since this class is designed to hold a sequence of model objects, it is likely that many instances of this class will be created, so using ``__slots__`` can help reduce memory usage. """
 
     _response_key: ClassVar[str]
     """The key in the raw FRED API response dictionary where the list of items for this model type can be found."""
 
-    def __init__(self, items: Iterable[_ModelBase], client: Optional[_ClientModel] = None) -> None:
+    def __init__(self, items: Iterable[T], client: Optional[_ClientModel] = None) -> None:
 
-        self._items: Tuple[_ModelBase, ...] = tuple(items)
+        self._items: Tuple[T, ...] = tuple(items)
         self.client: Optional[_ClientModel] = client
 
     @classmethod
-    def _parse_item(cls, data: Dict[str, Any], client: Optional[_ClientModel] = None) -> _ModelBase:
+    def _parse_item(cls, data: Dict[str, Any], client: Optional[_ClientModel] = None) -> T:
 
         raise NotImplementedError
 
     @overload
-    def __getitem__(self, index: int) -> _ModelBase: ...
+    def __getitem__(self, index: int) -> T: ...
     @overload
     def __getitem__(self, index: slice) -> Self: ...
-    def __getitem__(self, index: Union[int, slice]) -> Union[_ModelBase, Self]:
-
+    def __getitem__(self, index: Union[int, slice]) -> Union[T, Self]:
         if isinstance(index, slice):
             return type(self)(self._items[index], client=self.client)
         return self._items[index]
 
-    def __len__(self) -> int:
-
+    def __len__(self) -> int: 
+        
         return len(self._items)
 
-    def __iter__(self) -> Iterator[_ModelBase]:
-
+    def __iter__(self) -> Iterator[T]: 
+        
         return iter(self._items)
 
-    def __contains__(self, value: object) -> bool:
-
+    def __contains__(self, value: object) -> bool: 
+        
         return value in self._items
 
-    def __reversed__(self) -> Iterator[_ModelBase]:
-
+    def __reversed__(self) -> Iterator[T]: 
+        
         return reversed(self._items)
 
     def __eq__(self, other: object) -> bool:
-
-        if isinstance(other, type(self)):
+        
+        if isinstance(other, type(self)): 
             return self._items == other._items
+        
         return NotImplemented
-    # __eq__ defined => __hash__ is None => unhashable (mirrors list; non-frozen dataclass elements are unhashable)
 
-    def __repr__(self) -> str:
-
+    def __repr__(self) -> str: 
+        
         return f"{type(self).__name__}(n={len(self._items)})"
 
-    def _repr_html_(self) -> str:
-
+    def _repr_html_(self) -> str: 
+        
         return f"<b>{type(self).__name__}</b> — {len(self._items)} items"
+
 
     @classmethod
     def to_object(cls, response: Dict[str, Any], client: Optional[_ClientModel] = None) -> Self:

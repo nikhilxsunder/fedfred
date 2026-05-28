@@ -40,7 +40,8 @@ from ._endpoints import (
 from ._parsers import(
     _region_type_parser,
     _region_type_parser_async,
-    _require_list, _require_first_list
+    _require_list, _require_first_list,
+    _objects_iter_dict_or_list
 )
 
 from ._parameters import (

@@ -47,14 +47,15 @@ References:
     - Federal Reserve Bank of St. Louis, FRED API documentation. https://fred.stlouisfed.org/docs/api/fred/
 """
 
+from datetime import date
 from typing import Optional, List, Dict, ClassVar, Any
 import html
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 import asyncio
 import pandas as pd
 from ..__about__ import __title__, __version__, __author__, __email__, __license__, __copyright__, __description__, __docs__, __repository__
-from .._internals import _ClientModel, _ModelBase, _ModelSequence # pragma: no cover
-from .._core import _require_first_list
+from .._internals import _ClientModel, _ModelBase, _ModelSequence
+from .._core import _require_first_list, _objects_iter_dict_or_list
 
 # TODO: Fix all docstrings post error design.
 
@@ -225,6 +226,7 @@ class Categories(_ModelSequence[Category]):
         return ("<table>" + caption +
                 "<thead><tr><th>id</th><th>name</th><th>parent_id</th></tr></thead>"
                 f"<tbody>{rows}</tbody></table>")
+
 @dataclass(slots=True)
 class Series(_ModelBase):
     """A class used to represent a FRED Series.
@@ -329,6 +331,9 @@ class Series(_ModelBase):
 
     _observations: Optional[pd.DataFrame] = None
     """The DataFrame of observations associated with this series."""
+
+    _response_key: ClassVar[str] = "seriess"
+
 
     # Class Methods
     @classmethod
@@ -495,6 +500,9 @@ class Tag(_ModelBase):
     notes: Optional[str] = None
     """Additional notes about the tag."""
 
+    _response_key: ClassVar[str] = "tags"
+    
+
     # Class Methods
     @classmethod
     def _from_dict(cls, data: Dict[str, Any], client: Optional[_ClientModel] = None) -> "Tag":
@@ -559,6 +567,7 @@ class Tags(_ModelSequence[Tag]):
         return ("<table>" + caption +
                 "<thead><tr><th>name</th><th>group_id</th><th>popularity</th><th>series_count</th></tr></thead>"
                 f"<tbody>{rows}</tbody></table>")
+
 @dataclass(slots=True)
 class Release(_ModelBase):
     """A class used to represent a Release.
@@ -624,6 +633,8 @@ class Release(_ModelBase):
     """Additional notes about the release."""
 
     _sources: Optional[List["Source"]] = None
+
+    _response_key: ClassVar[str] = "releases"
 
 
     # Class Methods
@@ -733,8 +744,9 @@ class Releases(_ModelSequence[Release]):
         return ("<table>" + caption +
                 "<thead><tr><th>id</th><th>name</th><th>press_release</th></tr></thead>"
                 f"<tbody>{rows}</tbody></table>")
+
 @dataclass(slots=True)
-class ReleaseDate:
+class ReleaseDate:      # TODO: Needs inherited type maybe either _ModelDate or directly from datetime.date.
     """A class used to represent a ReleaseDate.
 
     Represents a single release date in the Federal Reserve Economic Data (FRED) database. A release date indicates when a specific
@@ -742,7 +754,7 @@ class ReleaseDate:
     
     Attributes:
         release_id (int): The ID of the release.
-        date (str): The date of the release.
+        date (date): The date of the release.
         release_name (Optional[str]): The name of the release.
 
     Examples:
@@ -764,7 +776,7 @@ class ReleaseDate:
     release_id: int
     """The ID of the release. corresponds to 'release_id' in the FRED API."""
 
-    date: str
+    date: date
     """The date of the release. corresponds to 'date' in the FRED API."""
 
     release_name: Optional[str] = None
@@ -863,8 +875,11 @@ class ReleaseDate:
 
         return await asyncio.to_thread(cls.to_object, response)
 
+class ReleaseDates: # TODO: Needs inherited type maybe _DateSequence[ReleaseDate] or ModelSequence[ReleaseDate].
+
+    pass
 @dataclass(slots=True)
-class Source:
+class Source(_ModelBase):
     """A class used to represent a Source.
 
     Represents a single source in the Federal Reserve Economic Data (FRED) database. A source is an organization or entity that provides
@@ -919,126 +934,63 @@ class Source:
     notes: Optional[str] = None
     """Additional notes about the source."""
 
-    client: Optional["Fred"] = field(
-        default=None,
-        repr=False,
-        compare=False,
-    )
-    """The Fred client instance associated with this Source. Used for making further API calls related to this Source."""
+    _response_key: ClassVar[str] = "sources"
 
     # Class Methods
     @classmethod
-    def to_object(cls, response: Dict, client: Optional["Fred"] = None) -> List["Source"]:
-        """Parses the FRED API response and returns a list of Source objects.
-
-        Args:
-            response (Dict): The FRED API response.
-            client (Fred, optional): The Fred client instance to associate with the Source objects.
-
-        Returns:
-            List[Source]: A list of Source objects.
-
-        Raises:
-            ValueError: If the response does not contain the expected data.
-
-        Examples:
-            >>> import fedfred as fd
-            >>> response = {
-            >>>     "sources": [
-            >>>         {
-            >>>             "id": 1,
-            >>>             "realtime_start": "2000-01-01",
-            >>>             "realtime_end": "2025-12-31",
-            >>>             "name": "Federal Reserve Board"
-            >>>         }
-            >>>     ]
-            >>> }
-            >>> sources = fd.Source.to_object(response)
-            >>> for source in sources:
-            >>>     print(source.id, source.name)
-            1 'Federal Reserve Board'
-
-        Notes:
-            This method assumes that the input response dictionary contains a 'sources' key with a list of source data.
-
-        References:
-            - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.objects.Source.to_object.html
-            - Federal Reserve Bank of St. Louis, FRED API documentation. https://fred.stlouisfed.org/sources/
-        """
-
-        if "sources" not in response:
-            raise ValueError("Invalid API response: Missing 'sources' field")
-        sources = [
-            cls(
-                id=source.get("id"),
-                realtime_start=source.get("realtime_start"),
-                realtime_end=source.get("realtime_end"),
-                name=source["name"],
-                link=source.get("link") or source.get("url"),
-                notes=source.get("notes"),
-                client=client if client is not None else None
-            )
-            for source in response["sources"]
-        ]
-        if not sources:
-            raise ValueError("No sources found in the response")
-        return sources
-
-    @classmethod
-    async def to_object_async(cls, response: Dict) -> List["Source"]:
-        """Asynchronously parses the FRED API response and returns a list of Source objects.
-
-        Args:
-            response (Dict): The FRED API response.
-
-        Returns:
-            List[Source]: A list of Source objects.
-
-        Raises:
-            ValueError: If the response does not contain the expected data.
-
-        Examples:
-            >>> import fedfred as fd
-            >>> response = {
-            >>>     "sources": [
-            >>>         {
-            >>>             "id": 1,
-            >>>             "realtime_start": "2000-01-01",
-            >>>             "realtime_end": "2025-12-31",
-            >>>             "name": "Federal Reserve Board"
-            >>>         }
-            >>>     ]
-            >>> }
-            >>> async def main():
-            >>>     sources = await fd.Source.to_object_async(response)
-            >>>     for source in sources:
-            >>>         print(source.id, source.name)
-            >>> if __name__ == "__main__":
-            >>>     asyncio.run(main())
-            1 'Federal Reserve Board'
-
-        Notes:
-            This method assumes that the input response dictionary contains a 'sources' key with a list of source data.
-
-        References:
-            - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.objects.Source.to_object_async.html
-        """
-
-        return await asyncio.to_thread(cls.to_object, response)
+    def _from_dict(cls, data: Dict[str, Any], client: Optional["Fred"] = None) -> "Source":
+        if not isinstance(data, dict):
+            raise ModelError("Invalid source payload: expected a mapping")
+        if "name" not in data:
+            raise ModelError("Invalid source payload: missing 'name'")
+        return cls(
+            name=data["name"],
+            id=data.get("id"),
+            realtime_start=data.get("realtime_start"),
+            realtime_end=data.get("realtime_end"),
+            link=data.get("link") or data.get("url"),
+            notes=data.get("notes"),
+            client=client,
+        )
 
     # Properties
     @property
     def releases(self) -> List["Release"]:
         """The releases associated with this source."""
-        if self.client is None:
-            raise RuntimeError("Client is not set for this Source")
-        if self.id:
-            return self.client.get_source_releases(self.id)
-        else:
-            raise RuntimeError("Source ID is not set for this Source")
+
+        return self._require_client().get_source_releases(self.id)
+
+class Sources(_ModelSequence[Source]):
+
+    __slots__ = ()
+
+    _response_key: ClassVar[str] = Source._response_key
+
+    @classmethod
+    def _parse_item(cls, data: Dict[str, Any], client: Optional[_ClientModel] = None) -> Source:
+
+        return Source._from_dict(data, client=client)
+
+    def _repr_html_(self) -> str:
+
+
+        head = self._items[:10]
+
+        rows = "".join(
+            f"<tr><td>{'' if s.id is None else s.id}</td>"
+            f"<td>{html.escape(s.name)}</td>"
+            f"<td>{html.escape(s.link or '')}</td></tr>"
+            for s in head
+        )
+
+        caption = "" if len(self._items) <= 10 else f"<caption>showing 10 of {len(self._items)}</caption>"
+
+        return ("<table>" + caption +
+                "<thead><tr><th>id</th><th>name</th><th>link</th></tr></thead>"
+                f"<tbody>{rows}</tbody></table>")
 
 @dataclass(slots=True)
-class Element:
+class Element(_ModelBase):
     """A class used to represent an Element.
 
     Represents a single element in the Federal Reserve Economic Data (FRED) database. An element is a component of a release,
@@ -1105,147 +1057,88 @@ class Element:
     children: Optional[List["Element"]] = None
     """The child elements of this element."""
 
-    client: Optional["Fred"] = field(
-        default=None,
-        repr=False,
-        compare=False,
-    )
-    """The Fred client instance associated with this Element. Used for making further API calls related to this Element."""
-
     # Class Methods
     @classmethod
-    def to_object(cls, response: Dict, client: Optional["Fred"] = None) -> List["Element"]:
-        """Parses the FRED API response and returns a list of Elements objects.
+    def _from_dict(cls, data: Dict[str, Any], client: Optional[_ClientModel] = None) -> "Element":
 
-        Args:
-            response (Dict): The FRED API response.
 
-        Returns:
-            List[Element]: A list of Element objects.
-
-        Raises:
-            ValueError: If the response does not contain the expected data.
-
-        Examples:
-            >>> import fedfred as fd
-            >>> response = {
-            >>>     "elements": {
-            >>>         "1": {
-            >>>             "element_id": 1,
-            >>>             "release_id": 53,
-            >>>             "series_id": "DGDSRL1A225NBEA",
-            >>>             "parent_id": 0,
-            >>>             "line": "1. Real Gross Domestic Product",
-            >>>             "type": "table",
-            >>>             "name": "Real Gross Domestic Product",
-            >>>             "level": "0",
-            >>>             "children": []
-            >>>         }
-            >>>     }
-            >>> }
-            >>> elements = fd.Element.to_object(response)
-            >>> for element in elements:
-            >>>     print(element.element_id, element.name)
-            1 'Real Gross Domestic Product'
+        if not isinstance(data, dict):
+            raise ModelError("Invalid element payload: expected a mapping")
         
-        Notes:
-            This method assumes that the input response dictionary contains an 'elements' key with a dictionary of element data.
+        for required in ("element_id", "release_id", "series_id", "parent_id", "line", "type", "name", "level"):
+            if required not in data:
+                raise ModelError(f"Invalid element payload: missing {required!r}")
+            
+        raw_children = data.get("children") or []
 
-        References:
-            - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.objects.Element.to_object.html
-        """
-
-        if "elements" not in response:
-            raise ValueError("Invalid API response: Missing 'elements' field")
-        elements: List[Element] = []
-        def process_element(element_data: Dict) -> "Element":
-            children_list: List[Element] = []
-            for child_data in element_data.get("children", []):
-                child_element = process_element(child_data)
-                children_list.append(child_element)
-            return cls(
-                element_id=element_data["element_id"],
-                release_id=element_data["release_id"],
-                series_id=element_data["series_id"],
-                parent_id=element_data["parent_id"],
-                line=element_data["line"],
-                type=element_data["type"],
-                name=element_data["name"],
-                level=element_data["level"],
-                children=children_list or None,
-                client=client,
-            )
-        for element_data in response["elements"].values():
-            elements.append(process_element(element_data))
-        if not elements:
-            raise ValueError("No elements found in the response")
-        return elements
+        children = Elements(
+            (cls._from_dict(c, client=client) for c in raw_children),
+            client=client,
+        ) if raw_children else None
+        
+        return cls(
+            element_id=data["element_id"],
+            release_id=data["release_id"],
+            series_id=data["series_id"],
+            parent_id=data["parent_id"],
+            line=data["line"],
+            type=data["type"],
+            name=data["name"],
+            level=data["level"],
+            children=children,
+            client=client,
+        )
 
     @classmethod
-    async def to_object_async(cls, response: Dict) -> List["Element"]:
-        """Asynchronously parses the FRED API response and returns a list of Element objects.
-
-        Args:
-            response (Dict): The FRED API response.
-
-        Returns:
-            List[Element]: A list of Element objects.
-
-        Raises:
-            ValueError: If the response does not contain the expected data.
-
-        Examples:
-            >>> import fedfred as fd
-            >>> response = {
-            >>>     "elements": {
-            >>>         "1": {
-            >>>             "element_id": 1,
-            >>>             "release_id": 53,
-            >>>             "series_id": "DGDSRL1A225NBEA",
-            >>>             "parent_id": 0,
-            >>>             "line": "1. Real Gross Domestic Product",
-            >>>             "type": "table",
-            >>>             "name": "Real Gross Domestic Product",
-            >>>             "level": "0",
-            >>>             "children": []
-            >>>         }
-            >>>     }
-            >>> }
-            >>> async def main():
-            >>>     elements = await fd.Element.to_object_async(response)
-            >>>     for element in elements:
-            >>>         print(element.element_id, element.name)
-            >>> if __name__ == "__main__":
-            >>>     asyncio.run(main())
-            1 'Real Gross Domestic Product'
-        
-        Notes:
-            This method assumes that the input response dictionary contains an 'elements' key with a dictionary of element data.
-
-        References:
-            - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.objects.Element.to_object_async.html
-        """
-
-        return await asyncio.to_thread(cls.to_object, response)
+    def to_object(cls, response: Dict[str, Any], client: Optional[_ClientModel] = None) -> "Element":
+        # FRED returns 'elements' as a dict keyed by id, not a list. Take the first.
+        items = _objects_iter_dict_or_list(response, cls._response_key)
+        if not items:
+            raise ModelError("No element found in the response")
+        return cls._from_dict(items[0], client=client)
 
     # Properties
     @property
     def release(self) -> List["Release"]:
         """The release associated with this element."""
 
-        if self.client is None:
-            raise RuntimeError("Client is not set for this Element")
-        return self.client.get_release(self.release_id)
+        return self._require_client().get_release(self.release_id)
 
     @property
     def series(self) -> List["Series"]:
         """The series associated with this element."""
-        if self.client is None:
-            raise RuntimeError("Client is not set for this Element")
-        return self.client.get_series(self.series_id)
+
+        return self._require_client().get_series(self.series_id)
+
+class Elements(_ModelSequence[Element]):
+    """Immutable, notebook-friendly sequence of FRED release-table elements."""
+
+    __slots__ = ()
+    _response_key = Element._response_key
+
+    @classmethod
+    def _parse_item(cls, data: Dict[str, Any], client: Optional[_ClientModel] = None) -> Element:
+        return Element._from_dict(data, client=client)
+
+    @classmethod
+    def to_object(cls, response: Dict[str, Any], client: Optional[_ClientModel] = None) -> "Elements":
+        items = _objects_iter_dict_or_list(response, cls._response_key)
+        return cls((cls._parse_item(item, client=client) for item in items), client=client)
+
+    def _repr_html_(self) -> str:
+        head = self._items[:10]
+        rows = "".join(
+            f"<tr><td>{e.element_id}</td><td>{html.escape(e.name)}</td>"
+            f"<td>{html.escape(e.type)}</td><td>{html.escape(e.level)}</td></tr>"
+            for e in head
+        )
+        caption = "" if len(self._items) <= 10 else f"<caption>showing 10 of {len(self._items)}</caption>"
+        return ("<table>" + caption +
+                "<thead><tr><th>element_id</th><th>name</th><th>type</th><th>level</th></tr></thead>"
+                f"<tbody>{rows}</tbody></table>")
 
 @dataclass(slots=True)
-class VintageDate:
+class VintageDate: # TODO: Needs inherited type maybe either _ModelDate or directly from datetime.date.
     """A class used to represent a VintageDate.
 
     Represents a single vintage date in the Federal Reserve Economic Data (FRED) database. A vintage date indicates the date
@@ -1356,8 +1249,11 @@ class VintageDate:
 
         return await asyncio.to_thread(cls.to_object, response)
 
+class VintageDates: # TODO: Needs inherited type maybe _DateSequence[ReleaseDate] or ModelSequence[ReleaseDate].
+
+    pass
 @dataclass(slots=True)
-class BulkRelease:
+class BulkRelease: # TODO: This thing is honest to god competely fucked just rewrite this with the v2 method.
     """A class used to represent a BulkRelease.
 
     Represents a bulk release in the Federal Reserve Economic Data (FRED) database. A bulk release contains multiple series
