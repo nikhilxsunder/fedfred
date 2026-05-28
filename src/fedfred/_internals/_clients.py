@@ -33,9 +33,9 @@ from ._transport import _get_request, _cached_get_request, _get_request_async, _
 
 # TODO: Fix all docstrings post error design.
 
-__all__ = ["_BaseClient", "_AsyncBaseClient"]
+__all__ = ["_BaseClient", "_AsyncBaseClient", "_ClientModel"]
 
-class _ClientConfig:
+class _ClientModel:
 
     _service_key: str
     _base_url: str
@@ -272,7 +272,7 @@ class _ClientConfig:
 
         return _CACHE.keys() if self.caching_enabled else None # TODO: Needs service based cache implementations and cache resolvers.
 
-class _BaseClient(_ClientConfig):
+class _BaseClient(_ClientModel):
 
     # Dunder Methods
     def __enter__(self) -> "_BaseClient":
@@ -342,7 +342,7 @@ class _BaseClient(_ClientConfig):
 
         pass
 
-class _AsyncBaseClient(_ClientConfig):
+class _AsyncBaseClient(_ClientModel):
 
     # Dunder Methods
     async def __aenter__(self) -> "_AsyncBaseClient":

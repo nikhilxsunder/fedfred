@@ -47,14 +47,14 @@ References:
     - Federal Reserve Bank of St. Louis, FRED API documentation. https://fred.stlouisfed.org/docs/api/fred/
 """
 
-from typing import Optional, List, Dict, TYPE_CHECKING, ClassVar
+from typing import Optional, List, Dict, ClassVar, Any
+import html
 from dataclasses import dataclass, field
 import asyncio
 import pandas as pd
 from ..__about__ import __title__, __version__, __author__, __email__, __license__, __copyright__, __description__, __docs__, __repository__
-
-if TYPE_CHECKING:
-    from .._internals.clients.fred import Fred # pragma: no cover
+from .._internals import _ClientModel, _ModelBase, _ModelSequence # pragma: no cover
+from .._core import _require_first_list
 
 # TODO: Fix all docstrings post error design.
 
@@ -71,7 +71,7 @@ __all__ = [
 ]
 
 @dataclass(slots=True)
-class Category:
+class Category(_ModelBase):
     """A class used to represent a FRED Category.
 
     Represents a single category in the Federal Reserve Economic Data (FRED) hierarchy. Categories are organizational 
@@ -114,26 +114,19 @@ class Category:
     name: str
     """The name of the category."""
 
-    parent_id: Optional[int] = None
+    parent_id: Optional[int]
     """The unique identifier for the parent category, if any. can be used as a 'category_id' in the FRED API."""
-
-    client: Optional["Fred"] = field(
-        default=None,
-        repr=False,
-        compare=False,
-    )
-    """The Fred client instance associated with this Category. Used for making further API calls related to this Category."""
 
     _response_key: ClassVar[str] = "categories"
 
     # Class Methods
     @classmethod
-    def to_object(cls, response: Dict, client: Optional["Fred"] = None) -> List["Category"]:
+    def _from_dict(cls, data: Dict[str, Any], client: Optional[_ClientModel] = None) -> "Category":
         """Parses FRED API response and returns a list of Category objects.
 
         Args:
-            response (Dict): The FRED API response.
-            client (Fred, optional): The Fred client instance to associate with the Category objects.
+            data (Dict[str, Any]): The FRED API response.
+            client (Optional[_ClientModel], optional): The Fred client instance to associate with the Category objects.
 
         Returns:
             List[Category]: A list of Category objects.
@@ -162,103 +155,78 @@ class Category:
             - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.objects.Category.to_object.html
         """
 
-        if "categories" not in response:
-            raise ValueError("Invalid API response: Missing 'categories' field")
-        categories = [
-            cls(
-                id=category["id"],
-                name=category["name"],
-                parent_id=category.get("parent_id"),
-                client=client if client is not None else None
-            )
-            for category in response["categories"]
-        ]
-        if not categories:
-            raise ValueError("No categories found in the response")
-        return categories
-
-    @classmethod
-    async def to_object_async(cls, response: Dict) -> List["Category"]:
-        """Asynchronously parses FRED API response and returns a list of Category objects.
-
-        Args:
-            response (Dict): The FRED API response.
-
-        Returns:
-            List[Category]: A list of Category objects.
-
-        Raises:
-            ValueError: If the response does not contain the expected data.
-            
-        Examples:
-            >>> import fedfred as fd
-            >>> response = {
-            >>>     "categories": [
-            >>>         {"id": 125, "name": "International Transactions", "parent_id": 13},
-            >>>         {"id": 126, "name": "Balance of Payments", "parent_id": 125}
-            >>>     ]
-            >>> }
-            >>> async def main():
-            >>>     categories = await fd.Category.to_object_async(response)
-            >>>     for category in categories:
-            >>>         print(category.id, category.name, category.parent_id)
-            >>> if __name__ == "__main__":
-            >>>     asyncio.run(main())
-            125 'International Transactions' 13
-            126 'Balance of Payments' 125
-
-        Notes: 
-            This method assumes that the input response dictionary contains a 'categories' key with a list of category data.
-
-        References:
-            - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.objects.Category.to_object_async.html
-        """
-
-        return await asyncio.to_thread(cls.to_object, response)
+        if not isinstance(data, dict):
+            raise ModelError("Invalid category payload: expected a mapping") # TODO: Define ModelError
+        
+        if "id" not in data or "name" not in data:
+            raise ModelError("Invalid category payload: missing 'id' or 'name'") # TODO: Define ModelError
+        
+        return cls(id=data["id"], name=data["name"], parent_id=data.get("parent_id"), client=client)
 
     # Properties
     @property
     def children(self) -> List["Category"]:
         """The child categories of this category. corresponds to 'get_category_children' in the FRED API."""
 
-        if self.client is None:
-            raise RuntimeError("Client not set for this Category instance.")
-        return self.client.get_category_children(self.id)
+        return self._require_client().get_category_children(self.id)
 
     @property
     def related(self) -> List["Category"]:
         """The related categories of this category. corresponds to 'get_category_related' in the FRED API."""
 
-        if self.client is None:
-            raise RuntimeError("Client not set for this Category instance.")
-        return self.client.get_category_related(self.id)
+        return self._require_client().get_category_related(self.id)
 
     @property
     def series(self) -> List["Series"]:
         """The series in this category. corresponds to 'get_category_series' in the FRED API."""
 
-        if self.client is None:
-            raise RuntimeError("Client not set for this Category instance.")
-        return self.client.get_category_series(self.id)
+        return self._require_client().get_category_series(self.id)
 
     @property
     def tags(self) -> List["Tag"]:
         """The tags associated with this category. corresponds to 'get_category_tags' in the FRED API."""
 
-        if self.client is None:
-            raise RuntimeError("Client not set for this Category instance.")
-        return self.client.get_category_tags(self.id)
+        return self._require_client().get_category_tags(self.id)
 
     @property
     def related_tags(self) -> List["Tag"]:
         """The related tags associated with this category. corresponds to 'get_category_related_tags' in the FRED API."""
 
-        if self.client is None:
-            raise RuntimeError("Client not set for this Category instance.")
-        return self.client.get_category_related_tags(self.id)
+        return self._require_client().get_category_related_tags(self.id)
 
+class Categories(_ModelSequence[Category]):
+
+
+    __slots__ = ()
+
+
+    _response_key: ClassVar[str] = Category._response_key
+
+
+    @classmethod
+    def _parse_item(cls, data: Dict[str, Any], client: Optional[_ClientModel] = None) -> Category:
+        
+        
+        return Category._from_dict(data, client=client)
+
+    def _repr_html_(self) -> str:
+        
+        
+        head = self._items[:10]
+        
+        rows = "".join(
+            f"<tr><td>{c.id}</td><td>{html.escape(c.name)}</td>"
+            f"<td>{'' if c.parent_id is None else c.parent_id}</td></tr>"
+            for c in head
+        )
+        
+        caption = "" if len(self._items) <= 10 else f"<caption>showing 10 of {len(self._items)}</caption>"
+        
+        return ("<table>" + caption +
+                "<thead><tr><th>id</th><th>name</th><th>parent_id</th></tr></thead>"
+                f"<tbody>{rows}</tbody></table>")
 @dataclass(slots=True)
-class Series:
+class Series(_ModelBase):
     """A class used to represent a FRED Series.
 
     Represents a single series in the Federal Reserve Economic Data (FRED) database. A series is a time-ordered set of data points,
@@ -362,225 +330,117 @@ class Series:
     _observations: Optional[pd.DataFrame] = None
     """The DataFrame of observations associated with this series."""
 
-    client: Optional["Fred"] = field(
-        default=None,
-        repr=False,
-        compare=False,
-    )
-    """The Fred client instance associated with this Series. Used for making further API calls related to this Series."""
-
     # Class Methods
     @classmethod
-    def to_object(cls, response: Dict, client: Optional["Fred"] = None) -> List["Series"]:
-        """Parses the FRED API response and returns a list of Series objects.
+    def _from_dict(cls, data: Dict[str, Any], client: Optional[_ClientModel] = None) -> "Series":
 
-        Args:
-            response (Dict): The FRED API response.
-            client (Fred, optional): The Fred client instance to associate with the Series objects.
+        if not isinstance(data, dict):
+            raise ModelError("Invalid series payload: expected a mapping")
 
-        Returns:
-            List[Series]: A list of Series objects.
+        sid = data.get("id") or data.get("series_id")
 
-        Raises:
-            ValueError: If the response does not contain the expected data.
+        if not sid:
+            raise ModelError("Invalid series payload: missing 'id'/'series_id'")
 
-        Examples:
-            >>> import fedfred as fd
-            >>> response = {
-            >>>     "seriess": [
-            >>>         {
-            >>>             "id": "GNPCA",
-            >>>             "title": "Gross National Product",
-            >>>             "observation_start": "1947-01-01",
-            >>>             "observation_end": "2021-12-01",
-            >>>             "frequency": "Monthly",
-            >>>             "frequency_short": "M",
-            >>>             "units": "Billions of Dollars",
-            >>>             "units_short": "USD",
-            >>>             "seasonal_adjustment": "Seasonally Adjusted",
-            >>>             "seasonal_adjustment_short": "SA",
-            >>>             "last_updated": "2022-01-01",
-            >>>             "popularity": 1500
-            >>>         }
-            >>>     ]
-            >>> }
-            >>> seriess = fd.Series.to_object(response)
-            >>> for series in seriess:
-            >>>     print(series.id, series.title)
-            GNPCA 'Gross National Product'
+        for required in ("title", "frequency", "units", "seasonal_adjustment", "last_updated"):
+            if required not in data:
+                raise ModelError(f"Invalid series payload: missing {required!r}")
 
-        Notes:
-            This method assumes that the input response dictionary contains a 'seriess' key with a list of series data.
-
-        References:
-            - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.objects.Series.to_object.html
-        """
-
-        dict_key = None
-        if "seriess" in response:
-            dict_key = "seriess"
-        elif "series" in response:
-            dict_key = "series"
-        else:
-            raise ValueError("Invalid API response: Missing 'seriess' field")
-        series_list = [
-            cls(
-                id=series["id"] or series["series_id"],
-                title=series["title"],
-                observation_start=series.get("observation_start"),
-                observation_end=series.get("observation_end"),
-                frequency=series["frequency"],
-                frequency_short=series.get("frequency_short").lower(),
-                units=series["units"],
-                units_short=series.get("units_short").lower(),
-                seasonal_adjustment=series["seasonal_adjustment"],
-                seasonal_adjustment_short=series.get("seasonal_adjustment_short").lower(),
-                last_updated=series["last_updated"],
-                popularity=series.get("popularity"),
-                group_popularity=series.get("group_popularity"),
-                realtime_start=series.get("realtime_start"),
-                realtime_end=series.get("realtime_end"),
-                notes=series.get("notes"),
-                copyright_id=series.get("copyright_id"),
-                _observations=_pandas_dataframe_converter(series["observations"]) if "observations" in series else None,
-                client=client if client is not None else None
-            )
-            for series in response[dict_key]
-        ]
-        if not series_list:
-            raise ValueError("No series found in the response")
-        return series_list
-
-    @classmethod
-    async def to_object_async(cls, response: Dict) -> List["Series"]:
-        """Asynchronously parses the FRED API response and returns a list of Series objects.
-
-        Args:
-            response (Dict): The FRED API response.
-
-        Returns:
-            List[Series]: A list of Series objects.
-
-        Raises:
-            ValueError: If the response does not contain the expected data.
-
-        Examples:
-            >>> import fedfred as fd
-            >>> response = {
-            >>>     "seriess": [
-            >>>         {
-            >>>             "id": "GNPCA",
-            >>>             "title": "Gross National Product",
-            >>>             "observation_start": "1947-01-01",
-            >>>             "observation_end": "2021-12-01",
-            >>>             "frequency": "Monthly",
-            >>>             "frequency_short": "M",
-            >>>             "units": "Billions of Dollars",
-            >>>             "units_short": "USD",
-            >>>             "seasonal_adjustment": "Seasonally Adjusted",
-            >>>             "seasonal_adjustment_short": "SA",
-            >>>             "last_updated": "2022-01-01",
-            >>>             "popularity": 1500
-            >>>         }
-            >>>     ]
-            >>> }
-            >>> async def main():
-            >>>     seriess = await fd.Series.to_object_async(response)
-            >>>     for series in seriess:
-            >>>         print(series.id, series.title)
-            >>> if __name__ == "__main__":
-            >>>     asyncio.run(main())
-            GNPCA 'Gross National Product'
-
-        Notes:
-            This method assumes that the input response dictionary contains a 'seriess' key with a list of series data.
-
-        References:
-            - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.objects.Series.to_object_async.html
-        """
-
-        dict_key = None
-        if "seriess" in response:
-            dict_key = "seriess"
-        elif "series" in response:
-            dict_key = "series"
-        else:
-            raise ValueError("Invalid API response: Missing 'seriess' field")
-        series_list = [
-            cls(
-                id=series["id"] or series["series_id"],
-                title=series["title"],
-                observation_start=series.get("observation_start"),
-                observation_end=series.get("observation_end"),
-                frequency=series["frequency"],
-                frequency_short=series.get("frequency_short").lower(),
-                units=series["units"],
-                units_short=series.get("units_short").lower(),
-                seasonal_adjustment=series["seasonal_adjustment"],
-                seasonal_adjustment_short=series.get("seasonal_adjustment_short").lower(),
-                last_updated=series["last_updated"],
-                popularity=series.get("popularity"),
-                group_popularity=series.get("group_popularity"),
-                realtime_start=series.get("realtime_start"),
-                realtime_end=series.get("realtime_end"),
-                notes=series.get("notes"),
-                copyright_id=series.get("copyright_id"),
-                _observations=await _pandas_dataframe_converter_async(series["observations"]) if "observations" in series else None
-            )
-            for series in response[dict_key]
-        ]
-        if not series_list:
-            raise ValueError("No series found in the response")
-        return series_list
+        return cls(
+            id=sid,
+            title=data["title"],
+            frequency=data["frequency"],
+            units=data["units"],
+            seasonal_adjustment=data["seasonal_adjustment"],
+            last_updated=data["last_updated"],
+            observation_start=data.get("observation_start"),
+            observation_end=data.get("observation_end"),
+            copyright_id=data.get("copyright_id"),
+            frequency_short=_coerce_lower(data.get("frequency_short")),
+            units_short=_coerce_lower(data.get("units_short")),
+            seasonal_adjustment_short=_coerce_lower(data.get("seasonal_adjustment_short")),
+            popularity=data.get("popularity"),
+            realtime_start=data.get("realtime_start"),
+            realtime_end=data.get("realtime_end"),
+            group_popularity=data.get("group_popularity"),
+            notes=data.get("notes"),
+            client=client,
+        )
 
     # Properties
     @property
     def categories(self) -> List["Category"]:
         """The categories associated with this series. corresponds to 'get_series_categories' in the FRED API."""
 
-        if self.client is None:
-            raise RuntimeError("Client is not set for this Series")
-        return self.client.get_series_categories(self.id)
+        return self._require_client().get_series_categories(self.id)
 
     @property
     def observations(self) -> pd.DataFrame:
         """The DataFrame of observations associated with this series. corresponds to 'get_series_observations' in the FRED API."""
 
-        if self.client is None:
-            raise RuntimeError("Client is not set for this Series")
-        if self._observations is None:
-            frame = self.client.get_series_observations(self.id)
-            assert isinstance(frame, pd.DataFrame)
-            return frame
-        else:
-            return self._observations
+        return self._require_client().get_series_observations(self.id)
 
     @property
     def release(self) -> List["Release"]:
         """The release associated with this series. corresponds to 'get_series_release' in the FRED API."""
 
-        if self.client is None:
-            raise RuntimeError("Client is not set for this Series")
-        return self.client.get_series_release(self.id)
+        return self._require_client().get_series_release(self.id)
 
     @property
     def tags(self) -> List["Tag"]:
         """The tags associated with this series. corresponds to 'get_series_tags' in the FRED API."""
 
-        if self.client is None:
-            raise RuntimeError("Client is not set for this Series")
-        return self.client.get_series_tags(self.id)
+        return self._require_client().get_series_tags(self.id)
 
     @property
     def vintagedates(self) -> List['VintageDate']:
         """The vintage dates associated with this series. corresponds to 'get_series_vintagedates' in the FRED API."""
 
-        if self.client is None:
-            raise RuntimeError("Client is not set for this Series")
-        return self.client.get_series_vintagedates(self.id)
+        return self._require_client().get_series_vintagedates(self.id)
+
+class Seriess(_ModelSequence[Series]):
+
+
+    __slots__ = ()
+
+
+    _response_key: ClassVar[str] = Series._response_key
+
+
+    @classmethod
+    def _parse_item(cls, data: Dict[str, Any], client: Optional[_ClientModel] = None) -> Series:
+
+        return Series._from_dict(data, client=client)
+
+    @classmethod
+    def to_object(cls, response: Dict[str, Any], client: Optional[_ClientModel] = None) -> "Seriess":
+        # Same dual-key shape as Series (FRED returns 'seriess' or 'series')
+
+        raw = _require_first_list(response, ("seriess", "series"))
+
+        return cls((cls._parse_item(item, client=client) for item in raw), client=client)
+
+    def _repr_html_(self) -> str:
+
+
+        head = self._items[:10]
+
+        rows = "".join(
+            f"<tr><td><code>{html.escape(s.id)}</code></td>"
+            f"<td>{html.escape(s.title)}</td>"
+            f"<td>{html.escape(s.frequency)}</td>"
+            f"<td>{html.escape(s.units_short or s.units)}</td></tr>"
+            for s in head
+        )
+
+        caption = "" if len(self._items) <= 10 else f"<caption>showing 10 of {len(self._items)}</caption>"
+
+        return ("<table>" + caption +
+                "<thead><tr><th>id</th><th>title</th><th>frequency</th><th>units</th></tr></thead>"
+                f"<tbody>{rows}</tbody></table>")
 
 @dataclass(slots=True)
-class Tag:
+class Tag(_ModelBase):
     """A class used to represent a FRED Tag.
 
     Represents a single tag in the Federal Reserve Economic Data (FRED) database. Tags are keywords or labels that can be
@@ -635,134 +495,72 @@ class Tag:
     notes: Optional[str] = None
     """Additional notes about the tag."""
 
-    client: Optional["Fred"] = field(
-        default=None,
-        repr=False,
-        compare=False,
-    )
-    """The Fred client instance associated with this Tag. Used for making further API calls related to this Tag."""
-
     # Class Methods
     @classmethod
-    def to_object(cls, response: Dict, client: Optional["Fred"] = None) -> List["Tag"]:
-        """Parses the FRED API response and returns a list of Tag objects.
+    def _from_dict(cls, data: Dict[str, Any], client: Optional[_ClientModel] = None) -> "Tag":
 
-        Args:
-            response (Dict): The FRED API response.
-            client (Fred, optional): The Fred client instance to associate with the Tag objects.
+        if not isinstance(data, dict):
+            raise ModelError("Invalid tag payload: expected a mapping")
 
-        Returns:
-            List[Tag]: A list of Tag objects.
+        for required in ("name", "group_id", "created", "popularity", "series_count"):
+            if required not in data:
+                raise ModelError(f"Invalid tag payload: missing {required!r}")
 
-        Raises:
-            ValueError: If the response does not contain the expected data.
-
-        Examples:
-            >>> import fedfred as fd
-            >>> response = {
-            >>>     "tags": [
-            >>>         {
-            >>>             "name": "nation",
-            >>>             "group_id": "geographic",
-            >>>             "created": "2004-01-01",
-            >>>             "popularity": 5000,
-            >>>             "series_count": 150
-            >>>         }
-            >>>     ]
-            >>> }
-            >>> tags = fd.Tag.to_object(response)
-            >>> for tag in tags:
-            >>>     print(tag.name, tag.group_id)
-            nation geographic
-
-        Notes: 
-            This method assumes that the input response dictionary contains a 'tags' key with a list of tag data.
-
-        References:
-            - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.objects.Tag.to_object.html
-        """
-
-        if "tags" not in response:
-            raise ValueError("Invalid API response: Missing 'tags' field")
-        tags = [
-            cls(
-                name=tag["name"],
-                group_id=tag["group_id"],
-                notes=tag.get("notes"),
-                created=tag["created"],
-                popularity=tag["popularity"],
-                series_count=tag["series_count"],
-                client=client if client is not None else None
-            )
-            for tag in response["tags"]
-        ]
-        if not tags:
-            raise ValueError("No tags found in the response")
-        return tags
-
-    @classmethod
-    async def to_object_async(cls, response: Dict) -> List["Tag"]:
-        """
-        Asynchronously parses the FRED API response and returns a list of Tags objects.
-
-        Args:
-            response (Dict): The FRED API response.
-
-        Returns:
-            List[Tag]: A list of Tag objects.
-
-        Raises:
-            ValueError: If the response does not contain the expected data.
-
-        Examples:
-            >>> import fedfred as fd
-            >>> response = {
-            >>>     "tags": [
-            >>>         {
-            >>>             "name": "nation",
-            >>>             "group_id": "geographic",
-            >>>             "created": "2004-01-01",
-            >>>             "popularity": 5000,
-            >>>             "series_count": 150
-            >>>         }
-            >>>     ]
-            >>> }
-            >>> async def main():
-            >>>     tags = await fd.Tag.to_object_async(response)
-            >>>     for tag in tags:
-            >>>         print(tag.name, tag.group_id)
-            >>> if __name__ == "__main__":
-            >>>     asyncio.run(main())
-            nation geographic
-        
-        Notes: 
-            This method assumes that the input response dictionary contains a 'tags' key with a list of tag data.
-
-        References:
-            - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.objects.Tag.to_object_async.html
-        """
-
-        return await asyncio.to_thread(cls.to_object, response)
+        return cls(
+            name=data["name"],
+            group_id=data["group_id"],
+            created=data["created"],
+            popularity=data["popularity"],
+            series_count=data["series_count"],
+            notes=data.get("notes"),
+            client=client,
+        )
 
     # Properties
     @property
     def related_tags(self) -> List["Tag"]:
         """The related tags associated with this tag."""
 
-        if self.client is None:
-            raise RuntimeError("Client is not set for this Tag")
-        return self.client.get_related_tags(self.name)
+        return self._require_client().get_related_tags(self.name)
 
     @property
     def series(self) -> List["Series"]:
         """The series associated with this tag."""
 
-        if self.client is None:
-            raise RuntimeError("Client is not set for this Tag")
-        return self.client.get_tags_series(self.name)
+        return self._require_client().get_tags_series(self.name)
 
+class Tags(_ModelSequence[Tag]):
+
+
+    __slots__ = ()
+
+    _response_key: ClassVar[str] = Tag._response_key
+
+    @classmethod
+    def _parse_item(cls, data: Dict[str, Any], client: Optional[_ClientModel] = None) -> Tag:
+
+        return Tag._from_dict(data, client=client)
+
+    def _repr_html_(self) -> str:
+
+
+        head = self._items[:10]
+
+        rows = "".join(
+            f"<tr><td>{html.escape(t.name)}</td>"
+            f"<td>{html.escape(t.group_id)}</td>"
+            f"<td>{t.popularity}</td>"
+            f"<td>{t.series_count}</td></tr>"
+            for t in head
+        )
+
+        caption = "" if len(self._items) <= 10 else f"<caption>showing 10 of {len(self._items)}</caption>"
+
+        return ("<table>" + caption +
+                "<thead><tr><th>name</th><th>group_id</th><th>popularity</th><th>series_count</th></tr></thead>"
+                f"<tbody>{rows}</tbody></table>")
 @dataclass(slots=True)
-class Release:
+class Release(_ModelBase):
     """A class used to represent a Release.
 
     Represents a single release in the Federal Reserve Economic Data (FRED) database. A release is a scheduled publication of economic data,
@@ -827,173 +625,114 @@ class Release:
 
     _sources: Optional[List["Source"]] = None
 
-    client: Optional["Fred"] = field(
-        default=None,
-        repr=False,
-        compare=False,
-    )
-    """The Fred client instance associated with this Release. Used for making further API calls related to this Release."""
 
     # Class Methods
     @classmethod
-    def to_object(cls, response: Dict, client: Optional["Fred"] = None) -> List["Release"]:
-        """Parses the FRED API response and returns a list of Release objects.
+    def _from_dict(cls, data: Dict[str, Any], client: Optional[_ClientModel] = None) -> "Release":
 
-        Args:
-            response (Dict): The FRED API response.
 
-        Returns:
-            List[Release]: A list of Release objects.
+        if not isinstance(data, dict):
+            raise ModelError("Invalid release payload: expected a mapping")
+        
+        rid = data.get("id") or data.get("release_id")
 
-        Raises:
-            ValueError: If the response does not contain the expected data.
-
-        Examples:
-            >>> import fedfred as fd
-            >>> response = {
-            >>>     "releases": [
-            >>>         {
-            >>>             "id": 82,
-            >>>             "realtime_start": "2000-01-01",
-            >>>             "realtime_end": "2025-12-31",
-            >>>             "name": "Employment Situation",
-            >>>             "press_release": true
-            >>>         }
-            >>>     ]
-            >>> }
-            >>> releases = fd.Release.to_object(response)
-            >>> for release in releases:
-            >>>     print(release.id, release.name)
-            82 'Employment Situation'
-
-        Notes:
-            This method assumes that the input response dictionary contains a 'releases' key with a list of release data.
-
-        References:
-            - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.objects.Release.to_object.html
-        """
-
-        dict_key = None
-
-        if "releases" in response:
-            dict_key = "releases"
-        elif "release" in response:
-            dict_key = "release"
-        else:
-            raise ValueError("Invalid API response: Missing 'releases' field")
-        releases = [
-            cls(
-                id=release["id"] or release["release_id"],
-                realtime_start=release.get("realtime_start"),
-                realtime_end=release.get("realtime_end"),
-                name=release["name"],
-                press_release=release.get("press_release"),
-                link=release.get("link") or release.get("url"),
-                notes=release.get("notes"),
-                _sources= Source.to_object(release) if release.get("sources") else None,
-                client=client if client is not None else None
-            )
-            for release in response[dict_key]
-        ]
-        if not releases:
-            raise ValueError("No releases found in the response")
-        return releases
+        if rid is None:
+            raise ModelError("Invalid release payload: missing 'id'/'release_id'")
+        
+        if "name" not in data:
+            raise ModelError("Invalid release payload: missing 'name'")
+        
+        return cls(
+            id=rid,
+            name=data["name"],
+            realtime_start=data.get("realtime_start"),
+            realtime_end=data.get("realtime_end"),
+            press_release=data.get("press_release"),
+            link=data.get("link") or data.get("url"),
+            notes=data.get("notes"),
+            client=client,
+        )
 
     @classmethod
-    async def to_object_async(cls, response: Dict) -> List["Release"]:
-        """Asynchronously parses the FRED API response and returns a list of Release objects.
+    def to_object(cls, response: Dict[str, Any], client: Optional[_ClientModel] = None) -> "Release":
 
-        Args:
-            response (Dict): The FRED API response.
+        raw = _require_first_list(response, ("releases", "release"))
 
-        Returns:
-            List[Release]: A list of Release objects.
-
-        Raises:
-            ValueError: If the response does not contain the expected data.
-
-        Examples:
-            >>> import fedfred as fd
-            >>> response = {
-            >>>     "releases": [
-            >>>         {
-            >>>             "id": 82,
-            >>>             "realtime_start": "2000-01-01",
-            >>>             "realtime_end": "2025-12-31",
-            >>>             "name": "Employment Situation",
-            >>>             "press_release": true
-            >>>         }
-            >>>     ]
-            >>> }
-            >>> async def main():
-            >>>     releases = await fd.Release.to_object_async(response)
-            >>>     for release in releases:
-            >>>         print(release.id, release.name)
-            >>> if __name__ == "__main__":
-            >>>     asyncio.run(main())
-            82 'Employment Situation'
+        if not raw:
+            raise ModelError("No release found in the response")
         
-        Notes:
-            This method assumes that the input response dictionary contains a 'releases' key with a list of release data.
-
-        References:
-            - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.objects.Release.to_object_async.html
-        """
-
-        return await asyncio.to_thread(cls.to_object, response)
+        return cls._from_dict(raw[0], client=client)
 
     # Properties
     @property
     def dates(self) -> List["ReleaseDate"]:
         """The release dates associated with this release."""
 
-        if self.client is None:
-            raise RuntimeError("Client is not set for this Release")
-        return self.client.get_release_dates(self.id)
+        return self._require_client().get_release_dates(self.id)
 
     @property
     def series(self) -> List["Series"]:
         """The series associated with this release."""
 
-        if self.client is None:
-            raise RuntimeError("Client is not set for this Release")
-        return self.client.get_release_series(self.id)
+        return self._require_client().get_release_series(self.id)
 
     @property
     def sources(self) -> List["Source"]:
         """The sources associated with this release."""
 
-        if self.client is None:
-            raise RuntimeError("Client is not set for this Release")
-        if self._sources is None:
-            return self.client.get_release_sources(self.id)
-        else:
-            return self._sources
+        return self._require_client().get_release_sources(self.id)
 
     @property
     def tags(self) -> List["Tag"]:
         """The tags associated with this release."""
 
-        if self.client is None:
-            raise RuntimeError("Client is not set for this Release")
-        return self.client.get_release_tags(self.id)
+        return self._require_client().get_release_tags(self.id)
 
     @property
     def related_tags(self) -> List["Tag"]:
         """The related tags associated with this release."""
 
-        if self.client is None:
-            raise RuntimeError("Client is not set for this Release")
-        return self.client.get_release_related_tags(self.id)
+        return self._require_client().get_release_related_tags(self.id)
 
     @property
     def tables(self) -> List["Element"]:
         """The tables associated with this release."""
 
-        if self.client is None:
-            raise RuntimeError("Client is not set for this Release")
-        return self.client.get_release_tables(self.id)
+        return self._require_client().get_release_tables(self.id)
 
+class Releases(_ModelSequence[Release]):
+
+    __slots__ = ()
+
+    _response_key: ClassVar[str] = Release._response_key
+
+    @classmethod
+    def _parse_item(cls, data: Dict[str, Any], client: Optional[_ClientModel] = None) -> Release:
+
+        return Release._from_dict(data, client=client)
+
+    @classmethod
+    def to_object(cls, response: Dict[str, Any], client: Optional[_ClientModel] = None) -> "Releases":
+
+        raw = _require_first_list(response, ("releases", "release"))
+
+        return cls((cls._parse_item(item, client=client) for item in raw), client=client)
+
+    def _repr_html_(self) -> str:
+
+        head = self._items[:10]
+
+        rows = "".join(
+            f"<tr><td>{r.id}</td><td>{html.escape(r.name)}</td>"
+            f"<td>{'yes' if r.press_release else ''}</td></tr>"
+            for r in head
+        )
+
+        caption = "" if len(self._items) <= 10 else f"<caption>showing 10 of {len(self._items)}</caption>"
+
+        return ("<table>" + caption +
+                "<thead><tr><th>id</th><th>name</th><th>press_release</th></tr></thead>"
+                f"<tbody>{rows}</tbody></table>")
 @dataclass(slots=True)
 class ReleaseDate:
     """A class used to represent a ReleaseDate.

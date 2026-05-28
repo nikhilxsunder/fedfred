@@ -26,19 +26,54 @@ This module provides internal helper classes for the fedfred package's return mo
 
 from __future__ import annotations
 import asyncio
+from dataclasses import dataclass, field
 from collections.abc import Sequence
-from typing import TYPE_CHECKING, Any, ClassVar, Dict, Iterable, Iterator, Optional, Self, Tuple, TypeVar, Union, overload
-from .._core._parsers import _require_list
+from typing import Any, ClassVar, Dict, Iterable, Iterator, Optional, Self, Tuple, Union, overload
+from .._core import _require_list
+from ._clients import _ClientModel  # pragma: no cover
 
-if TYPE_CHECKING:
-    from ._clients import _BaseClient  # pragma: no cover
+# TODO: Fix all docstrings post error design.
 
-__all__ = ["_ModelSequence", "T"]
+__all__ = ["_ModelSequence", "_ModelBase"]
 
-T = TypeVar("T")
-"""Typing alias for a FRED model class. Not to be confused with the built-in ``typing.TypeVar``."""
+@dataclass
+class _ModelBase:
+    """Base class for FRED model objects. This class is not meant to be instantiated directly, but provides common functionality for all FRED model classes, such as storing a reference to the client instance for lazy loading of related data when accessing attributes of the model objects. """
 
-class _ModelSequence(Sequence[T]):
+    client: Optional[_ClientModel] = field(default=None, repr=False, compare=False)
+
+
+    _response_key: ClassVar[str]
+
+
+    @classmethod
+    def _from_dict(cls, data: Dict[str, Any], client: Optional[_ClientModel] = None) -> "_ModelBase":
+
+        raise NotImplementedError
+
+    @classmethod
+    def to_object(cls, response: Dict[str, Any], client: Optional[_ClientModel] = None) -> "_ModelBase":
+
+        raw = _require_list(response, cls._response_key)
+
+        if not raw:
+            raise ModelError(f"No {cls._response_key} found in the response") # TODO: Define ModelError
+        
+        return cls._from_dict(raw[0], client=client)
+
+    @classmethod
+    async def to_object_async(cls, response: Dict[str, Any], client: Optional[_ClientModel] = None) -> "_ModelBase":
+
+        return await asyncio.to_thread(cls.to_object, response, client)
+
+    def _require_client(self) -> "_ClientModel":
+
+        if self.client is None:
+            raise ModelError("Client not set for this instance.") # TODO: Define ModelError
+        
+        return self.client
+
+class _ModelSequence(Sequence[_ModelBase]):
     """Immutable, notebook-friendly sequence of FRED model objects.
     
     This class is used for attributes of FRED model objects that return multiple related objects, such as the ``observations`` attribute 
@@ -47,7 +82,7 @@ class _ModelSequence(Sequence[T]):
     FRED API response dictionaries, using the appropriate parser for the specific model type.
 
     Attributes:
-        _items (Tuple[T, ...]): The underlying tuple of model objects.
+        _items (Tuple[_ModelBase, ...]): The underlying tuple of model objects.
         client (Optional[Fred]): The Fred client instance used to fetch additional data for related objects, if necessary. This is stored to allow lazy loading of related data when accessing attributes of the model objects in the sequence.
     
     
@@ -59,52 +94,64 @@ class _ModelSequence(Sequence[T]):
     _response_key: ClassVar[str]
     """The key in the raw FRED API response dictionary where the list of items for this model type can be found."""
 
-    def __init__(self, items: Iterable[T], client: Optional["Fred"] = None) -> None:
-        self._items: Tuple[T, ...] = tuple(items)
-        self.client: Optional["Fred"] = client
+    def __init__(self, items: Iterable[_ModelBase], client: Optional[_ClientModel] = None) -> None:
+
+        self._items: Tuple[_ModelBase, ...] = tuple(items)
+        self.client: Optional[_ClientModel] = client
 
     @classmethod
-    def _parse_item(cls, data: Dict[str, Any], client: Optional["Fred"] = None) -> T:
+    def _parse_item(cls, data: Dict[str, Any], client: Optional[_ClientModel] = None) -> _ModelBase:
+
         raise NotImplementedError
 
     @overload
-    def __getitem__(self, index: int) -> T: ...
+    def __getitem__(self, index: int) -> _ModelBase: ...
     @overload
     def __getitem__(self, index: slice) -> Self: ...
-    def __getitem__(self, index: Union[int, slice]) -> Union[T, Self]:
+    def __getitem__(self, index: Union[int, slice]) -> Union[_ModelBase, Self]:
+
         if isinstance(index, slice):
             return type(self)(self._items[index], client=self.client)
         return self._items[index]
 
     def __len__(self) -> int:
+
         return len(self._items)
 
-    def __iter__(self) -> Iterator[T]:
+    def __iter__(self) -> Iterator[_ModelBase]:
+
         return iter(self._items)
 
     def __contains__(self, value: object) -> bool:
+
         return value in self._items
 
-    def __reversed__(self) -> Iterator[T]:
+    def __reversed__(self) -> Iterator[_ModelBase]:
+
         return reversed(self._items)
 
     def __eq__(self, other: object) -> bool:
+
         if isinstance(other, type(self)):
             return self._items == other._items
         return NotImplemented
     # __eq__ defined => __hash__ is None => unhashable (mirrors list; non-frozen dataclass elements are unhashable)
 
     def __repr__(self) -> str:
+
         return f"{type(self).__name__}(n={len(self._items)})"
 
     def _repr_html_(self) -> str:
+
         return f"<b>{type(self).__name__}</b> — {len(self._items)} items"
 
     @classmethod
-    def to_object(cls, response: Dict[str, Any], client: Optional["Fred"] = None) -> Self:
+    def to_object(cls, response: Dict[str, Any], client: Optional[_ClientModel] = None) -> Self:
+
         raw = _require_list(response, cls._response_key)
         return cls((cls._parse_item(item, client=client) for item in raw), client=client)
 
     @classmethod
-    async def to_object_async(cls, response: Dict[str, Any], client: Optional["Fred"] = None) -> Self:
-        return await asyncio.to_thread(cls.to_object, response, client)
+    async def to_object_async(cls, response: Dict[str, Any], client: Optional[_ClientModel] = None) -> Self:
+
+        return await asyncio.to_thread(cls.to_object, response, client=client)

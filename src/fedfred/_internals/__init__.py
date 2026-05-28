@@ -26,5 +26,9 @@ methods for transport, caching, and rate limiting used across the fedfred packag
 """
 
 from ._clients import (
-    _BaseClient, _AsyncBaseClient,
+    _BaseClient, _AsyncBaseClient, _ClientModel
+)
+
+from ._models import (
+    _ModelBase, _ModelSequence,
 )
