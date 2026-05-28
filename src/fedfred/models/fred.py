@@ -48,13 +48,12 @@ References:
 """
 
 from datetime import date
-from typing import Optional, List, Dict, ClassVar, Any
+from typing import Optional, List, Dict, ClassVar, Any, SupportsIndex, Self, Callable
 import html
 from dataclasses import dataclass
-import asyncio
 import pandas as pd
 from ..__about__ import __title__, __version__, __author__, __email__, __license__, __copyright__, __description__, __docs__, __repository__
-from .._internals import _ClientModel, _ModelBase, _ModelSequence
+from .._internals import _ClientModel, _ModelBase, _ModelSequence, _DateBase, _DateSequence
 from .._core import _require_first_list, _objects_iter_dict_or_list
 
 # TODO: Fix all docstrings post error design.
@@ -67,7 +66,6 @@ __all__ = [
     "ReleaseDate", "ReleaseDates",
     "Source", "Sources",
     "Element", "Elements",
-    "VintageDate", "VintageDates",
     "BulkRelease",
 ]
 
@@ -199,16 +197,6 @@ class Categories(_ModelSequence[Category]):
 
 
     __slots__ = ()
-
-
-    _response_key: ClassVar[str] = Category._response_key
-
-
-    @classmethod
-    def _parse_item(cls, data: Dict[str, Any], client: Optional[_ClientModel] = None) -> Category:
-        
-        
-        return Category._from_dict(data, client=client)
 
     def _repr_html_(self) -> str:
         
@@ -409,14 +397,6 @@ class Seriess(_ModelSequence[Series]):
     __slots__ = ()
 
 
-    _response_key: ClassVar[str] = Series._response_key
-
-
-    @classmethod
-    def _parse_item(cls, data: Dict[str, Any], client: Optional[_ClientModel] = None) -> Series:
-
-        return Series._from_dict(data, client=client)
-
     @classmethod
     def to_object(cls, response: Dict[str, Any], client: Optional[_ClientModel] = None) -> "Seriess":
         # Same dual-key shape as Series (FRED returns 'seriess' or 'series')
@@ -541,13 +521,6 @@ class Tags(_ModelSequence[Tag]):
 
 
     __slots__ = ()
-
-    _response_key: ClassVar[str] = Tag._response_key
-
-    @classmethod
-    def _parse_item(cls, data: Dict[str, Any], client: Optional[_ClientModel] = None) -> Tag:
-
-        return Tag._from_dict(data, client=client)
 
     def _repr_html_(self) -> str:
 
@@ -715,13 +688,6 @@ class Releases(_ModelSequence[Release]):
 
     __slots__ = ()
 
-    _response_key: ClassVar[str] = Release._response_key
-
-    @classmethod
-    def _parse_item(cls, data: Dict[str, Any], client: Optional[_ClientModel] = None) -> Release:
-
-        return Release._from_dict(data, client=client)
-
     @classmethod
     def to_object(cls, response: Dict[str, Any], client: Optional[_ClientModel] = None) -> "Releases":
 
@@ -745,139 +711,82 @@ class Releases(_ModelSequence[Release]):
                 "<thead><tr><th>id</th><th>name</th><th>press_release</th></tr></thead>"
                 f"<tbody>{rows}</tbody></table>")
 
-@dataclass(slots=True)
-class ReleaseDate:      # TODO: Needs inherited type maybe either _ModelDate or directly from datetime.date.
-    """A class used to represent a ReleaseDate.
+class ReleaseDate(_DateBase):
 
-    Represents a single release date in the Federal Reserve Economic Data (FRED) database. A release date indicates when a specific
-    economic data release is scheduled to occur. Each release date is associated with a release and includes the date of the release.
-    
-    Attributes:
-        release_id (int): The ID of the release.
-        date (date): The date of the release.
-        release_name (Optional[str]): The name of the release.
 
-    Examples:
-        >>> import fedfred as fd
-        >>> fred_client = fd.Fred('your_api_key')
-        >>> release_dates = fred_client.get_release_dates(82)
-        >>> for release_date in release_dates:
-        >>>     print(release_date.date)
-        '2024-07-05'
-        '2024-08-02'...
+    __slots__ = ("release_id", "release_name")
 
-    References:
-        - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.objects.ReleaseDate.html
-
-    See Also:
-        - :class:`fedfred.Release`: For the object representation of a FRED release.
-    """
 
     release_id: int
     """The ID of the release. corresponds to 'release_id' in the FRED API."""
 
-    date: date
-    """The date of the release. corresponds to 'date' in the FRED API."""
-
-    release_name: Optional[str] = None
+    release_name: Optional[str]
     """The name of the release. corresponds to 'release_name' in the FRED API."""
 
+    _response_key: ClassVar[str] = "release_dates"
 
-    # Class Methods
-    @classmethod
-    def to_object(cls, response: Dict) -> List["ReleaseDate"]:
-        """Parses the FRED API response and returns a list of ReleaseDate objects.
-
-        Args:
-            response (Dict): The FRED API response.
-
-        Returns:
-            List[ReleaseDate]: A list of ReleaseDate objects.
-
-        Raises:
-            ValueError: If the response does not contain the expected data.
-
-        Examples:
-            >>> import fedfred as fd
-            >>> response = {
-            >>>     "release_dates": [
-            >>>         {
-            >>>             "release_id": 82,
-            >>>             "date": "2024-07-05",
-            >>>             "release_name": "Employment Situation"
-            >>>         }
-            >>>     ]
-            >>> }
-            >>> release_dates = fd.ReleaseDate.to_object(response)
-            >>> for release_date in release_dates:
-            >>>     print(release_date.release_id, release_date.date)
-            82 '2024-07-05'
-
-        Notes:
-            This method assumes that the input response dictionary contains a 'release_dates' key with a list of release date data.
-
-        References:
-            - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.objects.ReleaseDate.to_object.html
-        """
-
-        if "release_dates" not in response:
-            raise ValueError("Invalid API response: Missing 'release_dates' field")
-        release_dates = [
-            cls(
-                release_id=release_date["release_id"],
-                date=release_date["date"],
-                release_name=release_date.get("release_name")
-            )
-            for release_date in response["release_dates"]
-        ]
-        if not release_dates:
-            raise ValueError("No release dates found in the response")
-        return release_dates
 
     @classmethod
-    async def to_object_async(cls, response: Dict) -> List["ReleaseDate"]:
-        """Asynchronously parses the FRED API response and returns a list of ReleaseDate objects.
+    def create(cls, year: SupportsIndex, month: SupportsIndex, day: SupportsIndex, *, release_id: int, release_name: Optional[str] = None) -> Self:
+        
+        self: Self = date.__new__(cls, year, month, day)
+        setattr(self, "release_id", release_id)
+        setattr(self, "release_name", release_name)
+        return self
 
-        Args:
-            response (Dict): The FRED API response.
+    def __repr__(self) -> str:
+        
+        return (f"ReleaseDate({self.isoformat()}, "
+                f"release_id={self.release_id}, release_name={self.release_name!r})")
 
-        Returns:
-            List[ReleaseDate]: A list of ReleaseDate objects.
+    def __reduce__(self) -> tuple[Callable[..., "ReleaseDate"], tuple[Any, ...]]:
+        return (
+            _release_date_rebuild,
+            (self.year, self.month, self.day, self.release_id, self.release_name),
+        )
 
-        Raises:
-            ValueError: If the response does not contain the expected data.
+    def _with_date(self, year: int, month: int, day: int) -> Self:
+        return type(self).create(
+            year, month, day,
+            release_id=self.release_id,
+            release_name=self.release_name,
+        )
 
-        Examples:
-            >>> import fedfred as fd
-            >>> response = {
-            >>>     "release_dates": [
-            >>>         {
-            >>>             "release_id": 82,
-            >>>             "date": "2024-07-05",
-            >>>             "release_name": "Employment Situation"
-            >>>         }
-            >>>     ]
-            >>> }
-            >>> async def main():
-            >>>     release_dates = await fd.ReleaseDate.to_object_async(response)
-            >>>     for release_date in release_dates:
-            >>>         print(release_date.release_id, release_date.date)
-            >>> if __name__ == "__main__":
-            >>>     asyncio.run(main())
-            82 '2024-07-05'
+    @classmethod
+    def _parse_value(cls, raw: Any) -> "ReleaseDate":
+        if not isinstance(raw, dict):
+            raise ModelError("Invalid release_date payload: expected a mapping")
+        if "release_id" not in raw or "date" not in raw:
+            raise ModelError("Invalid release_date payload: missing 'release_id' or 'date'")
+        d_raw = raw["date"]
+        d = date.fromisoformat(d_raw) if isinstance(d_raw, str) else d_raw
+        return cls.create(
+            d.year, d.month, d.day,
+            release_id=raw["release_id"],
+            release_name=raw.get("release_name"),
+        )
 
-        Notes:
-            This method assumes that the input response dictionary contains a 'release_dates' key with a list of release date data.
 
-        References:
-            - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.objects.ReleaseDate.to_object_async.html
-        """
 
-        return await asyncio.to_thread(cls.to_object, response)
+def _release_date_rebuild(
+    year: SupportsIndex,
+    month: SupportsIndex,
+    day: SupportsIndex,
+    release_id: int,
+    release_name: Optional[str],
+) -> ReleaseDate:
+    """Module-level helper so pickle can rebuild via the factory."""
+    return ReleaseDate.create(
+        year, month, day,
+        release_id=release_id,
+        release_name=release_name,
+    )
 
-class ReleaseDates: # TODO: Needs inherited type maybe _DateSequence[ReleaseDate] or ModelSequence[ReleaseDate].
 
-    pass
+class ReleaseDates(_DateSequence[ReleaseDate]):
+    """Auto-wired sequence; no container-level metadata."""
+    __slots__ = ()
+
 @dataclass(slots=True)
 class Source(_ModelBase):
     """A class used to represent a Source.
@@ -963,13 +872,6 @@ class Source(_ModelBase):
 class Sources(_ModelSequence[Source]):
 
     __slots__ = ()
-
-    _response_key: ClassVar[str] = Source._response_key
-
-    @classmethod
-    def _parse_item(cls, data: Dict[str, Any], client: Optional[_ClientModel] = None) -> Source:
-
-        return Source._from_dict(data, client=client)
 
     def _repr_html_(self) -> str:
 
@@ -1114,144 +1016,32 @@ class Elements(_ModelSequence[Element]):
     """Immutable, notebook-friendly sequence of FRED release-table elements."""
 
     __slots__ = ()
-    _response_key = Element._response_key
 
-    @classmethod
-    def _parse_item(cls, data: Dict[str, Any], client: Optional[_ClientModel] = None) -> Element:
-        return Element._from_dict(data, client=client)
 
     @classmethod
     def to_object(cls, response: Dict[str, Any], client: Optional[_ClientModel] = None) -> "Elements":
+
+
         items = _objects_iter_dict_or_list(response, cls._response_key)
         return cls((cls._parse_item(item, client=client) for item in items), client=client)
 
     def _repr_html_(self) -> str:
+
+
         head = self._items[:10]
+
         rows = "".join(
             f"<tr><td>{e.element_id}</td><td>{html.escape(e.name)}</td>"
             f"<td>{html.escape(e.type)}</td><td>{html.escape(e.level)}</td></tr>"
             for e in head
         )
+
         caption = "" if len(self._items) <= 10 else f"<caption>showing 10 of {len(self._items)}</caption>"
+
         return ("<table>" + caption +
                 "<thead><tr><th>element_id</th><th>name</th><th>type</th><th>level</th></tr></thead>"
                 f"<tbody>{rows}</tbody></table>")
 
-@dataclass(slots=True)
-class VintageDate: # TODO: Needs inherited type maybe either _ModelDate or directly from datetime.date.
-    """A class used to represent a VintageDate.
-
-    Represents a single vintage date in the Federal Reserve Economic Data (FRED) database. A vintage date indicates the date
-    when a specific version of economic data was released or updated. Each vintage date is associated with a series and includes the date of the vintage.
-    
-    Attributes:
-        vintage_date (str): The date of the vintage.
-
-    Examples:
-        >>> import fedfred as fd
-        >>> fred_client = fd.Fred('your_api_key')
-        >>> vintage_dates = fred_client.get_series_vintage_dates('GDP')
-        >>> for vintage_date in vintage_dates:
-        >>>     print(vintage_date.vintage_date)
-        '2024-07-01'
-        '2024-06-01'...
-
-    References:
-        - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.objects.VintageDate.html
-
-    See Also:
-        - :class:`fedfred.Series`: For the object representation of a FRED series.
-    """
-
-    vintage_date: str
-    """The date of the vintage. corresponds to 'vintage_date' in the FRED API."""
-
-    @classmethod
-    def to_object(cls, response: Dict) -> List["VintageDate"]:
-        """Parses the FRED API response and returns a list of VintageDate objects.
-
-        Args:
-            response (Dict): The FRED API response.
-
-        Returns:
-            List[VintageDate]: A list of VintageDate objects.
-
-        Raises:
-            ValueError: If the response does not contain the expected data.
-
-        Examples:
-            >>> import fedfred as fd
-            >>> response = {
-            >>>     "vintage_dates": [
-            >>>         "2024-07-01",
-            >>>         "2024-06-01"
-            >>>     ]
-            >>> }
-            >>> vintage_dates = fd.VintageDate.to_object(response)
-            >>> for vintage_date in vintage_dates:
-            >>>     print(vintage_date.vintage_date)
-            '2024-07-01'
-            '2024-06-01'
-
-        Notes:
-            This method assumes that the input response dictionary contains a 'vintage_dates' key with a list of vintage date data.
-
-        References:
-            - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.objects.VintageDate.to_object.html
-        """
-
-        if "vintage_dates" not in response:
-            raise ValueError("Invalid API response: Missing 'vintage_dates' field")
-        vintage_dates = [
-            cls(vintage_date=date)
-            for date in response["vintage_dates"]
-        ]
-        if not vintage_dates:
-            raise ValueError("No vintage dates found in the response")
-        return vintage_dates
-
-    @classmethod
-    async def to_object_async(cls, response: Dict) -> List["VintageDate"]:
-        """Asynchronously parses the FRED API response and returns a list of VintageDate objects.
-
-        Args:
-            response (Dict): The FRED API response.
-
-        Returns:
-            List[VintageDate]: A list of VintageDate objects.
-
-        Raises:
-            ValueError: If the response does not contain the expected data.
-
-        Examples:
-            >>> import fedfred as fd
-            >>> response = {
-            >>>     "vintage_dates": [
-            >>>         "2024-07-01",
-            >>>         "2024-06-01"
-            >>>     ]
-            >>> }
-            >>> async def main():
-            >>>     vintage_dates = await fd.VintageDate.to_object_async(response)
-            >>>     for vintage_date in vintage_dates:
-            >>>         print(vintage_date.vintage_date)
-            >>> if __name__ == "__main__":
-            >>>     asyncio.run(main())
-            '2024-07-01'
-            '2024-06-01'
-        
-        Notes:
-            This method assumes that the input response dictionary contains a 'vintage_dates' key with a list of vintage date data.
-
-        References:
-            - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.objects.VintageDate.to_object_async.html
-        """
-
-        return await asyncio.to_thread(cls.to_object, response)
-
-class VintageDates: # TODO: Needs inherited type maybe _DateSequence[ReleaseDate] or ModelSequence[ReleaseDate].
-
-    pass
 @dataclass(slots=True)
 class BulkRelease: # TODO: This thing is honest to god competely fucked just rewrite this with the v2 method.
     """A class used to represent a BulkRelease.

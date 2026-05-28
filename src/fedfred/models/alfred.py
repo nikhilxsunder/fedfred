@@ -21,41 +21,94 @@
 # SOFTWARE.
 
 from __future__ import annotations
-from datetime import date
+
 import asyncio
-from typing import Any, Dict, Iterable, Iterator, Optional, Union, overload
-from collections.abc import Sequence
+from typing import Dict, ClassVar, Any, Optional, Iterable, overload, Union
+from datetime import date
+from .._internals import _DateBase, _DateSequence
+from .._core import _require_list
 
-class VintageDate(date):
-    """A FRED/ALFRED vintage date that *is* a ``datetime.date``.
+# TODO: Fix all docstrings post error design.
 
-    Drops into anything expecting a date (comparisons, ``strftime``, pandas
+class VintageDate(_DateBase):
+    """A FRED/ALFRED vintage date that *is* a ``datetime.date`` subclass.
+
+    Drops into any API expecting a date (comparisons, ``strftime``, pandas
     indexes, fedfred's own date params) and renders as a bare ISO string in
     notebooks instead of ``datetime.date(2024, 3, 28)``.
+
+    Attributes:
+        vintage_date (str): v3-compat alias for the ISO string.
+
+    Examples:
+        >>> import fedfred as fd
+        >>> alfred = fd.Alfred('your_api_key')
+        >>> vintages = alfred.get_series_vintage_dates('GDPC1')
+        >>> vintages[-1]
+        2024-03-28
+
+    See Also:
+        - :class:`fedfred.VintageDates`: The plural container.
+
+    References:
+        - Fred API Documentation: https://fred.stlouisfed.org/docs/api/fred/series_vintagedates.html
     """
 
     __slots__ = ()
 
+    _response_key: ClassVar[str] = "vintage_dates"
+
     @classmethod
-    def _from_iso(cls, value: str) -> "VintageDate":
-        d = date.fromisoformat(value)          # strict 'YYYY-MM-DD'
-        return cls(d.year, d.month, d.day)     # 3-arg == date.__new__; mypy-clean
+    def _parse_value(cls, raw: Any) -> "VintageDate":
+        """Build a single VintageDate from one raw ISO-string payload."""
+
+        if not isinstance(raw, str):
+            raise ModelError("Invalid vintage_date payload: expected an ISO string")
+        d = date.fromisoformat(raw)
+        return cls(d.year, d.month, d.day)
 
     @property
     def vintage_date(self) -> str:
-        """v3 compatibility: the ISO string callers used to read off the dataclass."""
+        """v3-compat alias for the ISO string (matches the old ``vintage_date`` attribute)."""
+
         return self.isoformat()
 
     def __repr__(self) -> str:
+
         return self.isoformat()
 
-class VintageDates(Sequence[VintageDate]):
-    """Immutable, notebook-friendly sequence of ALFRED vintage dates."""
 
-    __slots__ = ("_dates", "series_id")
+class VintageDates(_DateSequence[VintageDate]):
+    """Immutable, notebook-friendly sequence of ALFRED vintage dates.
 
-    def __init__(self, dates: Iterable[VintageDate], series_id: Optional[str] = None) -> None:
-        self._dates: tuple[VintageDate, ...] = tuple(dates)
+    Behaves like a tuple of :class:`VintageDate` (index, slice, iterate,
+    ``len``, ``==``, ``hash``) and renders a compact summary in Jupyter.
+    Carries the ``series_id`` it was built for.
+
+    Attributes:
+        series_id (Optional[str]): The FRED series ID these vintages belong to.
+
+    Examples:
+        >>> import fedfred as fd
+        >>> alfred = fd.Alfred('your_api_key')
+        >>> vintages = alfred.get_series_vintage_dates('GDPC1')
+        >>> vintages.series_id
+        'GDPC1'
+        >>> len(vintages)
+        110
+
+    See Also:
+        - :class:`fedfred.VintageDate`: The element type.
+    """
+
+    __slots__ = ("series_id",)
+
+    series_id: Optional[str]
+    """The FRED series ID these vintages belong to. ``None`` if constructed without one."""
+
+    def __init__(self, items: Iterable[VintageDate], series_id: Optional[str] = None) -> None:
+
+        super().__init__(items)
         self.series_id = series_id
 
     @overload
@@ -63,52 +116,21 @@ class VintageDates(Sequence[VintageDate]):
     @overload
     def __getitem__(self, index: slice) -> "VintageDates": ...
     def __getitem__(self, index: Union[int, slice]) -> Union[VintageDate, "VintageDates"]:
+
         if isinstance(index, slice):
-            return VintageDates(self._dates[index], series_id=self.series_id)
-        return self._dates[index]
-
-    def __len__(self) -> int:
-        return len(self._dates)
-
-    def __iter__(self) -> Iterator[VintageDate]:
-        return iter(self._dates)
-
-    def __contains__(self, value: object) -> bool:
-        return value in self._dates
-
-    def __reversed__(self) -> Iterator[VintageDate]:
-        return reversed(self._dates)
-
-    def __eq__(self, other: object) -> bool:
-        if isinstance(other, VintageDates):
-            return self._dates == other._dates
-        return NotImplemented
-
-    def __hash__(self) -> int:
-        return hash((type(self).__name__, self._dates))
-
-    def __repr__(self) -> str:
-        if not self._dates:
-            return f"VintageDates(series_id={self.series_id!r}, n=0)"
-        return (f"VintageDates(series_id={self.series_id!r}, n={len(self._dates)}, "
-                f"{self._dates[0].isoformat()} … {self._dates[-1].isoformat()})")
-
-    def _repr_html_(self) -> str:
-        sid = self.series_id or "—"
-        if not self._dates:
-            return f"<b>VintageDates</b> <code>{sid}</code> — empty"
-        return (f"<b>VintageDates</b> <code>{sid}</code> — {len(self._dates)} vintages, "
-                f"{self._dates[0].isoformat()} → {self._dates[-1].isoformat()}")
+            return VintageDates(self._items[index], series_id=self.series_id)
+        return self._items[index]
 
     @classmethod
     def to_object(cls, response: Dict[str, Any], series_id: Optional[str] = None) -> "VintageDates":
-        if not isinstance(response, dict) or "vintage_dates" not in response:
-            raise ValueError("Invalid API response: missing 'vintage_dates' field")
-        raw = response["vintage_dates"]
-        if not isinstance(raw, list):
-            raise ValueError("Invalid API response: 'vintage_dates' must be a list")
-        return cls((VintageDate._from_iso(v) for v in raw), series_id=series_id)
+        """Parse a vintage-dates response, attaching the originating ``series_id``."""
+
+        raw = _require_list(response, cls._response_key)
+        return cls((cls._parse_value(v) for v in raw), series_id=series_id)
 
     @classmethod
     async def to_object_async(cls, response: Dict[str, Any], series_id: Optional[str] = None) -> "VintageDates":
+        """Asynchronous variant of :meth:`to_object`."""
+
         return await asyncio.to_thread(cls.to_object, response, series_id)
+    

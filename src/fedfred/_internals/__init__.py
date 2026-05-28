@@ -30,5 +30,5 @@ from ._clients import (
 )
 
 from ._models import (
-    _ModelBase, _ModelSequence,
+    _ModelBase, _ModelSequence, _DateBase, _DateSequence
 )
