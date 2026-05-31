@@ -2408,7 +2408,7 @@ class AsyncFred(_AsyncBaseClient):
                                 order_by: str | None = None,
                                 sort_order: str | None = None
                                 ) -> Tags:
-        """Get a FRED Category's Tags
+        """Get a FRED Category's Tags.
 
         Get the all the tags for a category from the FRED API.
 
@@ -2450,7 +2450,6 @@ class AsyncFred(_AsyncBaseClient):
             - Fred API Documentation: https://fred.stlouisfed.org/docs/api/fred/category_tags.html
             - fedfred package documentation: https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.AsyncFred.get_category_tags.html
         """
-
         endpoint_name = 'get_category_tags'
 
         data: dict[str, Any] = {
