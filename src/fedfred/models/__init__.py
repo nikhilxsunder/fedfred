@@ -37,16 +37,17 @@ Imports:
 """
 
 from .fred import (
-    Category,
-    Series,
-    Tag,
-    Release,
-    ReleaseDate,
-    Source,
-    Element,
-    VintageDate,
-    BulkRelease
+    Category, Categories,
+    Series, Seriess,
+    Tag, Tags,
+    Release, Releases,
+    ReleaseDate, ReleaseDates,
+    Source, Sources,
+    Element, Elements,
+    #BulkRelease
 )
+
+from .alfred import VintageDate, VintageDates
 
 from .geofred import SeriesGroup
 
@@ -58,7 +59,7 @@ __all__ = [
     "ReleaseDate",
     "Source",
     "Element",
-    "BulkRelease",
+    #"BulkRelease",
     "VintageDate",
     "SeriesGroup",
 ]

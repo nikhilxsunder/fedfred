@@ -52,7 +52,6 @@ from typing import Optional, List, Dict, ClassVar, Any, SupportsIndex, Self, Cal
 import html
 from dataclasses import dataclass
 import pandas as pd
-from ..__about__ import __title__, __version__, __author__, __email__, __license__, __copyright__, __description__, __docs__, __repository__
 from .._internals import _ClientModel, _ModelBase, _ModelSequence, _DateBase, _DateSequence
 from .._core import _require_first_list, _objects_iter_dict_or_list
 

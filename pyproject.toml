@@ -64,7 +64,7 @@ test = [
     { include-group = "types" },
 ]
 lint = [
-    "pylint",
+    "ruff",
     "mypy",
     "bandit",
     "pip-audit",
@@ -116,10 +116,16 @@ packages = ["src/fedfred"]
 files = "src/fedfred"
 ignore_missing_imports = true
 
-[tool.pylint]
-max-line-length = 400
-disable = ["C0302"]
-ignore-patterns = [".*\\.pyi$"]
+[tool.ruff]
+line-length = 250
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "RUF", "ANN", "D"]
+ignore = ["D203", "D213"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
 
 [tool.bandit]
 exclude_dirs = ["tests", "docs"]

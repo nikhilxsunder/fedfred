@@ -179,4 +179,4 @@ cython_debug/
 node_modules/
 .coverage
 conda-dist/
-.coverage.*
+.coverage*

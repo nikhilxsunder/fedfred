@@ -35,11 +35,18 @@ from ._clients import _ClientModel  # pragma: no cover
 
 # TODO: Fix all docstrings post error design.
 
-__all__ = ["_ModelSequence", "_ModelBase"]
+__all__ = ["_ModelSequence", "_ModelBase", "_DateBase", "_DateSequence"]
 
 @dataclass(slots=True, kw_only=True)
 class _ModelBase:
-    """Base class for FRED model objects. This class is not meant to be instantiated directly, but provides common functionality for all FRED model classes, such as storing a reference to the client instance for lazy loading of related data when accessing attributes of the model objects. """
+    """Base for FRED model objects. Provides common parsing and client storage.
+    
+    Attributes:
+        client (Optional[_ClientModel]): The Fred client instance used to fetch additional data for related objects, if necessary.
+
+    
+    
+    """
 
     client: Optional[_ClientModel] = field(default=None, repr=False, compare=False)
 
@@ -63,9 +70,9 @@ class _ModelBase:
         return cls._from_dict(raw[0], client=client)
 
     @classmethod
-    async def to_object_async(cls, response: Dict[str, Any], client: Optional[_ClientModel] = None) -> Self:
+    async def to_object_async(cls, response: Dict[str, Any]) -> Self:
 
-        return await asyncio.to_thread(cls.to_object, response, client)
+        return await asyncio.to_thread(cls.to_object, response)
 
     def _require_client(self) -> _ClientModel:
 
@@ -185,9 +192,9 @@ class _ModelSequence(Sequence[T]):
         return cls((cls._parse_item(item, client=client) for item in raw), client=client)
 
     @classmethod
-    async def to_object_async(cls, response: Dict[str, Any], client: Optional[_ClientModel] = None) -> Self:
+    async def to_object_async(cls, response: Dict[str, Any]) -> Self:
 
-        return await asyncio.to_thread(cls.to_object, response, client=client)
+        return await asyncio.to_thread(cls.to_object, response)
 
 class _DateBase(date):
     """Base for FRED date elements that *are* ``datetime.date`` subclasses.

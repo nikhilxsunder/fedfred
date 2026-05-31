@@ -39,11 +39,11 @@ jobs:
             --cov-report=term-missing \
             --cov-report=xml:"${REPORT_DIR}/coverage.xml"
 
-      - name: Pylint
+      - name: Ruff
         run: |
-          uv run pylint "${FEDFRED_SRC}" "${FEDFRED_TESTS}" \
-            --output-format=parseable \
-            > "${REPORT_DIR}/pylint.txt" || true
+          uv run ruff check "${FEDFRED_SRC}" "${FEDFRED_TESTS}" \
+            --output-format=concise \
+            > "${REPORT_DIR}/ruff.txt" || true
 
       - name: MyPy
         run: |

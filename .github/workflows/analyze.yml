@@ -21,9 +21,9 @@ jobs:
       - name: Install dependencies
         run: uv sync --group lint
 
-      - name: Run pylint (Linting)
+      - name: Run ruff (Linting)
         continue-on-error: true
-        run: uv run pylint --ignore="*.pyi" src/fedfred/ --fail-under=7.0
+        run: uv run ruff check --exclude "*.pyi" src/fedfred/
 
       - name: Run mypy (Type Checking)
         continue-on-error: true
