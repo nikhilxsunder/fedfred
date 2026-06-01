@@ -58,18 +58,26 @@ from .alfred import VintageDates
 if TYPE_CHECKING:
     import polars as pl
     import dask.dataframe as dd
+    from ..clients import Fred
 
 # TODO: Fix all docstrings post error design.
 
 __all__ = [
-    "Category", "Categories",
-    "Series", "Seriess",
-    "Tag", "Tags",
-    "Release", "Releases",
-    "ReleaseDate", "ReleaseDates",
-    "Source", "Sources",
-    "Element", "Elements",
     "BulkRelease",
+    "Categories",
+    "Category",
+    "Element",
+    "Elements",
+    "Release",
+    "ReleaseDate",
+    "ReleaseDates",
+    "Releases",
+    "Series",
+    "Seriess",
+    "Source",
+    "Sources",
+    "Tag",
+    "Tags",
 ]
 
 @dataclass(slots=True)
@@ -120,6 +128,7 @@ class Category(_ModelBase):
     """The unique identifier for the parent category, if any. can be used as a 'category_id' in the FRED API."""
 
     _response_key: ClassVar[str] = "categories"
+    """The key in the FRED API response that contains the category data."""
 
 
     # Class Methods
@@ -972,7 +981,7 @@ class Element(_ModelBase):
     level: str
     """The level of the element"""
 
-    children: Optional[List["Element"]] = None
+    children: Optional["Elements"] = None
     """The child elements of this element."""
 
     # Class Methods

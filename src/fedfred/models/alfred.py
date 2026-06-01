@@ -23,7 +23,7 @@
 from __future__ import annotations
 
 import asyncio
-from typing import Dict, ClassVar, Any, Optional, Iterable, overload, Union
+from typing import Dict, ClassVar, Any, Optional, Iterable
 from datetime import date
 from .._internals import _DateBase, _DateSequence
 from .._core import _require_list
