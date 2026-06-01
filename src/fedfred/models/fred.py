@@ -46,18 +46,35 @@ References:
 """
 
 from __future__ import annotations
-from datetime import date
-from typing import Optional, List, Dict, ClassVar, Any, SupportsIndex, Self, Callable, TYPE_CHECKING
+
 import html
+from collections.abc import Callable
 from dataclasses import dataclass
+from datetime import date
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    ClassVar,
+    Self,
+    SupportsIndex,
+)
+
 import pandas as pd
-from .._internals import _ClientModel, _ModelBase, _ModelSequence, _DateBase, _DateSequence
-from .._core import _require_first_list, _objects_iter_dict_or_list, _coerce_lower
+
+from .._core import _coerce_lower, _objects_iter_dict_or_list, _require_first_list
+from .._internals import (
+    _ClientModel,
+    _DateBase,
+    _DateSequence,
+    _ModelBase,
+    _ModelSequence,
+)
 from .alfred import VintageDates
 
 if TYPE_CHECKING:
-    import polars as pl
     import dask.dataframe as dd
+    import polars as pl
+
     from ..clients import Fred
 
 # TODO: Fix all docstrings post error design.
@@ -84,7 +101,7 @@ __all__ = [
 class Category(_ModelBase):
     """A class used to represent a FRED Category.
 
-    Represents a single category in the Federal Reserve Economic Data (FRED) hierarchy. Categories are organizational 
+    Represents a single category in the Federal Reserve Economic Data (FRED) hierarchy. Categories are organizational
     units used by the FRED API to group related time-series (e.g., "Prices", "National Accounts", "Monetary Aggregates").
     Each category has a unique identifier, a human-readable name, and an optional parent category.
 
@@ -93,11 +110,11 @@ class Category(_ModelBase):
         name (str): The name of the category.
         parent_id (int, optional): The unique identifier for the parent category.
         client (Fred, optional): The Fred client instance associated with this Category.
-        children (List[Category]): The child categories of this category.
-        related (List[Category]): The related categories of this category.
-        series (List[Series]): The series in this category.
-        tags (List[Tag]): The tags associated with this category.
-        related_tags (List[Tag]): The related tags associated with this category.
+        children (Categories): The child categories of this category.
+        related (Categories): The related categories of this category.
+        series (Seriess): The series in this category.
+        tags (Tags): The tags associated with this category.
+        related_tags (Tags): The related tags associated with this category.
 
     Notes:
         This class is designed to work with the FRED API and may require a client instance for certain operations.
@@ -133,7 +150,7 @@ class Category(_ModelBase):
 
     # Class Methods
     @classmethod
-    def _from_dict(cls, data: dict[str, Any], client: _ClientModel | None = None) -> "Category":
+    def _from_dict(cls, data: dict[str, Any], client: _ClientModel | None = None) -> Category:
         """Parses FRED API response and returns a list of Category objects.
 
         Args:
@@ -141,9 +158,9 @@ class Category(_ModelBase):
             client (_ClientModel | None, optional): The Fred client instance to associate with the Category objects.
 
         Returns:
-            list[Category]: A list of Category objects.
+            Category: A Category object.
 
-        Raises: 
+        Raises:
             ValueError: If the response does not contain the expected data.
 
         Examples:
@@ -176,27 +193,27 @@ class Category(_ModelBase):
 
     # Properties
     @property
-    def children(self) -> "Categories":
+    def children(self) -> Categories:
         """The child categories of this category. corresponds to 'get_category_children' in the FRED API."""
         return self._require_client().get_category_children(self.id)
 
     @property
-    def related(self) -> "Categories":
+    def related(self) -> Categories:
         """The related categories of this category. corresponds to 'get_category_related' in the FRED API."""
         return self._require_client().get_category_related(self.id)
 
     @property
-    def series(self) -> "Seriess":
+    def series(self) -> Seriess:
         """The series in this category. corresponds to 'get_category_series' in the FRED API."""
         return self._require_client().get_category_series(self.id)
 
     @property
-    def tags(self) -> "Tags":
+    def tags(self) -> Tags:
         """The tags associated with this category. corresponds to 'get_category_tags' in the FRED API."""
         return self._require_client().get_category_tags(self.id)
 
     @property
-    def related_tags(self) -> "Tags":
+    def related_tags(self) -> Tags:
         """The related tags associated with this category. corresponds to 'get_category_related_tags' in the FRED API."""
         return self._require_client().get_category_related_tags(self.id)
 
@@ -250,11 +267,11 @@ class Series(_ModelBase):
         realtime_end (str, optional): The end date for real-time data, if applicable.
         group_popularity (int, optional): A measure of the popularity within a group, if applicable.
         notes (str, optional): Additional notes about the series.
-        categories (List[Category]): The categories associated with this series.
+        categories (Categories): The categories associated with this series.
         observations (pd.DataFrame): The DataFrame of observations associated with this series.
-        release (List[Release]): The release associated with this series.
-        tags (List[Tag]): The tags associated with this series.
-        vintagedates (List[VintageDate]): The vintage dates associated with this series.
+        release (Releases): The release associated with this series.
+        tags (Tags): The tags associated with this series.
+        vintagedates (list[VintageDate]): The vintage dates associated with this series.
         client (Fred, optional): The Fred client instance associated with this Series.
 
     Notes:
@@ -334,7 +351,7 @@ class Series(_ModelBase):
 
     # Class Methods
     @classmethod
-    def _from_dict(cls, data: dict[str, Any], client: _ClientModel | None = None) -> "Series":
+    def _from_dict(cls, data: dict[str, Any], client: _ClientModel | None = None) -> Series:
 
         if not isinstance(data, dict):
             raise ModelError("Invalid series payload: expected a mapping")
@@ -371,7 +388,7 @@ class Series(_ModelBase):
 
     # Properties
     @property
-    def categories(self) -> "Categories":
+    def categories(self) -> Categories:
         """The categories associated with this series. corresponds to 'get_series_categories' in the FRED API."""
         return self._require_client().get_series_categories(self.id)
 
@@ -381,17 +398,17 @@ class Series(_ModelBase):
         return self._require_client().get_series_observations(self.id)
 
     @property
-    def release(self) -> "Releases":
+    def release(self) -> Releases:
         """The release associated with this series. corresponds to 'get_series_release' in the FRED API."""
         return self._require_client().get_series_release(self.id)
 
     @property
-    def tags(self) -> "Tags":
+    def tags(self) -> Tags:
         """The tags associated with this series. corresponds to 'get_series_tags' in the FRED API."""
         return self._require_client().get_series_tags(self.id)
 
     @property
-    def vintagedates(self) -> "VintageDates":
+    def vintagedates(self) -> VintageDates:
         """The vintage dates associated with this series. corresponds to 'get_series_vintagedates' in the FRED API."""
         return self._require_client().get_series_vintagedates(self.id)
 
@@ -405,7 +422,7 @@ class Seriess(_ModelSequence[Series]):
 
 
     @classmethod
-    def to_object(cls, response: dict[str, Any], client: _ClientModel | None = None) -> "Seriess":
+    def to_object(cls, response: dict[str, Any], client: _ClientModel | None = None) -> Seriess:
         # Same dual-key shape as Series (FRED returns 'seriess' or 'series')
 
         raw = _require_first_list(response, ("seriess", "series"))
@@ -492,7 +509,7 @@ class Tag(_ModelBase):
 
     # Class Methods
     @classmethod
-    def _from_dict(cls, data: dict[str, Any], client: _ClientModel | None = None) -> "Tag":
+    def _from_dict(cls, data: dict[str, Any], client: _ClientModel | None = None) -> Tag:
 
         if not isinstance(data, dict):
             raise ModelError("Invalid tag payload: expected a mapping")
@@ -513,12 +530,12 @@ class Tag(_ModelBase):
 
     # Properties
     @property
-    def related_tags(self) -> "Tags":
+    def related_tags(self) -> Tags:
         """The related tags associated with this tag."""
         return self._require_client().get_related_tags(self.name)
 
     @property
-    def series(self) -> "Series":
+    def series(self) -> Seriess:
         """The series associated with this tag."""
         return self._require_client().get_tags_series(self.name)
 
@@ -567,12 +584,12 @@ class Release(_ModelBase):
         link (str, optional): A link to more information about the release.
         notes (str, optional): Additional notes about the release.
         client (Fred, optional): The Fred client instance associated with this Release.
-        dates (List[ReleaseDate]): The release dates associated with this release.
-        series (List[Series]): The series associated with this release.
-        sources (List[Source]): The sources associated with this release.
-        tags (List[Tag]): The tags associated with this release.
-        related_tags (List[Tag]): The related tags associated with this release.
-        tables (List[Element]): The tables associated with this release.
+        dates (ReleaseDates): The release dates associated with this release.
+        series (Seriess): The series associated with this release.
+        sources (Sources): The sources associated with this release.
+        tags (Tags): The tags associated with this release.
+        related_tags (Tags): The related tags associated with this release.
+        tables (Elements): The tables associated with this release.
 
     Notes:
         This class is designed to work with the FRED API and may require a client instance for certain operations.
@@ -614,14 +631,14 @@ class Release(_ModelBase):
     notes: str | None = None
     """Additional notes about the release."""
 
-    _sources: "Sources" | None = None
+    _sources: Sources | None = None
 
     _response_key: ClassVar[str] = "releases"
 
 
     # Class Methods
     @classmethod
-    def _from_dict(cls, data: dict[str, Any], client: _ClientModel | None = None) -> "Release":
+    def _from_dict(cls, data: dict[str, Any], client: _ClientModel | None = None) -> Release:
 
 
         if not isinstance(data, dict):
@@ -647,7 +664,7 @@ class Release(_ModelBase):
         )
 
     @classmethod
-    def to_object(cls, response: dict[str, Any], client: _ClientModel | None = None) -> "Release":
+    def to_object(cls, response: dict[str, Any], client: _ClientModel | None = None) -> Release:
 
         raw = _require_first_list(response, ("releases", "release"))
 
@@ -658,32 +675,32 @@ class Release(_ModelBase):
 
     # Properties
     @property
-    def dates(self) -> "ReleaseDates":
+    def dates(self) -> ReleaseDates:
         """The release dates associated with this release."""
         return self._require_client().get_release_dates(self.id)
 
     @property
-    def series(self) -> "Series":
+    def series(self) -> Seriess:
         """The series associated with this release."""
         return self._require_client().get_release_series(self.id)
 
     @property
-    def sources(self) -> "Sources":
+    def sources(self) -> Sources:
         """The sources associated with this release."""
         return self._require_client().get_release_sources(self.id)
 
     @property
-    def tags(self) -> "Tags":
+    def tags(self) -> Tags:
         """The tags associated with this release."""
         return self._require_client().get_release_tags(self.id)
 
     @property
-    def related_tags(self) -> "Tags":
+    def related_tags(self) -> Tags:
         """The related tags associated with this release."""
         return self._require_client().get_release_related_tags(self.id)
 
     @property
-    def tables(self) -> "Elements":
+    def tables(self) -> Elements:
         """The tables associated with this release."""
         return self._require_client().get_release_tables(self.id)
 
@@ -696,7 +713,7 @@ class Releases(_ModelSequence[Release]):
 
 
     @classmethod
-    def to_object(cls, response: Dict[str, Any], client: _ClientModel | None = None) -> "Releases":
+    def to_object(cls, response: dict[str, Any], client: _ClientModel | None = None) -> Releases:
 
         raw = _require_first_list(response, ("releases", "release"))
 
@@ -785,7 +802,7 @@ class ReleaseDate(_DateBase):
         )
 
     @classmethod
-    def _parse_value(cls, raw: Any) -> "ReleaseDate":
+    def _parse_value(cls, raw: Any) -> ReleaseDate:
 
         if not isinstance(raw, dict):
             raise ModelError("Invalid release_date payload: expected a mapping")
@@ -822,7 +839,7 @@ class Source(_ModelBase):
         link (str, optional): A link to more information about the source.
         notes (str, optional): Additional notes about the source.
         client (Fred, optional): The Fred client instance associated with this Source.
-        releases (List[Release]): The releases associated with this source.
+        releases (Releases): The releases associated with this source.
 
     Notes:
         This class is designed to work with the FRED API and may require a client instance for certain operations.
@@ -866,7 +883,7 @@ class Source(_ModelBase):
 
     # Class Methods
     @classmethod
-    def _from_dict(cls, data: Dict[str, Any], client: _ClientModel | None = None) -> "Source":
+    def _from_dict(cls, data: dict[str, Any], client: _ClientModel | None = None) -> Source:
 
         if not isinstance(data, dict):
             raise ModelError("Invalid source payload: expected a mapping")
@@ -933,7 +950,7 @@ class Element(_ModelBase):
         type (str): The type of the element.
         name (str): The name of the element.
         level (str): The level of the element.
-        children (List[Element], optional): The child elements of this element.
+        children (Elements, optional): The child elements of this element.
         client (Fred, optional): The Fred client instance associated with this Element.
 
     Notes:
@@ -981,12 +998,12 @@ class Element(_ModelBase):
     level: str
     """The level of the element"""
 
-    children: Optional["Elements"] = None
+    children: "Elements" | None = None
     """The child elements of this element."""
 
     # Class Methods
     @classmethod
-    def _from_dict(cls, data: Dict[str, Any], client: _ClientModel | None = None) -> "Element":
+    def _from_dict(cls, data: dict[str, Any], client: _ClientModel | None = None) -> "Element":
 
 
         if not isinstance(data, dict):
@@ -1017,7 +1034,7 @@ class Element(_ModelBase):
         )
 
     @classmethod
-    def to_object(cls, response: Dict[str, Any], client: _ClientModel | None = None) -> "Element":
+    def to_object(cls, response: dict[str, Any], client: _ClientModel | None = None) -> Element:
         # FRED returns 'elements' as a dict keyed by id, not a list. Take the first.
         items = _objects_iter_dict_or_list(response, cls._response_key)
         if not items:
@@ -1026,13 +1043,13 @@ class Element(_ModelBase):
 
     # Properties
     @property
-    def release(self) -> List["Release"]:
+    def release(self) -> Releases:
         """The release associated with this element."""
 
         return self._require_client().get_release(self.release_id)
 
     @property
-    def series(self) -> List["Series"]:
+    def series(self) -> Seriess:
         """The series associated with this element."""
 
         return self._require_client().get_series(self.series_id)
@@ -1047,7 +1064,7 @@ class Elements(_ModelSequence[Element]):
 
 
     @classmethod
-    def to_object(cls, response: Dict[str, Any], client: _ClientModel | None = None) -> "Elements":
+    def to_object(cls, response: dict[str, Any], client: _ClientModel | None = None) -> Elements:
 
 
         items = _objects_iter_dict_or_list(response, cls._response_key)
@@ -1072,130 +1089,4 @@ class Elements(_ModelSequence[Element]):
 
 @dataclass(slots=True)
 class BulkRelease: # TODO: This thing is honest to god competely fucked just rewrite this with the v2 method.
-    """A class used to represent a BulkRelease.
-
-    Represents a bulk release in the Federal Reserve Economic Data (FRED) database. A bulk release contains multiple series
-    associated with a single release. This class encapsulates the release information along with the list of
-    series included in the bulk release.
-
-    Attributes:
-        release (List[Release]): The Release object associated with this BulkRelease.
-        series (List[Series]): The list of Series objects associated with this BulkRelease.
-
-    Examples:
-        >>> import fedfred as fd
-        >>> fred_client = fd.Fred('your_api_key')
-        >>> bulk_release = fred_client.get_release_observations('GDP')
-        >>> print(bulk_release.release.title)
-        'Gross Domestic Product'
-
-    References:
-        - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.objects.BulkRelease.html
-
-    See Also:
-        - :class:`fedfred.Release`: For the object representation of a FRED release.
-        - :class:`fedfred.Series`: For the object representation of a FRED series.
-    """
-
-    release: List[Release]
-    """The Release object associated with this BulkRelease."""
-
-    series: List[Series]
-    """The list of Series objects associated with this BulkRelease."""
-
-    @classmethod
-    def to_object(cls, response: Dict, client: Optional["Fred"] = None) -> "BulkRelease":
-        """Parses the FRED API response and returns a BulkRelease object.
-
-        Args:
-            response (Dict): The FRED API response.
-            client (Fred, optional): The Fred client instance to associate with the BulkRelease
-
-        Returns:
-            BulkRelease: A BulkRelease object.
-
-        Raises:
-            ValueError: If the response does not contain the expected data.
-
-        Examples:
-            >>> import fedfred as fd
-            >>> response = {
-            >>>     "release": {
-            >>>         "id": 53,
-            >>>         "title": "Gross Domestic Product"
-            >>>     },
-            >>>     "series": [
-            >>>         {
-            >>>             "id": "GDP",
-            >>>             "title": "Gross Domestic Product"
-            >>>         }
-            >>>     ]
-            >>> }
-            >>> bulk_release = fd.BulkRelease.to_object(response)
-            >>> print(bulk_release.release.title)
-            'Gross Domestic Product'
-
-        Notes:
-            This method assumes that the input response dictionary contains 'release' and 'series' keys with the relevant data.
-
-        References:
-            - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.objects.BulkRelease.to_object.html
-        """
-
-        bulk_release = cls(
-                release=Release.to_object(response, client=client),
-                series=Series.to_object(response, client=client)
-            )
-        if not bulk_release:
-            raise ValueError("No bulk releases found in the response")
-        return bulk_release
-
-    @classmethod
-    async def to_object_async(cls, response: Dict) -> "BulkRelease":
-        """Asynchronously parses the FRED API response and returns a BulkRelease object.
-
-        Args:
-            response (Dict): The FRED API response.
-            client (Fred, optional): The Fred client instance to associate with the BulkRelease  
-
-        Returns:
-            BulkRelease: A BulkRelease object.
-
-        Raises:
-            ValueError: If the response does not contain the expected data.
-
-        Examples:
-            >>> import fedfred as fd
-            >>> response = {
-            >>>     "release": {
-            >>>         "id": 53,
-            >>>         "title": "Gross Domestic Product"
-            >>>     },
-            >>>     "series": [
-            >>>         {
-            >>>             "id": "GDP",
-            >>>             "title": "Gross Domestic Product"
-            >>>         }
-            >>>     ]
-            >>> }
-            >>> async def main():
-            >>>     bulk_release = await fd.BulkRelease.to_object_async(response)
-            >>>     print(bulk_release.release.title)
-            >>> if __name__ == "__main__":
-            >>>     asyncio.run(main())
-            'Gross Domestic Product'
-
-        Notes:
-            This method assumes that the input response dictionary contains 'release' and 'series' keys with the relevant data.
-
-        References:
-            - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.objects.BulkRelease.to_object_async.html
-        """
-
-        bulk_release = cls(
-                release=await Release.to_object_async(response),
-                series=await Series.to_object_async(response)
-            )
-        if not bulk_release:
-            raise ValueError("No bulk releases found in the response")
-        return bulk_release
+    pass
