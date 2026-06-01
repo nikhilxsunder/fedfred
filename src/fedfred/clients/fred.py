@@ -21,7 +21,7 @@
 # SOFTWARE.
 """This module defines the Fred client for interacting with the Federal Reserve FRED/ALFRED API.
 
-It provides synchronous and asynchronous methods to access various endpoints of the FRED API, including 
+It provides synchronous and asynchronous methods to access various endpoints of the FRED API, including
 categories, series, tags, releases, and more. The client includes features such as automatic parameter conversion,
 unified response objects, rate limiting, retries, and typed results.
 
@@ -62,19 +62,15 @@ from .._internals import _AsyncBaseClient, _BaseClient
 from ..models import (
     Categories,
     Category,
-    Element,
     Elements,
     Release,
-    ReleaseDate,
     ReleaseDates,
     Releases,
     Series,
     Seriess,
     Source,
     Sources,
-    Tag,
     Tags,
-    VintageDate,
     VintageDates,
 )
 
@@ -866,7 +862,7 @@ class Fred(_BaseClient):
                          offset: int | None = None,
                          order_by: str | None = None
                          ) -> Tags:
-        """Get FRED release tags
+        """Get FRED release tags.
 
         Get the release tags for a given release ID from the FRED API.
 
@@ -1053,7 +1049,7 @@ class Fred(_BaseClient):
         return Elements.to_object(response, client=self)
 
     def get_release_observations(self, release_id: int, limit: int | None = None) -> list[BulkRelease]: # TODO: needs complete implementation/redesign
-        """Get FRED release observations in bulk
+        """Get FRED release observations in bulk.
 
         Fetches release observations in bulk from the FRED API.
 
@@ -1066,7 +1062,7 @@ class Fred(_BaseClient):
 
         Raises:
             ValueError: If the API request fails or returns an error.
-        
+
         Example:
             >>> import fedfred as fd
             >>> fred = fd.Fred('your_api_key')
@@ -1083,30 +1079,37 @@ class Fred(_BaseClient):
             - FRED API Documentation: https://fred.stlouisfed.org/docs/api/fred/release_observations.html
 
         Notes:
-            This method handles pagination to retrieve all observations for the specified release ID. 
-            It continues to make requests until all data has been fetched, appending each batch of results to 
+            This method handles pagination to retrieve all observations for the specified release ID.
+            It continues to make requests until all data has been fetched, appending each batch of results to
             a list which is then returned.
 
         See Also:
             - :class:`fedfred.BulkRelease`: Class representing bulk release observations.
         """
-
         endpoint_name = 'get_release_observations'
+
         return_list = []
+
         has_more = True
+
         data: dict[str, Any] = {
             'release_id': release_id,
             'limit': limit
         }
+
         while has_more:
-            response = self._client_get_request(endpoint_name
-                                               , data)
+            response = self._client_get_request(endpoint_name, data)
+
             converted = BulkRelease.to_object(response, client=self)
+
             return_list.append(converted)
+
             if response['has_more']:
                 data['next_cursor'] = response['next_cursor']
+
             else:
                 has_more = False
+
         return return_list
 
     ## Series
@@ -1624,7 +1627,7 @@ class Fred(_BaseClient):
 
         return tags
 
-    def get_series_updates(self,
+    def get_series_updates(self,                                                    # TODO: Consider rechecking response schema and changing return model.
                            realtime_start: str | datetime | date | None = None,
                            realtime_end: str | datetime | date | None = None,
                            limit: int | None = None,
@@ -1749,7 +1752,7 @@ class Fred(_BaseClient):
     def get_sources(self,
                     realtime_start: str | datetime | date | None = None,
                     realtime_end: str | datetime | date | None = None,
-                    limit: int | None = None, 
+                    limit: int | None = None,
                     offset: int | None = None,
                     order_by: str | None = None,
                     sort_order: str | None = None
@@ -2467,15 +2470,22 @@ class AsyncFred(_AsyncBaseClient):
 
         response = await self._client_get_request(endpoint_name, data)
 
-        return await Tag.to_object_async(response)
+        return await Tags.to_object_async(response)
 
-    async def get_category_related_tags(self, category_id: int, realtime_start: str | datetime | date | None = None,
-                                        realtime_end: str | datetime | date | None = None, tag_names: str | list[str] | None = None,
+    async def get_category_related_tags(self,
+                                        category_id: int,
+                                        realtime_start: str | datetime | date | None = None,
+                                        realtime_end: str | datetime | date | None = None,
+                                        tag_names: str | list[str] | None = None,
                                         exclude_tag_names: str | list[str] | None = None,
-                                        tag_group_id: str | None = None, search_text: str | None = None,
-                                        limit: int | None = None, offset: int | None = None,
-                                        order_by: str | None = None, sort_order: str | None = None) -> list[Tag]:
-        """Get a FRED Category's Related Tags
+                                        tag_group_id: str | None = None,
+                                        search_text: str | None = None,
+                                        limit: int | None = None,
+                                        offset: int | None = None,
+                                        order_by: str | None = None,
+                                        sort_order: str | None = None
+                                        ) -> Tags:
+        """Get a FRED Category's Related Tags.
 
         Retrieve all tags related to a specified category from the FRED API.
 
@@ -2493,7 +2503,7 @@ class AsyncFred(_AsyncBaseClient):
             sort_order (str, optional): Sort order, either 'asc' or 'desc'.
 
         Returns:
-            list[Tag]: If multiple tags are returned.
+            Tags: If multiple tags are returned.
 
         Raises:
             ValueError: If the request to the FRED API fails or returns an error.
@@ -2519,7 +2529,6 @@ class AsyncFred(_AsyncBaseClient):
             - Fred API Documentation: https://fred.stlouisfed.org/docs/api/fred/category_related_tags.html
             - fedfred package documentation: https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.AsyncFred.get_category_related_tags.html
         """
-
         endpoint_name = 'get_category_related_tags'
 
         data: dict[str, Any] = {
@@ -2538,14 +2547,18 @@ class AsyncFred(_AsyncBaseClient):
 
         response = await self._client_get_request(endpoint_name, data)
 
-        return await Tag.to_object_async(response)
+        return await Tags.to_object_async(response)
 
     ## Releases
-    async def get_releases(self, realtime_start: str | datetime | date | None = None,
+    async def get_releases(self,
+                           realtime_start: str | datetime | date | None = None,
                            realtime_end: str | datetime | date | None = None,
-                           limit: int | None = None, offset: int | None = None, order_by: str | None = None,
-                           sort_order: str | None = None) -> list[Release]:
-        """Get FRED releases
+                           limit: int | None = None,
+                           offset: int | None = None,
+                           order_by: str | None = None,
+                           sort_order: str | None = None
+                           ) -> Releases:
+        """Get FRED releases.
 
         Get all economic data releases from the FRED API.
 
@@ -2583,7 +2596,6 @@ class AsyncFred(_AsyncBaseClient):
             - Fred API Documentation: https://fred.stlouisfed.org/docs/api/fred/releases.html
             - fedfred package documentation: https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.AsyncFred.get_releases.html
         """
-
         endpoint_name = 'get_releases'
 
         data: dict[str, Any] = {
@@ -2597,14 +2609,18 @@ class AsyncFred(_AsyncBaseClient):
 
         response = await self._client_get_request(endpoint_name, data)
 
-        return await Release.to_object_async(response)
+        return await Releases.to_object_async(response)
 
-    async def get_releases_dates(self, realtime_start: str | datetime | date | None = None,
-                                 realtime_end: str | datetime | date | None = None, limit: int | None = None,
-                                 offset: int | None = None, order_by: str | None = None,
+    async def get_releases_dates(self,
+                                 realtime_start: str | datetime | date | None = None,
+                                 realtime_end: str | datetime | date | None = None,
+                                 limit: int | None = None,
+                                 offset: int | None = None,
+                                 order_by: str | None = None,
                                  sort_order: str | None = None,
-                                 include_releases_dates_with_no_data: bool | None = None) -> list[ReleaseDate]:
-        """Get FRED releases dates
+                                 include_releases_dates_with_no_data: bool | None = None
+                                 ) -> ReleaseDates:
+        """Get FRED releases dates.
 
         Get all release dates for economic data releases from the FRED API.
 
@@ -2643,7 +2659,6 @@ class AsyncFred(_AsyncBaseClient):
             - Fred API Documentation: https://fred.stlouisfed.org/docs/api/fred/releases_dates.html
             - fedfred package documentation: https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.AsyncFred.get_releases_dates.html
         """
-
         endpoint_name = 'get_releases_dates'
 
         data: dict[str, Any] = {
@@ -2658,11 +2673,14 @@ class AsyncFred(_AsyncBaseClient):
 
         response = await self._client_get_request(endpoint_name, data)
 
-        return await ReleaseDate.to_object_async(response)
+        return await ReleaseDates.to_object_async(response)
 
-    async def get_release(self, release_id: int, realtime_start: str | datetime | date | None = None,
-                          realtime_end: str | datetime | date | None = None) -> list[Release]:
-        """Get a FRED release
+    async def get_release(self,
+                          release_id: int,
+                          realtime_start: str | datetime | date | None = None,
+                          realtime_end: str | datetime | date | None = None
+                          ) -> Release:
+        """Get a FRED release.
 
         Get the release for a given release ID from the FRED API.
 
@@ -2694,7 +2712,6 @@ class AsyncFred(_AsyncBaseClient):
             - Fred API Documentation: https://fred.stlouisfed.org/docs/api/fred/release.html
             - fedfred package documentation: https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.AsyncFred.get_release.html
         """
-
         endpoint_name = 'get_release'
 
         data: dict[str, Any] = {
@@ -2707,11 +2724,16 @@ class AsyncFred(_AsyncBaseClient):
 
         return await Release.to_object_async(response)
 
-    async def get_release_dates(self, release_id: int, realtime_start: str | datetime | date | None = None,
-                                realtime_end: str | datetime | date | None = None, limit: int | None = None,
-                                offset: int | None = None, sort_order: str | None = None,
-                                include_releases_dates_with_no_data: bool | None = None) -> list[ReleaseDate]:
-        """Get FRED release dates
+    async def get_release_dates(self,
+                                release_id: int,
+                                realtime_start: str | datetime | date | None = None,
+                                realtime_end: str | datetime | date | None = None,
+                                limit: int | None = None,
+                                offset: int | None = None,
+                                sort_order: str | None = None,
+                                include_releases_dates_with_no_data: bool | None = None
+                                ) -> ReleaseDates:
+        """Get FRED release dates.
 
         Get the release dates for a given release ID from the FRED API.
 
@@ -2725,7 +2747,7 @@ class AsyncFred(_AsyncBaseClient):
             include_releases_dates_with_no_data (bool, optional): Whether to include release dates with no data.
 
         Returns:
-            list[ReleaseDate]: If multiple release dates are returned.
+            ReleaseDates: If multiple release dates are returned.
 
         Raises:
             ValueError: If the API request fails or returns an error.
@@ -2750,7 +2772,6 @@ class AsyncFred(_AsyncBaseClient):
             - Fred API Documentation: https://fred.stlouisfed.org/docs/api/fred/release_dates.html
             - fedfred package documentation: https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.AsyncFred.get_release_dates.html
         """
-
         endpoint_name = 'get_release_dates'
 
         data: dict[str, Any] = {
@@ -2765,14 +2786,20 @@ class AsyncFred(_AsyncBaseClient):
 
         response = await self._client_get_request(endpoint_name, data)
 
-        return await ReleaseDate.to_object_async(response)
+        return await ReleaseDates.to_object_async(response)
 
-    async def get_release_series(self, release_id: int, realtime_start: str | datetime | date | None = None,
-                                 realtime_end: str | datetime | date | None = None, limit: int | None = None,
-                                 offset: int | None = None, sort_order: str | None = None,
-                                 filter_variable: str | None = None, filter_value: str | None = None,
-                                 exclude_tag_names: str | list[str] | None = None) -> list[Series]:
-        """Get FRED release series
+    async def get_release_series(self,
+                                 release_id: int,
+                                 realtime_start: str | datetime | date | None = None,
+                                 realtime_end: str | datetime | date | None = None,
+                                 limit: int | None = None,
+                                 offset: int | None = None,
+                                 sort_order: str | None = None,
+                                 filter_variable: str | None = None,
+                                 filter_value: str | None = None,
+                                 exclude_tag_names: str | list[str] | None = None
+                                 ) -> Seriess:
+        """Get FRED release series.
 
         Get the series in a release.
 
@@ -2808,12 +2835,11 @@ class AsyncFred(_AsyncBaseClient):
 
         See Also:
             - :class:`fedfred.Series`: The Series object representation.
-            
+
         References:
             - Fred API Documentation: https://fred.stlouisfed.org/docs/api/fred/release_series.html
             - fedfred package documentation: https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.AsyncFred.get_release_series.html
         """
-
         endpoint_name = 'get_release_series'
 
         data: dict[str, Any] = {
@@ -2830,11 +2856,14 @@ class AsyncFred(_AsyncBaseClient):
 
         response = await self._client_get_request(endpoint_name, data)
 
-        return await Series.to_object_async(response)
+        return await Seriess.to_object_async(response)
 
-    async def get_release_sources(self, release_id: int, realtime_start: str | datetime | date | None = None,
-                                  realtime_end: str | datetime | date | None = None) -> list[Source]:
-        """Get FRED release sources
+    async def get_release_sources(self,
+                                  release_id: int,
+                                  realtime_start: str | datetime | date | None = None,
+                                  realtime_end: str | datetime | date | None = None
+                                  ) -> Sources:
+        """Get FRED release sources.
 
         Retrieve the sources for a specified release from the FRED API.
 
@@ -2863,12 +2892,11 @@ class AsyncFred(_AsyncBaseClient):
 
         See Also:
             - :class:`fedfred.Source`: The Source object representation.
-            
+
         References:
             - Fred API Documentation: https://fred.stlouisfed.org/docs/api/fred/release_sources.html
             - fedfred package documentation: https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.AsyncFred.get_release_sources.html
         """
-
         endpoint_name = 'get_release_sources'
 
         data: dict[str, Any] = {
@@ -2879,14 +2907,20 @@ class AsyncFred(_AsyncBaseClient):
 
         response = await self._client_get_request(endpoint_name, data)
 
-        return await Source.to_object_async(response)
+        return await Sources.to_object_async(response)
 
-    async def get_release_tags(self, release_id: int, realtime_start: str | datetime | date | None = None,
-                               realtime_end: str | datetime | date | None = None, tag_names: str | list[str] | None = None,
-                               tag_group_id: int | None = None, search_text: str | None = None,
-                               limit: int | None = None, offset: int | None = None,
-                               order_by: str | None = None) -> list[Tag]:
-        """Get FRED release tags
+    async def get_release_tags(self,
+                               release_id: int,
+                               realtime_start: str | datetime | date | None = None,
+                               realtime_end: str | datetime | date | None = None,
+                               tag_names: str | list[str] | None = None,
+                               tag_group_id: int | None = None,
+                               search_text: str | None = None,
+                               limit: int | None = None,
+                               offset: int | None = None,
+                               order_by: str | None = None
+                               ) -> Tags:
+        """Get FRED release tags.
 
         Get the release tags for a given release ID from the FRED API.
 
@@ -2927,7 +2961,6 @@ class AsyncFred(_AsyncBaseClient):
             - Fred API Documentation: https://fred.stlouisfed.org/docs/api/fred/release_tags.html
             - fedfred package documentation: https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.AsyncFred.get_release_tags.html
         """
-
         endpoint_name = 'get_release_tags'
 
         data: dict[str, Any] = {
@@ -2944,20 +2977,28 @@ class AsyncFred(_AsyncBaseClient):
 
         response = await self._client_get_request(endpoint_name, data)
 
-        return await Tag.to_object_async(response)
+        return await Tags.to_object_async(response)
 
-    async def get_release_related_tags(self, release_id: int, realtime_start: str | datetime | date | None = None,
-                                       realtime_end: str | datetime | date | None = None, tag_names: str | list[str] | None = None,
-                                       exclude_tag_names: str | list[str] | None = None, tag_group_id: str | None = None,
-                                       search_text: str | None = None, limit: int | None = None,
-                                       offset: int | None = None, order_by: str | None = None,
-                                       sort_order: str | None = None) -> list[Tag]:
-        """Get FRED release related tags
+    async def get_release_related_tags(self,
+                                       release_id: int,
+                                       realtime_start: str | datetime | date | None = None,
+                                       realtime_end: str | datetime | date | None = None,
+                                       tag_names: str | list[str] | None = None,
+                                       exclude_tag_names: str | list[str] | None = None,
+                                       tag_group_id: str | None = None,
+                                       search_text: str | None = None,
+                                       limit: int | None = None,
+                                       offset: int | None = None,
+                                       order_by: str | None = None,
+                                       sort_order: str | None = None
+                                       ) -> Tags:
+        """Get FRED release related tags.
 
         Get release related tags for a given series search text.
 
         Args:
-            series_search_text (str, optional): The text to match against economic data series.
+            release_id (int): The ID for the release.
+            search_text (str, optional): The text to match against economic data series.
             realtime_start (str | datetime | date, optional): The start of the real-time period. String format: YYYY-MM-DD.
             realtime_end (str | datetime | date, optional): The end of the real-time period. String format: YYYY-MM-DD.
             tag_names (str | list, optional): A semicolon delimited list of tag names to match.
@@ -2994,7 +3035,6 @@ class AsyncFred(_AsyncBaseClient):
             - Fred API Documentation: https://fred.stlouisfed.org/docs/api/fred/release_related_tags.html
             - fedfred package documentation: https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.AsyncFred.get_release_related_tags.html
         """
-
         endpoint_name = 'get_release_related_tags'
 
         data: dict[str, Any] = {
@@ -3013,12 +3053,15 @@ class AsyncFred(_AsyncBaseClient):
 
         response = await self._client_get_request(endpoint_name, data)
 
-        return await Tag.to_object_async(response)
+        return await Tags.to_object_async(response)
 
-    async def get_release_tables(self, release_id: int, element_id: int | None = None,
+    async def get_release_tables(self,
+                                 release_id: int,
+                                 element_id: int | None = None,
                                  include_observation_values: bool | None = None,
-                                 observation_date: str | datetime | date | None = None) -> list[Element]:
-        """Get FRED release tables
+                                 observation_date: str | datetime | date | None = None
+                                 ) -> Elements:
+        """Get FRED release tables.
 
         Fetches release tables from the FRED API.
 
@@ -3029,7 +3072,7 @@ class AsyncFred(_AsyncBaseClient):
             observation_date (str | datetime | date, optional): The observation date in YYYY-MM-DD string format. Defaults to None.
 
         Returns:
-            list[Element]: If multiple elements are returned.
+            Elements: If multiple elements are returned.
 
         Raises:
             ValueError: If the API request fails or returns an error.
@@ -3054,7 +3097,6 @@ class AsyncFred(_AsyncBaseClient):
             - Fred API Documentation: https://fred.stlouisfed.org/docs/api/fred/release_tables.html
             - fedfred package documentation: https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.AsyncFred.get_release_tables.html
         """
-
         endpoint_name = 'get_release_tables'
 
         data: dict[str, Any] = {
@@ -3066,10 +3108,10 @@ class AsyncFred(_AsyncBaseClient):
 
         response = await self._client_get_request(endpoint_name, data)
 
-        return await Element.to_object_async(response)
+        return await Elements.to_object_async(response)
 
     async def get_release_observations(self, release_id: int, limit: int | None = None) -> list[BulkRelease]:
-        """Get FRED release observations in bulk
+        """Get FRED release observations in bulk.
 
         Fetches release observations in bulk from the FRED API.
 
@@ -3082,7 +3124,7 @@ class AsyncFred(_AsyncBaseClient):
 
         Raises:
             ValueError: If the API request fails or returns an error.
-            
+
         Example:
             >>> import fedfred as fd
             >>> fred = fd.Fred('your_api_key')
@@ -3098,14 +3140,13 @@ class AsyncFred(_AsyncBaseClient):
             - FRED API Documentation: https://fred.stlouisfed.org/docs/api/fred/release_observations.html
 
         Notes:
-            This method handles pagination to retrieve all observations for the specified release ID. 
-            It continues to make requests until all data has been fetched, appending each batch of results to 
+            This method handles pagination to retrieve all observations for the specified release ID.
+            It continues to make requests until all data has been fetched, appending each batch of results to
             a list which is then returned.
 
         See Also:
             - :class:`fedfred.BulkRelease`: Class representing bulk release observations.
         """
-
         endpoint_name = 'get_release_observations'
 
         return_list = []
@@ -3134,9 +3175,12 @@ class AsyncFred(_AsyncBaseClient):
         return return_list
 
     ## Series
-    async def get_series(self, series_id: str, realtime_start: str | datetime | date | None = None,
-                         realtime_end: str | datetime | date | None = None) -> list[Series]:
-        """Get a FRED series
+    async def get_series(self,
+                         series_id: str,
+                         realtime_start: str | datetime | date | None = None,
+                         realtime_end: str | datetime | date | None = None
+                         ) -> Series:
+        """Get a FRED series.
 
         Retrieve economic data series information from the FRED API.
 
@@ -3146,7 +3190,7 @@ class AsyncFred(_AsyncBaseClient):
             realtime_end (str | datetime | date, optional): The end of the real-time period. String format: YYYY-MM-DD.
 
         Returns:
-            list[Series]: If multiple series are returned.
+            Series: If a single series is returned.
 
         Raises:
             ValueError: If the API request fails or returns an error.
@@ -3168,7 +3212,6 @@ class AsyncFred(_AsyncBaseClient):
             - Fred API Documentation: https://fred.stlouisfed.org/docs/api/fred/series.html
             - fedfred package documentation: https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.AsyncFred.get_series.html
         """
-
         endpoint_name = 'get_series'
 
         data: dict[str, Any] = {
@@ -3181,9 +3224,12 @@ class AsyncFred(_AsyncBaseClient):
 
         return await Series.to_object_async(response)
 
-    async def get_series_categories(self, series_id: str, realtime_start: str | datetime | date | None = None,
-                                    realtime_end: str | datetime | date | None = None) -> list[Category]:
-        """Get FRED series categories
+    async def get_series_categories(self,
+                                    series_id: str,
+                                    realtime_start: str | datetime | date | None = None,
+                                    realtime_end: str | datetime | date | None = None
+                                    ) -> Categories:
+        """Get FRED series categories.
 
         Get the categories for a specified series.
 
@@ -3193,7 +3239,7 @@ class AsyncFred(_AsyncBaseClient):
             realtime_end (str | datetime | date, optional): The end of the real-time period. String format: YYYY-MM-DD.
 
         Returns:
-            list[Category]: If multiple categories are returned.
+            Categories: If multiple categories are returned.
 
         Raises:
             ValueError: If the API request fails or returns an error.
@@ -3217,7 +3263,6 @@ class AsyncFred(_AsyncBaseClient):
             - Fred API Documentation: https://fred.stlouisfed.org/docs/api/fred/series_categories.html
             - fedfred package documentation: https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.AsyncFred.get_series_categories.html
         """
-
         endpoint_name = 'get_series_categories'
 
         data: dict[str, Any] = {
@@ -3228,21 +3273,25 @@ class AsyncFred(_AsyncBaseClient):
 
         response = await self._client_get_request(endpoint_name, data)
 
-        return await Category.to_object_async(response)
+        return await Categories.to_object_async(response)
 
-    async def get_series_observations(self, series_id: str, dataframe_method: str | None = None,
+    async def get_series_observations(self,
+                                      series_id: str,
+                                      dataframe_method: str | None = None,
                                       realtime_start: str | datetime | date | None = None,
                                       realtime_end: str | datetime | date | None = None,
-                                      limit: int | None = None, offset: int | None = None,
+                                      limit: int | None = None,
+                                      offset: int | None = None,
                                       sort_order: str | None = None,
                                       observation_start: str | datetime | date | None = None,
                                       observation_end: str | datetime | date | None = None,
-                                      units: str | None = None, frequency: str | None = None,
+                                      units: str | None = None,
+                                      frequency: str | None = None,
                                       aggregation_method: str | None = None,
                                       output_type: int | None = None,
                                       vintage_dates: str | datetime | date | list[str | datetime | date | None] | None = None
                                       ) -> pd.DataFrame | 'pl.DataFrame' | 'dd.DataFrame':
-        """Get FRED series observations
+        """Get FRED series observations.
 
         Get observations for a FRED series as a pandas or polars DataFrame.
 
@@ -3290,7 +3339,6 @@ class AsyncFred(_AsyncBaseClient):
             - Fred API Documentation: https://fred.stlouisfed.org/docs/api/fred/series_observations.html
             - fedfred package documentation: https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.AsyncFred.get_series_observations.html
         """
-
         endpoint_name = 'get_series_observations'
 
         data: dict[str, Any] = {
@@ -3315,9 +3363,12 @@ class AsyncFred(_AsyncBaseClient):
 
         return await df_method(response)
 
-    async def get_series_release(self, series_id: str, realtime_start: str | datetime | date | None = None,
-                                 realtime_end: str | datetime | date | None = None) -> list[Release]:
-        """Get FRED series release
+    async def get_series_release(self,
+                                 series_id: str,
+                                 realtime_start: str | datetime | date | None = None,
+                                 realtime_end: str | datetime | date | None = None
+                                 ) -> Release:
+        """Get FRED series release.
 
         Get the release for a specified series from the FRED API.
 
@@ -3327,7 +3378,7 @@ class AsyncFred(_AsyncBaseClient):
             realtime_end (str, optional): The end of the real-time period. Format: YYYY-MM-DD. Defaults to None.
 
         Returns:
-            list[Release]: If multiple releases are returned.
+            Release: If a single release is returned.
 
         Raises:
             ValueError: If the API request fails or returns an error.
@@ -3349,7 +3400,6 @@ class AsyncFred(_AsyncBaseClient):
             - Fred API Documentation: https://fred.stlouisfed.org/docs/api/fred/series_release.html
             - fedfred package documentation: https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.AsyncFred.get_series_release.html
         """
-
         endpoint_name = 'get_series_release'
 
         data: dict[str, Any] = {
@@ -3362,13 +3412,21 @@ class AsyncFred(_AsyncBaseClient):
 
         return await Release.to_object_async(response)
 
-    async def get_series_search(self, search_text: str, search_type: str | None = None,
-                                realtime_start: str | datetime | date | None = None, realtime_end: str | datetime | date | None = None,
-                                limit: int | None = None, offset: int | None = None,
-                                order_by: str | None = None, sort_order: str | None = None,
-                                filter_variable: str | None = None, filter_value: str | None = None,
-                                tag_names: str | list[str] | None = None, exclude_tag_names: str | list[str] | None = None) -> list[Series]:
-        """Get FRED series search
+    async def get_series_search(self,
+                                search_text: str,
+                                search_type: str | None = None,
+                                realtime_start: str | datetime | date | None = None,
+                                realtime_end: str | datetime | date | None = None,
+                                limit: int | None = None,
+                                offset: int | None = None,
+                                order_by: str | None = None,
+                                sort_order: str | None = None,
+                                filter_variable: str | None = None,
+                                filter_value: str | None = None,
+                                tag_names: str | list[str] | None = None,
+                                exclude_tag_names: str | list[str] | None = None
+                                ) -> Seriess:
+        """Get FRED series search.
 
         Searches for economic data series based on text queries.
 
@@ -3412,7 +3470,6 @@ class AsyncFred(_AsyncBaseClient):
             - Fred API Documentation: https://fred.stlouisfed.org/docs/api/fred/series_search.html
             - fedfred package documentation: https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.AsyncFred.get_series_search.html
         """
-
         endpoint_name = 'get_series_search'
 
         data: dict[str, Any] = {
@@ -3432,15 +3489,21 @@ class AsyncFred(_AsyncBaseClient):
 
         response = await self._client_get_request(endpoint_name, data)
 
-        return await Series.to_object_async(response)
+        return await Seriess.to_object_async(response)
 
-    async def get_series_search_tags(self, series_search_text: str, realtime_start: str | datetime | date | None = None,
-                                     realtime_end: str | datetime | date | None = None, tag_names: str | list[str] | None = None,
+    async def get_series_search_tags(self,
+                                     series_search_text: str,
+                                     realtime_start: str | datetime | date | None = None,
+                                     realtime_end: str | datetime | date | None = None,
+                                     tag_names: str | list[str] | None = None,
                                      tag_group_id: str | None = None,
-                                     tag_search_text: str | None = None, limit: int | None = None,
-                                     offset: int | None = None, order_by: str | None = None,
-                                     sort_order: str | None = None) -> list[Tag]:
-        """Get FRED series search tags
+                                     tag_search_text: str | None = None,
+                                     limit: int | None = None,
+                                     offset: int | None = None,
+                                     order_by: str | None = None,
+                                     sort_order: str | None = None
+                                     ) -> Tags:
+        """Get FRED series search tags.
 
         Get the tags for a series search.
 
@@ -3482,7 +3545,6 @@ class AsyncFred(_AsyncBaseClient):
             - Fred API Documentation: https://fred.stlouisfed.org/docs/api/fred/series_search_tags.html
             - fedfred package documentation: https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.AsyncFred.get_series_search_tags.html
         """
-
         endpoint_name = 'get_series_search_tags'
 
         data: dict[str, Any] = {
@@ -3500,15 +3562,22 @@ class AsyncFred(_AsyncBaseClient):
 
         response = await self._client_get_request(endpoint_name, data)
 
-        return await Tag.to_object_async(response)
+        return await Tags.to_object_async(response)
 
-    async def get_series_search_related_tags(self, series_search_text: str, tag_names: str | list[str],
-                                             realtime_start: str | datetime | date | None = None, realtime_end: str | datetime | date | None = None,
-                                             exclude_tag_names: str | list[str] | None = None,tag_group_id: str | None = None,
-                                             tag_search_text: str | None = None, limit: int | None = None,
-                                             offset: int | None = None, order_by: str | None = None,
-                                             sort_order: str | None = None) -> list[Tag]:
-        """Get FRED series search related tags
+    async def get_series_search_related_tags(self,
+                                             series_search_text: str,
+                                             tag_names: str | list[str],
+                                             realtime_start: str | datetime | date | None = None,
+                                             realtime_end: str | datetime | date | None = None,
+                                             exclude_tag_names: str | list[str] | None = None,
+                                             tag_group_id: str | None = None,
+                                             tag_search_text: str | None = None,
+                                             limit: int | None = None,
+                                             offset: int | None = None,
+                                             order_by: str | None = None,
+                                             sort_order: str | None = None
+                                             ) -> Tags:
+        """Get FRED series search related tags.
 
         Get related tags for a series search text.
 
@@ -3551,7 +3620,6 @@ class AsyncFred(_AsyncBaseClient):
             - Fred API Documentation: https://fred.stlouisfed.org/docs/api/fred/series_search_related_tags.html
             - fedfred package documentation: https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.AsyncFred.get_series_search_related_tags.html
         """
-
         endpoint_name = 'get_series_search_related_tags'
 
         data: dict[str, Any] = {
@@ -3570,12 +3638,16 @@ class AsyncFred(_AsyncBaseClient):
 
         response = await self._client_get_request(endpoint_name, data)
 
-        return await Tag.to_object_async(response)
+        return await Tags.to_object_async(response)
 
-    async def get_series_tags(self, series_id: str, realtime_start: str | datetime | date | None = None,
-                              realtime_end: str | datetime | date | None = None, order_by: str | None = None,
-                              sort_order: str | None = None) -> list[Tag]:
-        """Get FRED series tags
+    async def get_series_tags(self,
+                              series_id: str,
+                              realtime_start: str | datetime | date | None = None,
+                              realtime_end: str | datetime | date | None = None,
+                              order_by: str | None = None,
+                              sort_order: str | None = None
+                              ) -> Tags:
+        """Get FRED series tags.
 
         Get the tags for a series.
 
@@ -3587,7 +3659,7 @@ class AsyncFred(_AsyncBaseClient):
             sort_order (str, optional): Sort results in 'asc' (ascending) or 'desc' (descending) order.
 
         Returns:
-            list[Tag]: If multiple tags are returned.
+            Tags: If multiple tags are returned.
 
         Raises:
             ValueError: If the API request fails or returns an error.
@@ -3612,7 +3684,6 @@ class AsyncFred(_AsyncBaseClient):
             - Fred API Documentation: https://fred.stlouisfed.org/docs/api/fred/series_tags.html
             - fedfred package documentation: https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.AsyncFred.get_series_tags.html
         """
-
         endpoint_name = 'get_series_tags'
 
         data: dict[str, Any] = {
@@ -3625,13 +3696,18 @@ class AsyncFred(_AsyncBaseClient):
 
         response = await self._client_get_request(endpoint_name, data)
 
-        return await Tag.to_object_async(response)
+        return await Tags.to_object_async(response)
 
-    async def get_series_updates(self, realtime_start: str | datetime | date | None = None,
-                                 realtime_end: str | datetime | date | None = None, limit: int | None = None,
-                                 offset: int | None = None, filter_value: str | None = None,
-                                 start_time: str | datetime | time | None = None, end_time: str | datetime | time | None = None) -> list[Series]:
-        """Get FRED series updates
+    async def get_series_updates(self,
+                                 realtime_start: str | datetime | date | None = None,
+                                 realtime_end: str | datetime | date | None = None,
+                                 limit: int | None = None,
+                                 offset: int | None = None,
+                                 filter_value: str | None = None,
+                                 start_time: str | datetime | time | None = None,
+                                 end_time: str | datetime | time | None = None
+                                 ) -> Seriess:
+        """Get FRED series updates.
 
         Retrieves updates for a series from the FRED API.
 
@@ -3670,7 +3746,6 @@ class AsyncFred(_AsyncBaseClient):
             - Fred API Documentation: https://fred.stlouisfed.org/docs/api/fred/series_updates.html
             - fedfred package documentation: https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.AsyncFred.get_series_updates.html
         """
-
         endpoint_name = 'get_series_updates'
 
         data: dict[str, Any] = {
@@ -3685,12 +3760,17 @@ class AsyncFred(_AsyncBaseClient):
 
         response = await self._client_get_request(endpoint_name, data)
 
-        return await Series.to_object_async(response)
+        return await Seriess.to_object_async(response)
 
-    async def get_series_vintagedates(self, series_id: str, realtime_start: str | datetime | date | None = None,
-                                      realtime_end: str | datetime | date | None = None, limit: int | None = None,
-                                      offset: int | None = None, sort_order: str | None = None) -> list[VintageDate]:
-        """Get FRED series vintage dates
+    async def get_series_vintagedates(self,
+                                      series_id: str,
+                                      realtime_start: str | datetime | date | None = None,
+                                      realtime_end: str | datetime | date | None = None,
+                                      limit: int | None = None,
+                                      offset: int | None = None,
+                                      sort_order: str | None = None
+                                      ) -> VintageDates:
+        """Get FRED series vintage dates.
 
         Get the vintage dates for a given FRED series.
 
@@ -3724,11 +3804,10 @@ class AsyncFred(_AsyncBaseClient):
         See Also:
             - :class:`fedfred.VintageDate`: The VintageDate object representation.
 
-        References: 
+        References:
             - Fred API Documentation: https://fred.stlouisfed.org/docs/api/fred/series_vintagedates.html
             - fedfred package documentation: https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.AsyncFred.get_series_vintagedates.html
         """
-
         endpoint_name = 'get_series_vintagedates'
 
         data: dict[str, Any] = {
@@ -3742,13 +3821,18 @@ class AsyncFred(_AsyncBaseClient):
 
         response = await self._client_get_request(endpoint_name, data)
 
-        return await VintageDate.to_object_async(response)
+        return await VintageDates.to_object_async(response)
 
     ## Sources
-    async def get_sources(self, realtime_start: str | datetime | date | None = None, realtime_end: str | datetime | date | None = None,
-                          limit: int | None = None, offset: int | None = None,
-                          order_by: str | None = None, sort_order: str | None = None) -> list[Source]:
-        """Get FRED sources
+    async def get_sources(self,
+                          realtime_start: str | datetime | date | None = None,
+                          realtime_end: str | datetime | date | None = None,
+                          limit: int | None = None,
+                          offset: int | None = None,
+                          order_by: str | None = None,
+                          sort_order: str | None = None
+                          ) -> Sources:
+        """Get FRED sources.
 
         Retrieve sources of economic data from the FRED API.
 
@@ -3762,7 +3846,7 @@ class AsyncFred(_AsyncBaseClient):
             file_type (str, optional): The format of the returned data. Default is 'json'. Options are 'json', 'xml'.
 
         Returns:
-            list[Source]: If multiple sources are returned.
+            Sources: If multiple sources are returned.
 
         Raises:
             ValueError: If the API request fails or returns an error.
@@ -3787,7 +3871,6 @@ class AsyncFred(_AsyncBaseClient):
             - Fred API Documentation: https://fred.stlouisfed.org/docs/api/fred/sources.html
             - fedfred package documentation: https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.AsyncFred.get_sources.html
         """
-
         endpoint_name = 'get_sources'
 
         data: dict[str, Any] = {
@@ -3801,11 +3884,14 @@ class AsyncFred(_AsyncBaseClient):
 
         response = await self._client_get_request(endpoint_name, data)
 
-        return await Source.to_object_async(response)
+        return await Sources.to_object_async(response)
 
-    async def get_source(self, source_id: int, realtime_start: str | datetime | date | None = None,
-                         realtime_end: str | datetime | date | None = None) -> list[Source]:
-        """Get a FRED source
+    async def get_source(self,
+                         source_id: int,
+                         realtime_start: str | datetime | date | None = None,
+                         realtime_end: str | datetime | date | None = None
+                         ) -> Source:
+        """Get a FRED source.
 
         Retrieves information about a source from the FRED API.
 
@@ -3815,7 +3901,7 @@ class AsyncFred(_AsyncBaseClient):
             realtime_end (str | datetime | date, optional): The end of the real-time period. String format: YYYY-MM-DD. Defaults to None.
 
         Returns:
-            list[Source]: If multiple sources are returned.
+            Source: If a single source is returned.
 
         Raises:
             ValueError: If the request to the FRED API fails or returns an error.
@@ -3832,12 +3918,11 @@ class AsyncFred(_AsyncBaseClient):
 
         See Also:
             - :class:`fedfred.Source`: The Source object representation.
-            
+
         References:
             - Fred API Documentation: https://fred.stlouisfed.org/docs/api/fred/source.html
             - fedfred package documentation: https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.AsyncFred.get_source.html
         """
-
         endpoint_name = 'get_source'
 
         data: dict[str, Any] = {
@@ -3850,11 +3935,16 @@ class AsyncFred(_AsyncBaseClient):
 
         return await Source.to_object_async(response)
 
-    async def get_source_releases(self, source_id: int , realtime_start: str | datetime | date | None = None,
-                                  realtime_end: str | datetime | date | None = None, limit: int | None = None,
-                                  offset: int | None = None, order_by: str | None = None,
-                                  sort_order: str | None = None) -> list[Release]:
-        """Get FRED source releases
+    async def get_source_releases(self,
+                                  source_id: int,
+                                  realtime_start: str | datetime | date | None = None,
+                                  realtime_end: str | datetime | date | None = None,
+                                  limit: int | None = None,
+                                  offset: int | None = None,
+                                  order_by: str | None = None,
+                                  sort_order: str | None = None
+                                  ) -> Releases:
+        """Get FRED source releases.
 
         Get the releases for a specified source from the FRED API.
 
@@ -3868,7 +3958,7 @@ class AsyncFred(_AsyncBaseClient):
             sort_order (str, optional): Sort order of results. 'asc' for ascending, 'desc' for descending.
 
         Returns:
-            list[Release]: If multiple Releases are returned.
+            Releases: If multiple Releases are returned.
 
         Raises:
             ValueError: If the request to the FRED API fails or returns an error.
@@ -3893,7 +3983,6 @@ class AsyncFred(_AsyncBaseClient):
             - Fred API Documentation: https://fred.stlouisfed.org/docs/api/fred/source_releases.html
             - fedfred package documentation: https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.AsyncFred.get_source_releases.html
         """
-
         url_endpoint = 'get_source_releases'
 
         data: dict[str, Any] = {
@@ -3908,15 +3997,21 @@ class AsyncFred(_AsyncBaseClient):
 
         response = await self._client_get_request(url_endpoint, data)
 
-        return await Release.to_object_async(response)
+        return await Releases.to_object_async(response)
 
     ## Tags
-    async def get_tags(self, realtime_start: str | datetime | date | None = None, realtime_end: str | datetime | date | None = None,
-                       tag_names: str | list[str] | None = None, tag_group_id: str | None = None,
-                       search_text: str | None = None, limit: int | None = None,
-                       offset: int | None = None, order_by: str | None = None,
-                       sort_order: str | None = None) -> list[Tag]:
-        """Get FRED tags
+    async def get_tags(self,
+                       realtime_start: str | datetime | date | None = None,
+                       realtime_end: str | datetime | date | None = None,
+                       tag_names: str | list[str] | None = None,
+                       tag_group_id: str | None = None,
+                       search_text: str | None = None,
+                       limit: int | None = None,
+                       offset: int | None = None,
+                       order_by: str | None = None,
+                       sort_order: str | None = None
+                       ) -> Tags:
+        """Get FRED tags.
 
         Retrieve FRED tags based on specified parameters.
 
@@ -3932,7 +4027,7 @@ class AsyncFred(_AsyncBaseClient):
             sort_order (str, optional): Sort order of results. 'asc' for ascending, 'desc' for descending.
 
         Returns:
-            list[Tag]: If multiple tags are returned.
+            Tags: If multiple tags are returned.
 
         Raises:
             ValueError: If the API request fails or returns an error.
@@ -3957,7 +4052,6 @@ class AsyncFred(_AsyncBaseClient):
             - Fred API Documentation: https://fred.stlouisfed.org/docs/api/fred/tags.html
             - fedfred package documentation: https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.AsyncFred.get_tags.html
         """
-
         endpoint_name = 'get_tags'
 
         data: dict[str, Any] = {
@@ -3974,14 +4068,21 @@ class AsyncFred(_AsyncBaseClient):
 
         response = await self._client_get_request(endpoint_name, data)
 
-        return await Tag.to_object_async(response)
+        return await Tags.to_object_async(response)
 
-    async def get_related_tags(self, realtime_start: str | datetime | date | None = None, realtime_end: str | datetime | date | None = None,
-                               tag_names: str | list[str] | None = None, exclude_tag_names: str | list[str] | None = None,
-                               tag_group_id: str | None = None, search_text: str | None = None,
-                               limit: int | None = None, offset: int | None = None,
-                               order_by: str | None = None, sort_order: str | None = None) -> list[Tag]:
-        """Get FRED related tags
+    async def get_related_tags(self,
+                               realtime_start: str | datetime | date | None = None,
+                               realtime_end: str | datetime | date | None = None,
+                               tag_names: str | list[str] | None = None,
+                               exclude_tag_names: str | list[str] | None = None,
+                               tag_group_id: str | None = None,
+                               search_text: str | None = None,
+                               limit: int | None = None,
+                               offset: int | None = None,
+                               order_by: str | None = None,
+                               sort_order: str | None = None
+                               ) -> Tags:
+        """Get FRED related tags.
 
         Retrieve related tags for a given set of tags from the FRED API.
 
@@ -4023,7 +4124,6 @@ class AsyncFred(_AsyncBaseClient):
             - Fred API Documentation: https://fred.stlouisfed.org/docs/api/fred/related_tags.html
             - fedfred package documentation: https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.AsyncFred.get_related_tags.html
         """
-
         endpoint_name = 'get_related_tags'
 
         data: dict[str, Any] = {
@@ -4041,13 +4141,19 @@ class AsyncFred(_AsyncBaseClient):
 
         response = await self._client_get_request(endpoint_name, data)
 
-        return await Tag.to_object_async(response)
+        return await Tags.to_object_async(response)
 
-    async def get_tags_series(self, tag_names: str | list[str] | None = None, exclude_tag_names: str | list[str] | None = None,
-                              realtime_start: str | datetime | date | None = None, realtime_end: str | datetime | date | None = None,
-                              limit: int | None = None, offset: int | None = None,
-                              order_by: str | None = None, sort_order: str | None = None) -> list[Series]:
-        """Get FRED tags series
+    async def get_tags_series(self,
+                              tag_names: str | list[str] | None = None,
+                              exclude_tag_names: str | list[str] | None = None,
+                              realtime_start: str | datetime | date | None = None,
+                              realtime_end: str | datetime | date | None = None,
+                              limit: int | None = None,
+                              offset: int | None = None,
+                              order_by: str | None = None,
+                              sort_order: str | None = None
+                              ) -> Seriess:
+        """Get FRED tags series.
 
         Get the series matching tags.
 
@@ -4087,7 +4193,6 @@ class AsyncFred(_AsyncBaseClient):
             - Fred API Documentation: https://fred.stlouisfed.org/docs/api/fred/tags_series.html
             - fedfred package documentation: https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.AsyncFred.get_tags_series.html
         """
-
         endpoint_name = 'get_tags/series'
 
         data: dict[str, Any] = {
@@ -4103,4 +4208,4 @@ class AsyncFred(_AsyncBaseClient):
 
         response = await self._client_get_request(endpoint_name, data)
 
-        return await Series.to_object_async(response)
+        return await Seriess.to_object_async(response)

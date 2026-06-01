@@ -30,6 +30,7 @@ from ._converters import (
     _resolve_dataframe_converter, _resolve_geodataframe_converter,
     _resolve_dataframe_converter_async, _resolve_geodataframe_converter_async,
     _dict_type_converter, _dict_type_converter_async,
+    _coerce_lower
 )
 
 from ._endpoints import (

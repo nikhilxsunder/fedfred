@@ -61,6 +61,8 @@ __all__ = [
     # Cache Key Converters
     "_hashable_type_converter", "_hashable_type_converter_async",
     "_dict_type_converter", "_dict_type_converter_async",
+    # Model Converters
+    "_coerce_lower"
 ]
 
 # Typing Aliases
@@ -1266,3 +1268,24 @@ async def _dict_type_converter_async(hashable_data: Optional[Tuple[Tuple[str, Op
     """
 
     return await asyncio.to_thread(_dict_type_converter, hashable_data)
+
+# Model Converters
+def _coerce_lower(value: str | None) -> str | None:
+    """Lowercase a string-like value, preserving None.
+
+    Args:
+        value: Raw payload field. Expected to be a string or None.
+
+    Returns:
+        Lowercased string, or None if value is None.
+
+    Raises:
+        ModelError: If value is neither a string nor None.
+    """
+    if value is None:
+        return None
+    if not isinstance(value, str):
+        raise ModelError(               # TODO: Needs internalize ConverterError with parameter and expected/received types.
+            f"Expected string or None for short-code field, got {type(value).__name__}"
+        )
+    return value.lower()

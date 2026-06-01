@@ -19,9 +19,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""fedfred.models.fred
-
-This module defines data classes for the FRED API responses.
+"""This module defines data classes for the FRED API responses.
 
 Classes:
     Category: Represents a FRED Category.
@@ -48,12 +46,17 @@ References:
 """
 
 from datetime import date
-from typing import Optional, List, Dict, ClassVar, Any, SupportsIndex, Self, Callable
+from typing import Optional, List, Dict, ClassVar, Any, SupportsIndex, Self, Callable, TYPE_CHECKING
 import html
 from dataclasses import dataclass
 import pandas as pd
 from .._internals import _ClientModel, _ModelBase, _ModelSequence, _DateBase, _DateSequence
-from .._core import _require_first_list, _objects_iter_dict_or_list
+from .._core import _require_first_list, _objects_iter_dict_or_list, _coerce_lower
+from .alfred import VintageDates
+
+if TYPE_CHECKING:
+    import polars as pl
+    import dask.dataframe as dd
 
 # TODO: Fix all docstrings post error design.
 
@@ -112,22 +115,23 @@ class Category(_ModelBase):
     name: str
     """The name of the category."""
 
-    parent_id: Optional[int]
+    parent_id: int | None
     """The unique identifier for the parent category, if any. can be used as a 'category_id' in the FRED API."""
 
     _response_key: ClassVar[str] = "categories"
 
+
     # Class Methods
     @classmethod
-    def _from_dict(cls, data: Dict[str, Any], client: Optional[_ClientModel] = None) -> "Category":
+    def _from_dict(cls, data: dict[str, Any], client: _ClientModel | None = None) -> "Category":
         """Parses FRED API response and returns a list of Category objects.
 
         Args:
-            data (Dict[str, Any]): The FRED API response.
-            client (Optional[_ClientModel], optional): The Fred client instance to associate with the Category objects.
+            data (dict[str, Any]): The FRED API response.
+            client (_ClientModel | None, optional): The Fred client instance to associate with the Category objects.
 
         Returns:
-            List[Category]: A list of Category objects.
+            list[Category]: A list of Category objects.
 
         Raises: 
             ValueError: If the response does not contain the expected data.
@@ -146,50 +150,44 @@ class Category(_ModelBase):
             125 'International Transactions' 13
             126 'Balance of Payments' 125
 
-        Notes: 
+        Notes:
             This method assumes that the input response dictionary contains a 'categories' key with a list of category data.
 
         References:
             - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.objects.Category.to_object.html
         """
-
         if not isinstance(data, dict):
             raise ModelError("Invalid category payload: expected a mapping") # TODO: Define ModelError
-        
+
         if "id" not in data or "name" not in data:
             raise ModelError("Invalid category payload: missing 'id' or 'name'") # TODO: Define ModelError
-        
+
         return cls(id=data["id"], name=data["name"], parent_id=data.get("parent_id"), client=client)
 
     # Properties
     @property
-    def children(self) -> List["Category"]:
+    def children(self) -> "Categories":
         """The child categories of this category. corresponds to 'get_category_children' in the FRED API."""
-
         return self._require_client().get_category_children(self.id)
 
     @property
-    def related(self) -> List["Category"]:
+    def related(self) -> "Categories":
         """The related categories of this category. corresponds to 'get_category_related' in the FRED API."""
-
         return self._require_client().get_category_related(self.id)
 
     @property
-    def series(self) -> List["Series"]:
+    def series(self) -> "Seriess":
         """The series in this category. corresponds to 'get_category_series' in the FRED API."""
-
         return self._require_client().get_category_series(self.id)
 
     @property
-    def tags(self) -> List["Tag"]:
+    def tags(self) -> "Tags":
         """The tags associated with this category. corresponds to 'get_category_tags' in the FRED API."""
-
         return self._require_client().get_category_tags(self.id)
 
     @property
-    def related_tags(self) -> List["Tag"]:
+    def related_tags(self) -> "Tags":
         """The related tags associated with this category. corresponds to 'get_category_related_tags' in the FRED API."""
-
         return self._require_client().get_category_related_tags(self.id)
 
 class Categories(_ModelSequence[Category]):
@@ -197,19 +195,21 @@ class Categories(_ModelSequence[Category]):
 
     __slots__ = ()
 
+    _lookup_key: ClassVar[str | None] = "name"
+
     def _repr_html_(self) -> str:
-        
-        
+
+
         head = self._items[:10]
-        
+
         rows = "".join(
             f"<tr><td>{c.id}</td><td>{html.escape(c.name)}</td>"
             f"<td>{'' if c.parent_id is None else c.parent_id}</td></tr>"
             for c in head
         )
-        
+
         caption = "" if len(self._items) <= 10 else f"<caption>showing 10 of {len(self._items)}</caption>"
-        
+
         return ("<table>" + caption +
                 "<thead><tr><th>id</th><th>name</th><th>parent_id</th></tr></thead>"
                 f"<tbody>{rows}</tbody></table>")
@@ -257,7 +257,7 @@ class Series(_ModelBase):
         >>> for series in seriess:
         >>>     print(series.title)
         'Gross National Product'
-    
+
     References:
         - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.objects.Series.html
         - Federal Reserve Bank of St. Louis, FRED API documentation. https://fred.stlouisfed.org/tags/series
@@ -284,39 +284,39 @@ class Series(_ModelBase):
     last_updated: str
     """The date when the series was last updated."""
 
-    observation_start: Optional[str] = None
+    observation_start: str | None = None
     """The start date of observations for the series. Corresponds to 'observation_start' in the FRED API. YYYY-MM-DD format."""
 
-    observation_end: Optional[str] = None
+    observation_end: str | None = None
     """The end date of observations for the series. Corresponds to 'observation_end' in the FRED API. YYYY-MM-DD format."""
 
-    copyright_id: Optional[str] = None
+    copyright_id: str | None = None
 
-    frequency_short: Optional[str] = None
+    frequency_short: str | None = None
     """The short form of the frequency (e.g., "m", "q"). Corresponds to 'frequency' in the FRED API."""
 
-    units_short: Optional[str] = None
+    units_short: str | None = None
     """The short form of the units (e.g., "pc", "usd"). Corresponds to 'units' in the FRED API."""
 
-    seasonal_adjustment_short: Optional[str] = None
+    seasonal_adjustment_short: str | None = None
     """The short form of the seasonal adjustment type (e.g., "sa")."""
 
-    popularity: Optional[int] = None
+    popularity: int | None = None
     """A measure of the popularity of the series."""
 
-    realtime_start: Optional[str] = None
+    realtime_start: str | None = None
     """The start date for real-time data, if applicable. YYYY-MM-DD format. Corresponds to 'realtime_start' in the FRED API."""
 
-    realtime_end: Optional[str] = None
+    realtime_end: str | None = None
     """The end date for real-time data, if applicable. YYYY-MM-DD format. Corresponds to 'realtime_end' in the FRED API."""
 
-    group_popularity: Optional[int] = None
+    group_popularity: int | None = None
     """A measure of the popularity within a group, if applicable."""
 
-    notes: Optional[str] = None
+    notes: str | None = None
     """Additional notes about the series."""
 
-    _observations: Optional[pd.DataFrame] = None
+    _observations: pd.DataFrame | pl.DataFrame | dd.DataFrame | None = None
     """The DataFrame of observations associated with this series."""
 
     _response_key: ClassVar[str] = "seriess"
@@ -324,7 +324,7 @@ class Series(_ModelBase):
 
     # Class Methods
     @classmethod
-    def _from_dict(cls, data: Dict[str, Any], client: Optional[_ClientModel] = None) -> "Series":
+    def _from_dict(cls, data: dict[str, Any], client: _ClientModel | None = None) -> "Series":
 
         if not isinstance(data, dict):
             raise ModelError("Invalid series payload: expected a mapping")
@@ -361,33 +361,28 @@ class Series(_ModelBase):
 
     # Properties
     @property
-    def categories(self) -> List["Category"]:
+    def categories(self) -> "Categories":
         """The categories associated with this series. corresponds to 'get_series_categories' in the FRED API."""
-
         return self._require_client().get_series_categories(self.id)
 
     @property
-    def observations(self) -> pd.DataFrame:
+    def observations(self) -> pd.DataFrame | pl.DataFrame | dd.DataFrame:
         """The DataFrame of observations associated with this series. corresponds to 'get_series_observations' in the FRED API."""
-
         return self._require_client().get_series_observations(self.id)
 
     @property
-    def release(self) -> List["Release"]:
+    def release(self) -> "Releases":
         """The release associated with this series. corresponds to 'get_series_release' in the FRED API."""
-
         return self._require_client().get_series_release(self.id)
 
     @property
-    def tags(self) -> List["Tag"]:
+    def tags(self) -> "Tags":
         """The tags associated with this series. corresponds to 'get_series_tags' in the FRED API."""
-
         return self._require_client().get_series_tags(self.id)
 
     @property
-    def vintagedates(self) -> List['VintageDate']:
+    def vintagedates(self) -> "VintageDates":
         """The vintage dates associated with this series. corresponds to 'get_series_vintagedates' in the FRED API."""
-
         return self._require_client().get_series_vintagedates(self.id)
 
 class Seriess(_ModelSequence[Series]):
@@ -396,8 +391,11 @@ class Seriess(_ModelSequence[Series]):
     __slots__ = ()
 
 
+    _lookup_key: ClassVar[str | None] = "id"
+
+
     @classmethod
-    def to_object(cls, response: Dict[str, Any], client: Optional[_ClientModel] = None) -> "Seriess":
+    def to_object(cls, response: dict[str, Any], client: _ClientModel | None = None) -> "Seriess":
         # Same dual-key shape as Series (FRED returns 'seriess' or 'series')
 
         raw = _require_first_list(response, ("seriess", "series"))
@@ -476,15 +474,15 @@ class Tag(_ModelBase):
     series_count: int
     """The number of series associated with the tag."""
 
-    notes: Optional[str] = None
+    notes: str | None = None
     """Additional notes about the tag."""
 
     _response_key: ClassVar[str] = "tags"
-    
+
 
     # Class Methods
     @classmethod
-    def _from_dict(cls, data: Dict[str, Any], client: Optional[_ClientModel] = None) -> "Tag":
+    def _from_dict(cls, data: dict[str, Any], client: _ClientModel | None = None) -> "Tag":
 
         if not isinstance(data, dict):
             raise ModelError("Invalid tag payload: expected a mapping")
@@ -505,21 +503,23 @@ class Tag(_ModelBase):
 
     # Properties
     @property
-    def related_tags(self) -> List["Tag"]:
+    def related_tags(self) -> "Tags":
         """The related tags associated with this tag."""
-
         return self._require_client().get_related_tags(self.name)
 
     @property
-    def series(self) -> List["Series"]:
+    def series(self) -> "Series":
         """The series associated with this tag."""
-
         return self._require_client().get_tags_series(self.name)
 
 class Tags(_ModelSequence[Tag]):
 
 
     __slots__ = ()
+
+
+    _lookup_key: ClassVar[str | None] = "name"
+
 
     def _repr_html_(self) -> str:
 
@@ -589,42 +589,42 @@ class Release(_ModelBase):
     name: str
     """The name of the release."""
 
-    realtime_start: Optional[str] = None
+    realtime_start: str | None = None
     """The start date for real-time data. YYYY-MM-DD format. corresponds to 'realtime_start' in the FRED API."""
 
-    realtime_end: Optional[str] = None
+    realtime_end: str | None = None
     """The end date for real-time data. YYYY-MM-DD format. corresponds to 'realtime_end' in the FRED API."""
 
-    press_release: Optional[bool] = None
+    press_release: bool | None = None
     """Indicates if the release is a press release."""
 
-    link: Optional[str] = None
+    link: str | None = None
     """A link to more information about the release."""
 
-    notes: Optional[str] = None
+    notes: str | None = None
     """Additional notes about the release."""
 
-    _sources: Optional[List["Source"]] = None
+    _sources: "Sources" | None = None
 
     _response_key: ClassVar[str] = "releases"
 
 
     # Class Methods
     @classmethod
-    def _from_dict(cls, data: Dict[str, Any], client: Optional[_ClientModel] = None) -> "Release":
+    def _from_dict(cls, data: dict[str, Any], client: _ClientModel | None = None) -> "Release":
 
 
         if not isinstance(data, dict):
             raise ModelError("Invalid release payload: expected a mapping")
-        
+
         rid = data.get("id") or data.get("release_id")
 
         if rid is None:
             raise ModelError("Invalid release payload: missing 'id'/'release_id'")
-        
+
         if "name" not in data:
             raise ModelError("Invalid release payload: missing 'name'")
-        
+
         return cls(
             id=rid,
             name=data["name"],
@@ -637,58 +637,56 @@ class Release(_ModelBase):
         )
 
     @classmethod
-    def to_object(cls, response: Dict[str, Any], client: Optional[_ClientModel] = None) -> "Release":
+    def to_object(cls, response: dict[str, Any], client: _ClientModel | None = None) -> "Release":
 
         raw = _require_first_list(response, ("releases", "release"))
 
         if not raw:
             raise ModelError("No release found in the response")
-        
+
         return cls._from_dict(raw[0], client=client)
 
     # Properties
     @property
-    def dates(self) -> List["ReleaseDate"]:
+    def dates(self) -> "ReleaseDates":
         """The release dates associated with this release."""
-
         return self._require_client().get_release_dates(self.id)
 
     @property
-    def series(self) -> List["Series"]:
+    def series(self) -> "Series":
         """The series associated with this release."""
-
         return self._require_client().get_release_series(self.id)
 
     @property
-    def sources(self) -> List["Source"]:
+    def sources(self) -> "Sources":
         """The sources associated with this release."""
-
         return self._require_client().get_release_sources(self.id)
 
     @property
-    def tags(self) -> List["Tag"]:
+    def tags(self) -> "Tags":
         """The tags associated with this release."""
-
         return self._require_client().get_release_tags(self.id)
 
     @property
-    def related_tags(self) -> List["Tag"]:
+    def related_tags(self) -> "Tags":
         """The related tags associated with this release."""
-
         return self._require_client().get_release_related_tags(self.id)
 
     @property
-    def tables(self) -> List["Element"]:
+    def tables(self) -> "Elements":
         """The tables associated with this release."""
-
         return self._require_client().get_release_tables(self.id)
 
 class Releases(_ModelSequence[Release]):
 
     __slots__ = ()
 
+
+    _lookup_key: ClassVar[str | None] = "name"
+
+
     @classmethod
-    def to_object(cls, response: Dict[str, Any], client: Optional[_ClientModel] = None) -> "Releases":
+    def to_object(cls, response: Dict[str, Any], client: _ClientModel | None = None) -> "Releases":
 
         raw = _require_first_list(response, ("releases", "release"))
 
@@ -712,39 +710,64 @@ class Releases(_ModelSequence[Release]):
 
 class ReleaseDate(_DateBase):
 
-
     __slots__ = ("release_id", "release_name")
 
-
     release_id: int
-    """The ID of the release. corresponds to 'release_id' in the FRED API."""
+    """The ID of the release. Corresponds to 'release_id' in the FRED API."""
 
-    release_name: Optional[str]
-    """The name of the release. corresponds to 'release_name' in the FRED API."""
+    release_name: str | None
+    """The name of the release. Corresponds to 'release_name' in the FRED API."""
 
     _response_key: ClassVar[str] = "release_dates"
 
-
     @classmethod
-    def create(cls, year: SupportsIndex, month: SupportsIndex, day: SupportsIndex, *, release_id: int, release_name: Optional[str] = None) -> Self:
-        
+    def create(
+        cls,
+        year: SupportsIndex,
+        month: SupportsIndex,
+        day: SupportsIndex,
+        *,
+        release_id: int,
+        release_name: str | None = None,
+        ) -> Self:
+
         self: Self = date.__new__(cls, year, month, day)
-        setattr(self, "release_id", release_id)
-        setattr(self, "release_name", release_name)
+        self.release_id = release_id
+        self.release_name = release_name
         return self
 
+    @classmethod
+    def _rebuild(
+        cls,
+        year: SupportsIndex,
+        month: SupportsIndex,
+        day: SupportsIndex,
+        release_id: int,
+        release_name: str | None,
+    ) -> Self:
+        """Pickle/copy rebuild factory routed through create() for validation parity."""
+        return cls.create(
+            year, month, day,
+            release_id=release_id,
+            release_name=release_name,
+        )
+
     def __repr__(self) -> str:
-        
-        return (f"ReleaseDate({self.isoformat()}, "
-                f"release_id={self.release_id}, release_name={self.release_name!r})")
+
+        return (
+            f"ReleaseDate({self.isoformat()}, "
+            f"release_id={self.release_id}, release_name={self.release_name!r})"
+        )
 
     def __reduce__(self) -> tuple[Callable[..., "ReleaseDate"], tuple[Any, ...]]:
+
         return (
-            _release_date_rebuild,
+            type(self)._rebuild,
             (self.year, self.month, self.day, self.release_id, self.release_name),
         )
 
     def _with_date(self, year: int, month: int, day: int) -> Self:
+
         return type(self).create(
             year, month, day,
             release_id=self.release_id,
@@ -753,6 +776,7 @@ class ReleaseDate(_DateBase):
 
     @classmethod
     def _parse_value(cls, raw: Any) -> "ReleaseDate":
+
         if not isinstance(raw, dict):
             raise ModelError("Invalid release_date payload: expected a mapping")
         if "release_id" not in raw or "date" not in raw:
@@ -765,26 +789,11 @@ class ReleaseDate(_DateBase):
             release_name=raw.get("release_name"),
         )
 
-
-
-def _release_date_rebuild(
-    year: SupportsIndex,
-    month: SupportsIndex,
-    day: SupportsIndex,
-    release_id: int,
-    release_name: Optional[str],
-) -> ReleaseDate:
-    """Module-level helper so pickle can rebuild via the factory."""
-    return ReleaseDate.create(
-        year, month, day,
-        release_id=release_id,
-        release_name=release_name,
-    )
-
-
 class ReleaseDates(_DateSequence[ReleaseDate]):
     """Auto-wired sequence; no container-level metadata."""
     __slots__ = ()
+
+    _lookup_key: ClassVar[str | None] = "release_name"
 
 @dataclass(slots=True)
 class Source(_ModelBase):
@@ -827,30 +836,33 @@ class Source(_ModelBase):
     name: str
     """The name of the source."""
 
-    id: Optional[int]
+    id: int | None
     """The unique identifier for the source. corresponds to 'source_id' in the FRED API."""
 
-    realtime_start: Optional[str]
+    realtime_start: str | None
     """The start date for real-time data. YYYY-MM-DD format. corresponds to 'realtime_start' in the FRED API."""
 
-    realtime_end: Optional[str]
+    realtime_end: str | None
     """The end date for real-time data. YYYY-MM-DD format. corresponds to 'realtime_end' in the FRED API."""
 
-    link: Optional[str] = None
+    link: str | None = None
     """A link to more information about the source."""
 
-    notes: Optional[str] = None
+    notes: str | None = None
     """Additional notes about the source."""
 
     _response_key: ClassVar[str] = "sources"
 
     # Class Methods
     @classmethod
-    def _from_dict(cls, data: Dict[str, Any], client: Optional["Fred"] = None) -> "Source":
+    def _from_dict(cls, data: Dict[str, Any], client: _ClientModel | None = None) -> "Source":
+
         if not isinstance(data, dict):
             raise ModelError("Invalid source payload: expected a mapping")
+
         if "name" not in data:
             raise ModelError("Invalid source payload: missing 'name'")
+
         return cls(
             name=data["name"],
             id=data.get("id"),
@@ -863,14 +875,17 @@ class Source(_ModelBase):
 
     # Properties
     @property
-    def releases(self) -> List["Release"]:
+    def releases(self) -> "Releases":
         """The releases associated with this source."""
-
         return self._require_client().get_source_releases(self.id)
 
 class Sources(_ModelSequence[Source]):
 
     __slots__ = ()
+
+
+    _lookup_key: ClassVar[str | None] = "name"
+
 
     def _repr_html_(self) -> str:
 
@@ -960,7 +975,7 @@ class Element(_ModelBase):
 
     # Class Methods
     @classmethod
-    def _from_dict(cls, data: Dict[str, Any], client: Optional[_ClientModel] = None) -> "Element":
+    def _from_dict(cls, data: Dict[str, Any], client: _ClientModel | None = None) -> "Element":
 
 
         if not isinstance(data, dict):
@@ -991,7 +1006,7 @@ class Element(_ModelBase):
         )
 
     @classmethod
-    def to_object(cls, response: Dict[str, Any], client: Optional[_ClientModel] = None) -> "Element":
+    def to_object(cls, response: Dict[str, Any], client: _ClientModel | None = None) -> "Element":
         # FRED returns 'elements' as a dict keyed by id, not a list. Take the first.
         items = _objects_iter_dict_or_list(response, cls._response_key)
         if not items:
@@ -1017,8 +1032,11 @@ class Elements(_ModelSequence[Element]):
     __slots__ = ()
 
 
+    _lookup_key: ClassVar[str | None] = "name"
+
+
     @classmethod
-    def to_object(cls, response: Dict[str, Any], client: Optional[_ClientModel] = None) -> "Elements":
+    def to_object(cls, response: Dict[str, Any], client: _ClientModel | None = None) -> "Elements":
 
 
         items = _objects_iter_dict_or_list(response, cls._response_key)

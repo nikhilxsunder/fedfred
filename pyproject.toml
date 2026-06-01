@@ -117,7 +117,7 @@ files = "src/fedfred"
 ignore_missing_imports = true
 
 [tool.ruff]
-line-length = 250
+line-length = 300
 target-version = "py313"
 
 [tool.ruff.lint]

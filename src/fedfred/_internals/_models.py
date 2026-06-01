@@ -106,6 +106,8 @@ class _ModelSequence(Sequence[T]):
 
     _element_cls: ClassVar[type] = object
 
+    _lookup_key: ClassVar[str | None] = None
+    """Attribute on items used for string-key indexing and tab completion."""
 
     def __init_subclass__(cls, **kwargs: Any) -> None:
         """Auto-wire ``_response_key`` and ``_element_cls`` from ``Generic[T]``.
@@ -178,6 +180,28 @@ class _ModelSequence(Sequence[T]):
     def __repr__(self) -> str: 
 
         return f"{type(self).__name__}(n={len(self._items)})"
+
+    def _lookup_by_key(self, key: str) -> T:
+        """Linear lookup by ``_lookup_key``. Raises ``KeyError`` on miss,
+        ``TypeError`` if the subclass does not support string indexing."""
+        lookup = self._lookup_key
+        if lookup is None:
+            raise ModelError(
+                f"{type(self).__name__} does not support string indexing; "
+                f"use positional indexing or iterate"
+            )
+        for item in self._items:
+            if getattr(item, lookup) == key:
+                return item
+        raise ModelError(key)
+
+    def _ipython_key_completions_(self) -> list[str]:
+        """IPython tab-completion hook. Returns the list of valid string
+        keys for ``obj["<TAB>"]`` when ``_lookup_key`` is set, else ``[]``."""
+        lookup = self._lookup_key
+        if lookup is None:
+            return []
+        return [str(getattr(item, lookup)) for item in self._items]
 
     def _repr_html_(self) -> str: 
 
@@ -283,8 +307,16 @@ class _DateSequence(Sequence[K]):
     auto-wire from the ``Generic[K]`` parameter."""
 
     __slots__ = ("_items",)
+
+
     _response_key: ClassVar[str] = ""
+
+
     _element_cls: ClassVar[type] = object
+
+
+    _lookup_key: ClassVar[str | None] = None
+
 
     def __init_subclass__(cls, **kwargs: Any) -> None:
 
@@ -348,6 +380,28 @@ class _DateSequence(Sequence[K]):
             return f"{type(self).__name__}(n=0)"
         return (f"{type(self).__name__}(n={len(self._items)}, "
                 f"{self._items[0].isoformat()} … {self._items[-1].isoformat()})")
+
+    def _lookup_by_key(self, key: str) -> T:
+        """Linear lookup by ``_lookup_key``. Raises ``KeyError`` on miss,
+        ``TypeError`` if the subclass does not support string indexing."""
+        lookup = self._lookup_key
+        if lookup is None:
+            raise ModelError(
+                f"{type(self).__name__} does not support string indexing; "
+                f"use positional indexing or iterate"
+            )
+        for item in self._items:
+            if getattr(item, lookup) == key:
+                return item
+        raise ModelError(key)
+
+    def _ipython_key_completions_(self) -> list[str]:
+        """IPython tab-completion hook. Returns the list of valid string
+        keys for ``obj["<TAB>"]`` when ``_lookup_key`` is set, else ``[]``."""
+        lookup = self._lookup_key
+        if lookup is None:
+            return []
+        return [str(getattr(item, lookup)) for item in self._items]
 
     def _repr_html_(self) -> str:
 
