@@ -79,58 +79,31 @@ class VintageDate(_DateBase):
 
 
 class VintageDates(_DateSequence[VintageDate]):
-    """Immutable, notebook-friendly sequence of ALFRED vintage dates.
-
-    Behaves like a tuple of :class:`VintageDate` (index, slice, iterate,
-    ``len``, ``==``, ``hash``) and renders a compact summary in Jupyter.
-    Carries the ``series_id`` it was built for.
-
-    Attributes:
-        series_id (Optional[str]): The FRED series ID these vintages belong to.
-
-    Examples:
-        >>> import fedfred as fd
-        >>> alfred = fd.Alfred('your_api_key')
-        >>> vintages = alfred.get_series_vintage_dates('GDPC1')
-        >>> vintages.series_id
-        'GDPC1'
-        >>> len(vintages)
-        110
-
-    See Also:
-        - :class:`fedfred.VintageDate`: The element type.
-    """
-
     __slots__ = ("series_id",)
 
     series_id: Optional[str]
-    """The FRED series ID these vintages belong to. ``None`` if constructed without one."""
 
-    def __init__(self, items: Iterable[VintageDate], series_id: Optional[str] = None) -> None:
-
+    def __init__(
+        self, items: Iterable[VintageDate], series_id: Optional[str] = None
+    ) -> None:
         super().__init__(items)
         self.series_id = series_id
 
-    @overload
-    def __getitem__(self, index: int) -> VintageDate: ...
-    @overload
-    def __getitem__(self, index: slice) -> "VintageDates": ...
-    def __getitem__(self, index: Union[int, slice]) -> Union[VintageDate, "VintageDates"]:
-
-        if isinstance(index, slice):
-            return VintageDates(self._items[index], series_id=self.series_id)
-        return self._items[index]
+    def _clone(self, items: Iterable[VintageDate]) -> Self:
+        return type(self)(items, series_id=self.series_id)
 
     @classmethod
-    def to_object(cls, response: Dict[str, Any], series_id: Optional[str] = None) -> "VintageDates":
-        """Parse a vintage-dates response, attaching the originating ``series_id``."""
-
+    def to_object(
+        cls, response: Dict[str, Any], series_id: Optional[str] = None
+    ) -> "VintageDates":
         raw = _require_list(response, cls._response_key)
         return cls((cls._parse_value(v) for v in raw), series_id=series_id)
 
     @classmethod
-    async def to_object_async(cls, response: Dict[str, Any], series_id: Optional[str] = None) -> "VintageDates":
-        """Asynchronous variant of :meth:`to_object`."""
-
+    async def to_object_async(
+        cls, response: Dict[str, Any], series_id: Optional[str] = None
+    ) -> "VintageDates":
         return await asyncio.to_thread(cls.to_object, response, series_id)
-    
+
+    def _lookup_value(self, item: VintageDate) -> str:
+        return item.isoformat()

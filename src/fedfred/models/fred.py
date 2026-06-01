@@ -45,6 +45,7 @@ References:
     - Federal Reserve Bank of St. Louis, FRED API documentation. https://fred.stlouisfed.org/docs/api/fred/
 """
 
+from __future__ import annotations
 from datetime import date
 from typing import Optional, List, Dict, ClassVar, Any, SupportsIndex, Self, Callable, TYPE_CHECKING
 import html
@@ -793,7 +794,8 @@ class ReleaseDates(_DateSequence[ReleaseDate]):
     """Auto-wired sequence; no container-level metadata."""
     __slots__ = ()
 
-    _lookup_key: ClassVar[str | None] = "release_name"
+    def _lookup_value(self, item: ReleaseDate) -> str:
+        return item.isoformat()
 
 @dataclass(slots=True)
 class Source(_ModelBase):
