@@ -19,30 +19,62 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""This module defines data classes for the FRED API responses.
+"""This module defines the response object hierarchy for the FRED API.
+
+The module exposes two flavors of model: singleton objects representing a single
+FRED resource (``Category``, ``Series``, ``Tag``, ``Release``, ``ReleaseDate``,
+``Source``, ``Element``) and immutable, notebook-friendly sequence containers
+(``Categories``, ``Seriess``, ``Tags``, ``Releases``, ``ReleaseDates``,
+``Sources``, ``Elements``) that wrap multiple results from a single API call.
+
+Singletons are :class:`dataclasses.dataclass` subclasses of
+:class:`fedfred._internals._models._ModelBase` (or, in the date-bearing case,
+:class:`fedfred._internals._models._DateBase`) and carry an optional ``client``
+reference enabling lazy traversal of related resources via property accessors.
+
+Sequences are immutable :class:`collections.abc.Sequence` subclasses providing
+positional indexing, slicing (which preserves the concrete subclass type),
+string-key lookup against ``_lookup_key``, IPython tab completion, and a
+Jupyter-friendly ``_repr_html_`` rendering. The ``client`` is propagated to
+items at construction so that traversal continues to work on individual entries.
 
 Classes:
-    Category: Represents a FRED Category.
-    Series: Represents a FRED Series.
-    Tag: Represents a FRED Tag.
-    Release: Represents a FRED Release.
-    ReleaseDate: Represents a FRED Release Date.
-    Source: Represents a FRED Source.
-    VintageDate: Represents a FRED Vintage Date.
-    Element: Represents a FRED Element.
-    SeriesGroup: Represents a FRED Series Observation.
+    Category: A FRED Category resource.
+    Categories: An immutable sequence of :class:`Category` objects.
+    Series: A FRED Series resource.
+    Seriess: An immutable sequence of :class:`Series` objects.
+    Tag: A FRED Tag resource.
+    Tags: An immutable sequence of :class:`Tag` objects.
+    Release: A FRED Release resource.
+    Releases: An immutable sequence of :class:`Release` objects.
+    ReleaseDate: A FRED Release Date (date subclass carrying release metadata).
+    ReleaseDates: An immutable sequence of :class:`ReleaseDate` objects.
+    Source: A FRED Source resource.
+    Sources: An immutable sequence of :class:`Source` objects.
+    Element: A FRED Release Table Element.
+    Elements: An immutable sequence of :class:`Element` objects.
+    BulkRelease: A bulk-release observation aggregation (slated for rewrite in v4).
 
 Examples:
     >>> import fedfred as fd
     >>> fred_client = fd.Fred('your_api_key')
-    >>> categories = fred_client.get_category(125)
-    >>> for category in categories:
-    >>>     print(category.name)
-    'International Transactions'
+    >>> category = fred_client.get_category(125)
+    >>> print(category.name)
+    'Trade Balance'
+
+Notes:
+    Every model object accepts an optional ``client`` keyword. When present,
+    property accessors traverse related resources through that client (for
+    example ``category.series`` invokes ``client.get_category_series(category.id)``).
+    Constructing a model directly without a client is supported, but related-resource
+    properties will raise on access.
+
+See Also:
+    - :class:`fedfred.Fred`: The synchronous FRED client.
+    - :class:`fedfred.AsyncFred`: The asynchronous FRED client.
 
 References:
     - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/
-    - Federal Reserve Bank of St. Louis, FRED API documentation. https://fred.stlouisfed.org/docs/api/fred/
 """
 
 from __future__ import annotations
@@ -97,136 +129,235 @@ __all__ = [
     "Tags",
 ]
 
+
 @dataclass(slots=True)
 class Category(_ModelBase):
-    """A class used to represent a FRED Category.
+    """A FRED Category.
 
-    Represents a single category in the Federal Reserve Economic Data (FRED) hierarchy. Categories are organizational
-    units used by the FRED API to group related time-series (e.g., "Prices", "National Accounts", "Monetary Aggregates").
-    Each category has a unique identifier, a human-readable name, and an optional parent category.
+    Represents a single category in the Federal Reserve Economic Data (FRED)
+    hierarchy. Categories are organizational units used by the FRED API to
+    group related time-series (e.g., "Prices", "National Accounts",
+    "Monetary Aggregates"). Each category has a unique identifier, a
+    human-readable name, and an optional parent category that defines its
+    position within the tree.
+
+    When a ``client`` is attached, the related-resource properties
+    (:attr:`children`, :attr:`related`, :attr:`series`, :attr:`tags`,
+    :attr:`related_tags`) lazily fetch their contents from the FRED API on
+    access.
 
     Attributes:
         id (int): The unique identifier for the category.
-        name (str): The name of the category.
-        parent_id (int, optional): The unique identifier for the parent category.
-        client (Fred, optional): The Fred client instance associated with this Category.
-        children (Categories): The child categories of this category.
-        related (Categories): The related categories of this category.
-        series (Seriess): The series in this category.
-        tags (Tags): The tags associated with this category.
-        related_tags (Tags): The related tags associated with this category.
+        name (str): The human-readable name of the category.
+        parent_id (int, optional): The unique identifier for the parent category, or ``None`` if the category is a root.
+        client (Fred, optional): The Fred client instance associated with this Category. Required for related-resource access.
+        children (Categories): Lazily fetched child categories.
+        related (Categories): Lazily fetched related categories.
+        series (Seriess): Lazily fetched series belonging to this category.
+        tags (Tags): Lazily fetched tags associated with this category.
+        related_tags (Tags): Lazily fetched related tags.
 
     Notes:
-        This class is designed to work with the FRED API and may require a client instance for certain operations.
+        This class is designed to work with the FRED API. Direct construction
+        is supported (useful for tests), but related-resource properties
+        require a ``client`` to be attached.
 
     Examples:
         >>> import fedfred as fd
         >>> fred_client = fd.Fred('your_api_key')
-        >>> categories = fred_client.get_category(125)
-        >>> for category in categories:
-        >>>     print(category.name)
-        'International Transactions'
-
-    References:
-        - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.objects.Category.html
-        - Federal Reserve Bank of St. Louis, FRED API documentation. https://fred.stlouisfed.org/categories/
+        >>> category = fred_client.get_category(125)
+        >>> print(category.name)
+        'Trade Balance'
+        >>> for child in category.children:
+        >>>     print(child.name)
+        'Exports'
+        'Imports'
 
     See Also:
+        - :class:`fedfred.Categories`: The plural sequence container.
         - :class:`fedfred.Tag`: For the object representation of a FRED tag.
+        - :class:`fedfred.Series`: For the object representation of a FRED series.
+
+    References:
+        - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.Category.html
+        - Federal Reserve Bank of St. Louis, FRED API documentation. https://fred.stlouisfed.org/categories/
     """
 
     id: int
-    """The unique identifier for the category. corresponds to 'category_id' in the FRED API."""
+    """The unique identifier for the category. Corresponds to ``category_id`` in the FRED API."""
 
     name: str
-    """The name of the category."""
+    """The human-readable name of the category."""
 
     parent_id: int | None
-    """The unique identifier for the parent category, if any. can be used as a 'category_id' in the FRED API."""
+    """The unique identifier for the parent category, if any. Can itself be used as a ``category_id`` in the FRED API to traverse the tree upward."""
 
     _response_key: ClassVar[str] = "categories"
-    """The key in the FRED API response that contains the category data."""
-
+    """The key in the FRED API response payload that contains the category list."""
 
     # Class Methods
     @classmethod
-    def _from_dict(cls, data: dict[str, Any], client: _ClientModel | None = None) -> Category:
-        """Parses FRED API response and returns a list of Category objects.
+    def _from_dict(cls,
+                   data: dict[str, Any],
+                   client: _ClientModel | None = None
+                   ) -> Category:
+        """Build a single :class:`Category` from one raw FRED payload mapping.
+
+        Internal parser used by :meth:`to_object` and by sequence containers
+        when wiring up child items. Validates the presence of the required
+        ``id`` and ``name`` fields and tolerates a missing ``parent_id``
+        (root categories).
 
         Args:
-            data (dict[str, Any]): The FRED API response.
-            client (_ClientModel | None, optional): The Fred client instance to associate with the Category objects.
+            data (dict[str, Any]): The raw category payload from the FRED API.
+            client (_ClientModel, optional): The FRED client to attach to the
+                resulting object for lazy relation traversal. Defaults to ``None``.
 
         Returns:
-            Category: A Category object.
+            Category: A fully populated :class:`Category` instance.
 
         Raises:
-            ValueError: If the response does not contain the expected data.
+            ModelError: If ``data`` is not a mapping or is missing the
+                ``id`` or ``name`` fields.
 
         Examples:
             >>> import fedfred as fd
-            >>> response = {
-            >>>     "categories": [
-            >>>         {"id": 125, "name": "International Transactions", "parent_id": 13},
-            >>>         {"id": 126, "name": "Balance of Payments", "parent_id": 125}
-            >>>     ]
-            >>> }
-            >>> categories = fd.Category.to_object(response)
-            >>> for category in categories:
-            >>>     print(category.id, category.name, category.parent_id)
-            125 'International Transactions' 13
-            126 'Balance of Payments' 125
-
-        Notes:
-            This method assumes that the input response dictionary contains a 'categories' key with a list of category data.
+            >>> data = {"id": 125, "name": "Trade Balance", "parent_id": 13}
+            >>> category = fd.Category._from_dict(data)
+            >>> print(category.id, category.name, category.parent_id)
+            125 'Trade Balance' 13
 
         References:
-            - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.objects.Category.to_object.html
+            - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.Category.html
         """
         if not isinstance(data, dict):
-            raise ModelError("Invalid category payload: expected a mapping") # TODO: Define ModelError
+            raise ModelError("Invalid category payload: expected a mapping")  # TODO: Define ModelError
 
         if "id" not in data or "name" not in data:
-            raise ModelError("Invalid category payload: missing 'id' or 'name'") # TODO: Define ModelError
+            raise ModelError("Invalid category payload: missing 'id' or 'name'")  # TODO: Define ModelError
 
         return cls(id=data["id"], name=data["name"], parent_id=data.get("parent_id"), client=client)
 
     # Properties
     @property
     def children(self) -> Categories:
-        """The child categories of this category. corresponds to 'get_category_children' in the FRED API."""
+        """The child categories of this category.
+
+        Lazily resolves to ``client.get_category_children(self.id)`` on access.
+        Requires a ``client`` to be attached to this instance.
+
+        Returns:
+            Categories: A sequence of child :class:`Category` objects.
+
+        Raises:
+            ModelError: If no client is attached to this instance.
+        """
         return self._require_client().get_category_children(self.id)
 
     @property
     def related(self) -> Categories:
-        """The related categories of this category. corresponds to 'get_category_related' in the FRED API."""
+        """The related categories of this category.
+
+        Lazily resolves to ``client.get_category_related(self.id)`` on access.
+        Requires a ``client`` to be attached to this instance.
+
+        Returns:
+            Categories: A sequence of related :class:`Category` objects.
+
+        Raises:
+            ModelError: If no client is attached to this instance.
+        """
         return self._require_client().get_category_related(self.id)
 
     @property
     def series(self) -> Seriess:
-        """The series in this category. corresponds to 'get_category_series' in the FRED API."""
+        """The series belonging to this category.
+
+        Lazily resolves to ``client.get_category_series(self.id)`` on access.
+        Requires a ``client`` to be attached to this instance.
+
+        Returns:
+            Seriess: A sequence of :class:`Series` objects in this category.
+
+        Raises:
+            ModelError: If no client is attached to this instance.
+        """
         return self._require_client().get_category_series(self.id)
 
     @property
     def tags(self) -> Tags:
-        """The tags associated with this category. corresponds to 'get_category_tags' in the FRED API."""
+        """The tags associated with this category.
+
+        Lazily resolves to ``client.get_category_tags(self.id)`` on access.
+        Requires a ``client`` to be attached to this instance.
+
+        Returns:
+            Tags: A sequence of :class:`Tag` objects associated with this category.
+
+        Raises:
+            ModelError: If no client is attached to this instance.
+        """
         return self._require_client().get_category_tags(self.id)
 
     @property
     def related_tags(self) -> Tags:
-        """The related tags associated with this category. corresponds to 'get_category_related_tags' in the FRED API."""
+        """The related tags associated with this category.
+
+        Lazily resolves to ``client.get_category_related_tags(self.id)`` on access.
+        Requires a ``client`` to be attached to this instance.
+
+        Returns:
+            Tags: A sequence of related :class:`Tag` objects.
+
+        Raises:
+            ModelError: If no client is attached to this instance.
+        """
         return self._require_client().get_category_related_tags(self.id)
 
-class Categories(_ModelSequence[Category]):
 
+class Categories(_ModelSequence[Category]):
+    """An immutable, notebook-friendly sequence of :class:`Category` objects.
+
+    Behaves like a tuple of :class:`Category` (indexing, slicing, iteration,
+    ``len``, ``==``, ``in``) but is also string-keyed by ``name`` for ergonomic
+    lookup in notebooks (``categories["Trade Balance"]``) and supports
+    IPython tab completion against the same key. Slicing returns a new
+    :class:`Categories` carrying the same client.
+
+    Renders a compact HTML table preview in Jupyter via :meth:`_repr_html_`,
+    showing the first ten entries with id, name, and parent id.
+
+    Examples:
+        >>> import fedfred as fd
+        >>> fred_client = fd.Fred('your_api_key')
+        >>> categories = fred_client.get_category_children(13)
+        >>> categories[0].name
+        'Exports'
+        >>> categories["Imports"].id
+        13
+        >>> len(categories)
+        4
+
+    See Also:
+        - :class:`fedfred.Category`: The element type.
+
+    References:
+        - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.Categories.html
+    """
 
     __slots__ = ()
 
     _lookup_key: ClassVar[str | None] = "name"
+    """Attribute used for string-key lookup and tab completion (``categories["<name>"]``)."""
 
+    # Sunder Methods
     def _repr_html_(self) -> str:
+        """Render a compact HTML table preview of the first ten categories.
 
-
+        Returns:
+            str: An HTML ``<table>`` with id, name, and parent_id columns and
+            a truncation caption when the sequence exceeds ten entries.
+        """
         head = self._items[:10]
 
         rows = "".join(
@@ -241,118 +372,155 @@ class Categories(_ModelSequence[Category]):
                 "<thead><tr><th>id</th><th>name</th><th>parent_id</th></tr></thead>"
                 f"<tbody>{rows}</tbody></table>")
 
+
 @dataclass(slots=True)
 class Series(_ModelBase):
-    """A class used to represent a FRED Series.
+    """A FRED Series.
 
-    Represents a single series in the Federal Reserve Economic Data (FRED) database. A series is a time-ordered set of data points,
-    such as economic indicators, financial metrics, or other statistical measures. Each series has a unique identifier, a title,
-    observation dates, frequency, units, and other metadata.
+    Represents a single time series in the Federal Reserve Economic Data (FRED)
+    database. A series is a time-ordered set of observations (an economic
+    indicator, financial metric, or statistical measure) identified by a stable
+    string ``id`` such as ``"UNRATE"`` or ``"GNPCA"``. Metadata accompanying
+    the series describes its title, frequency, units, seasonal adjustment,
+    observation range, and the date it was last updated by FRED.
+
+    When a ``client`` is attached, the related-resource properties traverse the
+    FRED API lazily: :attr:`categories`, :attr:`observations`, :attr:`release`,
+    :attr:`tags`, and :attr:`vintagedates` each issue a single GET on access.
 
     Attributes:
         id (str): The unique identifier for the series.
-        title (str): The title of the series.
-        frequency (str): The frequency of the series (e.g., "Monthly", "Quarterly").
-        units (str): The units of measurement for the series (e.g., "Percent", "Dollars").
-        seasonal_adjustment (str): The seasonal adjustment type for the series (e.g., "Seasonally Adjusted").
-        last_updated (str): The date when the series was last updated.
-        observation_start (str, optional): The start date of observations for the series.
-        observation_end (str, optional): The end date of observations for the series.
-        copyright_id (str, optional): The copyright identifier for the series.
-        frequency_short (str, optional): The short form of the frequency (e.g., "m", "q").
-        units_short (str, optional): The short form of the units (e.g., "pc", "usd").
-        seasonal_adjustment_short (str, optional): The short form of the seasonal adjustment type (e.g., "sa").
-        popularity (int, optional): A measure of the popularity of the series.
-        realtime_start (str, optional): The start date for real-time data, if applicable.
-        realtime_end (str, optional): The end date for real-time data, if applicable.
-        group_popularity (int, optional): A measure of the popularity within a group, if applicable.
-        notes (str, optional): Additional notes about the series.
-        categories (Categories): The categories associated with this series.
-        observations (pd.DataFrame): The DataFrame of observations associated with this series.
-        release (Releases): The release associated with this series.
-        tags (Tags): The tags associated with this series.
-        vintagedates (list[VintageDate]): The vintage dates associated with this series.
+        title (str): The human-readable title of the series.
+        frequency (str): The long-form frequency description (e.g., ``"Monthly"``).
+        units (str): The long-form units description (e.g., ``"Percent"``).
+        seasonal_adjustment (str): The long-form seasonal-adjustment description (e.g., ``"Seasonally Adjusted"``).
+        last_updated (str): The date when the series was last updated by FRED.
+        observation_start (str, optional): The start date of available observations in ``YYYY-MM-DD`` format.
+        observation_end (str, optional): The end date of available observations in ``YYYY-MM-DD`` format.
+        copyright_id (str, optional): The copyright identifier for the series, if any.
+        frequency_short (str, optional): The short-form frequency code (e.g., ``"m"``).
+        units_short (str, optional): The short-form units code (e.g., ``"pc"``).
+        seasonal_adjustment_short (str, optional): The short-form seasonal-adjustment code (e.g., ``"sa"``).
+        popularity (int, optional): A FRED-assigned popularity score.
+        realtime_start (str, optional): The start of the real-time period in ``YYYY-MM-DD`` format.
+        realtime_end (str, optional): The end of the real-time period in ``YYYY-MM-DD`` format.
+        group_popularity (int, optional): Popularity within a release group, if applicable.
+        notes (str, optional): Free-form notes accompanying the series metadata.
         client (Fred, optional): The Fred client instance associated with this Series.
+        categories (Categories): Lazily fetched categories the series belongs to.
+        observations (pd.DataFrame | pl.DataFrame | dd.DataFrame): Lazily fetched observations DataFrame.
+        release (Releases): Lazily fetched release(s) associated with this series.
+        tags (Tags): Lazily fetched tags associated with this series.
+        vintagedates (VintageDates): Lazily fetched ALFRED vintage dates for this series.
 
     Notes:
-        This class is designed to work with the FRED API and may require a client instance for certain operations.
+        Short-form codes (``frequency_short``, ``units_short``, ``seasonal_adjustment_short``) are coerced to lowercase at parse time by :meth:`_from_dict` to normalize FRED's inconsistent casing.
 
     Examples:
         >>> import fedfred as fd
         >>> fred_client = fd.Fred('your_api_key')
-        >>> seriess = fred_client.get_series("GNPCA")
-        >>> for series in seriess:
-        >>>     print(series.title)
-        'Gross National Product'
-
-    References:
-        - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.objects.Series.html
-        - Federal Reserve Bank of St. Louis, FRED API documentation. https://fred.stlouisfed.org/tags/series
+        >>> series = fred_client.get_series("GNPCA")
+        >>> print(series.title)
+        'Real Gross National Product'
+        >>> series.frequency, series.units_short
+        ('Annual', 'bil. of chn. 2017 $')
 
     See Also:
+        - :class:`fedfred.Seriess`: The plural sequence container.
         - :class:`fedfred.Category`: For the object representation of a FRED category.
+        - :class:`fedfred.Release`: For the release this series belongs to.
+
+    References:
+        - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.Series.html
+        - Federal Reserve Bank of St. Louis, FRED API documentation. https://fred.stlouisfed.org/tags/series
     """
 
     id: str
-    """The unique identifier for the series. corresponds to 'series_id' in the FRED API."""
+    """The unique identifier for the series. Corresponds to ``series_id`` in the FRED API."""
 
     title: str
-    """The title of the series."""
+    """The human-readable title of the series."""
 
     frequency: str
-    """The frequency of the series (e.g., "Monthly", "Quarterly")."""
+    """The long-form frequency of the series (e.g., ``"Monthly"``, ``"Quarterly"``)."""
 
     units: str
-    """The units of measurement for the series (e.g., "Percent", "Dollars")."""
+    """The long-form units of measurement (e.g., ``"Percent"``, ``"Dollars"``)."""
 
     seasonal_adjustment: str
-    """The seasonal adjustment type for the series (e.g., "Seasonally Adjusted")."""
+    """The long-form seasonal-adjustment type (e.g., ``"Seasonally Adjusted"``)."""
 
     last_updated: str
-    """The date when the series was last updated."""
+    """The date when the series was last updated by FRED."""
 
     observation_start: str | None = None
-    """The start date of observations for the series. Corresponds to 'observation_start' in the FRED API. YYYY-MM-DD format."""
+    """The start date of available observations in ``YYYY-MM-DD`` format. Corresponds to ``observation_start`` in the FRED API."""
 
     observation_end: str | None = None
-    """The end date of observations for the series. Corresponds to 'observation_end' in the FRED API. YYYY-MM-DD format."""
+    """The end date of available observations in ``YYYY-MM-DD`` format. Corresponds to ``observation_end`` in the FRED API."""
 
     copyright_id: str | None = None
+    """The copyright identifier for the series, if any. ``None`` for non-copyrighted series."""
 
     frequency_short: str | None = None
-    """The short form of the frequency (e.g., "m", "q"). Corresponds to 'frequency' in the FRED API."""
+    """The short-form frequency code (e.g., ``"m"``, ``"q"``), coerced to lowercase. Corresponds to ``frequency`` in the FRED API."""
 
     units_short: str | None = None
-    """The short form of the units (e.g., "pc", "usd"). Corresponds to 'units' in the FRED API."""
+    """The short-form units code (e.g., ``"pc"``, ``"usd"``), coerced to lowercase. Corresponds to ``units`` in the FRED API."""
 
     seasonal_adjustment_short: str | None = None
-    """The short form of the seasonal adjustment type (e.g., "sa")."""
+    """The short-form seasonal-adjustment code (e.g., ``"sa"``), coerced to lowercase."""
 
     popularity: int | None = None
-    """A measure of the popularity of the series."""
+    """A FRED-assigned popularity score for the series."""
 
     realtime_start: str | None = None
-    """The start date for real-time data, if applicable. YYYY-MM-DD format. Corresponds to 'realtime_start' in the FRED API."""
+    """The start of the real-time period in ``YYYY-MM-DD`` format. Corresponds to ``realtime_start`` in the FRED API."""
 
     realtime_end: str | None = None
-    """The end date for real-time data, if applicable. YYYY-MM-DD format. Corresponds to 'realtime_end' in the FRED API."""
+    """The end of the real-time period in ``YYYY-MM-DD`` format. Corresponds to ``realtime_end`` in the FRED API."""
 
     group_popularity: int | None = None
-    """A measure of the popularity within a group, if applicable."""
+    """A popularity score within a release group, if applicable."""
 
     notes: str | None = None
-    """Additional notes about the series."""
+    """Free-form notes accompanying the series metadata."""
 
     _observations: pd.DataFrame | pl.DataFrame | dd.DataFrame | None = None
-    """The DataFrame of observations associated with this series."""
+    """Reserved slot for the cached observations DataFrame (BulkRelease pipeline). Not part of the public surface."""
 
     _response_key: ClassVar[str] = "seriess"
-
+    """The key in the FRED API response payload that contains the series list."""
 
     # Class Methods
     @classmethod
-    def _from_dict(cls, data: dict[str, Any], client: _ClientModel | None = None) -> Series:
+    def _from_dict(cls,
+                   data: dict[str, Any],
+                   client: _ClientModel | None = None
+                   ) -> Series:
+        """Build a single :class:`Series` from one raw FRED payload mapping.
 
+        Internal parser used by :meth:`to_object` and by sequence containers
+        when wiring up child items. Accepts both ``id`` and ``series_id`` as
+        the identifier key (FRED is inconsistent across endpoints), validates
+        the presence of the long-form metadata fields, and routes the
+        short-form codes through :func:`fedfred._core._coerce_lower` for
+        case normalization.
+
+        Args:
+            data (dict[str, Any]): The raw series payload from the FRED API.
+            client (_ClientModel, optional): The FRED client to attach to the resulting object for lazy relation traversal. Defaults to ``None``.
+
+        Returns:
+            Series: A fully populated :class:`Series` instance.
+
+        Raises:
+            ModelError: If ``data`` is not a mapping, lacks an identifier (``id`` or ``series_id``), or is missing any of the required long-form
+                fields (``title``, ``frequency``, ``units``, ``seasonal_adjustment``, ``last_updated``).
+
+        References:
+            - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.Series.html
+        """
         if not isinstance(data, dict):
             raise ModelError("Invalid series payload: expected a mapping")
 
@@ -389,49 +557,163 @@ class Series(_ModelBase):
     # Properties
     @property
     def categories(self) -> Categories:
-        """The categories associated with this series. corresponds to 'get_series_categories' in the FRED API."""
+        """The categories this series belongs to.
+
+        Lazily resolves to ``client.get_series_categories(self.id)`` on access. Requires a ``client`` to be attached to this instance.
+
+        Returns:
+            Categories: A sequence of :class:`Category` objects.
+
+        Raises:
+            ModelError: If no client is attached to this instance.
+        """
         return self._require_client().get_series_categories(self.id)
 
     @property
     def observations(self) -> pd.DataFrame | pl.DataFrame | dd.DataFrame:
-        """The DataFrame of observations associated with this series. corresponds to 'get_series_observations' in the FRED API."""
+        """The DataFrame of observations for this series.
+
+        Lazily resolves to ``client.get_series_observations(self.id)`` on access.
+        The return type follows the client's configured dataframe backend
+        (pandas, polars, or dask). Requires a ``client`` to be attached.
+
+        Returns:
+            pd.DataFrame | pl.DataFrame | dd.DataFrame: A DataFrame of
+            observations indexed by date.
+
+        Raises:
+            ModelError: If no client is attached to this instance.
+        """
         return self._require_client().get_series_observations(self.id)
 
     @property
-    def release(self) -> Releases:
-        """The release associated with this series. corresponds to 'get_series_release' in the FRED API."""
+    def release(self) -> Release:
+        """The release this series belongs to.
+
+        Lazily resolves to ``client.get_series_release(self.id)`` on access.
+        Requires a ``client`` to be attached to this instance.
+
+        Returns:
+            Release: The :class:`Release` object.
+
+        Raises:
+            ModelError: If no client is attached to this instance.
+        """
         return self._require_client().get_series_release(self.id)
 
     @property
     def tags(self) -> Tags:
-        """The tags associated with this series. corresponds to 'get_series_tags' in the FRED API."""
+        """The tags associated with this series.
+
+        Lazily resolves to ``client.get_series_tags(self.id)`` on access.
+        Requires a ``client`` to be attached to this instance.
+
+        Returns:
+            Tags: A sequence of :class:`Tag` objects.
+
+        Raises:
+            ModelError: If no client is attached to this instance.
+        """
         return self._require_client().get_series_tags(self.id)
 
     @property
     def vintagedates(self) -> VintageDates:
-        """The vintage dates associated with this series. corresponds to 'get_series_vintagedates' in the FRED API."""
+        """The ALFRED vintage dates for this series.
+
+        Lazily resolves to ``client.get_series_vintagedates(self.id)`` on access.
+        Requires a ``client`` to be attached to this instance.
+
+        Returns:
+            VintageDates: A sequence of :class:`fedfred.VintageDate` objects.
+
+        Raises:
+            ModelError: If no client is attached to this instance.
+        """
         return self._require_client().get_series_vintagedates(self.id)
 
-class Seriess(_ModelSequence[Series]):
 
+class Seriess(_ModelSequence[Series]):
+    """An immutable, notebook-friendly sequence of :class:`Series` objects.
+
+    Behaves like a tuple of :class:`Series` (indexing, slicing, iteration,
+    ``len``, ``==``, ``in``) and is string-keyed by ``id`` for ergonomic
+    lookup in notebooks (``seriess["UNRATE"]``) with IPython tab completion
+    against the same key. Slicing returns a new :class:`Seriess` carrying
+    the same client.
+
+    The container name reflects FRED's own (idiosyncratic) plural; the API
+    returns the sequence under either ``"seriess"`` or ``"series"`` depending
+    on the endpoint, both of which are handled by :meth:`to_object`.
+
+    Examples:
+        >>> import fedfred as fd
+        >>> fred_client = fd.Fred('your_api_key')
+        >>> seriess = fred_client.get_category_series(125)
+        >>> seriess[0].id
+        'BOPBCA'
+        >>> seriess["BOPBCA"].title
+        'Balance on Current Account'
+
+    See Also:
+        - :class:`fedfred.Series`: The element type.
+
+    References:
+        - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.Seriess.html
+    """
 
     __slots__ = ()
 
-
     _lookup_key: ClassVar[str | None] = "id"
+    """Attribute used for string-key lookup and tab completion (``seriess["<series_id>"]``)."""
 
-
+    # Class Methods
     @classmethod
-    def to_object(cls, response: dict[str, Any], client: _ClientModel | None = None) -> Seriess:
-        # Same dual-key shape as Series (FRED returns 'seriess' or 'series')
+    def to_object(cls,
+                  response: dict[str, Any],
+                  client: _ClientModel | None = None
+                  ) -> Seriess:
+        """Build a :class:`Seriess` from a FRED API response payload.
 
+        Accepts both ``"seriess"`` and ``"series"`` as the response key,
+        since FRED uses the latter on some endpoints (e.g., release_series)
+        and the former on others (e.g., category_series).
+
+        Args:
+            response (dict[str, Any]): The raw FRED API response payload.
+            client (_ClientModel, optional): The FRED client to propagate to
+                each constructed :class:`Series` and to the sequence itself.
+                Defaults to ``None``.
+
+        Returns:
+            Seriess: A sequence of :class:`Series` objects.
+
+        Raises:
+            ModelError: If the response lacks both ``"seriess"`` and
+                ``"series"`` keys.
+
+        Examples:
+            >>> import fedfred as fd
+            >>> response = {"seriess": [{"id": "GNPCA", "title": "Real GNP",
+            ...                          "frequency": "Annual", "units": "Bil.",
+            ...                          "seasonal_adjustment": "NSA",
+            ...                          "last_updated": "2024-01-01"}]}
+            >>> seriess = fd.Seriess.to_object(response)
+            >>> seriess[0].id
+            'GNPCA'
+        """
         raw = _require_first_list(response, ("seriess", "series"))
 
         return cls((cls._parse_item(item, client=client) for item in raw), client=client)
 
+    # Sunder Methods
     def _repr_html_(self) -> str:
+        """Render a compact HTML table preview of the first ten series.
 
-
+        Returns:
+            str: An HTML ``<table>`` with id, title, frequency, and units
+            columns and a truncation caption when the sequence exceeds ten
+            entries.
+        """
         head = self._items[:10]
 
         rows = "".join(
@@ -448,69 +730,101 @@ class Seriess(_ModelSequence[Series]):
                 "<thead><tr><th>id</th><th>title</th><th>frequency</th><th>units</th></tr></thead>"
                 f"<tbody>{rows}</tbody></table>")
 
+
 @dataclass(slots=True)
 class Tag(_ModelBase):
-    """A class used to represent a FRED Tag.
+    """A FRED Tag.
 
-    Represents a single tag in the Federal Reserve Economic Data (FRED) database. Tags are keywords or labels that can be
-    associated with series to facilitate searching and categorization. Each tag has a name, group ID, creation date,
-    popularity, and series count.
+    Represents a single tag in the Federal Reserve Economic Data (FRED)
+    database. Tags are keywords or labels (e.g., ``"nation"``, ``"usa"``,
+    ``"frb"``) that can be associated with series to facilitate search,
+    discovery, and categorization. Each tag carries a name, a group ID
+    classifying its type (geography, source, frequency, etc.), a creation
+    date, a FRED-assigned popularity score, and a count of how many series
+    reference it.
+
+    When a ``client`` is attached, the related-resource properties
+    (:attr:`related_tags`, :attr:`series`) lazily fetch contents on access.
 
     Attributes:
-        name (str): The name of the tag.
-        group_id (str): The group ID of the tag.
-        created (str): The creation date of the tag.
-        popularity (int): The popularity of the tag.
-        series_count (int): The number of series associated with the tag.
-        notes (str, optional): Additional notes about the tag.
+        name (str): The tag name (used as the FRED API identifier).
+        group_id (str): The group classification for the tag.
+        created (str): The creation timestamp of the tag.
+        popularity (int): The FRED-assigned popularity score.
+        series_count (int): The number of series associated with this tag.
+        notes (str, optional): Free-form notes accompanying the tag.
         client (Fred, optional): The Fred client instance associated with this Tag.
-
-    Notes:
-        This class is designed to work with the FRED API and may require a client instance for certain operations.
+        related_tags (Tags): Lazily fetched related tags.
+        series (Seriess): Lazily fetched series carrying this tag.
 
     Examples:
         >>> import fedfred as fd
         >>> fred_client = fd.Fred('your_api_key')
         >>> tags = fred_client.get_tags()
-        >>> for tag in tags:
+        >>> for tag in tags[:3]:
         >>>     print(tag.name)
         'nation'
         'usa'
-        'frb'...
-
-    References:
-        - Federal Reserve Bank of St. Louis, FRED API documentation. https://fred.stlouisfed.org/tags/
-        - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.objects.Tag.html
+        'frb'
 
     See Also:
+        - :class:`fedfred.Tags`: The plural sequence container.
         - :class:`fedfred.Series`: For the object representation of a FRED series.
+
+    References:
+        - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.Tag.html
+        - Federal Reserve Bank of St. Louis, FRED API documentation. https://fred.stlouisfed.org/tags/
     """
 
     name: str
-    """The name of the tag. corresponds to 'tag_name' in the FRED API."""
+    """The tag name. Corresponds to ``tag_name`` in the FRED API and serves as the lookup identifier."""
 
     group_id: str
-    """The group ID of the tag."""
+    """The group classification for the tag (e.g., ``"geo"``, ``"src"``, ``"freq"``)."""
 
     created: str
-    """The creation date of the tag."""
+    """The creation timestamp of the tag."""
 
     popularity: int
-    """The popularity of the tag."""
+    """A FRED-assigned popularity score for the tag."""
 
     series_count: int
-    """The number of series associated with the tag."""
+    """The number of series that reference this tag."""
 
     notes: str | None = None
-    """Additional notes about the tag."""
+    """Free-form notes accompanying the tag, if any."""
 
     _response_key: ClassVar[str] = "tags"
-
+    """The key in the FRED API response payload that contains the tag list."""
 
     # Class Methods
     @classmethod
-    def _from_dict(cls, data: dict[str, Any], client: _ClientModel | None = None) -> Tag:
+    def _from_dict(cls,
+                   data: dict[str, Any],
+                   client: _ClientModel | None = None
+                   ) -> Tag:
+        """Build a single :class:`Tag` from one raw FRED payload mapping.
 
+        Internal parser used by :meth:`to_object` and by sequence containers.
+        Validates the presence of every required field; tolerates a missing
+        ``notes`` field.
+
+        Args:
+            data (dict[str, Any]): The raw tag payload from the FRED API.
+            client (_ClientModel, optional): The FRED client to attach to the
+                resulting object for lazy relation traversal. Defaults to ``None``.
+
+        Returns:
+            Tag: A fully populated :class:`Tag` instance.
+
+        Raises:
+            ModelError: If ``data`` is not a mapping or is missing any of the
+                required fields (``name``, ``group_id``, ``created``,
+                ``popularity``, ``series_count``).
+
+        References:
+            - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.Tag.html
+        """
         if not isinstance(data, dict):
             raise ModelError("Invalid tag payload: expected a mapping")
 
@@ -531,26 +845,71 @@ class Tag(_ModelBase):
     # Properties
     @property
     def related_tags(self) -> Tags:
-        """The related tags associated with this tag."""
+        """The tags related to this tag.
+
+        Lazily resolves to ``client.get_related_tags(self.name)`` on access.
+        Requires a ``client`` to be attached to this instance.
+
+        Returns:
+            Tags: A sequence of related :class:`Tag` objects.
+
+        Raises:
+            ModelError: If no client is attached to this instance.
+        """
         return self._require_client().get_related_tags(self.name)
 
     @property
     def series(self) -> Seriess:
-        """The series associated with this tag."""
+        """The series that carry this tag.
+
+        Lazily resolves to ``client.get_tags_series(self.name)`` on access.
+        Requires a ``client`` to be attached to this instance.
+
+        Returns:
+            Seriess: A sequence of :class:`Series` objects tagged with this tag.
+
+        Raises:
+            ModelError: If no client is attached to this instance.
+        """
         return self._require_client().get_tags_series(self.name)
 
-class Tags(_ModelSequence[Tag]):
 
+class Tags(_ModelSequence[Tag]):
+    """An immutable, notebook-friendly sequence of :class:`Tag` objects.
+
+    Behaves like a tuple of :class:`Tag` (indexing, slicing, iteration,
+    ``len``, ``==``, ``in``) and is string-keyed by ``name`` for ergonomic
+    lookup (``tags["nation"]``) with IPython tab completion. Slicing returns
+    a new :class:`Tags` carrying the same client.
+
+    Examples:
+        >>> import fedfred as fd
+        >>> fred_client = fd.Fred('your_api_key')
+        >>> tags = fred_client.get_tags()
+        >>> tags["nation"].series_count
+        128719
+
+    See Also:
+        - :class:`fedfred.Tag`: The element type.
+
+    References:
+        - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.Tags.html
+    """
 
     __slots__ = ()
 
-
     _lookup_key: ClassVar[str | None] = "name"
+    """Attribute used for string-key lookup and tab completion (``tags["<tag_name>"]``)."""
 
-
+    # Sunder Methods
     def _repr_html_(self) -> str:
+        """Render a compact HTML table preview of the first ten tags.
 
-
+        Returns:
+            str: An HTML ``<table>`` with name, group_id, popularity, and
+            series_count columns and a truncation caption when the sequence
+            exceeds ten entries.
+        """
         head = self._items[:10]
 
         rows = "".join(
@@ -567,80 +926,113 @@ class Tags(_ModelSequence[Tag]):
                 "<thead><tr><th>name</th><th>group_id</th><th>popularity</th><th>series_count</th></tr></thead>"
                 f"<tbody>{rows}</tbody></table>")
 
+
 @dataclass(slots=True)
 class Release(_ModelBase):
-    """A class used to represent a Release.
+    """A FRED Release.
 
-    Represents a single release in the Federal Reserve Economic Data (FRED) database. A release is a scheduled publication of economic data,
-    such as employment reports, GDP figures, or inflation statistics. Each release has a unique identifier, a name, real-time start and end dates,
-    and other metadata.
+    Represents a single release in the Federal Reserve Economic Data (FRED)
+    database. A release is a scheduled publication of economic data — for
+    example, the Employment Situation, the Consumer Price Index, or quarterly
+    GDP — that bundles together a set of related series and an associated
+    publication calendar. Each release has a stable integer identifier, a
+    human-readable name, an optional press-release flag, an optional
+    documentation link, and an optional realtime period.
+
+    When a ``client`` is attached, the related-resource properties traverse
+    the FRED API lazily on access: :attr:`dates`, :attr:`series`,
+    :attr:`sources`, :attr:`tags`, :attr:`related_tags`, and :attr:`tables`.
 
     Attributes:
-        name (str): The name of the release.
         id (int): The unique identifier for the release.
-        realtime_start (str, optional): The start date for real-time data.
-        realtime_end (str, optional): The end date for real-time data.
-        press_release (bool, optional): Indicates if the release is a press release.
-        link (str, optional): A link to more information about the release.
-        notes (str, optional): Additional notes about the release.
+        name (str): The human-readable name of the release.
+        realtime_start (str, optional): The start of the real-time period in
+            ``YYYY-MM-DD`` format.
+        realtime_end (str, optional): The end of the real-time period in
+            ``YYYY-MM-DD`` format.
+        press_release (bool, optional): Whether the release is a press release.
+        link (str, optional): A documentation URL for the release.
+        notes (str, optional): Free-form notes accompanying the release.
         client (Fred, optional): The Fred client instance associated with this Release.
-        dates (ReleaseDates): The release dates associated with this release.
-        series (Seriess): The series associated with this release.
-        sources (Sources): The sources associated with this release.
-        tags (Tags): The tags associated with this release.
-        related_tags (Tags): The related tags associated with this release.
-        tables (Elements): The tables associated with this release.
-
-    Notes:
-        This class is designed to work with the FRED API and may require a client instance for certain operations.
+        dates (ReleaseDates): Lazily fetched calendar of publication dates.
+        series (Seriess): Lazily fetched series in this release.
+        sources (Sources): Lazily fetched data sources for this release.
+        tags (Tags): Lazily fetched tags associated with this release.
+        related_tags (Tags): Lazily fetched related tags.
+        tables (Elements): Lazily fetched release-table elements.
 
     Examples:
         >>> import fedfred as fd
         >>> fred_client = fd.Fred('your_api_key')
-        >>> releases = fred_client.get_release(82)
-        >>> for release in releases:
-        >>>     print(release.name)
+        >>> release = fred_client.get_release(82)
+        >>> print(release.name)
         'Employment Situation'
 
-    References:
-        - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.objects.Release.html
-        - Federal Reserve Bank of St. Louis, FRED API documentation. https://fred.stlouisfed.org/releases/
-
     See Also:
+        - :class:`fedfred.Releases`: The plural sequence container.
+        - :class:`fedfred.ReleaseDate`: The calendar-entry type for a release.
         - :class:`fedfred.Source`: For the object representation of a FRED source.
+
+    References:
+        - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.Release.html
+        - Federal Reserve Bank of St. Louis, FRED API documentation. https://fred.stlouisfed.org/releases/
     """
 
     id: int
-    """The unique identifier for the release. corresponds to 'release_id' in the FRED API."""
+    """The unique identifier for the release. Corresponds to ``release_id`` in the FRED API."""
 
     name: str
-    """The name of the release."""
+    """The human-readable name of the release."""
 
     realtime_start: str | None = None
-    """The start date for real-time data. YYYY-MM-DD format. corresponds to 'realtime_start' in the FRED API."""
+    """The start of the real-time period in ``YYYY-MM-DD`` format. Corresponds to ``realtime_start`` in the FRED API."""
 
     realtime_end: str | None = None
-    """The end date for real-time data. YYYY-MM-DD format. corresponds to 'realtime_end' in the FRED API."""
+    """The end of the real-time period in ``YYYY-MM-DD`` format. Corresponds to ``realtime_end`` in the FRED API."""
 
     press_release: bool | None = None
-    """Indicates if the release is a press release."""
+    """Whether the release is a press release."""
 
     link: str | None = None
-    """A link to more information about the release."""
+    """A documentation URL for the release. Tolerates ``"link"`` or ``"url"`` keys from the FRED payload."""
 
     notes: str | None = None
-    """Additional notes about the release."""
+    """Free-form notes accompanying the release, if any."""
 
     _sources: Sources | None = None
+    """Reserved slot for the cached sources (BulkRelease pipeline). Not part of the public surface."""
 
     _response_key: ClassVar[str] = "releases"
-
+    """The key in the FRED API response payload that contains the release list."""
 
     # Class Methods
     @classmethod
-    def _from_dict(cls, data: dict[str, Any], client: _ClientModel | None = None) -> Release:
+    def _from_dict(cls,
+                   data: dict[str, Any],
+                   client: _ClientModel | None = None
+                   ) -> Release:
+        """Build a single :class:`Release` from one raw FRED payload mapping.
 
+        Internal parser used by :meth:`to_object` and by sequence containers.
+        Accepts both ``id`` and ``release_id`` as the identifier key and both
+        ``link`` and ``url`` as the documentation link, normalizing FRED's
+        inconsistent payload shapes across endpoints.
 
+        Args:
+            data (dict[str, Any]): The raw release payload from the FRED API.
+            client (_ClientModel, optional): The FRED client to attach to the
+                resulting object for lazy relation traversal. Defaults to ``None``.
+
+        Returns:
+            Release: A fully populated :class:`Release` instance.
+
+        Raises:
+            ModelError: If ``data`` is not a mapping, lacks an identifier
+                (``id`` or ``release_id``), or is missing the ``name`` field.
+
+        References:
+            - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.Release.html
+        """
         if not isinstance(data, dict):
             raise ModelError("Invalid release payload: expected a mapping")
 
@@ -664,8 +1056,36 @@ class Release(_ModelBase):
         )
 
     @classmethod
-    def to_object(cls, response: dict[str, Any], client: _ClientModel | None = None) -> Release:
+    def to_object(cls,
+                  response: dict[str, Any],
+                  client: _ClientModel | None = None
+                  ) -> Release:
+        """Build a single :class:`Release` from a FRED API response payload.
 
+        Accepts both ``"releases"`` and ``"release"`` as the response key.
+        FRED's ``get_release`` endpoint returns the singular form wrapped in a
+        list of one, while bulk endpoints return many; this method handles
+        both shapes uniformly and returns the first entry.
+
+        Args:
+            response (dict[str, Any]): The raw FRED API response payload.
+            client (_ClientModel, optional): The FRED client to attach to the
+                resulting :class:`Release`. Defaults to ``None``.
+
+        Returns:
+            Release: A single :class:`Release` instance.
+
+        Raises:
+            ModelError: If the response lacks both ``"releases"`` and
+                ``"release"`` keys, or if the resolved list is empty.
+
+        Examples:
+            >>> import fedfred as fd
+            >>> response = {"releases": [{"id": 82, "name": "Employment Situation"}]}
+            >>> release = fd.Release.to_object(response)
+            >>> release.name
+            'Employment Situation'
+        """
         raw = _require_first_list(response, ("releases", "release"))
 
         if not raw:
@@ -676,51 +1096,158 @@ class Release(_ModelBase):
     # Properties
     @property
     def dates(self) -> ReleaseDates:
-        """The release dates associated with this release."""
+        """The publication-date calendar for this release.
+
+        Lazily resolves to ``client.get_release_dates(self.id)`` on access.
+        Requires a ``client`` to be attached to this instance.
+
+        Returns:
+            ReleaseDates: A sequence of :class:`ReleaseDate` objects.
+
+        Raises:
+            ModelError: If no client is attached to this instance.
+        """
         return self._require_client().get_release_dates(self.id)
 
     @property
     def series(self) -> Seriess:
-        """The series associated with this release."""
+        """The series published under this release.
+
+        Lazily resolves to ``client.get_release_series(self.id)`` on access.
+        Requires a ``client`` to be attached to this instance.
+
+        Returns:
+            Seriess: A sequence of :class:`Series` objects.
+
+        Raises:
+            ModelError: If no client is attached to this instance.
+        """
         return self._require_client().get_release_series(self.id)
 
     @property
     def sources(self) -> Sources:
-        """The sources associated with this release."""
+        """The data sources for this release.
+
+        Lazily resolves to ``client.get_release_sources(self.id)`` on access.
+        Requires a ``client`` to be attached to this instance.
+
+        Returns:
+            Sources: A sequence of :class:`Source` objects.
+
+        Raises:
+            ModelError: If no client is attached to this instance.
+        """
         return self._require_client().get_release_sources(self.id)
 
     @property
     def tags(self) -> Tags:
-        """The tags associated with this release."""
+        """The tags associated with this release.
+
+        Lazily resolves to ``client.get_release_tags(self.id)`` on access.
+        Requires a ``client`` to be attached to this instance.
+
+        Returns:
+            Tags: A sequence of :class:`Tag` objects.
+
+        Raises:
+            ModelError: If no client is attached to this instance.
+        """
         return self._require_client().get_release_tags(self.id)
 
     @property
     def related_tags(self) -> Tags:
-        """The related tags associated with this release."""
+        """The tags related to those on this release.
+
+        Lazily resolves to ``client.get_release_related_tags(self.id)`` on access.
+        Requires a ``client`` to be attached to this instance.
+
+        Returns:
+            Tags: A sequence of related :class:`Tag` objects.
+
+        Raises:
+            ModelError: If no client is attached to this instance.
+        """
         return self._require_client().get_release_related_tags(self.id)
 
     @property
     def tables(self) -> Elements:
-        """The tables associated with this release."""
+        """The release-table elements for this release.
+
+        Lazily resolves to ``client.get_release_tables(self.id)`` on access.
+        Requires a ``client`` to be attached to this instance.
+
+        Returns:
+            Elements: A sequence of :class:`Element` objects.
+
+        Raises:
+            ModelError: If no client is attached to this instance.
+        """
         return self._require_client().get_release_tables(self.id)
 
+
 class Releases(_ModelSequence[Release]):
+    """An immutable, notebook-friendly sequence of :class:`Release` objects.
+
+    Behaves like a tuple of :class:`Release` (indexing, slicing, iteration,
+    ``len``, ``==``, ``in``) and is string-keyed by ``name`` for ergonomic
+    lookup (``releases["Employment Situation"]``) with IPython tab completion.
+    Slicing returns a new :class:`Releases` carrying the same client.
+
+    Examples:
+        >>> import fedfred as fd
+        >>> fred_client = fd.Fred('your_api_key')
+        >>> releases = fred_client.get_releases()
+        >>> releases["Consumer Price Index"].id
+        10
+
+    See Also:
+        - :class:`fedfred.Release`: The element type.
+
+    References:
+        - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.Releases.html
+    """
 
     __slots__ = ()
 
-
     _lookup_key: ClassVar[str | None] = "name"
+    """Attribute used for string-key lookup and tab completion (``releases["<release_name>"]``)."""
 
-
+    # Class Methods
     @classmethod
-    def to_object(cls, response: dict[str, Any], client: _ClientModel | None = None) -> Releases:
+    def to_object(cls,
+                  response: dict[str, Any],
+                  client: _ClientModel | None = None
+                  ) -> Releases:
+        """Build a :class:`Releases` sequence from a FRED API response payload.
 
+        Accepts both ``"releases"`` and ``"release"`` as the response key for
+        compatibility with FRED's inconsistent payload shapes.
+
+        Args:
+            response (dict[str, Any]): The raw FRED API response payload.
+            client (_ClientModel, optional): The FRED client to propagate to
+                each constructed :class:`Release` and to the sequence itself.
+                Defaults to ``None``.
+
+        Returns:
+            Releases: A sequence of :class:`Release` objects.
+
+        Raises:
+            ModelError: If the response lacks both ``"releases"`` and
+                ``"release"`` keys.
+        """
         raw = _require_first_list(response, ("releases", "release"))
 
         return cls((cls._parse_item(item, client=client) for item in raw), client=client)
 
+    # Sunder Methods
     def _repr_html_(self) -> str:
+        """Render a compact HTML table preview of the first ten releases.
 
+        Returns:
+            str: An HTML ``<table>`` with id, name, and press_release columns
+            and a truncation caption when the sequence exceeds ten entries.
+        """
         head = self._items[:10]
 
         rows = "".join(
@@ -735,18 +1262,60 @@ class Releases(_ModelSequence[Release]):
                 "<thead><tr><th>id</th><th>name</th><th>press_release</th></tr></thead>"
                 f"<tbody>{rows}</tbody></table>")
 
+
 class ReleaseDate(_DateBase):
+    """A FRED Release Date.
+
+    Represents a single publication date for a FRED release. ``ReleaseDate``
+    *is a* :class:`datetime.date` (subclass), so it drops cleanly into any API
+    expecting a date (comparisons, ``strftime``, pandas indexes, fedfred's own
+    date parameters) while carrying additional release metadata as slot
+    attributes.
+
+    Construction goes through the :meth:`create` factory, which uses
+    ``date.__new__`` to satisfy CPython's immutable date initialization
+    and then attaches the release metadata via ``setattr``. Direct calls to
+    ``ReleaseDate(year, month, day)`` will succeed as a plain date but
+    will not populate the release metadata; prefer :meth:`create`.
+
+    Pickling is supported via :meth:`__reduce__`, which routes through
+    :meth:`_rebuild` so that round-tripped instances preserve their
+    release metadata.
+
+    Attributes:
+        release_id (int): The unique identifier for the release this date belongs to.
+        release_name (str, optional): The human-readable name of the release.
+
+    Examples:
+        >>> import fedfred as fd
+        >>> fred_client = fd.Fred('your_api_key')
+        >>> release_dates = fred_client.get_release_dates(82)
+        >>> release_dates[-1]
+        ReleaseDate(2024-12-06, release_id=82, release_name='Employment Situation')
+        >>> release_dates[-1].isoformat()
+        '2024-12-06'
+
+    See Also:
+        - :class:`fedfred.ReleaseDates`: The plural sequence container.
+        - :class:`fedfred.Release`: The release this date belongs to.
+
+    References:
+        - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.ReleaseDate.html
+        - Federal Reserve Bank of St. Louis, FRED API documentation. https://fred.stlouisfed.org/docs/api/fred/release_dates.html
+    """
 
     __slots__ = ("release_id", "release_name")
 
     release_id: int
-    """The ID of the release. Corresponds to 'release_id' in the FRED API."""
+    """The unique identifier for the release this date belongs to. Corresponds to ``release_id`` in the FRED API."""
 
     release_name: str | None
-    """The name of the release. Corresponds to 'release_name' in the FRED API."""
+    """The human-readable name of the release. Corresponds to ``release_name`` in the FRED API."""
 
     _response_key: ClassVar[str] = "release_dates"
+    """The key in the FRED API response payload that contains the release-date list."""
 
+    # Class Methods
     @classmethod
     def create(
         cls,
@@ -756,12 +1325,40 @@ class ReleaseDate(_DateBase):
         *,
         release_id: int,
         release_name: str | None = None,
-        ) -> Self:
+    ) -> Self:
+        """Construct a :class:`ReleaseDate` with attached release metadata.
 
+        This is the canonical construction path for :class:`ReleaseDate`.
+        Uses ``date.__new__`` to bypass the immutable date initialization
+        contract and then attaches the release metadata via ``setattr`` to
+        populate the slot attributes.
+
+        Args:
+            year (SupportsIndex): The four-digit year.
+            month (SupportsIndex): The month, 1-12.
+            day (SupportsIndex): The day of the month, 1-31.
+            release_id (int): The release identifier this date belongs to.
+            release_name (str, optional): The human-readable name of the release.
+
+        Returns:
+            ReleaseDate: A fully populated :class:`ReleaseDate` instance.
+
+        Examples:
+            >>> rd = ReleaseDate.create(2024, 12, 6, release_id=82,
+            ...                         release_name="Employment Situation")
+            >>> rd.isoformat()
+            '2024-12-06'
+            >>> rd.release_id
+            82
+        """
         self: Self = date.__new__(cls, year, month, day)
+
         self.release_id = release_id
+
         self.release_name = release_name
+
         return self
+
 
     @classmethod
     def _rebuild(
@@ -772,38 +1369,51 @@ class ReleaseDate(_DateBase):
         release_id: int,
         release_name: str | None,
     ) -> Self:
-        """Pickle/copy rebuild factory routed through create() for validation parity."""
+        """Pickle/copy rebuild factory routed through :meth:`create`.
+
+        Used by :meth:`__reduce__` so that unpickling and ``copy.deepcopy``
+        re-enter the validated construction path and preserve the release
+        metadata. Exposed as a classmethod (rather than a module-level
+        helper) so that pickle can resolve it by qualified name without
+        polluting the module namespace.
+
+        Args:
+            year (SupportsIndex): The four-digit year.
+            month (SupportsIndex): The month, 1-12.
+            day (SupportsIndex): The day of the month, 1-31.
+            release_id (int): The release identifier.
+            release_name (str | None): The release name, or ``None``.
+
+        Returns:
+            ReleaseDate: A reconstructed :class:`ReleaseDate` instance.
+        """
         return cls.create(
             year, month, day,
             release_id=release_id,
             release_name=release_name,
         )
 
-    def __repr__(self) -> str:
-
-        return (
-            f"ReleaseDate({self.isoformat()}, "
-            f"release_id={self.release_id}, release_name={self.release_name!r})"
-        )
-
-    def __reduce__(self) -> tuple[Callable[..., "ReleaseDate"], tuple[Any, ...]]:
-
-        return (
-            type(self)._rebuild,
-            (self.year, self.month, self.day, self.release_id, self.release_name),
-        )
-
-    def _with_date(self, year: int, month: int, day: int) -> Self:
-
-        return type(self).create(
-            year, month, day,
-            release_id=self.release_id,
-            release_name=self.release_name,
-        )
-
     @classmethod
-    def _parse_value(cls, raw: Any) -> ReleaseDate:
+    def _parse_value(cls,
+                     raw: object
+                     ) -> ReleaseDate:
+        """Build a single :class:`ReleaseDate` from one raw FRED payload mapping.
 
+        Internal parser used by :class:`ReleaseDates`. Accepts an ISO date
+        string or a :class:`datetime.date` instance under the ``date`` key.
+
+        Args:
+            raw (object): The raw release-date payload from the FRED API.
+                Expected to be a mapping with ``release_id``, ``date``, and
+                optional ``release_name`` keys.
+
+        Returns:
+            ReleaseDate: A fully populated :class:`ReleaseDate` instance.
+
+        Raises:
+            ModelError: If ``raw`` is not a mapping or is missing the
+                ``release_id`` or ``date`` fields.
+        """
         if not isinstance(raw, dict):
             raise ModelError("Invalid release_date payload: expected a mapping")
         if "release_id" not in raw or "date" not in raw:
@@ -816,75 +1426,192 @@ class ReleaseDate(_DateBase):
             release_name=raw.get("release_name"),
         )
 
+    # Dunder Methods
+    def __repr__(self) -> str:
+        """Return a developer-readable representation including release metadata.
+
+        Returns:
+            str: A string of the form
+            ``ReleaseDate(<iso_date>, release_id=<id>, release_name=<name>)``.
+        """
+        return (
+            f"ReleaseDate({self.isoformat()}, "
+            f"release_id={self.release_id}, release_name={self.release_name!r})"
+        )
+
+    def __reduce__(self) -> tuple[Callable[..., ReleaseDate], tuple[Any, ...]]:
+        """Support pickling and ``copy.deepcopy`` via :meth:`_rebuild`.
+
+        Returns:
+            tuple: A two-tuple of the rebuild callable and the positional
+            arguments needed to reconstruct the instance. Using
+            ``type(self)._rebuild`` (rather than a hard-coded
+            ``ReleaseDate._rebuild``) preserves subclass identity on
+            round-trip.
+        """
+        return (
+            type(self)._rebuild,
+            (self.year, self.month, self.day, self.release_id, self.release_name),
+        )
+
+    # Protected Methods
+    def _with_date(self, year: int, month: int, day: int) -> Self:
+        """Rebuild this instance at a new (year, month, day), preserving metadata.
+
+        Override of :meth:`fedfred._internals._models._DateBase._with_date`
+        that routes through :meth:`create` to preserve the ``release_id``
+        and ``release_name`` slots when arithmetic on the underlying date
+        is performed by the base class.
+
+        Args:
+            year (int): The new year.
+            month (int): The new month.
+            day (int): The new day.
+
+        Returns:
+            ReleaseDate: A new :class:`ReleaseDate` at the given date with
+            the same release metadata.
+        """
+        return type(self).create(
+            year, month, day,
+            release_id=self.release_id,
+            release_name=self.release_name,
+        )
+
+
 class ReleaseDates(_DateSequence[ReleaseDate]):
-    """Auto-wired sequence; no container-level metadata."""
-    __slots__ = ()
+    """An immutable, notebook-friendly sequence of :class:`ReleaseDate` objects.
 
-    def _lookup_value(self, item: ReleaseDate) -> str:
-        return item.isoformat()
+    Behaves like a tuple of :class:`ReleaseDate` (indexing, slicing, iteration,
+    ``len``, ``==``, ``in``, hashable) and is string-keyed by ISO date for
+    ergonomic lookup (``release_dates["2024-12-06"]``) with IPython tab
+    completion against the same key. Slicing returns a new :class:`ReleaseDates`.
 
-@dataclass(slots=True)
-class Source(_ModelBase):
-    """A class used to represent a Source.
-
-    Represents a single source in the Federal Reserve Economic Data (FRED) database. A source is an organization or entity that provides
-    economic data, such as government agencies, research institutions, or private companies. Each source has a unique identifier, a name,
-    real-time start and end dates, and other metadata.
-
-    Attributes:
-        name (str): The name of the source.
-        id (int, optional): The unique identifier for the source.
-        realtime_start (str, optional): The start date for real-time data.
-        realtime_end (str, optional): The end date for real-time data.
-        link (str, optional): A link to more information about the source.
-        notes (str, optional): Additional notes about the source.
-        client (Fred, optional): The Fred client instance associated with this Source.
-        releases (Releases): The releases associated with this source.
-
-    Notes:
-        This class is designed to work with the FRED API and may require a client instance for certain operations.
+    The lookup key is computed via :meth:`_lookup_value` rather than read from
+    an attribute, since :class:`ReleaseDate` is itself the date and we want to
+    key on its ISO-formatted string.
 
     Examples:
         >>> import fedfred as fd
         >>> fred_client = fd.Fred('your_api_key')
-        >>> sources = fred_client.get_source(1)
-        >>> for source in sources:
-        >>>     print(source.name)
-        'Federal Reserve Board'
-        'Bureau of Economic Analysis'...
-
-    References:
-        - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.objects.Source.html
-        - Federal Reserve Bank of St. Louis, FRED API documentation. https://fred.stlouisfed.org/sources/
+        >>> release_dates = fred_client.get_release_dates(82)
+        >>> release_dates[-1].release_name
+        'Employment Situation'
+        >>> release_dates["2024-12-06"].release_id
+        82
 
     See Also:
+        - :class:`fedfred.ReleaseDate`: The element type.
+
+    References:
+        - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.ReleaseDates.html
+    """
+
+    __slots__ = ()
+
+    # Protected Methods
+    def _lookup_value(self, item: ReleaseDate) -> str:
+        """Compute the lookup key for an item as its ISO date string.
+
+        Override of :meth:`fedfred._internals._models._DateSequence._lookup_value`
+        that enables string-key indexing and tab completion against ISO dates
+        (e.g., ``release_dates["2024-12-06"]``).
+
+        Args:
+            item (ReleaseDate): The element to compute a lookup key for.
+
+        Returns:
+            str: The ISO 8601 representation of the date.
+        """
+        return item.isoformat()
+
+
+@dataclass(slots=True)
+class Source(_ModelBase):
+    """A FRED Source.
+
+    Represents a single data source in the Federal Reserve Economic Data
+    (FRED) database. A source is an organization or entity that provides
+    economic data — for example, the Bureau of Economic Analysis, the
+    Bureau of Labor Statistics, or the Federal Reserve Board itself.
+    Each source has an optional integer identifier, a name, an optional
+    realtime period, an optional homepage link, and optional notes.
+
+    When a ``client`` is attached, :attr:`releases` lazily fetches the
+    releases published by this source.
+
+    Attributes:
+        name (str): The human-readable name of the source.
+        id (int, optional): The unique identifier for the source.
+        realtime_start (str, optional): The start of the real-time period in
+            ``YYYY-MM-DD`` format.
+        realtime_end (str, optional): The end of the real-time period in
+            ``YYYY-MM-DD`` format.
+        link (str, optional): A homepage URL for the source.
+        notes (str, optional): Free-form notes accompanying the source.
+        client (Fred, optional): The Fred client instance associated with this Source.
+        releases (Releases): Lazily fetched releases published by this source.
+
+    Examples:
+        >>> import fedfred as fd
+        >>> fred_client = fd.Fred('your_api_key')
+        >>> source = fred_client.get_source(1)
+        >>> print(source.name)
+        'Board of Governors of the Federal Reserve System (US)'
+
+    See Also:
+        - :class:`fedfred.Sources`: The plural sequence container.
         - :class:`fedfred.Release`: For the object representation of a FRED release.
+
+    References:
+        - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.Source.html
+        - Federal Reserve Bank of St. Louis, FRED API documentation. https://fred.stlouisfed.org/sources/
     """
 
     name: str
-    """The name of the source."""
+    """The human-readable name of the source."""
 
     id: int | None
-    """The unique identifier for the source. corresponds to 'source_id' in the FRED API."""
+    """The unique identifier for the source. Corresponds to ``source_id`` in the FRED API. ``None`` when the FRED payload omits it."""
 
     realtime_start: str | None
-    """The start date for real-time data. YYYY-MM-DD format. corresponds to 'realtime_start' in the FRED API."""
+    """The start of the real-time period in ``YYYY-MM-DD`` format. Corresponds to ``realtime_start`` in the FRED API."""
 
     realtime_end: str | None
-    """The end date for real-time data. YYYY-MM-DD format. corresponds to 'realtime_end' in the FRED API."""
+    """The end of the real-time period in ``YYYY-MM-DD`` format. Corresponds to ``realtime_end`` in the FRED API."""
 
     link: str | None = None
-    """A link to more information about the source."""
+    """A homepage URL for the source. Tolerates ``"link"`` or ``"url"`` keys from the FRED payload."""
 
     notes: str | None = None
-    """Additional notes about the source."""
+    """Free-form notes accompanying the source, if any."""
 
     _response_key: ClassVar[str] = "sources"
+    """The key in the FRED API response payload that contains the source list."""
 
     # Class Methods
     @classmethod
     def _from_dict(cls, data: dict[str, Any], client: _ClientModel | None = None) -> Source:
+        """Build a single :class:`Source` from one raw FRED payload mapping.
 
+        Internal parser used by :meth:`to_object` and by sequence containers.
+        Accepts both ``link`` and ``url`` as the homepage key.
+
+        Args:
+            data (dict[str, Any]): The raw source payload from the FRED API.
+            client (_ClientModel, optional): The FRED client to attach to the
+                resulting object for lazy relation traversal. Defaults to ``None``.
+
+        Returns:
+            Source: A fully populated :class:`Source` instance.
+
+        Raises:
+            ModelError: If ``data`` is not a mapping or is missing the
+                ``name`` field.
+
+        References:
+            - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.Source.html
+        """
         if not isinstance(data, dict):
             raise ModelError("Invalid source payload: expected a mapping")
 
@@ -903,21 +1630,56 @@ class Source(_ModelBase):
 
     # Properties
     @property
-    def releases(self) -> "Releases":
-        """The releases associated with this source."""
+    def releases(self) -> Releases:
+        """The releases published by this source.
+
+        Lazily resolves to ``client.get_source_releases(self.id)`` on access.
+        Requires a ``client`` to be attached to this instance.
+
+        Returns:
+            Releases: A sequence of :class:`Release` objects.
+
+        Raises:
+            ModelError: If no client is attached to this instance.
+        """
         return self._require_client().get_source_releases(self.id)
 
+
 class Sources(_ModelSequence[Source]):
+    """An immutable, notebook-friendly sequence of :class:`Source` objects.
+
+    Behaves like a tuple of :class:`Source` (indexing, slicing, iteration,
+    ``len``, ``==``, ``in``) and is string-keyed by ``name`` for ergonomic
+    lookup (``sources["Bureau of Economic Analysis"]``) with IPython tab
+    completion. Slicing returns a new :class:`Sources` carrying the same client.
+
+    Examples:
+        >>> import fedfred as fd
+        >>> fred_client = fd.Fred('your_api_key')
+        >>> sources = fred_client.get_sources()
+        >>> sources["Board of Governors of the Federal Reserve System (US)"].id
+        1
+
+    See Also:
+        - :class:`fedfred.Source`: The element type.
+
+    References:
+        - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.Sources.html
+    """
 
     __slots__ = ()
 
-
     _lookup_key: ClassVar[str | None] = "name"
+    """Attribute used for string-key lookup and tab completion (``sources["<source_name>"]``)."""
 
-
+    # Sunder Methods
     def _repr_html_(self) -> str:
+        """Render a compact HTML table preview of the first ten sources.
 
-
+        Returns:
+            str: An HTML ``<table>`` with id, name, and link columns and a
+            truncation caption when the sequence exceeds ten entries.
+        """
         head = self._items[:10]
 
         rows = "".join(
@@ -933,93 +1695,121 @@ class Sources(_ModelSequence[Source]):
                 "<thead><tr><th>id</th><th>name</th><th>link</th></tr></thead>"
                 f"<tbody>{rows}</tbody></table>")
 
+
 @dataclass(slots=True)
 class Element(_ModelBase):
-    """A class used to represent an Element.
+    """A FRED Release Table Element.
 
-    Represents a single element in the Federal Reserve Economic Data (FRED) database. An element is a component of a release,
-    such as a table or a line item within a table. Each element has a unique identifier, a release ID, a series ID, a parent ID,
-    and other metadata.
+    Represents a single element (row, section heading, or aggregate line)
+    within a FRED release table — the structured table-of-contents view that
+    accompanies major releases like the National Income and Product Accounts.
+    Each element references a series, sits at a particular hierarchical
+    level, and may contain child elements forming a tree.
+
+    When a ``client`` is attached, :attr:`release` and :attr:`series` lazily
+    resolve the related-resource references.
 
     Attributes:
         element_id (int): The unique identifier for the element.
-        release_id (int): The ID of the release associated with the element.
-        series_id (str): The ID of the series associated with the element.
-        parent_id (int): The ID of the parent element.
-        line (str): The line description of the element.
-        type (str): The type of the element.
-        name (str): The name of the element.
-        level (str): The level of the element.
-        children (Elements, optional): The child elements of this element.
+        release_id (int): The release this element belongs to.
+        series_id (str): The series this element references.
+        parent_id (int): The parent element in the table hierarchy.
+        line (str): The line label for the element.
+        type (str): The element type classifier.
+        name (str): The human-readable element name.
+        level (str): The hierarchical level within the table.
+        children (Elements, optional): Child elements in the table hierarchy.
         client (Fred, optional): The Fred client instance associated with this Element.
-
-    Notes:
-        This class is designed to work with the FRED API and may require a client instance for certain operations.
+        release (Release): Lazily fetched release this element belongs to.
+        series (Series): Lazily fetched series this element references.
 
     Examples:
         >>> import fedfred as fd
         >>> fred_client = fd.Fred('your_api_key')
         >>> elements = fred_client.get_release_tables(53)
-        >>> for element in elements:
-        >>>     print(element.name)
+        >>> elements[0].name
         'Real Gross Domestic Product'
-        'Gross Domestic Product'
-        'Personal Income and Outlays'...
-
-    References:
-        - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.objects.Element.html
 
     See Also:
-        - :class:`fedfred.Release`: For the object representation of a FRED release.
-        - :class:`fedfred.Series`: For the object representation of a FRED series.
+        - :class:`fedfred.Elements`: The plural sequence container.
+        - :class:`fedfred.Release`: For the release this element belongs to.
+        - :class:`fedfred.Series`: For the series this element references.
+
+    References:
+        - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.Element.html
+        - Federal Reserve Bank of St. Louis, FRED API documentation. https://fred.stlouisfed.org/docs/api/fred/release_tables.html
     """
 
     element_id: int
-    """The unique identifier for the element"""
+    """The unique identifier for the element."""
 
     release_id: int
-    """The ID of the release associated with the element. corresponds to 'release_id' in the FRED API."""
+    """The release this element belongs to. Corresponds to ``release_id`` in the FRED API."""
 
     series_id: str
-    """The ID of the series associated with the element. corresponds to 'series_id' in the FRED API."""
+    """The series this element references. Corresponds to ``series_id`` in the FRED API."""
 
     parent_id: int
-    """The ID of the parent element"""
+    """The parent element in the table hierarchy. ``0`` for top-level entries."""
 
     line: str
-    """The line description of the element"""
+    """The line label for the element (typically a row number or section anchor)."""
 
     type: str
-    """The type of the element"""
+    """The element type classifier (e.g., ``"header"``, ``"line"``)."""
 
     name: str
-    """The name of the element"""
+    """The human-readable element name."""
 
     level: str
-    """The level of the element"""
+    """The hierarchical level within the table (typically a numeric string)."""
 
-    children: "Elements" | None = None
-    """The child elements of this element."""
+    children: Elements | None = None
+    """Child elements in the table hierarchy, or ``None`` if this is a leaf."""
+
+    _response_key: ClassVar[str] = "elements"
+    """The key in the FRED API response payload that contains the element mapping."""
 
     # Class Methods
     @classmethod
-    def _from_dict(cls, data: dict[str, Any], client: _ClientModel | None = None) -> "Element":
+    def _from_dict(cls, data: dict[str, Any], client: _ClientModel | None = None) -> Element:
+        """Build a single :class:`Element` from one raw FRED payload mapping.
 
+        Internal parser used by :meth:`to_object` and by sequence containers.
+        Recursively constructs an :class:`Elements` for the ``children``
+        field when present.
 
+        Args:
+            data (dict[str, Any]): The raw element payload from the FRED API.
+            client (_ClientModel, optional): The FRED client to attach to the
+                resulting object (and to recursively constructed children)
+                for lazy relation traversal. Defaults to ``None``.
+
+        Returns:
+            Element: A fully populated :class:`Element` instance.
+
+        Raises:
+            ModelError: If ``data`` is not a mapping or is missing any of the
+                required fields (``element_id``, ``release_id``, ``series_id``,
+                ``parent_id``, ``line``, ``type``, ``name``, ``level``).
+
+        References:
+            - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.Element.html
+        """
         if not isinstance(data, dict):
             raise ModelError("Invalid element payload: expected a mapping")
-        
+
         for required in ("element_id", "release_id", "series_id", "parent_id", "line", "type", "name", "level"):
             if required not in data:
                 raise ModelError(f"Invalid element payload: missing {required!r}")
-            
+
         raw_children = data.get("children") or []
 
         children = Elements(
             (cls._from_dict(c, client=client) for c in raw_children),
             client=client,
         ) if raw_children else None
-        
+
         return cls(
             element_id=data["element_id"],
             release_id=data["release_id"],
@@ -1035,7 +1825,24 @@ class Element(_ModelBase):
 
     @classmethod
     def to_object(cls, response: dict[str, Any], client: _ClientModel | None = None) -> Element:
-        # FRED returns 'elements' as a dict keyed by id, not a list. Take the first.
+        """Build a single :class:`Element` from a FRED API response payload.
+
+        FRED returns ``"elements"`` as a dict keyed by element id rather than
+        a list; :func:`fedfred._core._objects_iter_dict_or_list` normalizes
+        both shapes. This method returns the first entry; callers needing
+        the full tree should use :class:`Elements`.
+
+        Args:
+            response (dict[str, Any]): The raw FRED API response payload.
+            client (_ClientModel, optional): The FRED client to attach to the
+                resulting :class:`Element`. Defaults to ``None``.
+
+        Returns:
+            Element: The first :class:`Element` in the response payload.
+
+        Raises:
+            ModelError: If the response does not contain any elements.
+        """
         items = _objects_iter_dict_or_list(response, cls._response_key)
         if not items:
             raise ModelError("No element found in the response")
@@ -1043,36 +1850,97 @@ class Element(_ModelBase):
 
     # Properties
     @property
-    def release(self) -> Releases:
-        """The release associated with this element."""
+    def release(self) -> Release:
+        """The release this element belongs to.
 
+        Lazily resolves to ``client.get_release(self.release_id)`` on access.
+        Requires a ``client`` to be attached to this instance.
+
+        Returns:
+            Release: The :class:`Release` this element belongs to.
+
+        Raises:
+            ModelError: If no client is attached to this instance.
+        """
         return self._require_client().get_release(self.release_id)
 
     @property
-    def series(self) -> Seriess:
-        """The series associated with this element."""
+    def series(self) -> Series:
+        """The series this element references.
 
+        Lazily resolves to ``client.get_series(self.series_id)`` on access.
+        Requires a ``client`` to be attached to this instance.
+
+        Returns:
+            Series: The :class:`Series` this element references.
+
+        Raises:
+            ModelError: If no client is attached to this instance.
+        """
         return self._require_client().get_series(self.series_id)
 
+
 class Elements(_ModelSequence[Element]):
-    """Immutable, notebook-friendly sequence of FRED release-table elements."""
+    """An immutable, notebook-friendly sequence of :class:`Element` objects.
+
+    Behaves like a tuple of :class:`Element` (indexing, slicing, iteration,
+    ``len``, ``==``, ``in``) and is string-keyed by ``name`` for ergonomic
+    lookup (``elements["Real Gross Domestic Product"]``) with IPython tab
+    completion. Slicing returns a new :class:`Elements` carrying the same
+    client.
+
+    FRED's release-tables endpoint returns the element collection as a dict
+    keyed by element id rather than a list; the :meth:`to_object` constructor
+    normalizes both shapes.
+
+    Examples:
+        >>> import fedfred as fd
+        >>> fred_client = fd.Fred('your_api_key')
+        >>> elements = fred_client.get_release_tables(53)
+        >>> elements["Real Gross Domestic Product"].series_id
+        'GDPC1'
+
+    See Also:
+        - :class:`fedfred.Element`: The element type.
+
+    References:
+        - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.Elements.html
+    """
 
     __slots__ = ()
 
-
     _lookup_key: ClassVar[str | None] = "name"
+    """Attribute used for string-key lookup and tab completion (``elements["<element_name>"]``)."""
 
-
+    # Class Methods
     @classmethod
     def to_object(cls, response: dict[str, Any], client: _ClientModel | None = None) -> Elements:
+        """Build an :class:`Elements` sequence from a FRED API response payload.
 
+        Normalizes FRED's dict-keyed element payload into a flat sequence
+        via :func:`fedfred._core._objects_iter_dict_or_list`.
 
+        Args:
+            response (dict[str, Any]): The raw FRED API response payload.
+            client (_ClientModel, optional): The FRED client to propagate to
+                each constructed :class:`Element` and to the sequence itself.
+                Defaults to ``None``.
+
+        Returns:
+            Elements: A sequence of :class:`Element` objects.
+        """
         items = _objects_iter_dict_or_list(response, cls._response_key)
         return cls((cls._parse_item(item, client=client) for item in items), client=client)
 
+    # Sunder Methods
     def _repr_html_(self) -> str:
+        """Render a compact HTML table preview of the first ten elements.
 
-
+        Returns:
+            str: An HTML ``<table>`` with element_id, name, type, and level
+            columns and a truncation caption when the sequence exceeds ten
+            entries.
+        """
         head = self._items[:10]
 
         rows = "".join(
@@ -1087,6 +1955,29 @@ class Elements(_ModelSequence[Element]):
                 "<thead><tr><th>element_id</th><th>name</th><th>type</th><th>level</th></tr></thead>"
                 f"<tbody>{rows}</tbody></table>")
 
+
 @dataclass(slots=True)
-class BulkRelease: # TODO: This thing is honest to god competely fucked just rewrite this with the v2 method.
+class BulkRelease:  # TODO: This thing is honest to god completely fucked just rewrite this with the v2 method.
+    """Placeholder for the bulk-release observation aggregation (v4 rewrite pending).
+
+    The v3 implementation of bulk-release retrieval is being replaced by a
+    cursor-based streaming aggregation in v4. This class is retained as a
+    type marker so that :meth:`fedfred.Fred.get_release_observations` keeps
+    a stable signature during the transition; the implementation will be
+    filled in once the v4 endpoint and observation-model designs are settled.
+
+    Warning:
+        This class is intentionally not yet implemented. Do not depend on
+        any attribute or method here. The full design will land alongside
+        the v4 observation model.
+
+    See Also:
+        - :class:`fedfred.Release`: For the underlying release object.
+        - :class:`fedfred.Series`: For the underlying series objects bundled in a bulk release.
+
+    References:
+        - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.BulkRelease.html
+        - Federal Reserve Bank of St. Louis, FRED API documentation. https://fred.stlouisfed.org/docs/api/fred/release_observations.html
+    """
+
     pass
