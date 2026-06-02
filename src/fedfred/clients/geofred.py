@@ -47,7 +47,6 @@ from typing import TYPE_CHECKING, Optional, Dict, Union, List, Tuple, Any, KeysV
 from types import TracebackType
 import geopandas as gpd
 from ...settings import set_api_key, _resolve_api_key
-from ...__about__ import __title__, __version__, __author__, __email__, __license__, __copyright__, __description__, __docs__, __repository__
 from ..._core import (
     # Converters
     _hashable_type_converter, _hashable_type_converter_async,
@@ -65,6 +64,7 @@ from ..._core import (
     _region_type_parser, _region_type_parser_async
 )
 from ...models import SeriesGroup
+from.._internals import _BaseClient, _AsyncBaseClient
 
 if TYPE_CHECKING:
     import dask_geopandas as dd_gpd # pragma: no cover
@@ -76,7 +76,7 @@ __all__ = [
     "GeoFred", "AsyncGeoFred"
 ]
 
-class GeoFred:
+class GeoFred(_BaseClient):
     """Client for interacting with the Federal Reserve Economic Data (FRED) Maps API.
 
     The GeoFred class provides methods to interact with the FRED Maps API, which offers geospatial 
@@ -95,8 +95,8 @@ class GeoFred:
         ValueError: If the parent instance is not an instance of Fred.
 
     Notes:
-        The GeoFred class is designed to work in conjunction with the Fred class, providing a more specialized interface for 
-        accessing geospatial data and maps from the FRED API. It leverages the caching and rate-limiting mechanisms of the 
+        The GeoFred class is designed to work in conjunction with the Fred class, providing a more specialized interface for
+        accessing geospatial data and maps from the FRED API. It leverages the caching and rate-limiting mechanisms of the
         parent Fred instance to ensure efficient and reliable access to geospatial data and maps.
 
     Examples:
@@ -115,318 +115,7 @@ class GeoFred:
         - :class:`fedfred.Helpers`: Helper methods for the FRED API.
     """
 
-    __all__ = ["GeoFred", "AsyncGeoFred"]
-
-    # Dunder Methods
-    def __init__(self, api_key: Optional[str]=None, caching_enabled: bool=True, cache_size: int=256) -> None:
-        """Initialize the GeoFred with a reference to the parent Fred instance.
-
-        Args:
-            api_key (str, optional): Your FRED API key.
-            caching_enabled (bool, optional): Whether to enable caching for API responses. Defaults to False.
-            cache_size (int, optional): The maximum number of items to store in the cache if caching is enabled. Defaults to 256.
-
-        Raises:
-            Runtime Error: ----------
-
-        Examples:
-            >>> import fedfred as fd
-            >>> fred = fd.Fred('your_api_key')
-            >>> fred_maps = fred.GeoFred
-
-            or directly with a Fred instance
-
-            >>> fred_maps = fd.GeoFred(fred)
-
-        Notes:
-            API keys can be set globally using `fedfred.set_api_key(...)`, or can be provided explicitly
-            when instantiating the `Fred` class. If neither is provided, the class will attempt to
-            resolve the API key from the environment variable `FRED_API_KEY`.
-
-        See Also:
-            - :func:`fedfred.set_api_key`: Function to set the global FRED API key.
-            - :class:`fedfred.AsyncGeoFred`: Asynchronous client for accessing FRED Maps API.
-        """
-
-        if api_key:
-            set_api_key(api_key, service="geofred")
-
-        if caching_enabled:
-            set_cache_maxsize(cache_size)
-
-        self.caching_enabled: bool = caching_enabled
-        self.cache_size: int = get_cache_maxsize() if caching_enabled else cache_size
-
-    def __repr__(self) -> str:
-        """String representation of the GeoFred Class.
-
-        Returns:
-            str: A string representation of the GeoFred instance.
-
-        Notes:
-            The string representation includes the parent Fred instance's string representation and the GeoFred 
-            instance's string representation.
-
-        Examples:
-            >>> import fedfred as fd
-            >>> fred = fd.Fred('your_api_key')
-            >>> fred_maps = fred.GeoFred
-            >>> print(fred_maps)
-            'Fred(api_key='your_api_key', cache_mode=True, cache_size=256).GeoFred(base_url=https://api.stlouisfed.org/geofred)'
-        """
-
-        try:
-            has_key = bool(_resolve_api_key(service="geofred"))
-        except RuntimeError:                        # TODO: Add custom exception for missing API key and catch that instead.
-            has_key = False
-
-        auth = "<set>" if has_key else "None"
-
-                                                    # TODO: include size of instance object in the repr string for debugging purposes (can use sys.getsizeof() for that).
-
-        return (
-            f"{type(self).__name__}("
-            f"api_key={auth}, "
-            f"caching_enabled={self.caching_enabled}, "
-            f"cache_size={self.cache_size}"
-            f")"
-        )
-
-    def __str__(self) -> str:
-        """String representation of the GeoFred instance.
-
-        Returns:
-            str: A user-friendly string representation of the GeoFred instance.
-
-        Notes:
-            The string representation includes the parent Fred instance's string representation and the GeoFred instance's string representation.
-
-        Examples:
-            >>> import fedfred as fd
-            >>> fred = fd.Fred('your_api_key')
-            >>> fred_maps = fred.GeoFred
-            >>> print(fred_maps)
-            'Fred Instance:'
-            '  Base URL: https://api.stlouisfed.org/fred'
-            '  API Key: ****your_api_key'
-            '  Cache Mode: Enabled'
-            '  Cache Size: 256 items'
-            '  Max Requests per Minute: 120'
-            '  GeoFred Instance:'
-            '      Base URL: https://api.stlouisfed.org/geofred'
-        """
-
-        try:
-            has_key = bool(_resolve_api_key(service="geofred"))
-        except RuntimeError:                           # TODO: Add custom exception for missing API key and catch that instead.
-            has_key = False
-
-        auth_line = "configured" if has_key else "not configured"
-
-        cache_line = (
-            f"enabled (FIFO, maxsize={self.cache_size})"
-            if self.caching_enabled
-            else "disabled"
-        )
-
-        return (
-            f"{type(self).__name__} Instance:\n"
-            f"  Service: FRED ({_ST_LOUIS_FED_BASE_URL}{_GEOFRED_PATH})\n"
-            f"  API Key: {auth_line}\n"
-            f"  Cache: {cache_line}\n"
-            f"  Rate Limit: {_FRED_MAX_REQUESTS_PER_MINUTE} req/min\n"
-        )
-
-    def __eq__(self, other: object) -> bool:
-        """Equality comparison for the GeoFred class.
-
-        Args:
-            other (object): The object to compare with.
-
-        Returns:
-            bool: True if the objects are equal, False otherwise.
-
-        Notes:
-            This method compares two GeoFred instances based on their attributes. If the other object is not a GeoFred 
-            instance, it returns NotImplemented.
-
-        Examples:
-            >>> import fedfred as fd
-            >>> fred = fd.Fred('your_api_key')
-            >>> fred_maps = fred.GeoFred
-            >>> fred_maps2 = fd.GeoFred(fred)
-            >>> fred_maps == fred_maps2
-            True
-        """
-
-        try:
-            assert isinstance(other, type(self))
-        except AssertionError:
-            return NotImplemented
-
-        return (
-            self.caching_enabled == other.caching_enabled
-            and self.cache_size == other.cache_size
-        )
-
-    def __hash__(self) -> int:
-        """Hash function for the GeoFred class.
-
-        Returns:
-            int: A hash value for the GeoFred instance.
-
-        Notes:
-            This method generates a hash based on the GeoFred instance's attributes, including the parent Fred 
-            instance's attributes.
-
-        Examples:
-            >>> import fedfred as fd
-            >>> fred = fd.Fred('your_api_key')
-            >>> fred_maps = fred.GeoFred
-            >>> hash(fred_maps)
-            1234567890 # Example hash value
-        """
-
-        return hash((type(self).__name__, self.caching_enabled, self.cache_size))
-
-    def __len__(self) -> int:
-        """Get the number of cached items in the GeoFred instance.
-
-        Returns:
-            int: The number of cached items in the GeoFred instance.
-
-        Notes:
-            This method returns the size of the cache if the cache is enabled.
-
-        Examples:
-            >>> import fedfred as fd
-            >>> fred = fd.Fred('your_api_key')
-            >>> fred_maps = fred.GeoFred
-            >>> print(len(fred_maps))
-            256 # Example length of cache
-        """
-
-        return len(_CACHE) if self.caching_enabled else 0
-
-    def __contains__(self, key: str) -> bool:
-        """Check if a specific item exists in the cache.
-
-        Args:
-            key (str): The name of the attribute to check.
-
-        Returns:
-            bool: True if the key exists, False otherwise.
-
-        Notes:
-            This method checks if a specific item exists in the cache.
-
-        Examples:
-            >>> import fedfred as fd
-            >>> fred = fd.Fred('your_api_key')
-            >>> fred_maps = fred.GeoFred
-            >>> print('some_key' in fred_maps)
-            True
-        """
-
-        return self.caching_enabled and key in _CACHE
-
-    def __getitem__(self, key: str) -> Any:
-        """Get a specific item from the cache.
-
-        Args:
-            key (str): The name of the attribute to get.
-
-        Returns:
-            Any: The value of the attribute.
-
-        Raises:
-            AttributeError: If the key does not exist.
-
-        Notes:
-            This method allows access to cached items using the indexing syntax.
-
-        Examples:
-            >>> import fedfred as fd
-            >>> fred = fd.Fred('your_api_key')
-            >>> fred_maps = fred.GeoFred
-            >>> value = fred_maps['some_key']
-            >>> print(value)
-            'some_value'
-        """
-
-        if not self.caching_enabled:
-            raise KeyError(key)         # TODO: Add custom exception for cache disabled and catch that instead.
-
-        return _CACHE.cache[key]
-
-    def __enter__(self) -> "GeoFred":
-        """Enter the runtime context.
-
-        Returns:
-            GeoFred: The Fred instance itself.
-
-        Notes:
-            The GeoFred client does not currently own per-instance resources requiring explicit cleanup — transport opens and closes httpx.Client per request,
-            and the cache and rate-limit buckets are module-global. The context manager exists for ergonomic parity with httpx/requests and as a
-            forward-compatible seam for future per-instance connection pooling.
-
-        Examples:
-            >>> import fedfred as fd
-            >>> with fd.Fred("your_api_key") as fred:
-            ...     categories = fred.get_category(125)
-        """
-
-        return self
-
-    def __exit__(self, exc_type: Optional[type[BaseException]], exc: Optional[BaseException], tb: Optional[TracebackType]) -> None:
-        """Exit the runtime context. No-op.
-
-        Args:
-            exc_type: Exception type if one was raised in the with-block.
-            exc: Exception instance, if any.
-            tb: Traceback, if any.
-
-        Notes:
-            Does not clear the cache or rate-limit buckets — those are shared
-            across all live Fred and AsyncFred instances. Clearing them here
-            would corrupt other clients.
-        """
-
-        return None
-
-    # Properties
-    @property
-    def keys(self) -> Optional[KeysView[tuple[Any, ...]]]:
-        """List of keys in the cache."""
-
-        return _CACHE.keys() if self.caching_enabled else None
-
-    def __geofred_get_request(self, endpoint_name: str, data: Optional[Dict[str, Any]]=None) -> Dict[str, Any]:
-        """Helper method to perform a synchronous GET request to the FRED Maps API.
-
-        Args:
-            endpoint_name (str): The FRED Maps API endpoint to query.
-            data (Dict[str, Optional[str | int]], optional): The query parameters for the request. Defaults to None.
-
-        Returns:
-            Dict[str, Any]: The JSON response from the FRED Maps API.
-
-        Raises:
-            httpx.HTTPError: If the HTTP request fails.
-
-        Notes:
-            This method handles rate limiting and caching for synchronous GET requests to the FRED Maps API.
-
-        Warnings:
-            Caching is only applied if `cache_mode` is enabled. Ensure that the `data` parameter is hashable for 
-            caching to work correctly.
-        """
-
-        if self.caching_enabled:
-            return _cached_get_request(endpoint_name, _hashable_type_converter(data))
-
-        else:
-            return _get_request(endpoint_name, data)
+    _service_key = "geofred"
 
     # Public Methods
     def get_shape_files(self, shape: str, geodataframe_method: str='geopandas') -> Union[gpd.GeoDataFrame, 'dd_gpd.GeoDataFrame', 'st.GeoDataFrame']:
@@ -681,10 +370,10 @@ class GeoFred:
         else:
             raise ValueError("shapefile type error") # TODO: Needs custom Error handling exception hierarchy.
 
-class AsyncGeoFred:
+class AsyncGeoFred(_AsyncBaseClient):
     """Asynchronous client for interacting with the Federal Reserve Economic Data (FRED) Maps API.
     
-    The AsyncGeoFred class provides methods to access various endpoints of the FRED Maps API asynchronously. 
+    The AsyncGeoFred class provides methods to access various endpoints of the FRED Maps API asynchronously.
     It is designed to be used as part of the AsyncFred client.
 
     Attributes:

@@ -67,21 +67,33 @@ References:
 """
 
 from __future__ import annotations
+
 import asyncio
+from collections.abc import Iterable, Iterator, Sequence
 from dataclasses import dataclass, field
-from datetime import date, timedelta, datetime
-from collections.abc import Sequence
+from datetime import date, datetime, timedelta
 from typing import (
-    Any, ClassVar, Dict, Iterable, Iterator, Optional, Self, Tuple,
-    Union, overload, TypeVar, Never, SupportsIndex,
+    Any,
+    ClassVar,
+    Never,
+    Self,
+    SupportsIndex,
+    TypeVar,
+    overload,
 )
+
 from .._core import _require_list
 from ._clients import _ClientModel  # pragma: no cover
 
 # TODO: Fix all docstrings post error design.
 
-__all__ = ["_Sequence", "_ModelSequence", "_ModelBase", "_DateBase", "_DateSequence"]
-
+__all__ = [
+    "_DateBase",
+    "_DateSequence",
+    "_ModelBase",
+    "_ModelSequence",
+    "_Sequence",
+]
 
 @dataclass(slots=True, kw_only=True)
 class _ModelBase:
@@ -111,14 +123,19 @@ class _ModelBase:
         - :class:`_DateBase`: The date-flavored singleton base.
     """
 
-    client: Optional[_ClientModel] = field(default=None, repr=False, compare=False)
+    client: _ClientModel | None = field(default=None, repr=False, compare=False)
     """The FRED client instance attached to this object, or ``None`` if unattached. Excluded from ``repr`` and dataclass equality."""
 
     _response_key: ClassVar[str]
     """Subclass-declared key under which FRED returns the list of objects of this type in a response payload."""
 
+    # Class Methods
     @classmethod
-    def _from_dict(cls, data: Dict[str, Any], client: Optional[_ClientModel] = None) -> Self:
+    def _from_dict(
+        cls,
+        data: dict[str, Any],
+        client: _ClientModel | None = None
+    ) -> Self:
         """Build a single instance from one raw FRED payload mapping.
 
         Subclass hook. Implementations validate required fields, normalize
@@ -126,22 +143,23 @@ class _ModelBase:
         thread the optional ``client`` into the constructed instance.
 
         Args:
-            data (Dict[str, Any]): The raw object payload from the FRED API.
-            client (_ClientModel, optional): The FRED client to attach to
-                the resulting instance for lazy relation traversal. Defaults
-                to ``None``.
+            data (dict[str, Any]): The raw object payload from the FRED API.
+            client (_ClientModel, optional): The FRED client to attach to the resulting instance for lazy relation traversal. Defaults to ``None``.
 
         Returns:
             Self: A fully populated subclass instance.
 
         Raises:
-            NotImplementedError: If invoked on :class:`_ModelBase` directly
-                rather than an implementing subclass.
+            NotImplementedError: If invoked on :class:`_ModelBase` directly rather than an implementing subclass.
         """
         raise NotImplementedError
 
     @classmethod
-    def to_object(cls, response: Dict[str, Any], client: Optional[_ClientModel] = None) -> Self:
+    def to_object(
+        cls,
+        response: dict[str, Any],
+        client: _ClientModel | None = None
+    ) -> Self:
         """Build a single instance from a full FRED API response payload.
 
         Default implementation extracts the list under ``cls._response_key``,
@@ -151,25 +169,27 @@ class _ModelBase:
         method.
 
         Args:
-            response (Dict[str, Any]): The raw FRED API response payload.
-            client (_ClientModel, optional): The FRED client to attach to
-                the resulting instance. Defaults to ``None``.
+            response (dict[str, Any]): The raw FRED API response payload.
+            client (_ClientModel, optional): The FRED client to attach to the resulting instance. Defaults to ``None``.
 
         Returns:
             Self: A single subclass instance built from the first payload entry.
 
         Raises:
-            ModelError: If the response does not contain the expected key or
-                if the resolved list is empty.
+            ModelError: If the response does not contain the expected key or if the resolved list is empty.
         """
         raw = _require_list(response, cls._response_key)
+
         if not raw:
             raise ModelError(f"No {cls._response_key} found in the response")  # TODO: ModelError
+
         return cls._from_dict(raw[0], client=client)
 
     @classmethod
     async def to_object_async(
-        cls, response: Dict[str, Any], client: Optional[_ClientModel] = None
+        cls,
+        response: dict[str, Any],
+        client: _ClientModel | None = None
     ) -> Self:
         """Asynchronous counterpart to :meth:`to_object`.
 
@@ -178,7 +198,7 @@ class _ModelBase:
         payload validation and construction.
 
         Args:
-            response (Dict[str, Any]): The raw FRED API response payload.
+            response (dict[str, Any]): The raw FRED API response payload.
             client (_ClientModel, optional): The FRED client to attach to
                 the resulting instance. Defaults to ``None``.
 
@@ -190,6 +210,7 @@ class _ModelBase:
         """
         return await asyncio.to_thread(cls.to_object, response, client)
 
+    # Protected Methods
     def _require_client(self) -> _ClientModel:
         """Return the attached client, raising if none is present.
 
@@ -206,11 +227,11 @@ class _ModelBase:
         """
         if self.client is None:
             raise ModelError("Client not set for this instance.")  # TODO: ModelError
+
         return self.client
 
 
-# Type variables: one per layer so bounds stay tight where they matter.
-
+# Type Variables
 T = TypeVar("T")
 """Unbounded element type variable for the generic :class:`_Sequence` base."""
 
@@ -244,15 +265,9 @@ class _Sequence(Sequence[T]):
 
     Attributes:
         _items (Tuple[T, ...]): The underlying immutable tuple of elements.
-        _response_key (ClassVar[str]): Auto-wired from the generic parameter
-            on subclass definition; matches the FRED payload key for the
-            element type.
-        _element_cls (ClassVar[type]): Auto-wired element class, used by
-            subclass ``_parse_*`` methods to delegate construction.
-        _lookup_key (ClassVar[Optional[str]]): Attribute name on items used
-            by the default :meth:`_lookup_value` implementation. Subclasses
-            with computed keys (such as ISO-date strings) override
-            :meth:`_lookup_value` instead.
+        _response_key (ClassVar[str]): Auto-wired from the generic parameter on subclass definition; matches the FRED payload key for the element type.
+        _element_cls (ClassVar[type]): Auto-wired element class, used by subclass ``_parse_*`` methods to delegate construction.
+        _lookup_key (ClassVar[Optional[str]]): Attribute name on items used by the default :meth:`_lookup_value` implementation. Subclasses with computed keys (such as ISO-date strings) override :meth:`_lookup_value` instead.
 
     Notes:
         This class is private internals. Concrete sequences subclass either
@@ -275,10 +290,34 @@ class _Sequence(Sequence[T]):
     _element_cls: ClassVar[type] = object
     """Auto-wired element class used by subclass ``_parse_*`` methods to delegate construction."""
 
-    _lookup_key: ClassVar[Optional[str]] = None
+    _lookup_key: ClassVar[str | None] = None
     """Attribute on items used by the default :meth:`_lookup_value` implementation. Subclasses with computed keys should override :meth:`_lookup_value` instead."""
 
-    def __init_subclass__(cls, **kwargs: Any) -> None:
+    # Class Methods
+    @classmethod
+    def _supports_lookup(cls) -> bool:
+        """Return whether string-key lookup is enabled on this subclass.
+
+        Lookup is enabled if either ``_lookup_key`` is set to an attribute
+        name or :meth:`_lookup_value` is overridden relative to the base
+        implementation. The override check uses identity comparison on the
+        unbound function objects, which works because Python resolves
+        method descriptors lazily: a subclass that does not override gets
+        the exact same function object from :class:`_Sequence`.
+
+        Returns:
+            bool: ``True`` if string indexing and IPython completion are enabled on this subclass.
+        """
+        return (
+            cls._lookup_key is not None
+            or cls._lookup_value is not _Sequence._lookup_value
+        )
+
+    # Dunder Methods
+    def __init_subclass__(
+        cls,
+        **kwargs: Any
+    ) -> None:
         """Auto-wire ``_response_key`` and ``_element_cls`` from the generic parameter.
 
         Walks ``cls.__orig_bases__`` for any base whose ``__origin__`` is a
@@ -295,60 +334,61 @@ class _Sequence(Sequence[T]):
         carry a concrete ``Category`` type argument, so the auto-wire fires.
 
         Args:
-            **kwargs (Any): Forwarded to :meth:`type.__init_subclass__` for
-                cooperative subclassing.
+            **kwargs (Any): Forwarded to :meth:`type.__init_subclass__` for cooperative subclassing.
         """
         super().__init_subclass__(**kwargs)
+
         for base in getattr(cls, "__orig_bases__", ()):
             origin = getattr(base, "__origin__", None)
+
             if isinstance(origin, type) and issubclass(origin, _Sequence):
                 args = getattr(base, "__args__", ())
+
                 if args:
                     element_cls = args[0]
+
                     if isinstance(element_cls, type):
+
                         if "_response_key" not in cls.__dict__:
                             key = getattr(element_cls, "_response_key", None)
+
                             if isinstance(key, str):
                                 cls._response_key = key
+
                         if "_element_cls" not in cls.__dict__:
                             cls._element_cls = element_cls
                 break
 
-    def __init__(self, items: Iterable[T]) -> None:
+    def __init__(
+        self,
+        items: Iterable[T]
+    ) -> None:
         """Materialize ``items`` into the immutable backing tuple.
 
         Args:
-            items (Iterable[T]): The elements to store. Consumed eagerly
-                and frozen into a ``tuple`` so the sequence is immutable
-                and hashable when the elements themselves are hashable.
+            items (Iterable[T]): The elements to store. Consumed eagerly and frozen into a ``tuple`` so the sequence is immutable and hashable when the elements themselves are hashable.
         """
-        self._items: Tuple[T, ...] = tuple(items)
-
-    def _clone(self, items: Iterable[T]) -> Self:
-        """Construct a new instance of ``type(self)`` holding ``items``.
-
-        Used by :meth:`__getitem__` to produce sliced copies. The default
-        implementation suits subclasses whose ``__init__`` accepts only
-        ``items``. Subclasses carrying sidecar state (the ``client`` on
-        :class:`_ModelSequence`, ``series_id`` on
-        :class:`fedfred.VintageDates`, etc.) override this method to
-        forward that state to the new instance.
-
-        Args:
-            items (Iterable[T]): The elements for the new sequence.
-
-        Returns:
-            Self: A new sequence of the same concrete type.
-        """
-        return type(self)(items)
+        self._items: tuple[T, ...] = tuple(items)
 
     @overload
-    def __getitem__(self, index: int) -> T: ...
+    def __getitem__(
+        self,
+        index: int
+    ) -> T: ...
     @overload
-    def __getitem__(self, index: str) -> T: ...
+    def __getitem__(
+        self,
+        index: str
+    ) -> T: ...
     @overload
-    def __getitem__(self, index: slice) -> Self: ...
-    def __getitem__(self, index: Union[int, str, slice]) -> Union[T, Self]:
+    def __getitem__(
+        self,
+        index: slice
+    ) -> Self: ...
+    def __getitem__(
+        self,
+        index: int | str | slice
+    ) -> T | Self:
         """Dispatch indexing on the runtime type of ``index``.
 
         - :class:`slice` → return a new sequence of the same concrete type
@@ -360,23 +400,21 @@ class _Sequence(Sequence[T]):
           tuple.
 
         Args:
-            index (int | str | slice): The index. Integer for positional
-                access, string for key-based lookup (when enabled), or
-                slice for sub-sequence extraction.
+            index (int | str | slice): The index. Integer for positional access, string for key-based lookup (when enabled), or slice for sub-sequence extraction.
 
         Returns:
-            T | Self: A single element for integer or string indexing;
-            a new sequence for slice indexing.
+            T | Self: A single element for integer or string indexing; a new sequence for slice indexing.
 
         Raises:
             IndexError: If ``index`` is an out-of-range integer.
-            ModelError: If ``index`` is a string and the subclass does not
-                enable string lookup, or if the key is not found.
+            ModelError: If ``index`` is a string and the subclass does not enable string lookup, or if the key is not found.
         """
         if isinstance(index, slice):
             return self._clone(self._items[index])
+
         if isinstance(index, str):
             return self._lookup_by_key(index)
+
         return self._items[index]
 
     def __len__(self) -> int:
@@ -395,7 +433,10 @@ class _Sequence(Sequence[T]):
         """
         return iter(self._items)
 
-    def __contains__(self, value: object) -> bool:
+    def __contains__(
+        self,
+        value: object
+    ) -> bool:
         """Return whether ``value`` equals any element by value.
 
         Membership is checked against item equality, not against the
@@ -417,7 +458,10 @@ class _Sequence(Sequence[T]):
         """
         return reversed(self._items)
 
-    def __eq__(self, other: object) -> bool:
+    def __eq__(
+        self,
+        other: object
+    ) -> bool:
         """Compare for value equality against another instance of the same concrete type.
 
         Returns :data:`NotImplemented` rather than ``False`` for cross-type
@@ -428,24 +472,22 @@ class _Sequence(Sequence[T]):
             other (object): The value to compare against.
 
         Returns:
-            bool: ``True`` if ``other`` is the same concrete type and holds
-            equal items; ``False`` if the items differ;
-            :data:`NotImplemented` if ``other`` is a different type.
+            bool: ``True`` if ``other`` is the same concrete type and holds equal items; ``False`` if the items differ; :data:`NotImplemented` if ``other`` is a different type.
         """
         if isinstance(other, type(self)):
             return self._items == other._items
+
         return NotImplemented
 
     def __repr__(self) -> str:
         """Return a compact developer representation.
 
         Returns:
-            str: A string of the form ``"<ClassName>(n=<count>)"``.
-            Subclasses with richer element semantics (such as
-            :class:`_DateSequence`) override for additional context.
+            str: A string of the form ``"<ClassName>(n=<count>)"``. Subclasses with richer element semantics (such as :class:`_DateSequence`) override for additional context.
         """
         return f"{type(self).__name__}(n={len(self._items)})"
 
+    # Sunder Methods
     def _repr_html_(self) -> str:
         """Render a one-line summary for Jupyter rich display.
 
@@ -454,85 +496,9 @@ class _Sequence(Sequence[T]):
         their elements.
 
         Returns:
-            str: An HTML fragment safe to render inside a Jupyter notebook
-            output cell.
+            str: An HTML fragment safe to render inside a Jupyter notebook output cell.
         """
         return f"<b>{type(self).__name__}</b> — {len(self._items)} items"
-
-    def _lookup_value(self, item: T) -> Optional[str]:
-        """Extract the string lookup key for an item, or ``None`` to exclude it.
-
-        Override hook backing :meth:`_lookup_by_key` and
-        :meth:`_ipython_key_completions_`. The default implementation reads
-        the attribute named by ``_lookup_key`` and stringifies the result;
-        subclasses with computed keys override this method to return a
-        method-derived value (e.g., ``return item.isoformat()`` on
-        :class:`_DateSequence` subclasses).
-
-        Returning ``None`` excludes the item from both string-key lookup
-        and from the IPython completion list — useful when the underlying
-        attribute is itself optional and may be missing on some items.
-
-        Args:
-            item (T): The element to compute a key for.
-
-        Returns:
-            str | None: The string lookup key, or ``None`` to skip the
-            item.
-        """
-        key = self._lookup_key
-        if key is None:
-            return None
-        value = getattr(item, key, None)
-        return None if value is None else str(value)
-
-    @classmethod
-    def _supports_lookup(cls) -> bool:
-        """Return whether string-key lookup is enabled on this subclass.
-
-        Lookup is enabled if either ``_lookup_key`` is set to an attribute
-        name or :meth:`_lookup_value` is overridden relative to the base
-        implementation. The override check uses identity comparison on the
-        unbound function objects, which works because Python resolves
-        method descriptors lazily: a subclass that does not override gets
-        the exact same function object from :class:`_Sequence`.
-
-        Returns:
-            bool: ``True`` if string indexing and IPython completion are
-            enabled on this subclass.
-        """
-        return (
-            cls._lookup_key is not None
-            or cls._lookup_value is not _Sequence._lookup_value
-        )
-
-    def _lookup_by_key(self, key: str) -> T:
-        """Look up an item by its string key via :meth:`_lookup_value`.
-
-        Linear scan over the elements, returning the first whose
-        :meth:`_lookup_value` equals ``key``. Used by :meth:`__getitem__`
-        when the index is a :class:`str`.
-
-        Args:
-            key (str): The lookup key to match.
-
-        Returns:
-            T: The first element whose :meth:`_lookup_value` equals ``key``.
-
-        Raises:
-            ModelError: If the subclass does not enable string lookup
-                (per :meth:`_supports_lookup`), or if no item matches the
-                given key.
-        """
-        if not type(self)._supports_lookup():
-            raise ModelError(
-                f"{type(self).__name__} does not support string indexing; "
-                f"use positional indexing or iterate"
-            )
-        for item in self._items:
-            if self._lookup_value(item) == key:
-                return item
-        raise ModelError(key)
 
     def _ipython_key_completions_(self) -> list[str]:
         """Return the deduplicated list of valid string keys for tab completion.
@@ -554,6 +520,91 @@ class _Sequence(Sequence[T]):
             if v is not None and v not in seen:
                 seen[v] = None
         return list(seen)
+
+    # Protected Methods
+    def _clone(
+        self,
+        items: Iterable[T]
+    ) -> Self:
+        """Construct a new instance of ``type(self)`` holding ``items``.
+
+        Used by :meth:`__getitem__` to produce sliced copies. The default
+        implementation suits subclasses whose ``__init__`` accepts only
+        ``items``. Subclasses carrying sidecar state (the ``client`` on
+        :class:`_ModelSequence`, ``series_id`` on
+        :class:`fedfred.VintageDates`, etc.) override this method to
+        forward that state to the new instance.
+
+        Args:
+            items (Iterable[T]): The elements for the new sequence.
+
+        Returns:
+            Self: A new sequence of the same concrete type.
+        """
+        return type(self)(items)
+
+    def _lookup_value(
+        self,
+        item: T
+    ) -> str | None:
+        """Extract the string lookup key for an item, or ``None`` to exclude it.
+
+        Override hook backing :meth:`_lookup_by_key` and
+        :meth:`_ipython_key_completions_`. The default implementation reads
+        the attribute named by ``_lookup_key`` and stringifies the result;
+        subclasses with computed keys override this method to return a
+        method-derived value (e.g., ``return item.isoformat()`` on
+        :class:`_DateSequence` subclasses).
+
+        Returning ``None`` excludes the item from both string-key lookup
+        and from the IPython completion list — useful when the underlying
+        attribute is itself optional and may be missing on some items.
+
+        Args:
+            item (T): The element to compute a key for.
+
+        Returns:
+            str | None: The string lookup key, or ``None`` to skip the item.
+        """
+        key = self._lookup_key
+
+        if key is None:
+            return None
+
+        value = getattr(item, key, None)
+
+        return None if value is None else str(value)
+
+    def _lookup_by_key(
+        self,
+        key: str
+    ) -> T:
+        """Look up an item by its string key via :meth:`_lookup_value`.
+
+        Linear scan over the elements, returning the first whose
+        :meth:`_lookup_value` equals ``key``. Used by :meth:`__getitem__`
+        when the index is a :class:`str`.
+
+        Args:
+            key (str): The lookup key to match.
+
+        Returns:
+            T: The first element whose :meth:`_lookup_value` equals ``key``.
+
+        Raises:
+            ModelError: If the subclass does not enable string lookup (per :meth:`_supports_lookup`), or if no item matches the given key.
+        """
+        if not type(self)._supports_lookup():
+            raise ModelError(
+                f"{type(self).__name__} does not support string indexing; "
+                f"use positional indexing or iterate"
+            )
+
+        for item in self._items:
+            if self._lookup_value(item) == key:
+                return item
+
+        raise ModelError(key)
 
 
 class _ModelSequence(_Sequence[MT]):
@@ -585,36 +636,13 @@ class _ModelSequence(_Sequence[MT]):
 
     __slots__ = ("client",)
 
-    def __init__(self, items: Iterable[MT], client: Optional[_ClientModel] = None) -> None:
-        """Materialize ``items`` and attach an optional client.
-
-        Args:
-            items (Iterable[MT]): The elements to store.
-            client (_ClientModel, optional): The FRED client to attach to
-                this sequence. Forwarded to sliced copies by :meth:`_clone`.
-                Defaults to ``None``.
-        """
-        super().__init__(items)
-        self.client: Optional[_ClientModel] = client
-
-    def _clone(self, items: Iterable[MT]) -> Self:
-        """Construct a new sequence of ``type(self)`` forwarding the client.
-
-        Override of :meth:`_Sequence._clone` that preserves the
-        ``client`` reference through slicing so sliced copies retain
-        the ability to lazily resolve related resources.
-
-        Args:
-            items (Iterable[MT]): The elements for the new sequence.
-
-        Returns:
-            Self: A new sequence of the same concrete type holding
-            ``items`` and the current ``client``.
-        """
-        return type(self)(items, client=self.client)
-
+    # Class Methods
     @classmethod
-    def _parse_item(cls, data: Dict[str, Any], client: Optional[_ClientModel] = None) -> MT:
+    def _parse_item(
+        cls,
+        data: dict[str, Any],
+        client: _ClientModel | None = None
+    ) -> MT:
         """Build a single element by delegating to its ``_from_dict`` classmethod.
 
         Resolves the element class through the auto-wired ``_element_cls``
@@ -623,20 +651,20 @@ class _ModelSequence(_Sequence[MT]):
         import cycles.
 
         Args:
-            data (Dict[str, Any]): The raw element payload from the FRED API.
-            client (_ClientModel, optional): The FRED client to attach to
-                the resulting element. Defaults to ``None``.
+            data (dict[str, Any]): The raw element payload from the FRED API.
+            client (_ClientModel, optional): The FRED client to attach to the resulting element. Defaults to ``None``.
 
         Returns:
-            MT: A single element instance built by the element class's
-            ``_from_dict``.
+            MT: A single element instance built by the element class's ``_from_dict``.
         """
         factory = getattr(cls._element_cls, "_from_dict")
         return factory(data, client=client)
 
     @classmethod
     def to_object(
-        cls, response: Dict[str, Any], client: Optional[_ClientModel] = None
+        cls,
+        response: dict[str, Any],
+        client: _ClientModel | None = None
     ) -> Self:
         """Build a sequence from a FRED API response payload.
 
@@ -650,7 +678,7 @@ class _ModelSequence(_Sequence[MT]):
         this method.
 
         Args:
-            response (Dict[str, Any]): The raw FRED API response payload.
+            response (dict[str, Any]): The raw FRED API response payload.
             client (_ClientModel, optional): The FRED client to propagate
                 to elements and to the resulting sequence. Defaults to
                 ``None``.
@@ -669,7 +697,9 @@ class _ModelSequence(_Sequence[MT]):
 
     @classmethod
     async def to_object_async(
-        cls, response: Dict[str, Any], client: Optional[_ClientModel] = None
+        cls,
+        response: dict[str, Any],
+        client: _ClientModel | None = None
     ) -> Self:
         """Asynchronous counterpart to :meth:`to_object`.
 
@@ -677,7 +707,7 @@ class _ModelSequence(_Sequence[MT]):
         :func:`asyncio.to_thread` so the event loop is not blocked.
 
         Args:
-            response (Dict[str, Any]): The raw FRED API response payload.
+            response (dict[str, Any]): The raw FRED API response payload.
             client (_ClientModel, optional): The FRED client to propagate.
                 Defaults to ``None``.
 
@@ -688,6 +718,41 @@ class _ModelSequence(_Sequence[MT]):
             ModelError: Propagated from the underlying synchronous parser.
         """
         return await asyncio.to_thread(cls.to_object, response, client)
+
+    # Dunder Methods
+    def __init__(
+        self,
+        items: Iterable[MT],
+        client: _ClientModel | None = None
+    ) -> None:
+        """Materialize ``items`` and attach an optional client.
+
+        Args:
+            items (Iterable[MT]): The elements to store.
+            client (_ClientModel, optional): The FRED client to attach to this sequence. Forwarded to sliced copies by :meth:`_clone`. Defaults to ``None``.
+        """
+        super().__init__(items)
+        self.client: _ClientModel | None = client
+
+    # Protected Methods
+    def _clone(
+        self,
+        items: Iterable[MT]
+    ) -> Self:
+        """Construct a new sequence of ``type(self)`` forwarding the client.
+
+        Override of :meth:`_Sequence._clone` that preserves the
+        ``client`` reference through slicing so sliced copies retain
+        the ability to lazily resolve related resources.
+
+        Args:
+            items (Iterable[MT]): The elements for the new sequence.
+
+        Returns:
+            Self: A new sequence of the same concrete type holding
+            ``items`` and the current ``client``.
+        """
+        return type(self)(items, client=self.client)
 
 
 class _DateBase(date):
@@ -718,8 +783,7 @@ class _DateBase(date):
     :class:`datetime.date` contract.
 
     Attributes:
-        _response_key (ClassVar[str]): Subclass-declared key under which
-            FRED returns the list of objects of this type.
+        _response_key (ClassVar[str]): Subclass-declared key under which FRED returns the list of objects of this type.
 
     See Also:
         - :class:`_DateSequence`: The plural-container counterpart.
@@ -728,10 +792,164 @@ class _DateBase(date):
     """
 
     __slots__ = ()
+
     _response_key: ClassVar[str] = ""
     """Subclass-declared key under which FRED returns the list of objects of this type."""
 
-    def _with_date(self, year: int, month: int, day: int) -> Self:
+    # Class Methods
+    @classmethod
+    def _parse_value(
+        cls,
+        raw: Any
+    ) -> Self:
+        """Build one element from its raw payload.
+
+        Subclass hook. Implementations decide whether ``raw`` is a string
+        (ISO date) or a dict (date plus metadata) and validate accordingly.
+
+        Args:
+            raw (Any): The raw element payload from the FRED API.
+
+        Returns:
+            Self: A fully populated subclass instance.
+
+        Raises:
+            NotImplementedError: If invoked on :class:`_DateBase` directly
+                rather than an implementing subclass.
+        """
+        raise NotImplementedError
+
+    @classmethod
+    def to_object(
+        cls,
+        response: dict[str, Any]
+    ) -> Self:
+        """Build a single instance from a full FRED API response payload.
+
+        Extracts the list under ``cls._response_key``, validates it is
+        non-empty, and dispatches the first entry through
+        :meth:`_parse_value`.
+
+        Args:
+            response (dict[str, Any]): The raw FRED API response payload.
+
+        Returns:
+            Self: A single subclass instance built from the first payload entry.
+
+        Raises:
+            ModelError: If the response does not contain the expected key
+                or if the resolved list is empty.
+        """
+        raw = _require_list(response, cls._response_key)
+
+        if not raw:
+            raise ModelError(f"No {cls._response_key!r} found in the response")
+
+        return cls._parse_value(raw[0])
+
+    @classmethod
+    async def to_object_async(
+        cls,
+        response: dict[str, Any]
+    ) -> Self:
+        """Asynchronous counterpart to :meth:`to_object`.
+
+        Offloads payload parsing to a worker thread via
+        :func:`asyncio.to_thread` so the event loop is not blocked.
+
+        Args:
+            response (dict[str, Any]): The raw FRED API response payload.
+
+        Returns:
+            Self: A single subclass instance built from the first payload entry.
+
+        Raises:
+            ModelError: Propagated from the underlying synchronous parser.
+        """
+        return await asyncio.to_thread(cls.to_object, response)
+
+    # Dunder Methods
+    def __add__(
+        self,
+        other: timedelta
+    ) -> Self:
+        """Add a :class:`timedelta` and return a new instance via :meth:`_with_date`.
+
+        Routes through :meth:`_with_date` so subclass-specific metadata is
+        preserved on the resulting instance.
+
+        Args:
+            other (timedelta): The duration to add.
+
+        Returns:
+            Self: A new instance offset by ``other``.
+        """
+        d = date(self.year, self.month, self.day) + other
+
+        return self._with_date(d.year, d.month, d.day)
+
+    @overload
+    def __sub__(
+        self,
+        other: datetime
+    ) -> Never: ...
+    @overload
+    def __sub__(
+        self,
+        other: Self
+    ) -> timedelta: ...
+    @overload
+    def __sub__(
+        self,
+        other: timedelta
+    ) -> Self: ...
+    def __sub__(
+        self,
+        other: datetime | Self | timedelta
+    ) -> Self | timedelta:
+        """Subtract a :class:`timedelta` or another date.
+
+        - ``other`` is :class:`timedelta` → return a new instance offset
+          backward via :meth:`_with_date`, preserving subclass metadata.
+        - ``other`` is :class:`date` (including this subclass) → return a
+          plain :class:`timedelta` per the standard :class:`datetime.date`
+          contract.
+
+        Subtracting a :class:`datetime.datetime` is not supported and is
+        statically marked :data:`Never`.
+
+        Args:
+            other (timedelta | date | datetime): The value to subtract.
+
+        Returns:
+            Self | timedelta: A new instance if ``other`` is a
+            :class:`timedelta`; a :class:`timedelta` if ``other`` is a date.
+        """
+        if isinstance(other, timedelta):
+            d = date(self.year, self.month, self.day) - other
+
+            return self._with_date(d.year, d.month, d.day)
+
+        return date(self.year, self.month, self.day) - other
+
+    def __radd__(self, other: timedelta) -> Self:
+        """Right-hand :class:`timedelta` addition (``timedelta + date``).
+
+        Args:
+            other (timedelta): The duration on the left of the ``+``.
+
+        Returns:
+            Self: A new instance offset by ``other``.
+        """
+        return self.__add__(other)
+
+    # Protected Methods
+    def _with_date(
+        self,
+        year: int,
+        month: int,
+        day: int
+    ) -> Self:
         """Rebuild this instance at a new ``(year, month, day)`` preserving subclass state.
 
         Default implementation suits subclasses whose ``__new__`` accepts
@@ -749,62 +967,7 @@ class _DateBase(date):
         """
         return type(self)(year, month, day)
 
-    def __add__(self, other: timedelta) -> Self:
-        """Add a :class:`timedelta` and return a new instance via :meth:`_with_date`.
-
-        Routes through :meth:`_with_date` so subclass-specific metadata is
-        preserved on the resulting instance.
-
-        Args:
-            other (timedelta): The duration to add.
-
-        Returns:
-            Self: A new instance offset by ``other``.
-        """
-        d = date(self.year, self.month, self.day) + other
-        return self._with_date(d.year, d.month, d.day)
-
-    @overload
-    def __sub__(self, other: datetime) -> Never: ...
-    @overload
-    def __sub__(self, other: Self) -> timedelta: ...
-    @overload
-    def __sub__(self, other: timedelta) -> Self: ...
-    def __sub__(self, other):
-        """Subtract a :class:`timedelta` or another date.
-
-        - ``other`` is :class:`timedelta` → return a new instance offset
-          backward via :meth:`_with_date`, preserving subclass metadata.
-        - ``other`` is :class:`date` (including this subclass) → return a
-          plain :class:`timedelta` per the standard :class:`datetime.date`
-          contract.
-
-        Subtracting a :class:`datetime.datetime` is not supported and is
-        statically marked :data:`Never`.
-
-        Args:
-            other (timedelta | date): The value to subtract.
-
-        Returns:
-            Self | timedelta: A new instance if ``other`` is a
-            :class:`timedelta`; a :class:`timedelta` if ``other`` is a date.
-        """
-        if isinstance(other, timedelta):
-            d = date(self.year, self.month, self.day) - other
-            return self._with_date(d.year, d.month, d.day)
-        return date(self.year, self.month, self.day) - other
-
-    def __radd__(self, other: timedelta) -> Self:
-        """Right-hand :class:`timedelta` addition (``timedelta + date``).
-
-        Args:
-            other (timedelta): The duration on the left of the ``+``.
-
-        Returns:
-            Self: A new instance offset by ``other``.
-        """
-        return self.__add__(other)
-
+    # Public Methods
     def replace(
         self,
         year: Optional[SupportsIndex] = None,
@@ -832,66 +995,6 @@ class _DateBase(date):
             self.month if month is None else int(month),
             self.day if day is None else int(day),
         )
-
-    @classmethod
-    def _parse_value(cls, raw: Any) -> Self:
-        """Build one element from its raw payload.
-
-        Subclass hook. Implementations decide whether ``raw`` is a string
-        (ISO date) or a dict (date plus metadata) and validate accordingly.
-
-        Args:
-            raw (Any): The raw element payload from the FRED API.
-
-        Returns:
-            Self: A fully populated subclass instance.
-
-        Raises:
-            NotImplementedError: If invoked on :class:`_DateBase` directly
-                rather than an implementing subclass.
-        """
-        raise NotImplementedError
-
-    @classmethod
-    def to_object(cls, response: Dict[str, Any]) -> Self:
-        """Build a single instance from a full FRED API response payload.
-
-        Extracts the list under ``cls._response_key``, validates it is
-        non-empty, and dispatches the first entry through
-        :meth:`_parse_value`.
-
-        Args:
-            response (Dict[str, Any]): The raw FRED API response payload.
-
-        Returns:
-            Self: A single subclass instance built from the first payload entry.
-
-        Raises:
-            ModelError: If the response does not contain the expected key
-                or if the resolved list is empty.
-        """
-        raw = _require_list(response, cls._response_key)
-        if not raw:
-            raise ModelError(f"No {cls._response_key!r} found in the response")
-        return cls._parse_value(raw[0])
-
-    @classmethod
-    async def to_object_async(cls, response: Dict[str, Any]) -> Self:
-        """Asynchronous counterpart to :meth:`to_object`.
-
-        Offloads payload parsing to a worker thread via
-        :func:`asyncio.to_thread` so the event loop is not blocked.
-
-        Args:
-            response (Dict[str, Any]): The raw FRED API response payload.
-
-        Returns:
-            Self: A single subclass instance built from the first payload entry.
-
-        Raises:
-            ModelError: Propagated from the underlying synchronous parser.
-        """
-        return await asyncio.to_thread(cls.to_object, response)
 
 
 class _DateSequence(_Sequence[DT]):
@@ -990,14 +1093,14 @@ class _DateSequence(_Sequence[DT]):
         )
 
     @classmethod
-    def to_object(cls, response: Dict[str, Any]) -> Self:
+    def to_object(cls, response: dict[str, Any]) -> Self:
         """Build a sequence from a FRED API response payload.
 
         Extracts the element list under ``cls._response_key`` and parses
         each entry through :meth:`_parse_value`.
 
         Args:
-            response (Dict[str, Any]): The raw FRED API response payload.
+            response (dict[str, Any]): The raw FRED API response payload.
 
         Returns:
             Self: A sequence of elements.
@@ -1009,14 +1112,14 @@ class _DateSequence(_Sequence[DT]):
         return cls(cls._parse_value(item) for item in raw)
 
     @classmethod
-    async def to_object_async(cls, response: Dict[str, Any]) -> Self:
+    async def to_object_async(cls, response: dict[str, Any]) -> Self:
         """Asynchronous counterpart to :meth:`to_object`.
 
         Offloads payload parsing to a worker thread via
         :func:`asyncio.to_thread` so the event loop is not blocked.
 
         Args:
-            response (Dict[str, Any]): The raw FRED API response payload.
+            response (dict[str, Any]): The raw FRED API response payload.
 
         Returns:
             Self: A sequence of elements.

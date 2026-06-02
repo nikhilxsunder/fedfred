@@ -107,7 +107,7 @@ if TYPE_CHECKING:
     import dask.dataframe as dd
     import polars as pl
 
-    from ..clients import Fred
+    #from ..clients import Fred # TODO: Uncomment if useable for rseolving property issue.
 
 # TODO: Fix all docstrings post error design.
 
@@ -197,10 +197,11 @@ class Category(_ModelBase):
 
     # Class Methods
     @classmethod
-    def _from_dict(cls,
-                   data: dict[str, Any],
-                   client: _ClientModel | None = None
-                   ) -> Category:
+    def _from_dict(
+        cls,
+        data: dict[str, Any],
+        client: _ClientModel | None = None
+    ) -> Category:
         """Build a single :class:`Category` from one raw FRED payload mapping.
 
         Internal parser used by :meth:`to_object` and by sequence containers
@@ -494,10 +495,11 @@ class Series(_ModelBase):
 
     # Class Methods
     @classmethod
-    def _from_dict(cls,
-                   data: dict[str, Any],
-                   client: _ClientModel | None = None
-                   ) -> Series:
+    def _from_dict(
+        cls,
+        data: dict[str, Any],
+        client: _ClientModel | None = None
+    ) -> Series:
         """Build a single :class:`Series` from one raw FRED payload mapping.
 
         Internal parser used by :meth:`to_object` and by sequence containers
@@ -515,8 +517,7 @@ class Series(_ModelBase):
             Series: A fully populated :class:`Series` instance.
 
         Raises:
-            ModelError: If ``data`` is not a mapping, lacks an identifier (``id`` or ``series_id``), or is missing any of the required long-form
-                fields (``title``, ``frequency``, ``units``, ``seasonal_adjustment``, ``last_updated``).
+            ModelError: If ``data`` is not a mapping, lacks an identifier (``id`` or ``series_id``), or is missing any of the required long-form fields (``title``, ``frequency``, ``units``, ``seasonal_adjustment``, ``last_updated``).
 
         References:
             - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.Series.html
@@ -668,10 +669,11 @@ class Seriess(_ModelSequence[Series]):
 
     # Class Methods
     @classmethod
-    def to_object(cls,
-                  response: dict[str, Any],
-                  client: _ClientModel | None = None
-                  ) -> Seriess:
+    def to_object(
+        cls,
+        response: dict[str, Any],
+        client: _ClientModel | None = None
+    ) -> Seriess:
         """Build a :class:`Seriess` from a FRED API response payload.
 
         Accepts both ``"seriess"`` and ``"series"`` as the response key,
@@ -680,16 +682,13 @@ class Seriess(_ModelSequence[Series]):
 
         Args:
             response (dict[str, Any]): The raw FRED API response payload.
-            client (_ClientModel, optional): The FRED client to propagate to
-                each constructed :class:`Series` and to the sequence itself.
-                Defaults to ``None``.
+            client (_ClientModel, optional): The FRED client to propagate to each constructed :class:`Series` and to the sequence itself. Defaults to ``None``.
 
         Returns:
             Seriess: A sequence of :class:`Series` objects.
 
         Raises:
-            ModelError: If the response lacks both ``"seriess"`` and
-                ``"series"`` keys.
+            ModelError: If the response lacks both ``"seriess"`` and ``"series"`` keys.
 
         Examples:
             >>> import fedfred as fd
@@ -710,9 +709,7 @@ class Seriess(_ModelSequence[Series]):
         """Render a compact HTML table preview of the first ten series.
 
         Returns:
-            str: An HTML ``<table>`` with id, title, frequency, and units
-            columns and a truncation caption when the sequence exceeds ten
-            entries.
+            str: An HTML ``<table>`` with id, title, frequency, and units columns and a truncation caption when the sequence exceeds ten entries.
         """
         head = self._items[:10]
 
@@ -799,10 +796,11 @@ class Tag(_ModelBase):
 
     # Class Methods
     @classmethod
-    def _from_dict(cls,
-                   data: dict[str, Any],
-                   client: _ClientModel | None = None
-                   ) -> Tag:
+    def _from_dict(
+        cls,
+        data: dict[str, Any],
+        client: _ClientModel | None = None
+    ) -> Tag:
         """Build a single :class:`Tag` from one raw FRED payload mapping.
 
         Internal parser used by :meth:`to_object` and by sequence containers.
@@ -946,10 +944,8 @@ class Release(_ModelBase):
     Attributes:
         id (int): The unique identifier for the release.
         name (str): The human-readable name of the release.
-        realtime_start (str, optional): The start of the real-time period in
-            ``YYYY-MM-DD`` format.
-        realtime_end (str, optional): The end of the real-time period in
-            ``YYYY-MM-DD`` format.
+        realtime_start (str, optional): The start of the real-time period in ``YYYY-MM-DD`` format.
+        realtime_end (str, optional): The end of the real-time period in ``YYYY-MM-DD`` format.
         press_release (bool, optional): Whether the release is a press release.
         link (str, optional): A documentation URL for the release.
         notes (str, optional): Free-form notes accompanying the release.
@@ -1007,10 +1003,11 @@ class Release(_ModelBase):
 
     # Class Methods
     @classmethod
-    def _from_dict(cls,
-                   data: dict[str, Any],
-                   client: _ClientModel | None = None
-                   ) -> Release:
+    def _from_dict(
+        cls,
+        data: dict[str, Any],
+        client: _ClientModel | None = None
+    ) -> Release:
         """Build a single :class:`Release` from one raw FRED payload mapping.
 
         Internal parser used by :meth:`to_object` and by sequence containers.
@@ -1020,15 +1017,13 @@ class Release(_ModelBase):
 
         Args:
             data (dict[str, Any]): The raw release payload from the FRED API.
-            client (_ClientModel, optional): The FRED client to attach to the
-                resulting object for lazy relation traversal. Defaults to ``None``.
+            client (_ClientModel, optional): The FRED client to attach to the resulting object for lazy relation traversal. Defaults to ``None``.
 
         Returns:
             Release: A fully populated :class:`Release` instance.
 
         Raises:
-            ModelError: If ``data`` is not a mapping, lacks an identifier
-                (``id`` or ``release_id``), or is missing the ``name`` field.
+            ModelError: If ``data`` is not a mapping, lacks an identifier (``id`` or ``release_id``), or is missing the ``name`` field.
 
         References:
             - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.Release.html
@@ -1215,9 +1210,9 @@ class Releases(_ModelSequence[Release]):
     # Class Methods
     @classmethod
     def to_object(cls,
-                  response: dict[str, Any],
-                  client: _ClientModel | None = None
-                  ) -> Releases:
+        response: dict[str, Any],
+        client: _ClientModel | None = None
+    ) -> Releases:
         """Build a :class:`Releases` sequence from a FRED API response payload.
 
         Accepts both ``"releases"`` and ``"release"`` as the response key for
@@ -1225,16 +1220,13 @@ class Releases(_ModelSequence[Release]):
 
         Args:
             response (dict[str, Any]): The raw FRED API response payload.
-            client (_ClientModel, optional): The FRED client to propagate to
-                each constructed :class:`Release` and to the sequence itself.
-                Defaults to ``None``.
+            client (_ClientModel, optional): The FRED client to propagate to each constructed :class:`Release` and to the sequence itself. Defaults to ``None``.
 
         Returns:
             Releases: A sequence of :class:`Release` objects.
 
         Raises:
-            ModelError: If the response lacks both ``"releases"`` and
-                ``"release"`` keys.
+            ModelError: If the response lacks both ``"releases"`` and ``"release"`` keys.
         """
         raw = _require_first_list(response, ("releases", "release"))
 
@@ -1394,25 +1386,23 @@ class ReleaseDate(_DateBase):
         )
 
     @classmethod
-    def _parse_value(cls,
-                     raw: object
-                     ) -> ReleaseDate:
+    def _parse_value(
+        cls,
+        raw: object
+    ) -> ReleaseDate:
         """Build a single :class:`ReleaseDate` from one raw FRED payload mapping.
 
         Internal parser used by :class:`ReleaseDates`. Accepts an ISO date
         string or a :class:`datetime.date` instance under the ``date`` key.
 
         Args:
-            raw (object): The raw release-date payload from the FRED API.
-                Expected to be a mapping with ``release_id``, ``date``, and
-                optional ``release_name`` keys.
+            raw (object): The raw release-date payload from the FRED API. Expected to be a mapping with ``release_id``, ``date``, and optional ``release_name`` keys.
 
         Returns:
             ReleaseDate: A fully populated :class:`ReleaseDate` instance.
 
         Raises:
-            ModelError: If ``raw`` is not a mapping or is missing the
-                ``release_id`` or ``date`` fields.
+            ModelError: If ``raw`` is not a mapping or is missing the ``release_id`` or ``date`` fields.
         """
         if not isinstance(raw, dict):
             raise ModelError("Invalid release_date payload: expected a mapping")
@@ -1431,8 +1421,7 @@ class ReleaseDate(_DateBase):
         """Return a developer-readable representation including release metadata.
 
         Returns:
-            str: A string of the form
-            ``ReleaseDate(<iso_date>, release_id=<id>, release_name=<name>)``.
+            str: A string of the form ``ReleaseDate(<iso_date>, release_id=<id>, release_name=<name>)``.
         """
         return (
             f"ReleaseDate({self.isoformat()}, "
@@ -1443,10 +1432,8 @@ class ReleaseDate(_DateBase):
         """Support pickling and ``copy.deepcopy`` via :meth:`_rebuild`.
 
         Returns:
-            tuple: A two-tuple of the rebuild callable and the positional
-            arguments needed to reconstruct the instance. Using
-            ``type(self)._rebuild`` (rather than a hard-coded
-            ``ReleaseDate._rebuild``) preserves subclass identity on
+            tuple: A two-tuple of the rebuild callable and the positional arguments needed to reconstruct the instance. Using
+            ``type(self)._rebuild`` (rather than a hard-coded ``ReleaseDate._rebuild``) preserves subclass identity on
             round-trip.
         """
         return (
@@ -1455,7 +1442,12 @@ class ReleaseDate(_DateBase):
         )
 
     # Protected Methods
-    def _with_date(self, year: int, month: int, day: int) -> Self:
+    def _with_date(
+        self,
+        year: int,
+        month: int,
+        day: int
+    ) -> Self:
         """Rebuild this instance at a new (year, month, day), preserving metadata.
 
         Override of :meth:`fedfred._internals._models._DateBase._with_date`
@@ -1510,7 +1502,10 @@ class ReleaseDates(_DateSequence[ReleaseDate]):
     __slots__ = ()
 
     # Protected Methods
-    def _lookup_value(self, item: ReleaseDate) -> str:
+    def _lookup_value(
+        self,
+        item: ReleaseDate
+    ) -> str:
         """Compute the lookup key for an item as its ISO date string.
 
         Override of :meth:`fedfred._internals._models._DateSequence._lookup_value`
@@ -1591,7 +1586,11 @@ class Source(_ModelBase):
 
     # Class Methods
     @classmethod
-    def _from_dict(cls, data: dict[str, Any], client: _ClientModel | None = None) -> Source:
+    def _from_dict(
+        cls,
+        data: dict[str, Any],
+        client: _ClientModel | None = None
+    ) -> Source:
         """Build a single :class:`Source` from one raw FRED payload mapping.
 
         Internal parser used by :meth:`to_object` and by sequence containers.
@@ -1772,7 +1771,11 @@ class Element(_ModelBase):
 
     # Class Methods
     @classmethod
-    def _from_dict(cls, data: dict[str, Any], client: _ClientModel | None = None) -> Element:
+    def _from_dict(
+        cls,
+        data: dict[str, Any],
+        client: _ClientModel | None = None
+    ) -> Element:
         """Build a single :class:`Element` from one raw FRED payload mapping.
 
         Internal parser used by :meth:`to_object` and by sequence containers.
@@ -1781,17 +1784,13 @@ class Element(_ModelBase):
 
         Args:
             data (dict[str, Any]): The raw element payload from the FRED API.
-            client (_ClientModel, optional): The FRED client to attach to the
-                resulting object (and to recursively constructed children)
-                for lazy relation traversal. Defaults to ``None``.
+            client (_ClientModel, optional): The FRED client to attach to the resulting object (and to recursively constructed children) for lazy relation traversal. Defaults to ``None``.
 
         Returns:
             Element: A fully populated :class:`Element` instance.
 
         Raises:
-            ModelError: If ``data`` is not a mapping or is missing any of the
-                required fields (``element_id``, ``release_id``, ``series_id``,
-                ``parent_id``, ``line``, ``type``, ``name``, ``level``).
+            ModelError: If ``data`` is not a mapping or is missing any of the required fields (``element_id``, ``release_id``, ``series_id``, ``parent_id``, ``line``, ``type``, ``name``, ``level``).
 
         References:
             - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.Element.html
@@ -1824,7 +1823,11 @@ class Element(_ModelBase):
         )
 
     @classmethod
-    def to_object(cls, response: dict[str, Any], client: _ClientModel | None = None) -> Element:
+    def to_object(
+        cls,
+        response: dict[str, Any],
+        client: _ClientModel | None = None
+    ) -> Element:
         """Build a single :class:`Element` from a FRED API response payload.
 
         FRED returns ``"elements"`` as a dict keyed by element id rather than
@@ -1834,8 +1837,7 @@ class Element(_ModelBase):
 
         Args:
             response (dict[str, Any]): The raw FRED API response payload.
-            client (_ClientModel, optional): The FRED client to attach to the
-                resulting :class:`Element`. Defaults to ``None``.
+            client (_ClientModel, optional): The FRED client to attach to the resulting :class:`Element`. Defaults to ``None``.
 
         Returns:
             Element: The first :class:`Element` in the response payload.
@@ -1844,8 +1846,10 @@ class Element(_ModelBase):
             ModelError: If the response does not contain any elements.
         """
         items = _objects_iter_dict_or_list(response, cls._response_key)
+
         if not items:
             raise ModelError("No element found in the response")
+
         return cls._from_dict(items[0], client=client)
 
     # Properties
@@ -1914,7 +1918,11 @@ class Elements(_ModelSequence[Element]):
 
     # Class Methods
     @classmethod
-    def to_object(cls, response: dict[str, Any], client: _ClientModel | None = None) -> Elements:
+    def to_object(
+        cls,
+        response: dict[str, Any],
+        client: _ClientModel | None = None
+    ) -> Elements:
         """Build an :class:`Elements` sequence from a FRED API response payload.
 
         Normalizes FRED's dict-keyed element payload into a flat sequence
@@ -1922,14 +1930,13 @@ class Elements(_ModelSequence[Element]):
 
         Args:
             response (dict[str, Any]): The raw FRED API response payload.
-            client (_ClientModel, optional): The FRED client to propagate to
-                each constructed :class:`Element` and to the sequence itself.
-                Defaults to ``None``.
+            client (_ClientModel, optional): The FRED client to propagate to each constructed :class:`Element` and to the sequence itself. Defaults to ``None``.
 
         Returns:
             Elements: A sequence of :class:`Element` objects.
         """
         items = _objects_iter_dict_or_list(response, cls._response_key)
+
         return cls((cls._parse_item(item, client=client) for item in items), client=client)
 
     # Sunder Methods
