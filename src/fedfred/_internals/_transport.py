@@ -1,6 +1,6 @@
 # filepath: /src/fedfred/_internals/_transport.py
 #
-# Copyright (c) 2025–2026 Nikhil Sunder
+# Copyright (c) 2025-2026 Nikhil Sunder
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -322,11 +322,18 @@ def _map_httpx_exception(exception: httpx.HTTPError) -> TransportError:
         method=_request_method(exception),
     )
 
-@retry(wait=wait_fixed(1), stop=stop_after_attempt(3), retry=retry_if_exception_type(TransportTimeoutError), reraise=False, retry_error_cls=TransportRetryError)
-def _get_request(endpoint_name: str, data: Optional[Dict[str, Optional[Union[str, int]]]]=None) -> Dict[str, Any]:
+@retry(
+    wait=wait_fixed(1),
+    stop=stop_after_attempt(3),
+    retry=retry_if_exception_type(TransportTimeoutError),
+    reraise=False,
+    retry_error_cls=TransportRetryError
+)
+def _get_request(service_name: str, endpoint_name: str, data: Optional[Dict[str, Optional[Union[str, int]]]]=None) -> Dict[str, Any]:
     """Perform a GET request without caching.
 
     Args:
+        service_name (str): The name of the service to query.
         endpoint_name (str): The endpoint to query.
         data (Dict[str, Optional[str | int]], optional): The query parameters for the request. Defaults to None.
 
@@ -357,6 +364,7 @@ def _get_request(endpoint_name: str, data: Optional[Dict[str, Optional[Union[str
 
     try:
         spec = _resolve_endpoint(endpoint_name)
+
     except Exception as exc:
         raise RequestPreparationError(
             f"Failed to resolve endpoint: {endpoint_name}",
@@ -364,7 +372,7 @@ def _get_request(endpoint_name: str, data: Optional[Dict[str, Optional[Union[str
             method="GET",
         ) from exc
 
-    params: Dict[str, Any] = {
+    params: dict[str, Any] = {
         **(spec.params or {}),
         **(_resolve_preparation_function(data, spec.service) or {}),
     }

@@ -125,13 +125,12 @@ class Fred(_BaseClient):
         - :class:`fedfred.GeoFred`: GeoFred client for geospatial data from the FRED Maps API.
     """
 
-    service_key: str = 'fred'
-
     # Public Methods
     ## Categories
-    def get_category(self,
-                     category_id: int
-                     ) -> Category:
+    def get_category(
+        self,
+        category_id: int
+    ) -> Category:
         """Get a FRED Category.
 
         Retrieve information about a specific category from the FRED API.
@@ -167,7 +166,7 @@ class Fred(_BaseClient):
 
         response = self._client_get_request(endpoint_name, data)
 
-        category = Category.to_object(response, client=self)
+        category = Category._from_response(response, client=self)
 
         return category
 
@@ -219,7 +218,7 @@ class Fred(_BaseClient):
 
         response = self._client_get_request(endpoint_name, data)
 
-        categories = Categories.to_object(response, client=self)
+        categories = Categories._from_response(response, client=self)
 
         return categories
 
@@ -274,7 +273,7 @@ class Fred(_BaseClient):
 
         response = self._client_get_request(endpoint_name, data)
 
-        categories = Categories.to_object(response, client=self)
+        categories = Categories._from_response(response, client=self)
 
         return categories
 
@@ -349,7 +348,7 @@ class Fred(_BaseClient):
 
         response = self._client_get_request(endpoint_name, data)
 
-        series = Seriess.to_object(response, client=self)
+        series = Seriess._from_response(response, client=self)
 
         return series
 
@@ -421,7 +420,7 @@ class Fred(_BaseClient):
 
         response = self._client_get_request(endpoint_name, data)
 
-        tags = Tags.to_object(response, client=self)
+        tags = Tags._from_response(response, client=self)
 
         return tags
 
@@ -497,7 +496,7 @@ class Fred(_BaseClient):
 
         response = self._client_get_request(endpoint_name, data)
 
-        tags = Tags.to_object(response, client=self)
+        tags = Tags._from_response(response, client=self)
 
         return tags
 
@@ -558,7 +557,7 @@ class Fred(_BaseClient):
 
         response = self._client_get_request(endpoint_name, data)
 
-        releases = Releases.to_object(response, client=self)
+        releases = Releases._from_response(response, client=self)
 
         return releases
 
@@ -621,7 +620,7 @@ class Fred(_BaseClient):
 
         response = self._client_get_request(endpoint_name, data)
 
-        return ReleaseDates.to_object(response)
+        return ReleaseDates._from_response(response)
 
     def get_release(self,
                     release_id: int,
@@ -667,7 +666,7 @@ class Fred(_BaseClient):
 
         response = self._client_get_request(endpoint_name, data)
 
-        release = Release.to_object(response, client=self)
+        release = Release._from_response(response, client=self)
 
         return release
 
@@ -730,7 +729,7 @@ class Fred(_BaseClient):
 
         response = self._client_get_request(endpoint_name, data)
 
-        return ReleaseDates.to_object(response)
+        return ReleaseDates._from_response(response)
 
     def get_release_series(self,
                            release_id: int,
@@ -797,7 +796,7 @@ class Fred(_BaseClient):
 
         response = self._client_get_request(endpoint_name, data)
 
-        seriess = Seriess.to_object(response, client=self)
+        seriess = Seriess._from_response(response, client=self)
 
         return seriess
 
@@ -847,7 +846,7 @@ class Fred(_BaseClient):
 
         response = self._client_get_request(endpoint_name, data)
 
-        sources = Sources.to_object(response, client=self)
+        sources = Sources._from_response(response, client=self)
 
         return sources
 
@@ -916,7 +915,7 @@ class Fred(_BaseClient):
 
         response = self._client_get_request(endpoint_name, data)
 
-        tags = Tags.to_object(response, client=self)
+        tags = Tags._from_response(response, client=self)
 
         return tags
 
@@ -992,7 +991,7 @@ class Fred(_BaseClient):
 
         response = self._client_get_request(endpoint_name, data)
 
-        tags = Tags.to_object(response, client=self)
+        tags = Tags._from_response(response, client=self)
 
         return tags
 
@@ -1046,7 +1045,7 @@ class Fred(_BaseClient):
 
         response = self._client_get_request(url_endpoint, data)
 
-        return Elements.to_object(response, client=self)
+        return Elements._from_response(response, client=self)
 
     def get_release_observations(self, release_id: int, limit: int | None = None) -> list[BulkRelease]: # TODO: needs complete implementation/redesign
         """Get FRED release observations in bulk.
@@ -1100,7 +1099,7 @@ class Fred(_BaseClient):
         while has_more:
             response = self._client_get_request(endpoint_name, data)
 
-            converted = BulkRelease.to_object(response, client=self)
+            converted = BulkRelease._from_response(response, client=self)
 
             return_list.append(converted)
 
@@ -1157,7 +1156,7 @@ class Fred(_BaseClient):
 
         response = self._client_get_request(endpoint_name, data)
 
-        series = Series.to_object(response, client=self)
+        series = Series._from_response(response, client=self)
 
         return series
 
@@ -1207,7 +1206,7 @@ class Fred(_BaseClient):
 
         response = self._client_get_request(endpoint_name, data)
 
-        categories = Categories.to_object(response, client=self)
+        categories = Categories._from_response(response, client=self)
 
         return categories
 
@@ -1340,7 +1339,7 @@ class Fred(_BaseClient):
 
         response = self._client_get_request(endpoint_name, data)
 
-        release = Release.to_object(response, client=self)
+        release = Release._from_response(response, client=self)
 
         return release
 
@@ -1418,7 +1417,7 @@ class Fred(_BaseClient):
 
         response = self._client_get_request(endpoint_name, data)
 
-        seriess = Seriess.to_object(response, client=self)
+        seriess = Seriess._from_response(response, client=self)
 
         return seriess
 
@@ -1490,7 +1489,7 @@ class Fred(_BaseClient):
 
         response = self._client_get_request(endpoint_name, data)
 
-        tags = Tags.to_object(response, client=self)
+        tags = Tags._from_response(response, client=self)
 
         return tags
 
@@ -1566,7 +1565,7 @@ class Fred(_BaseClient):
 
         response = self._client_get_request(endpoint_name, data)
 
-        tags = Tags.to_object(response, client=self)
+        tags = Tags._from_response(response, client=self)
 
         return tags
 
@@ -1623,7 +1622,7 @@ class Fred(_BaseClient):
 
         response = self._client_get_request(endpoint_name, data)
 
-        tags = Tags.to_object(response, client=self)
+        tags = Tags._from_response(response, client=self)
 
         return tags
 
@@ -1686,7 +1685,7 @@ class Fred(_BaseClient):
 
         response = self._client_get_request(endpoint_name, data)
 
-        seriess = Seriess.to_object(response, client=self)
+        seriess = Seriess._from_response(response, client=self)
 
         return seriess
 
@@ -1746,7 +1745,7 @@ class Fred(_BaseClient):
 
         response = self._client_get_request(endpoint_name, data)
 
-        return VintageDates.to_object(response)
+        return VintageDates._from_response(response)
 
     ## Sources
     def get_sources(self,
@@ -1805,7 +1804,7 @@ class Fred(_BaseClient):
 
         response = self._client_get_request(endpoint_name, data)
 
-        sources = Sources.to_object(response, client=self)
+        sources = Sources._from_response(response, client=self)
 
         return sources
 
@@ -1853,7 +1852,7 @@ class Fred(_BaseClient):
 
         response = self._client_get_request(endpoint_name, data)
 
-        source = Source.to_object(response, client=self)
+        source = Source._from_response(response, client=self)
 
         return source
 
@@ -1916,7 +1915,7 @@ class Fred(_BaseClient):
 
         response = self._client_get_request(endpoint_name, data)
 
-        releases = Releases.to_object(response, client=self)
+        releases = Releases._from_response(response, client=self)
 
         return releases
 
@@ -1986,7 +1985,7 @@ class Fred(_BaseClient):
 
         response = self._client_get_request(endpoint_name, data)
 
-        tags = Tags.to_object(response, client=self)
+        tags = Tags._from_response(response, client=self)
 
         return tags
 
@@ -2058,7 +2057,7 @@ class Fred(_BaseClient):
 
         response = self._client_get_request(endpoint_name, data)
 
-        tags = Tags.to_object(response, client=self)
+        tags = Tags._from_response(response, client=self)
 
         return tags
 
@@ -2124,7 +2123,7 @@ class Fred(_BaseClient):
 
         response = self._client_get_request(endpoint_name, data)
 
-        seriess = Seriess.to_object(response, client=self)
+        seriess = Seriess._from_response(response, client=self)
 
         return seriess
 
@@ -2212,7 +2211,7 @@ class AsyncFred(_AsyncBaseClient):
 
         response = await self._client_get_request(endpoint_name, data)
 
-        return await Category.to_object_async(response)
+        return await Category._from_response(response)
 
     async def get_category_children(self,
                                     category_id: int,
@@ -2265,7 +2264,7 @@ class AsyncFred(_AsyncBaseClient):
 
         response = await self._client_get_request(endpoint_name, data)
 
-        return await Categories.to_object_async(response)
+        return await Categories._from_response(response)
 
     async def get_category_related(self,
                                    category_id: int,
@@ -2321,7 +2320,7 @@ class AsyncFred(_AsyncBaseClient):
 
         response = await self._client_get_request(endpoint_name, data)
 
-        return await Categories.to_object_async(response)
+        return await Categories._from_response(response)
 
     async def get_category_series(self,
                                   category_id: int,
@@ -2397,7 +2396,7 @@ class AsyncFred(_AsyncBaseClient):
 
         response = await self._client_get_request(endpoint_name, data)
 
-        return await Seriess.to_object_async(response)
+        return await Seriess._from_response(response)
 
     async def get_category_tags(self,
                                 category_id: int,
@@ -2470,7 +2469,7 @@ class AsyncFred(_AsyncBaseClient):
 
         response = await self._client_get_request(endpoint_name, data)
 
-        return await Tags.to_object_async(response)
+        return await Tags._from_response(response)
 
     async def get_category_related_tags(self,
                                         category_id: int,
@@ -2547,7 +2546,7 @@ class AsyncFred(_AsyncBaseClient):
 
         response = await self._client_get_request(endpoint_name, data)
 
-        return await Tags.to_object_async(response)
+        return await Tags._from_response(response)
 
     ## Releases
     async def get_releases(self,
@@ -2609,7 +2608,7 @@ class AsyncFred(_AsyncBaseClient):
 
         response = await self._client_get_request(endpoint_name, data)
 
-        return await Releases.to_object_async(response)
+        return await Releases._from_response(response)
 
     async def get_releases_dates(self,
                                  realtime_start: str | datetime | date | None = None,
@@ -2673,7 +2672,7 @@ class AsyncFred(_AsyncBaseClient):
 
         response = await self._client_get_request(endpoint_name, data)
 
-        return await ReleaseDates.to_object_async(response)
+        return await ReleaseDates._from_response(response)
 
     async def get_release(self,
                           release_id: int,
@@ -2722,7 +2721,7 @@ class AsyncFred(_AsyncBaseClient):
 
         response = await self._client_get_request(endpoint_name, data)
 
-        return await Release.to_object_async(response)
+        return await Release._from_response(response)
 
     async def get_release_dates(self,
                                 release_id: int,
@@ -2786,7 +2785,7 @@ class AsyncFred(_AsyncBaseClient):
 
         response = await self._client_get_request(endpoint_name, data)
 
-        return await ReleaseDates.to_object_async(response)
+        return await ReleaseDates._from_response(response)
 
     async def get_release_series(self,
                                  release_id: int,
@@ -2856,7 +2855,7 @@ class AsyncFred(_AsyncBaseClient):
 
         response = await self._client_get_request(endpoint_name, data)
 
-        return await Seriess.to_object_async(response)
+        return await Seriess._from_response(response)
 
     async def get_release_sources(self,
                                   release_id: int,
@@ -2907,7 +2906,7 @@ class AsyncFred(_AsyncBaseClient):
 
         response = await self._client_get_request(endpoint_name, data)
 
-        return await Sources.to_object_async(response)
+        return await Sources._from_response(response)
 
     async def get_release_tags(self,
                                release_id: int,
@@ -2977,7 +2976,7 @@ class AsyncFred(_AsyncBaseClient):
 
         response = await self._client_get_request(endpoint_name, data)
 
-        return await Tags.to_object_async(response)
+        return await Tags._from_response(response)
 
     async def get_release_related_tags(self,
                                        release_id: int,
@@ -3053,7 +3052,7 @@ class AsyncFred(_AsyncBaseClient):
 
         response = await self._client_get_request(endpoint_name, data)
 
-        return await Tags.to_object_async(response)
+        return await Tags._from_response(response)
 
     async def get_release_tables(self,
                                  release_id: int,
@@ -3108,7 +3107,7 @@ class AsyncFred(_AsyncBaseClient):
 
         response = await self._client_get_request(endpoint_name, data)
 
-        return await Elements.to_object_async(response)
+        return await Elements._from_response(response)
 
     async def get_release_observations(self, release_id: int, limit: int | None = None) -> list[BulkRelease]:
         """Get FRED release observations in bulk.
@@ -3162,7 +3161,7 @@ class AsyncFred(_AsyncBaseClient):
 
             response = await self._client_get_request(endpoint_name, data)
 
-            converted = await BulkRelease.to_object_async(response)
+            converted = await BulkRelease._from_response(response)
 
             return_list.append(converted)
 
@@ -3222,7 +3221,7 @@ class AsyncFred(_AsyncBaseClient):
 
         response = await self._client_get_request(endpoint_name, data)
 
-        return await Series.to_object_async(response)
+        return await Series._from_response(response)
 
     async def get_series_categories(self,
                                     series_id: str,
@@ -3273,7 +3272,7 @@ class AsyncFred(_AsyncBaseClient):
 
         response = await self._client_get_request(endpoint_name, data)
 
-        return await Categories.to_object_async(response)
+        return await Categories._from_response(response)
 
     async def get_series_observations(self,
                                       series_id: str,
@@ -3410,7 +3409,7 @@ class AsyncFred(_AsyncBaseClient):
 
         response = await self._client_get_request(endpoint_name, data)
 
-        return await Release.to_object_async(response)
+        return await Release._from_response(response)
 
     async def get_series_search(self,
                                 search_text: str,
@@ -3489,7 +3488,7 @@ class AsyncFred(_AsyncBaseClient):
 
         response = await self._client_get_request(endpoint_name, data)
 
-        return await Seriess.to_object_async(response)
+        return await Seriess._from_response(response)
 
     async def get_series_search_tags(self,
                                      series_search_text: str,
@@ -3562,7 +3561,7 @@ class AsyncFred(_AsyncBaseClient):
 
         response = await self._client_get_request(endpoint_name, data)
 
-        return await Tags.to_object_async(response)
+        return await Tags._from_response(response)
 
     async def get_series_search_related_tags(self,
                                              series_search_text: str,
@@ -3638,7 +3637,7 @@ class AsyncFred(_AsyncBaseClient):
 
         response = await self._client_get_request(endpoint_name, data)
 
-        return await Tags.to_object_async(response)
+        return await Tags._from_response(response)
 
     async def get_series_tags(self,
                               series_id: str,
@@ -3696,7 +3695,7 @@ class AsyncFred(_AsyncBaseClient):
 
         response = await self._client_get_request(endpoint_name, data)
 
-        return await Tags.to_object_async(response)
+        return await Tags._from_response(response)
 
     async def get_series_updates(self,
                                  realtime_start: str | datetime | date | None = None,
@@ -3760,7 +3759,7 @@ class AsyncFred(_AsyncBaseClient):
 
         response = await self._client_get_request(endpoint_name, data)
 
-        return await Seriess.to_object_async(response)
+        return await Seriess._from_response(response)
 
     async def get_series_vintagedates(self,
                                       series_id: str,
@@ -3821,7 +3820,7 @@ class AsyncFred(_AsyncBaseClient):
 
         response = await self._client_get_request(endpoint_name, data)
 
-        return await VintageDates.to_object_async(response)
+        return await VintageDates._from_response(response)
 
     ## Sources
     async def get_sources(self,
@@ -3884,7 +3883,7 @@ class AsyncFred(_AsyncBaseClient):
 
         response = await self._client_get_request(endpoint_name, data)
 
-        return await Sources.to_object_async(response)
+        return await Sources._from_response(response)
 
     async def get_source(self,
                          source_id: int,
@@ -3933,7 +3932,7 @@ class AsyncFred(_AsyncBaseClient):
 
         response = await self._client_get_request(endpoint_name, data)
 
-        return await Source.to_object_async(response)
+        return await Source._from_response(response)
 
     async def get_source_releases(self,
                                   source_id: int,
@@ -3997,7 +3996,7 @@ class AsyncFred(_AsyncBaseClient):
 
         response = await self._client_get_request(url_endpoint, data)
 
-        return await Releases.to_object_async(response)
+        return await Releases._from_response(response)
 
     ## Tags
     async def get_tags(self,
@@ -4068,7 +4067,7 @@ class AsyncFred(_AsyncBaseClient):
 
         response = await self._client_get_request(endpoint_name, data)
 
-        return await Tags.to_object_async(response)
+        return await Tags._from_response(response)
 
     async def get_related_tags(self,
                                realtime_start: str | datetime | date | None = None,
@@ -4141,7 +4140,7 @@ class AsyncFred(_AsyncBaseClient):
 
         response = await self._client_get_request(endpoint_name, data)
 
-        return await Tags.to_object_async(response)
+        return await Tags._from_response(response)
 
     async def get_tags_series(self,
                               tag_names: str | list[str] | None = None,
@@ -4208,4 +4207,4 @@ class AsyncFred(_AsyncBaseClient):
 
         response = await self._client_get_request(endpoint_name, data)
 
-        return await Seriess.to_object_async(response)
+        return await Seriess._from_response(response)

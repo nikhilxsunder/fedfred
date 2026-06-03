@@ -19,84 +19,181 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""fedfred._core._clients
+"""Internal scaffolding for the fedfred client hierarchy.
 
-This module provides internal helper classes for the fedfred package's client implementations.
+This module defines the abstract bases that the public client classes in
+:mod:`fedfred.clients` inherit from. The hierarchy has one shared root and
+two sync/async specializations::
+
+    _ClientModel                            — config, identity, cache-protocol surface
+    ├── _BaseClient                         — synchronous transport + context manager
+    └── _AsyncBaseClient                    — asynchronous transport + async context manager
+
+:class:`_ClientModel` carries everything common to both flavours: API-key
+resolution, caching configuration, identity (:meth:`__repr__`, :meth:`__str__`,
+:meth:`__eq__`, :meth:`__hash__`), and the dict-like cache-inspection surface
+(:meth:`__len__`, :meth:`__contains__`, :meth:`__getitem__`,
+:attr:`_ClientModel.keys`). It is also the structural type that response
+model objects type their ``client`` attribute against, since either flavour
+of client may be attached.
+
+:class:`_BaseClient` and :class:`_AsyncBaseClient` add the transport layer
+appropriate to their concurrency mode: a synchronous or asynchronous context
+manager (forward-compatible seam for per-instance connection pooling, currently
+a no-op) and a ``_client_get_request`` private helper that dispatches through
+the module-global cache when ``caching_enabled`` is set, or straight through
+to the rate-limited transport when it is not.
+
+Classes:
+    _ClientModel: Root base for sync and async FRED-family clients.
+    _BaseClient: Synchronous client base.
+    _AsyncBaseClient: Asynchronous client base.
+
+Notes:
+    All classes in this module are private internals. The names are exported
+    only so the public client modules can subclass them; downstream users
+    should depend on the concrete clients (``Fred``, ``Alfred``, ``Fraser``,
+    ``AsyncFred``, ``AsyncAlfred``, ``AsyncFraser``).
 """
 
-from typing import Optional, Any, Union, KeysView, Dict
-from types import TracebackType, NotImplementedType
-from ..settings import _resolve_api_key, set_api_key
-from ._caching import set_cache_maxsize, get_cache_maxsize
+from collections.abc import KeysView
+from types import NotImplementedType, TracebackType
+from typing import Any
+
 from .._core import _hashable_type_converter, _hashable_type_converter_async
-from ._transport import _get_request, _cached_get_request, _get_request_async, _cached_get_request_async
+from ..settings import _resolve_api_key, set_api_key
+from ._caching import get_cache_maxsize, set_cache_maxsize
+from ._transport import (
+    _cached_get_request,
+    _cached_get_request_async,
+    _get_request,
+    _get_request_async,
+)
 
 # TODO: Fix all docstrings post error design.
 
-__all__ = ["_BaseClient", "_AsyncBaseClient", "_ClientModel"]
+__all__ = [
+    "_AsyncBaseClient",
+    "_BaseClient",
+    "_ClientModel",
+]
+
 
 class _ClientModel:
+    """Root base for synchronous and asynchronous FRED-family clients.
+
+    Provides everything common to both flavours: API-key resolution
+    delegated to :mod:`fedfred.settings`, caching configuration delegated
+    to :mod:`fedfred._internals._caching`, identity protocols
+    (:meth:`__repr__`, :meth:`__str__`, :meth:`__eq__`, :meth:`__hash__`),
+    and a dict-like cache-inspection surface (:meth:`__len__`,
+    :meth:`__contains__`, :meth:`__getitem__`, :attr:`keys`).
+
+    Concrete subclasses declare the four class variables below to describe
+    the underlying service. Instances should never be constructed directly;
+    use :class:`fedfred.Fred`, :class:`fedfred.Alfred`,
+    :class:`fedfred.Fraser`, or one of their async counterparts.
+
+    Attributes:
+        _service_key (str): Lowercase service identifier used for API-key resolution and rate-limit bucket selection.
+        _base_url (str): Base URL of the upstream FRED-family service.
+        _service_path (str): Service-specific URL prefix appended to ``_base_url``.
+        _max_requests_per_minute (int): The per-service rate limit applied by the transport layer.
+        caching_enabled (bool): Whether the module-global cache is enabled for this instance.
+        cache_size (int): The maximum number of cache entries when caching is enabled.
+
+    Notes:
+        :class:`_ClientModel` is also the structural type that response model objects type their ``client`` attribute against, since either flavour of concrete client may be attached.
+    """
 
     _service_key: str
-    _base_url: str
-    _service_path: str
-    _max_requests_per_minute: int
+    """Lowercase service identifier (e.g., ``"fred"``, ``"alfred"``, ``"fraser"``). Derived from the concrete class name at construction time."""
 
-        # Dunder Methods
-    def __init__(self, api_key: Optional[str]=None, caching_enabled: bool=True, cache_size: int=256) -> None:
-        """Initialize the Fred class that provides functions which query FRED data.
+    _base_url: str
+    """Base URL of the upstream FRED-family service. Declared by concrete subclasses."""
+
+    _service_path: str
+    """Service-specific URL prefix appended to ``_base_url``. Declared by concrete subclasses."""
+
+    _max_requests_per_minute: int
+    """The per-service rate limit applied by the transport layer. Declared by concrete subclasses."""
+
+    # Dunder Methods
+    def __init__(
+        self,
+        api_key: str | None = None,
+        caching_enabled: bool = True,
+        cache_size: int = 256
+    ) -> None:
+        """Initialize the client with an API key and caching configuration.
+
+        Derives ``_service_key`` from the concrete class name, registers
+        the supplied ``api_key`` (if any) through
+        :func:`fedfred.settings.set_api_key` for the corresponding service,
+        and configures the module-global cache via
+        :func:`fedfred._internals._caching.set_cache_maxsize` when
+        ``caching_enabled`` is ``True``.
 
         Args:
-            api_key (str, optional): Your FRED API key.
-            caching_enabled (bool, optional): Whether to enable caching for API responses. Defaults to True.
-            cache_size (int, optional): The maximum number of items to store in the cache if caching is enabled. Defaults to 256.
+            api_key (str, optional): Your FRED-family API key. If omitted,
+                the API key is resolved from the global setting or the
+                service's environment variable at request time.
+            caching_enabled (bool, optional): Whether to enable the module-
+                global cache for this client's requests. Defaults to ``True``.
+            cache_size (int, optional): The maximum number of cache entries
+                when caching is enabled. Defaults to 256.
 
         Raises:
-            RuntimeError: If no API key can be resolved from the explicit argument, global setting, or environment variable.
+            RuntimeError: If ``api_key`` is supplied but cannot be
+                registered, or if a downstream request fails to resolve
+                an API key from the explicit argument, global setting,
+                or environment variable.
+
+        Notes:
+            API keys can be set globally via :func:`fedfred.set_api_key`
+            or provided explicitly per-client. If neither is provided,
+            the client falls back to the service's environment variable
+            (``FRED_API_KEY`` for FRED/ALFRED/GeoFRED, ``FRASER_API_KEY``
+            for FRASER) at request time.
 
         Examples:
             >>> import fedfred as fd
             >>> fd.set_api_key("your_api_key")  # optional global
-            >>> fred = fd.Fred()             # uses global/env key
-
-            Or explicitly:
-
-            >>> fred = fd.Fred(api_key="your_api_key")
-
-        Notes:
-            API keys can be set globally using `fedfred.set_api_key(...)`, or can be provided explicitly
-            when instantiating the `Fred` class. If neither is provided, the class will attempt to
-            resolve the API key from the environment variable `FRED_API_KEY`.
-
-        See Also:
-            - :func:`fedfred.set_api_key`: Function to set the global FRED API key.
-            - :class:`fedfred.GeoFred`: GeoFred client for geospatial data from the FRED Maps API.
+            >>> fred = fd.Fred()                 # uses global/env key
+            >>> fred_explicit = fd.Fred(api_key="your_api_key")
         """
+        self._service_key = type(self).__name__.lower()
 
         if api_key:
-            set_api_key(api_key, service=self._service_key) # TODO: Typing alias logic rewrite origination point.
+            set_api_key(api_key, service=self._service_key)  # TODO: Typing alias logic rewrite origination point.
 
         if caching_enabled:
             set_cache_maxsize(cache_size)
 
         self.caching_enabled: bool = caching_enabled
+
         self.cache_size: int = get_cache_maxsize() if caching_enabled else cache_size
 
     def __repr__(self) -> str:
-        """Developer facing string representation of the Fred class.
+        """Return a compact developer representation.
+
+        Resolves the API-key presence without exposing the key itself —
+        either ``<set>`` or ``None`` is shown — and reports the caching
+        configuration. Suitable for logs and ``__repr__`` chains.
 
         Returns:
-            str: A string representation of the Fred class for developers.
+            str: A string of the form ``"<ClassName>(api_key=<set>|None,
+            caching_enabled=<bool>, cache_size=<int>)"``.
 
         Examples:
             >>> import fedfred as fd
             >>> fred = fd.Fred('your_api_key')
             >>> repr(fred)
-            Fred(api_key='<set>', caching_enabled=True, cache_size=256)
+            "Fred(api_key=<set>, caching_enabled=True, cache_size=256)"
         """
-
         try:
-            has_key = bool(_resolve_api_key(service=self._service_key)) # TODO: Typing alias logic rewrite origination point.
+            has_key = bool(_resolve_api_key(service=self._service_key))  # TODO: Typing alias logic rewrite origination point.
+
         except RuntimeError:                        # TODO: Add custom exception for missing API key and catch that instead.
             has_key = False
 
@@ -113,24 +210,28 @@ class _ClientModel:
         )
 
     def __str__(self) -> str:
-        """Human-readable summary string representation of the Fred class instance's configuration.
+        """Return a human-readable multi-line summary of the client's configuration.
+
+        Reports the service identifier and resolved upstream URL, whether
+        an API key is configured, the cache mode and capacity, and the
+        rate-limit budget. Suitable for interactive inspection and for
+        the ``print(client)`` idiom.
 
         Returns:
-            str: A user-friendly string representation of the Fred instance.
+            str: A multi-line summary string.
 
         Examples:
             >>> import fedfred as fd
             >>> fred = fd.Fred('your_api_key')
             >>> print(fred)
             Fred Instance:
-              Service: FRED (https://api.stlouisfed.org/fred)
+              Service: Fred (https://api.stlouisfed.org/fred)
               API Key: configured
               Cache: enabled (FIFO, maxsize=256)
               Rate Limit: 120 req/min
         """
-
         try:
-            has_key = bool(_resolve_api_key(service=self._service_key)) # TODO: Typing alias logic rewrite origination point.
+            has_key = bool(_resolve_api_key(service=self._service_key))  # TODO: Typing alias logic rewrite origination point.
         except RuntimeError:                           # TODO: Add custom exception for missing API key and catch that instead.
             has_key = False
 
@@ -150,19 +251,28 @@ class _ClientModel:
             f"  Rate Limit: {self._max_requests_per_minute} req/min\n"
         )
 
-    def __eq__(self, other: object) -> Union[bool, NotImplementedType]:
-        """Equality comparison for the Fred class against another object's observable configuration.
+    def __eq__(
+        self,
+        other: object
+    ) -> bool | NotImplementedType:
+        """Compare for equality against another client of the same concrete type.
+
+        Two clients compare equal when they are the same concrete class and
+        share the same observable configuration (``caching_enabled`` and
+        ``cache_size``). API keys are not compared because they are stored
+        out-of-band in the global settings registry. Returns
+        :data:`NotImplemented` rather than ``False`` for cross-type
+        comparisons so Python can attempt the reflected operation on the
+        other operand.
 
         Args:
-            other (object): The object to compare with.
+            other (object): The value to compare against.
 
         Returns:
-            bool: True if the objects are equal, False otherwise.
-            NotImplemented: If the other object is not an instance of AsyncFred.
-
-        Notes:
-            This method compares two Fred instances based on their attributes. If the other object is not a Fred 
-            instance, it returns NotImplemented.
+            bool | NotImplementedType: ``True`` if ``other`` is the same
+            concrete type and shares configuration; ``False`` if the
+            configuration differs; :data:`NotImplemented` if ``other`` is
+            a different type.
 
         Examples:
             >>> import fedfred as fd
@@ -171,7 +281,6 @@ class _ClientModel:
             >>> fred1 == fred2
             True
         """
-
         try:
             assert isinstance(other, type(self))
         except AssertionError:
@@ -183,233 +292,343 @@ class _ClientModel:
         )
 
     def __hash__(self) -> int:
-        """Hash function for the Fred class.
+        """Return a hash incorporating the concrete type name and configuration.
+
+        Including ``type(self).__name__`` ensures that a ``Fred`` and an
+        ``AsyncFred`` with the same caching configuration do not collide.
+        API keys are not hashed, matching the :meth:`__eq__` contract.
 
         Returns:
-            int: A hash value for the Fred instance.
-
-        Notes:
-            This method generates a hash based on the Fred instance's attributes.
+            int: A stable hash for the client instance.
 
         Examples:
             >>> import fedfred as fd
             >>> fred = fd.Fred('your_api_key')
-            >>> hashed_fred = hash(fred)
-            >>> print(hashed_fred)
-            1234567890 # Example hash value
+            >>> isinstance(hash(fred), int)
+            True
         """
-
         return hash((type(self).__name__, self.caching_enabled, self.cache_size))
 
     def __len__(self) -> int:
-        """Get the number of cached items in the Fred instance.
+        """Return the number of entries in the module-global cache.
+
+        Returns ``0`` when caching is disabled. The reported count is
+        currently shared across all live clients regardless of service
+        because the cache is module-global; once per-service cache
+        partitioning lands this method will scope to the calling client's
+        service.
 
         Returns:
-            int: The number of cached items in the Fred instance.
+            int: The current cache entry count, or ``0`` when caching is disabled.
+
+        Examples:
+            >>> import fedfred as fd
+            >>> fred = fd.Fred('your_api_key', caching_enabled=True)
+            >>> len(fred)
+            0
+        """
+        return len(_CACHE) if self.caching_enabled else 0  # TODO: Needs service based cache implementations and cache resolvers.
+
+    def __contains__(
+        self,
+        key: str
+    ) -> bool:
+        """Return whether a key is present in the module-global cache.
+
+        Returns ``False`` when caching is disabled. Like :meth:`__len__`,
+        the lookup is currently shared across all live clients.
+
+        Args:
+            key (str): The cache key to check for membership.
+
+        Returns:
+            bool: ``True`` if the key is cached, ``False`` if it is missing or caching is disabled.
 
         Examples:
             >>> import fedfred as fd
             >>> fred = fd.Fred('your_api_key')
-            >>> cache_length = len(fred)
-            >>> print(cache_length)
-            256 # Example length of the cache
+            >>> ('get_category', (('category_id', 125),)) in fred
+            False
         """
+        return self.caching_enabled and key in _CACHE  # TODO: Needs service based cache implementations and cache resolvers.
 
-        return len(_CACHE) if self.caching_enabled else 0 # TODO: Needs service based cache implementations and cache resolvers.
+    def __getitem__(
+        self,
+        key: str
+    ) -> Any:
+        """Return the cached response for a key from the module-global cache.
 
-    def __contains__(self, key: str) -> bool:
-        """Check if a specific item exists in the cache.
+        Provides dict-like read access to cached responses for inspection
+        and debugging. Raises :class:`KeyError` when caching is disabled
+        or the key is missing.
 
         Args:
-            key (str): The name of the attribute to check.
+            key (str): The cache key to retrieve.
 
         Returns:
-            bool: True if the attribute exists, False otherwise.
-
-        Notes:
-            This method checks for the existence of a key in the cache if caching is enabled.
-
-        Examples:
-            >>> import fedfred as fd
-            >>> fred = fd.Fred('your_api_key')
-            >>> print('some_key' in fred)
-            True # Example output if 'some_key' exists in the cache
-        """
-
-        return self.caching_enabled and key in _CACHE # TODO: Needs service based cache implementations and cache resolvers.
-
-    def __getitem__(self, key: str) -> Any:
-        """Get a specific item from the cache.
-
-        Args:
-            key (str): The name of the attribute to get.
-
-        Returns:
-            Any: The value of the attribute.
+            Any: The cached response payload.
 
         Raises:
-            AttributeError: If the key does not exist.
-
-        Notes:
-            This method allows access to cached items using the indexing syntax.
+            KeyError: If caching is disabled or the key is not present in the cache.
 
         Examples:
             >>> import fedfred as fd
             >>> fred = fd.Fred('your_api_key')
-            >>> fred['some_key']
-            'some_value'
+            >>> _ = fred.get_category(125)  # populate cache
+            >>> # fred[('get_category', (('category_id', 125),))]
         """
-
         if not self.caching_enabled:
             raise KeyError(key)         # TODO: Add custom exception for cache disabled and catch that instead.
 
-        return _CACHE.cache[key] # TODO: Needs service based cache implementations and cache resolvers.
+        return _CACHE.cache[key]  # TODO: Needs service based cache implementations and cache resolvers.
 
     # Properties
     @property
-    def keys(self) -> Optional[KeysView[tuple[Any, ...]]]:
-        """List of keys in the cache."""
+    def keys(self) -> KeysView[tuple[Any, ...]] | None:
+        """The view of cache keys, or ``None`` when caching is disabled.
 
-        return _CACHE.keys() if self.caching_enabled else None # TODO: Needs service based cache implementations and cache resolvers.
+        Returns:
+            KeysView[tuple[Any, ...]] | None: A live view of the module-
+            global cache keys, or ``None`` if this client has caching
+            disabled.
+
+        Examples:
+            >>> import fedfred as fd
+            >>> fred = fd.Fred('your_api_key', caching_enabled=False)
+            >>> fred.keys is None
+            True
+        """
+        return _CACHE.keys() if self.caching_enabled else None  # TODO: Needs service based cache implementations and cache resolvers.
+
 
 class _BaseClient(_ClientModel):
+    """Synchronous client base.
+
+    Adds the synchronous transport layer and a context-manager surface to
+    :class:`_ClientModel`. Concrete synchronous clients (:class:`fedfred.Fred`,
+    :class:`fedfred.Alfred`, :class:`fedfred.Fraser`) inherit from this
+    class.
+
+    The context-manager methods are currently no-ops — the underlying
+    :mod:`httpx` transport opens and closes a :class:`httpx.Client` per
+    request, and the cache and rate-limit buckets are module-global — but
+    they exist as ergonomic parity with other Python HTTP libraries and
+    as a forward-compatible seam for per-instance connection pooling.
+
+    See Also:
+        - :class:`_ClientModel`: The shared root base.
+        - :class:`_AsyncBaseClient`: The asynchronous counterpart.
+    """
 
     # Dunder Methods
     def __enter__(self) -> "_BaseClient":
-        """Enter the runtime context.
+        """Enter the synchronous runtime context.
 
         Returns:
-            Fred: The Fred instance itself.
+            _BaseClient: This instance, for use as the ``as`` target in a ``with`` statement.
 
         Notes:
-            The Fred client does not currently own per-instance resources requiring explicit cleanup — transport opens and closes httpx.Client per request,
-            and the cache and rate-limit buckets are module-global. The context manager exists for ergonomic parity with httpx/requests and as a
-            forward-compatible seam for future per-instance connection pooling.
+            The client does not currently own per-instance resources
+            requiring explicit cleanup. The transport opens and closes
+            :class:`httpx.Client` per request, and the cache and rate-limit
+            buckets are module-global. This method exists for ergonomic
+            parity with :mod:`httpx` and :mod:`requests` and as a forward-
+            compatible seam for future per-instance connection pooling.
 
         Examples:
             >>> import fedfred as fd
             >>> with fd.Fred("your_api_key") as fred:
             ...     categories = fred.get_category(125)
         """
-
         return self
 
-    def __exit__(self, exc_type: Optional[type[BaseException]], exc: Optional[BaseException], tb: Optional[TracebackType]) -> None:
-        """Exit the runtime context. No-op.
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc: BaseException | None,
+        tb: TracebackType | None,
+    ) -> None:
+        """Exit the synchronous runtime context.
+
+        No-op. Does not clear the cache or rate-limit buckets — those are
+        shared across all live sync and async clients, so clearing them
+        here would corrupt other clients.
 
         Args:
-            exc_type: Exception type if one was raised in the with-block.
-            exc: Exception instance, if any.
-            tb: Traceback, if any.
+            exc_type (type[BaseException] | None): Exception type if one was raised inside the ``with`` block, otherwise ``None``.
+            exc (BaseException | None): Exception instance, if any.
+            tb (TracebackType | None): Traceback, if any.
 
-        Notes:
-            Does not clear the cache or rate-limit buckets — those are shared
-            across all live Fred and AsyncFred instances. Clearing them here
-            would corrupt other clients.
+        Returns:
+            None: This method does not suppress exceptions.
         """
-
         return None
 
     # Private Methods
-    def _client_get_request(self, endpoint_name: str, data: Optional[Dict[str, Any]]=None) -> Dict[str, Any]:
-        """Helper method to perform a synchronous GET request to the FRED API.
+    def _client_get_request(
+        self,
+        endpoint_name: str,
+        data: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        """Perform a synchronous GET request to the FRED-family API.
+
+        Dispatches through the cached transport
+        (:func:`fedfred._internals._transport._cached_get_request`) when
+        ``self.caching_enabled`` is ``True``, hashing the query parameters
+        via :func:`fedfred._core._hashable_type_converter` so they form a
+        stable cache key. Falls through to the uncached transport
+        (:func:`fedfred._internals._transport._get_request`) when caching
+        is disabled.
 
         Args:
-            endpoint_name (str): The FRED API endpoint to query.
-            data (Dict[str, Optional[str | int]], optional): The query parameters for the request. Defaults to None.
+            endpoint_name (str): The FRED API endpoint name to query. Resolved against the endpoint specifications in :mod:`fedfred._core._endpoints`.
+            data (dict[str, Any] | None, optional): The query parameters to send with the request. ``None`` values are dropped by the transport layer. Defaults to ``None``.
 
         Returns:
-            Dict[str, Any]: The JSON response from the FRED API.
+            dict[str, Any]: The parsed JSON response from the API.
 
         Raises:
-            httpx.HTTPError: If the HTTP request fails.
+            httpx.HTTPError: If the underlying HTTP request fails.
+            FedFredAPIError: If the upstream service returns an error payload.
 
-        Notes:
-            This method handles rate limiting and caching for synchronous GET requests to the FRED API.
-
-        Warnings:
-            Caching is only applied if `cache_mode` is enabled. Ensure that the `data` parameter is hashable for 
-            caching to work correctly.
+        Warning:
+            Caching applies only when ``caching_enabled`` is ``True``. The ``data`` parameter must be hashable through
+            :func:`fedfred._core._hashable_type_converter` for caching to function correctly; list-valued parameters are flattened
+            into tuples by that helper.
         """
-
         if self.caching_enabled:
             return _cached_get_request(endpoint_name, _hashable_type_converter(data))
 
         else:
-            return _get_request(endpoint_name, data)
+            return _get_request(self._service_key, endpoint_name, data)
 
     def _client_post_request(self):
+        """Reserved hook for synchronous POST requests.
 
+        Placeholder for the v4 design pass; no FRED-family endpoint
+        currently requires a POST body, but the slot exists so the
+        public client surface remains stable when one does.
+        """
         pass
 
+
 class _AsyncBaseClient(_ClientModel):
+    """Asynchronous client base.
+
+    Adds the asynchronous transport layer and an async context-manager
+    surface to :class:`_ClientModel`. Concrete asynchronous clients
+    (:class:`fedfred.AsyncFred`, :class:`fedfred.AsyncAlfred`,
+    :class:`fedfred.AsyncFraser`) inherit from this class.
+
+    The async context-manager methods are currently no-ops — the underlying
+    :mod:`httpx` transport opens and closes an :class:`httpx.AsyncClient`
+    per request, and the cache and rate-limit buckets are module-global —
+    but they exist as ergonomic parity with :class:`httpx.AsyncClient` and
+    as a forward-compatible seam for per-instance connection pooling.
+
+    See Also:
+        - :class:`_ClientModel`: The shared root base.
+        - :class:`_BaseClient`: The synchronous counterpart.
+    """
 
     # Dunder Methods
     async def __aenter__(self) -> "_AsyncBaseClient":
         """Enter the asynchronous runtime context.
 
         Returns:
-            AsyncAlfred: The AsyncAlfred instance itself.
+            _AsyncBaseClient: This instance, for use as the ``as`` target in an ``async with`` statement.
 
         Notes:
-            AsyncAlfred does not currently own per-instance resources requiring explicit cleanup — transport opens and closes httpx.AsyncClient per
-            request, and the cache and rate-limit buckets are module-global. The context manager exists for ergonomic parity with httpx and as a
-            forward-compatible seam for future per-instance connection pooling.
+            The async client does not currently own per-instance resources
+            requiring explicit cleanup. The transport opens and closes
+            :class:`httpx.AsyncClient` per request, and the cache and
+            rate-limit buckets are module-global. This method exists for
+            ergonomic parity with :class:`httpx.AsyncClient` and as a
+            forward-compatible seam for future per-instance connection
+            pooling.
 
         Examples:
-            >>> import fedfred as fd
             >>> import asyncio
+            >>> import fedfred as fd
             >>> async def main():
-            ...     async with fd.AsyncAlfred("your_api_key") as fred:
+            ...     async with fd.AsyncFred("your_api_key") as fred:
             ...         categories = await fred.get_category(125)
             >>> asyncio.run(main())
         """
-
         return self
 
-    async def __aexit__(self, exc_type: Optional[type[BaseException]], exc: Optional[BaseException], tb: Optional[TracebackType]) -> None:
-        """Exit the asynchronous runtime context. No-op.
+    async def __aexit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc: BaseException | None,
+        tb: TracebackType | None,
+    ) -> None:
+        """Exit the asynchronous runtime context.
+
+        No-op. Does not clear the cache or rate-limit buckets — those are
+        shared across all live sync and async clients, so clearing them
+        here would corrupt other clients.
 
         Args:
-            exc_type: Exception type if one was raised in the async-with-block.
-            exc: Exception instance, if any.
-            tb: Traceback, if any.
+            exc_type (type[BaseException] | None): Exception type if one was raised inside the ``async with`` block, otherwise ``None``.
+            exc (BaseException | None): Exception instance, if any.
+            tb (TracebackType | None): Traceback, if any.
 
-        Notes:
-            Does not clear the cache or rate-limit buckets — those are shared
-            across all live Fred and AsyncFred instances.
+        Returns:
+            None: This method does not suppress exceptions.
         """
-
         return None
 
     # Private Methods
-    async def _client_get_request(self, url_endpoint: str, data: Optional[Dict[str, Optional[Union[str, int]]]]=None) -> Dict[str, Any]:
-        """Helper method to perform an asynchronous GET request to the FRED API.
+    async def _client_get_request(
+        self,
+        url_endpoint: str,
+        data: dict[str, str | int | None] | None = None,
+    ) -> dict[str, Any]:
+        """Perform an asynchronous GET request to the FRED-family API.
+
+        Dispatches through the cached transport
+        (:func:`fedfred._internals._transport._cached_get_request_async`)
+        when ``self.caching_enabled`` is ``True``, hashing the query
+        parameters via
+        :func:`fedfred._core._hashable_type_converter_async` so they form
+        a stable cache key. Falls through to the uncached transport
+        (:func:`fedfred._internals._transport._get_request_async`) when
+        caching is disabled.
 
         Args:
-            url_endpoint (str): The endpoint URL to send the GET request to.
-            data (Dict[str, Optional[Union[str, int]]], optional): The query parameters for the GET request.
-            
+            url_endpoint (str): The FRED API endpoint name or path to query.
+            data (dict[str, str | int | None] | None, optional): The query
+                parameters to send with the request. ``None`` values are
+                dropped by the transport layer. Defaults to ``None``.
+
         Returns:
-            Dict[str, Any]: The JSON response from the FRED API.
+            dict[str, Any]: The parsed JSON response from the API.
 
         Raises:
-            ValueError: If the response from the FRED API indicates an error.
+            httpx.HTTPError: If the underlying HTTP request fails.
+            FedFredAPIError: If the upstream service returns an error payload.
 
-        Notes:
-            This method handles rate limiting and caching for asynchronous GET requests to the FRED API.
-
-        Warnings:
-            Caching is only applied if `cache_mode` is enabled in the parent Fred instance. Ensure that the `data` parameter is hashable for 
-            caching to work correctly.
+        Warning:
+            Caching applies only when ``caching_enabled`` is ``True`` on
+            this instance. The ``data`` parameter must be hashable through
+            :func:`fedfred._core._hashable_type_converter_async` for
+            caching to function correctly; list-valued parameters are
+            flattened into tuples by that helper.
         """
-
         if self.caching_enabled:
-            return await _cached_get_request_async(url_endpoint, await _hashable_type_converter_async(data))
+            return await _cached_get_request_async(
+                url_endpoint, await _hashable_type_converter_async(data)
+            )
 
         else:
             return await _get_request_async(url_endpoint, data)
 
     async def _client_post_request(self):
+        """Reserved hook for asynchronous POST requests.
 
+        Placeholder for the v4 design pass; no FRED-family endpoint
+        currently requires a POST body, but the slot exists so the
+        public async client surface remains stable when one does.
+        """
         pass

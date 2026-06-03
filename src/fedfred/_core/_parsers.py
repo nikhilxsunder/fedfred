@@ -80,45 +80,6 @@ def _region_type_parser(response: Dict) -> str:
 
     return region_type
 
-async def _region_type_parser_async(response: Dict) -> str:
-    """Internal asynchronous parser function to extract the region type from a GeoFred response dictionary.
-
-    Args:
-        response (Dict): FRED GeoFred response dictionary.
-
-    Returns:
-        str: Extracted region type.
-
-    Raises:
-        ParsingError: If no meta data or region type is found in the response.
-
-    Examples:
-        >>> # Internal use
-        >>> from ._core import _region_type_parser_async
-        >>> response = {
-        >>>     "meta": {
-        >>>         "region_type": "state"
-        >>>     },
-        >>>     "data": {
-        >>>         "observations": []
-        >>>     }
-        >>> }
-        >>> async def main():
-        >>>     region_type = await _region_type_parser_async(response)
-        >>>     print(region_type)
-        >>> # Event loops should not be created in the library codebase, so this method should only be used within an existing async context. 
-        >>> # For documentation purposes, the following pattern can be used to check the output data:
-        >>> import asyncio
-        >>> if __name__ == "__main__":
-        >>>     asyncio.run(main())
-        state
-
-    Notes:
-        This method looks for the 'region_type' key in the 'meta' section of the response.
-    """
-
-    return await asyncio.to_thread(_region_type_parser, response)
-
 def _require_list(response: Dict[str, Any], key: str) -> List[Any]:
     """Validate a response has ``key`` pointing to a list. Raise otherwise.
     

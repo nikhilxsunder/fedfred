@@ -19,7 +19,13 @@ keywords = [
     "data science", "data visualization", "data mining", "data wrangling", "data cleaning"
 ]
 classifiers = [
-    "Programming Language :: Python :: 3",
+    'Programming Language :: Python',
+    'Programming Language :: Python :: 3',
+    'Programming Language :: Python :: 3.10',
+    'Programming Language :: Python :: 3.11',
+    'Programming Language :: Python :: 3.12',
+    'Programming Language :: Python :: 3.13',
+    'Programming Language :: Python :: 3.14',
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Development Status :: 5 - Production/Stable",
@@ -83,8 +89,8 @@ docs = [
     "matplotlib",
 ]
 notebooks = [
-    "ipykernel>=7.2.0",
-    "notebook>=7.5.6",
+    "ipykernel",
+    "notebook",
 ]
 extras = [
     "polars",

@@ -71,8 +71,6 @@ class Fraser(_BaseClient):
         - :func:`fedfred.get_api_key`
     """
 
-    _service_key = "fraser"
-
     # Public Methods
     ## API-Key
     def post_key_request(self, email: str, description: str) -> None:

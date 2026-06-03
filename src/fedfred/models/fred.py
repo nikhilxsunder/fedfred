@@ -204,7 +204,7 @@ class Category(_ModelBase):
     ) -> Category:
         """Build a single :class:`Category` from one raw FRED payload mapping.
 
-        Internal parser used by :meth:`to_object` and by sequence containers
+        Internal parser used by :meth:`_from_response` and by sequence containers
         when wiring up child items. Validates the presence of the required
         ``id`` and ``name`` fields and tolerates a missing ``parent_id``
         (root categories).
@@ -502,7 +502,7 @@ class Series(_ModelBase):
     ) -> Series:
         """Build a single :class:`Series` from one raw FRED payload mapping.
 
-        Internal parser used by :meth:`to_object` and by sequence containers
+        Internal parser used by :meth:`_from_response` and by sequence containers
         when wiring up child items. Accepts both ``id`` and ``series_id`` as
         the identifier key (FRED is inconsistent across endpoints), validates
         the presence of the long-form metadata fields, and routes the
@@ -644,7 +644,7 @@ class Seriess(_ModelSequence[Series]):
 
     The container name reflects FRED's own (idiosyncratic) plural; the API
     returns the sequence under either ``"seriess"`` or ``"series"`` depending
-    on the endpoint, both of which are handled by :meth:`to_object`.
+    on the endpoint, both of which are handled by :meth:`_from_response`.
 
     Examples:
         >>> import fedfred as fd
@@ -669,7 +669,7 @@ class Seriess(_ModelSequence[Series]):
 
     # Class Methods
     @classmethod
-    def to_object(
+    def _from_response(
         cls,
         response: dict[str, Any],
         client: _ClientModel | None = None
@@ -696,7 +696,7 @@ class Seriess(_ModelSequence[Series]):
             ...                          "frequency": "Annual", "units": "Bil.",
             ...                          "seasonal_adjustment": "NSA",
             ...                          "last_updated": "2024-01-01"}]}
-            >>> seriess = fd.Seriess.to_object(response)
+            >>> seriess = fd.Seriess._from_response(response)
             >>> seriess[0].id
             'GNPCA'
         """
@@ -803,7 +803,7 @@ class Tag(_ModelBase):
     ) -> Tag:
         """Build a single :class:`Tag` from one raw FRED payload mapping.
 
-        Internal parser used by :meth:`to_object` and by sequence containers.
+        Internal parser used by :meth:`_from_response` and by sequence containers.
         Validates the presence of every required field; tolerates a missing
         ``notes`` field.
 
@@ -1010,7 +1010,7 @@ class Release(_ModelBase):
     ) -> Release:
         """Build a single :class:`Release` from one raw FRED payload mapping.
 
-        Internal parser used by :meth:`to_object` and by sequence containers.
+        Internal parser used by :meth:`_from_response` and by sequence containers.
         Accepts both ``id`` and ``release_id`` as the identifier key and both
         ``link`` and ``url`` as the documentation link, normalizing FRED's
         inconsistent payload shapes across endpoints.
@@ -1051,7 +1051,7 @@ class Release(_ModelBase):
         )
 
     @classmethod
-    def to_object(cls,
+    def _from_response(cls,
                   response: dict[str, Any],
                   client: _ClientModel | None = None
                   ) -> Release:
@@ -1077,7 +1077,7 @@ class Release(_ModelBase):
         Examples:
             >>> import fedfred as fd
             >>> response = {"releases": [{"id": 82, "name": "Employment Situation"}]}
-            >>> release = fd.Release.to_object(response)
+            >>> release = fd.Release._from_response(response)
             >>> release.name
             'Employment Situation'
         """
@@ -1209,7 +1209,7 @@ class Releases(_ModelSequence[Release]):
 
     # Class Methods
     @classmethod
-    def to_object(cls,
+    def _from_response(cls,
         response: dict[str, Any],
         client: _ClientModel | None = None
     ) -> Releases:
@@ -1351,7 +1351,6 @@ class ReleaseDate(_DateBase):
 
         return self
 
-
     @classmethod
     def _rebuild(
         cls,
@@ -1406,10 +1405,14 @@ class ReleaseDate(_DateBase):
         """
         if not isinstance(raw, dict):
             raise ModelError("Invalid release_date payload: expected a mapping")
+
         if "release_id" not in raw or "date" not in raw:
             raise ModelError("Invalid release_date payload: missing 'release_id' or 'date'")
+
         d_raw = raw["date"]
+
         d = date.fromisoformat(d_raw) if isinstance(d_raw, str) else d_raw
+
         return cls.create(
             d.year, d.month, d.day,
             release_id=raw["release_id"],
@@ -1432,9 +1435,7 @@ class ReleaseDate(_DateBase):
         """Support pickling and ``copy.deepcopy`` via :meth:`_rebuild`.
 
         Returns:
-            tuple: A two-tuple of the rebuild callable and the positional arguments needed to reconstruct the instance. Using
-            ``type(self)._rebuild`` (rather than a hard-coded ``ReleaseDate._rebuild``) preserves subclass identity on
-            round-trip.
+            tuple: A two-tuple of the rebuild callable and the positional arguments needed to reconstruct the instance. Using ``type(self)._rebuild`` (rather than a hard-coded ``ReleaseDate._rebuild``) preserves subclass identity on round-trip.
         """
         return (
             type(self)._rebuild,
@@ -1593,7 +1594,7 @@ class Source(_ModelBase):
     ) -> Source:
         """Build a single :class:`Source` from one raw FRED payload mapping.
 
-        Internal parser used by :meth:`to_object` and by sequence containers.
+        Internal parser used by :meth:`_from_response` and by sequence containers.
         Accepts both ``link`` and ``url`` as the homepage key.
 
         Args:
@@ -1778,7 +1779,7 @@ class Element(_ModelBase):
     ) -> Element:
         """Build a single :class:`Element` from one raw FRED payload mapping.
 
-        Internal parser used by :meth:`to_object` and by sequence containers.
+        Internal parser used by :meth:`_from_response` and by sequence containers.
         Recursively constructs an :class:`Elements` for the ``children``
         field when present.
 
@@ -1823,7 +1824,7 @@ class Element(_ModelBase):
         )
 
     @classmethod
-    def to_object(
+    def _from_response(
         cls,
         response: dict[str, Any],
         client: _ClientModel | None = None
@@ -1894,7 +1895,7 @@ class Elements(_ModelSequence[Element]):
     client.
 
     FRED's release-tables endpoint returns the element collection as a dict
-    keyed by element id rather than a list; the :meth:`to_object` constructor
+    keyed by element id rather than a list; the :meth:`_from_response` constructor
     normalizes both shapes.
 
     Examples:
@@ -1918,7 +1919,7 @@ class Elements(_ModelSequence[Element]):
 
     # Class Methods
     @classmethod
-    def to_object(
+    def _from_response(
         cls,
         response: dict[str, Any],
         client: _ClientModel | None = None

@@ -115,8 +115,6 @@ class GeoFred(_BaseClient):
         - :class:`fedfred.Helpers`: Helper methods for the FRED API.
     """
 
-    _service_key = "geofred"
-
     # Public Methods
     def get_shape_files(self, shape: str, geodataframe_method: str='geopandas') -> Union[gpd.GeoDataFrame, 'dd_gpd.GeoDataFrame', 'st.GeoDataFrame']:
         """Get GeoFRED shape files

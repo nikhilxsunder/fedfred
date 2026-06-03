@@ -26,7 +26,7 @@ This module defines the abstract bases that the public model classes in
 The hierarchy is three layers deep::
 
     _Sequence[T]                            — generic sequence mechanics
-    ├── _ModelSequence[MT: _ModelBase]      — adds client, _parse_item, payload to_object
+    ├── _ModelSequence[MT: _ModelBase]      — adds client, _parse_item, payload _from_response
     └── _DateSequence[DT: _DateBase]        — adds date-aware repr, hashability, parse delegation
 
 And two parallel singleton bases::
@@ -39,7 +39,7 @@ positional indexing, slicing (delegated through :meth:`_Sequence._clone` so
 subclasses preserve sidecar state), string-key lookup via ``_lookup_key`` or a
 :meth:`_Sequence._lookup_value` override, IPython tab completion, equality
 against same-typed siblings, and the Jupyter rich-display support via
-:meth:`_Sequence._repr_html_`. Payload parsing, ``to_object`` shape, and
+:meth:`_Sequence._repr_html_`. Payload parsing, ``_from_response`` shape, and
 sidecar fields (``client`` on :class:`_ModelSequence`, future ``series_id``
 on tabular subclasses) live in the specialized layers below.
 
@@ -68,7 +68,6 @@ References:
 
 from __future__ import annotations
 
-import asyncio
 from collections.abc import Iterable, Iterator, Sequence
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta
@@ -155,7 +154,7 @@ class _ModelBase:
         raise NotImplementedError
 
     @classmethod
-    def to_object(
+    def _from_response(
         cls,
         response: dict[str, Any],
         client: _ClientModel | None = None
@@ -185,31 +184,6 @@ class _ModelBase:
 
         return cls._from_dict(raw[0], client=client)
 
-    @classmethod
-    async def to_object_async(
-        cls,
-        response: dict[str, Any],
-        client: _ClientModel | None = None
-    ) -> Self:
-        """Asynchronous counterpart to :meth:`to_object`.
-
-        Offloads the synchronous parsing path to a worker thread via
-        :func:`asyncio.to_thread` so the event loop is not blocked on
-        payload validation and construction.
-
-        Args:
-            response (dict[str, Any]): The raw FRED API response payload.
-            client (_ClientModel, optional): The FRED client to attach to
-                the resulting instance. Defaults to ``None``.
-
-        Returns:
-            Self: A single subclass instance built from the first payload entry.
-
-        Raises:
-            ModelError: Propagated from the underlying synchronous parser.
-        """
-        return await asyncio.to_thread(cls.to_object, response, client)
-
     # Protected Methods
     def _require_client(self) -> _ClientModel:
         """Return the attached client, raising if none is present.
@@ -229,6 +203,224 @@ class _ModelBase:
             raise ModelError("Client not set for this instance.")  # TODO: ModelError
 
         return self.client
+
+
+class _DateBase(date):
+    """Base for FRED date elements that *are* :class:`datetime.date` subclasses.
+
+    Subclasses pass ``isinstance(date)``, drop cleanly into any API that
+    expects a date (comparisons, ``strftime``, pandas indexes, fedfred's
+    own date parameters), and render their ISO string in Jupyter rather
+    than the verbose ``datetime.date(YYYY, M, D)`` repr. Two flavours of
+    subclass are supported:
+
+    - **Pure date elements** (e.g. :class:`fedfred.VintageDate`): no
+      metadata, trivial subclass with an overridden :meth:`_parse_value`.
+    - **Metadata-bearing elements** (e.g. :class:`fedfred.ReleaseDate`):
+      attach kw-only metadata via slot attributes, use a ``create``
+      factory routed through ``date.__new__``, and override
+      :meth:`_with_date` to preserve metadata through arithmetic and
+      :meth:`replace`.
+
+    Arithmetic operators (:meth:`__add__`, :meth:`__sub__`,
+    :meth:`__radd__`) route through :meth:`_with_date` so subclasses can
+    preserve metadata on the returned instance. This avoids two CPython
+    footguns: silent metadata stripping under positional ``date(year,
+    month, day)`` reconstruction, and ``TypeError`` from kw-only
+    ``__new__`` signatures when CPython's date arithmetic tries
+    ``type(self)(year, month, day)`` directly. Subtraction of two dates
+    still returns a plain :class:`datetime.timedelta` per the
+    :class:`datetime.date` contract.
+
+    Attributes:
+        _response_key (ClassVar[str]): Subclass-declared key under which FRED returns the list of objects of this type.
+
+    See Also:
+        - :class:`_DateSequence`: The plural-container counterpart.
+        - :class:`fedfred.VintageDate`: A pure-date concrete subclass.
+        - :class:`fedfred.ReleaseDate`: A metadata-bearing concrete subclass.
+    """
+
+    __slots__ = ()
+
+    _response_key: ClassVar[str] = ""
+    """Subclass-declared key under which FRED returns the list of objects of this type."""
+
+    # Class Methods
+    @classmethod
+    def _parse_value(
+        cls,
+        raw: Any
+    ) -> Self:
+        """Build one element from its raw payload.
+
+        Subclass hook. Implementations decide whether ``raw`` is a string
+        (ISO date) or a dict (date plus metadata) and validate accordingly.
+
+        Args:
+            raw (Any): The raw element payload from the FRED API.
+
+        Returns:
+            Self: A fully populated subclass instance.
+
+        Raises:
+            NotImplementedError: If invoked on :class:`_DateBase` directly
+                rather than an implementing subclass.
+        """
+        raise NotImplementedError
+
+    @classmethod
+    def _from_response(
+        cls,
+        response: dict[str, Any]
+    ) -> Self:
+        """Build a single instance from a full FRED API response payload.
+
+        Extracts the list under ``cls._response_key``, validates it is
+        non-empty, and dispatches the first entry through
+        :meth:`_parse_value`.
+
+        Args:
+            response (dict[str, Any]): The raw FRED API response payload.
+
+        Returns:
+            Self: A single subclass instance built from the first payload entry.
+
+        Raises:
+            ModelError: If the response does not contain the expected key
+                or if the resolved list is empty.
+        """
+        raw = _require_list(response, cls._response_key)
+
+        if not raw:
+            raise ModelError(f"No {cls._response_key!r} found in the response")
+
+        return cls._parse_value(raw[0])
+
+    # Dunder Methods
+    def __add__(
+        self,
+        other: timedelta
+    ) -> Self:
+        """Add a :class:`timedelta` and return a new instance via :meth:`_with_date`.
+
+        Routes through :meth:`_with_date` so subclass-specific metadata is
+        preserved on the resulting instance.
+
+        Args:
+            other (timedelta): The duration to add.
+
+        Returns:
+            Self: A new instance offset by ``other``.
+        """
+        d = date(self.year, self.month, self.day) + other
+
+        return self._with_date(d.year, d.month, d.day)
+
+    @overload
+    def __sub__(
+        self,
+        other: datetime
+    ) -> Never: ...
+    @overload
+    def __sub__(
+        self,
+        other: Self
+    ) -> timedelta: ...
+    @overload
+    def __sub__(
+        self,
+        other: timedelta
+    ) -> Self: ...
+    def __sub__(
+        self,
+        other: datetime | Self | timedelta
+    ) -> Self | timedelta:
+        """Subtract a :class:`timedelta` or another date.
+
+        - ``other`` is :class:`timedelta` → return a new instance offset
+          backward via :meth:`_with_date`, preserving subclass metadata.
+        - ``other`` is :class:`date` (including this subclass) → return a
+          plain :class:`timedelta` per the standard :class:`datetime.date`
+          contract.
+
+        Subtracting a :class:`datetime.datetime` is not supported and is
+        statically marked :data:`Never`.
+
+        Args:
+            other (timedelta | date | datetime): The value to subtract.
+
+        Returns:
+            Self | timedelta: A new instance if ``other`` is a
+            :class:`timedelta`; a :class:`timedelta` if ``other`` is a date.
+        """
+        if isinstance(other, timedelta):
+            d = date(self.year, self.month, self.day) - other
+
+            return self._with_date(d.year, d.month, d.day)
+
+        return date(self.year, self.month, self.day) - other
+
+    def __radd__(self, other: timedelta) -> Self:
+        """Right-hand :class:`timedelta` addition (``timedelta + date``).
+
+        Args:
+            other (timedelta): The duration on the left of the ``+``.
+
+        Returns:
+            Self: A new instance offset by ``other``.
+        """
+        return self.__add__(other)
+
+    # Protected Methods
+    def _with_date(
+        self,
+        year: int,
+        month: int,
+        day: int
+    ) -> Self:
+        """Rebuild this instance at a new ``(year, month, day)`` preserving subclass state.
+
+        Default implementation suits subclasses whose ``__new__`` accepts
+        only ``(cls, year, month, day)`` (the pure-date case). Metadata-
+        bearing subclasses override this method to thread their metadata
+        through a ``create`` factory.
+
+        Args:
+            year (int): The new year.
+            month (int): The new month, 1-12.
+            day (int): The new day of the month, 1-31.
+
+        Returns:
+            Self: A new instance at the given date.
+        """
+        return type(self)(year, month, day)
+
+    # Public Methods
+    def replace(
+        self,
+        year: SupportsIndex | None = None,
+        month: SupportsIndex | None = None,
+        day: SupportsIndex | None = None,
+    ) -> Self:
+        """Return a new instance with selected date components replaced.
+
+        Override of :meth:`datetime.date.replace` that routes through
+        :meth:`_with_date` so subclass metadata is preserved.
+
+        Args:
+            year (SupportsIndex, optional): The new year, or ``None`` to keep the current value.
+            month (SupportsIndex, optional): The new month, or ``None`` to keep the current value.
+            day (SupportsIndex, optional): The new day, or ``None`` to keep the current value.
+
+        Returns:
+            Self: A new instance with the requested components replaced.
+        """
+        return self._with_date(
+            self.year if year is None else int(year),
+            self.month if month is None else int(month),
+            self.day if day is None else int(day),
+        )
 
 
 # Type Variables
@@ -251,7 +443,7 @@ class _Sequence(Sequence[T]):
     length, containment, reversal, value equality against same-typed
     siblings, a developer ``repr``, the Jupyter rich-display sunder
     :meth:`_repr_html_`, and the IPython tab-completion sunder
-    :meth:`_ipython_key_completions_`. Payload parsing, ``to_object``
+    :meth:`_ipython_key_completions_`. Payload parsing, ``_from_response``
     construction, and sidecar state (``client`` on :class:`_ModelSequence`,
     future ``series_id`` on tabular siblings) live in the specialized
     subclasses.
@@ -613,8 +805,8 @@ class _ModelSequence(_Sequence[MT]):
     Adds an optional ``client`` reference that is forwarded to elements at
     construction (so that each element can lazily resolve its own related
     resources) and propagated through slicing via the :meth:`_clone`
-    override. Specializes :meth:`to_object` and :meth:`to_object_async` to
-    thread the client through payload parsing.
+    override. Specializes :meth:`_from_response` tothread the client through
+    payload parsing.
 
     Attributes:
         client (_ClientModel, optional): The FRED client instance attached
@@ -623,7 +815,7 @@ class _ModelSequence(_Sequence[MT]):
     Notes:
         The ``client`` slot is independent of any client field on the
         contained elements — both are populated from the same source at
-        :meth:`to_object` time. Concrete sequences (``Categories``,
+        :meth:`_from_response` time. Concrete sequences (``Categories``,
         ``Seriess``, etc.) subclass this via the parameterized form
         ``_ModelSequence[ConcreteModel]``, which triggers the
         :meth:`_Sequence.__init_subclass__` auto-wire of ``_response_key``
@@ -661,7 +853,7 @@ class _ModelSequence(_Sequence[MT]):
         return factory(data, client=client)
 
     @classmethod
-    def to_object(
+    def _from_response(
         cls,
         response: dict[str, Any],
         client: _ClientModel | None = None
@@ -694,30 +886,6 @@ class _ModelSequence(_Sequence[MT]):
             (cls._parse_item(item, client=client) for item in raw),
             client=client,
         )
-
-    @classmethod
-    async def to_object_async(
-        cls,
-        response: dict[str, Any],
-        client: _ClientModel | None = None
-    ) -> Self:
-        """Asynchronous counterpart to :meth:`to_object`.
-
-        Offloads payload parsing to a worker thread via
-        :func:`asyncio.to_thread` so the event loop is not blocked.
-
-        Args:
-            response (dict[str, Any]): The raw FRED API response payload.
-            client (_ClientModel, optional): The FRED client to propagate.
-                Defaults to ``None``.
-
-        Returns:
-            Self: A sequence of elements.
-
-        Raises:
-            ModelError: Propagated from the underlying synchronous parser.
-        """
-        return await asyncio.to_thread(cls.to_object, response, client)
 
     # Dunder Methods
     def __init__(
@@ -755,248 +923,6 @@ class _ModelSequence(_Sequence[MT]):
         return type(self)(items, client=self.client)
 
 
-class _DateBase(date):
-    """Base for FRED date elements that *are* :class:`datetime.date` subclasses.
-
-    Subclasses pass ``isinstance(date)``, drop cleanly into any API that
-    expects a date (comparisons, ``strftime``, pandas indexes, fedfred's
-    own date parameters), and render their ISO string in Jupyter rather
-    than the verbose ``datetime.date(YYYY, M, D)`` repr. Two flavours of
-    subclass are supported:
-
-    - **Pure date elements** (e.g. :class:`fedfred.VintageDate`): no
-      metadata, trivial subclass with an overridden :meth:`_parse_value`.
-    - **Metadata-bearing elements** (e.g. :class:`fedfred.ReleaseDate`):
-      attach kw-only metadata via slot attributes, use a ``create``
-      factory routed through ``date.__new__``, and override
-      :meth:`_with_date` to preserve metadata through arithmetic and
-      :meth:`replace`.
-
-    Arithmetic operators (:meth:`__add__`, :meth:`__sub__`,
-    :meth:`__radd__`) route through :meth:`_with_date` so subclasses can
-    preserve metadata on the returned instance. This avoids two CPython
-    footguns: silent metadata stripping under positional ``date(year,
-    month, day)`` reconstruction, and ``TypeError`` from kw-only
-    ``__new__`` signatures when CPython's date arithmetic tries
-    ``type(self)(year, month, day)`` directly. Subtraction of two dates
-    still returns a plain :class:`datetime.timedelta` per the
-    :class:`datetime.date` contract.
-
-    Attributes:
-        _response_key (ClassVar[str]): Subclass-declared key under which FRED returns the list of objects of this type.
-
-    See Also:
-        - :class:`_DateSequence`: The plural-container counterpart.
-        - :class:`fedfred.VintageDate`: A pure-date concrete subclass.
-        - :class:`fedfred.ReleaseDate`: A metadata-bearing concrete subclass.
-    """
-
-    __slots__ = ()
-
-    _response_key: ClassVar[str] = ""
-    """Subclass-declared key under which FRED returns the list of objects of this type."""
-
-    # Class Methods
-    @classmethod
-    def _parse_value(
-        cls,
-        raw: Any
-    ) -> Self:
-        """Build one element from its raw payload.
-
-        Subclass hook. Implementations decide whether ``raw`` is a string
-        (ISO date) or a dict (date plus metadata) and validate accordingly.
-
-        Args:
-            raw (Any): The raw element payload from the FRED API.
-
-        Returns:
-            Self: A fully populated subclass instance.
-
-        Raises:
-            NotImplementedError: If invoked on :class:`_DateBase` directly
-                rather than an implementing subclass.
-        """
-        raise NotImplementedError
-
-    @classmethod
-    def to_object(
-        cls,
-        response: dict[str, Any]
-    ) -> Self:
-        """Build a single instance from a full FRED API response payload.
-
-        Extracts the list under ``cls._response_key``, validates it is
-        non-empty, and dispatches the first entry through
-        :meth:`_parse_value`.
-
-        Args:
-            response (dict[str, Any]): The raw FRED API response payload.
-
-        Returns:
-            Self: A single subclass instance built from the first payload entry.
-
-        Raises:
-            ModelError: If the response does not contain the expected key
-                or if the resolved list is empty.
-        """
-        raw = _require_list(response, cls._response_key)
-
-        if not raw:
-            raise ModelError(f"No {cls._response_key!r} found in the response")
-
-        return cls._parse_value(raw[0])
-
-    @classmethod
-    async def to_object_async(
-        cls,
-        response: dict[str, Any]
-    ) -> Self:
-        """Asynchronous counterpart to :meth:`to_object`.
-
-        Offloads payload parsing to a worker thread via
-        :func:`asyncio.to_thread` so the event loop is not blocked.
-
-        Args:
-            response (dict[str, Any]): The raw FRED API response payload.
-
-        Returns:
-            Self: A single subclass instance built from the first payload entry.
-
-        Raises:
-            ModelError: Propagated from the underlying synchronous parser.
-        """
-        return await asyncio.to_thread(cls.to_object, response)
-
-    # Dunder Methods
-    def __add__(
-        self,
-        other: timedelta
-    ) -> Self:
-        """Add a :class:`timedelta` and return a new instance via :meth:`_with_date`.
-
-        Routes through :meth:`_with_date` so subclass-specific metadata is
-        preserved on the resulting instance.
-
-        Args:
-            other (timedelta): The duration to add.
-
-        Returns:
-            Self: A new instance offset by ``other``.
-        """
-        d = date(self.year, self.month, self.day) + other
-
-        return self._with_date(d.year, d.month, d.day)
-
-    @overload
-    def __sub__(
-        self,
-        other: datetime
-    ) -> Never: ...
-    @overload
-    def __sub__(
-        self,
-        other: Self
-    ) -> timedelta: ...
-    @overload
-    def __sub__(
-        self,
-        other: timedelta
-    ) -> Self: ...
-    def __sub__(
-        self,
-        other: datetime | Self | timedelta
-    ) -> Self | timedelta:
-        """Subtract a :class:`timedelta` or another date.
-
-        - ``other`` is :class:`timedelta` → return a new instance offset
-          backward via :meth:`_with_date`, preserving subclass metadata.
-        - ``other`` is :class:`date` (including this subclass) → return a
-          plain :class:`timedelta` per the standard :class:`datetime.date`
-          contract.
-
-        Subtracting a :class:`datetime.datetime` is not supported and is
-        statically marked :data:`Never`.
-
-        Args:
-            other (timedelta | date | datetime): The value to subtract.
-
-        Returns:
-            Self | timedelta: A new instance if ``other`` is a
-            :class:`timedelta`; a :class:`timedelta` if ``other`` is a date.
-        """
-        if isinstance(other, timedelta):
-            d = date(self.year, self.month, self.day) - other
-
-            return self._with_date(d.year, d.month, d.day)
-
-        return date(self.year, self.month, self.day) - other
-
-    def __radd__(self, other: timedelta) -> Self:
-        """Right-hand :class:`timedelta` addition (``timedelta + date``).
-
-        Args:
-            other (timedelta): The duration on the left of the ``+``.
-
-        Returns:
-            Self: A new instance offset by ``other``.
-        """
-        return self.__add__(other)
-
-    # Protected Methods
-    def _with_date(
-        self,
-        year: int,
-        month: int,
-        day: int
-    ) -> Self:
-        """Rebuild this instance at a new ``(year, month, day)`` preserving subclass state.
-
-        Default implementation suits subclasses whose ``__new__`` accepts
-        only ``(cls, year, month, day)`` (the pure-date case). Metadata-
-        bearing subclasses override this method to thread their metadata
-        through a ``create`` factory.
-
-        Args:
-            year (int): The new year.
-            month (int): The new month, 1-12.
-            day (int): The new day of the month, 1-31.
-
-        Returns:
-            Self: A new instance at the given date.
-        """
-        return type(self)(year, month, day)
-
-    # Public Methods
-    def replace(
-        self,
-        year: Optional[SupportsIndex] = None,
-        month: Optional[SupportsIndex] = None,
-        day: Optional[SupportsIndex] = None,
-    ) -> Self:
-        """Return a new instance with selected date components replaced.
-
-        Override of :meth:`datetime.date.replace` that routes through
-        :meth:`_with_date` so subclass metadata is preserved.
-
-        Args:
-            year (SupportsIndex, optional): The new year, or ``None`` to
-                keep the current value.
-            month (SupportsIndex, optional): The new month, or ``None`` to
-                keep the current value.
-            day (SupportsIndex, optional): The new day, or ``None`` to keep
-                the current value.
-
-        Returns:
-            Self: A new instance with the requested components replaced.
-        """
-        return self._with_date(
-            self.year if year is None else int(year),
-            self.month if month is None else int(month),
-            self.day if day is None else int(day),
-        )
-
-
 class _DateSequence(_Sequence[DT]):
     """Sequence specialization for :class:`_DateBase` elements.
 
@@ -1026,6 +952,7 @@ class _DateSequence(_Sequence[DT]):
 
     __slots__ = ()
 
+    # Class Methods
     @classmethod
     def _parse_value(cls, raw: Any) -> DT:
         """Build a single element by delegating to the element class's ``_parse_value``.
@@ -1038,11 +965,31 @@ class _DateSequence(_Sequence[DT]):
             raw (Any): The raw element payload from the FRED API.
 
         Returns:
-            DT: A single element instance built by the element class's
-            ``_parse_value``.
+            DT: A single element instance built by the element class's ``_parse_value``.
         """
         return getattr(cls._element_cls, "_parse_value")(raw)
 
+    @classmethod
+    def _from_response(cls, response: dict[str, Any]) -> Self:
+        """Build a sequence from a FRED API response payload.
+
+        Extracts the element list under ``cls._response_key`` and parses
+        each entry through :meth:`_parse_value`.
+
+        Args:
+            response (dict[str, Any]): The raw FRED API response payload.
+
+        Returns:
+            Self: A sequence of elements.
+
+        Raises:
+            ModelError: If the response does not contain the expected key.
+        """
+        raw = _require_list(response, cls._response_key)
+
+        return cls(cls._parse_value(item) for item in raw)
+
+    # Dunder Methods
     def __hash__(self) -> int:
         """Return a hash incorporating the concrete type name and elements.
 
@@ -1069,6 +1016,7 @@ class _DateSequence(_Sequence[DT]):
         """
         if not self._items:
             return f"{type(self).__name__}(n=0)"
+
         return (
             f"{type(self).__name__}(n={len(self._items)}, "
             f"{self._items[0].isoformat()} … {self._items[-1].isoformat()})"
@@ -1082,49 +1030,12 @@ class _DateSequence(_Sequence[DT]):
         empty.
 
         Returns:
-            str: An HTML fragment summarizing the date range and item
-            count.
+            str: An HTML fragment summarizing the date range and item count.
         """
         if not self._items:
             return f"<b>{type(self).__name__}</b> — empty"
+
         return (
             f"<b>{type(self).__name__}</b> — {len(self._items)} items, "
             f"{self._items[0].isoformat()} → {self._items[-1].isoformat()}"
         )
-
-    @classmethod
-    def to_object(cls, response: dict[str, Any]) -> Self:
-        """Build a sequence from a FRED API response payload.
-
-        Extracts the element list under ``cls._response_key`` and parses
-        each entry through :meth:`_parse_value`.
-
-        Args:
-            response (dict[str, Any]): The raw FRED API response payload.
-
-        Returns:
-            Self: A sequence of elements.
-
-        Raises:
-            ModelError: If the response does not contain the expected key.
-        """
-        raw = _require_list(response, cls._response_key)
-        return cls(cls._parse_value(item) for item in raw)
-
-    @classmethod
-    async def to_object_async(cls, response: dict[str, Any]) -> Self:
-        """Asynchronous counterpart to :meth:`to_object`.
-
-        Offloads payload parsing to a worker thread via
-        :func:`asyncio.to_thread` so the event loop is not blocked.
-
-        Args:
-            response (dict[str, Any]): The raw FRED API response payload.
-
-        Returns:
-            Self: A sequence of elements.
-
-        Raises:
-            ModelError: Propagated from the underlying synchronous parser.
-        """
-        return await asyncio.to_thread(cls.to_object, response)
