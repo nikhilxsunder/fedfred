@@ -34,6 +34,7 @@ classifiers = [
 ]
 dependencies = [
     "httpx",
+    "orjson",
     "cachetools",
     "asyncache",
     "tenacity",

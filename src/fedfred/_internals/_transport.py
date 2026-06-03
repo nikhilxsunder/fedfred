@@ -27,6 +27,7 @@ This module provides internal transport functions for the fedfred core package.
 from __future__ import annotations
 from typing import  Optional, Dict, Union, Tuple, Any
 import httpx
+import orjson
 from tenacity import retry, wait_fixed, stop_after_attempt, retry_if_exception_type
 from cachetools import cached
 from asyncache import cached as async_cached
@@ -87,6 +88,7 @@ __all__ = [
     "_cached_get_request", "_cached_get_request_async",
     "_post_request", "_post_request_async"
 ]
+
 
 _HTTP_EXCEPTION_MAP: Dict = {
     httpx.ConnectTimeout: ConnectTimeoutError,
@@ -208,6 +210,7 @@ def _safe_response_text(exception: httpx.HTTPStatusError) -> Optional[str]:
 
     try:
         return exception.response.text
+
     except (AttributeError, UnicodeDecodeError):
         return None
 
@@ -377,13 +380,13 @@ def _get_request(service_name: str, endpoint_name: str, data: Optional[Dict[str,
         **(_resolve_preparation_function(data, spec.service) or {}),
     }
 
-    _rate_limiter(service=spec.service)
+    _rate_limiter(service_name)
 
     with httpx.Client() as client:
         try:
             response = client.get(spec.url, params=params, headers=spec.headers or None, timeout=10)
             response.raise_for_status()
-            return response.json()
+            return orjson.loads(response.content)
         except httpx.HTTPError as exc:
             raise _map_httpx_exception(exc) from exc
         except ValueError as exc:

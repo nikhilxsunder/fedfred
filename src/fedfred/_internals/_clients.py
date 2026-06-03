@@ -388,9 +388,7 @@ class _ClientModel:
         """The view of cache keys, or ``None`` when caching is disabled.
 
         Returns:
-            KeysView[tuple[Any, ...]] | None: A live view of the module-
-            global cache keys, or ``None`` if this client has caching
-            disabled.
+            KeysView[tuple[Any, ...]] | None: A live view of the module-global cache keys, or ``None`` if this client has caching disabled.
 
         Examples:
             >>> import fedfred as fd
