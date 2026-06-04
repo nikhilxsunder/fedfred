@@ -62,7 +62,7 @@ from typing import Any
 
 from .._core import _hashable_type_converter
 from ..settings import Service, _resolve_api_key, set_api_key
-from ._caching import get_cache_maxsize, set_cache_maxsize
+from ._caching import _retrieve_cache_instance, get_cache_maxsize, set_cache_maxsize
 from ._transport import (
     _cached_get_request,
     _cached_get_request_async,
@@ -329,7 +329,7 @@ class _ClientModel:
             >>> len(fred)
             0
         """
-        return len(_CACHE) if self.caching_enabled else 0  # TODO: Needs service based cache implementations and cache resolvers.
+        return len(_retrieve_cache_instance()) if self.caching_enabled else 0  # TODO: Needs service based cache implementations and cache resolvers.
 
     def __contains__(
         self,
@@ -352,7 +352,7 @@ class _ClientModel:
             >>> ('get_category', (('category_id', 125),)) in fred
             False
         """
-        return self.caching_enabled and key in _CACHE  # TODO: Needs service based cache implementations and cache resolvers.
+        return self.caching_enabled and key in _retrieve_cache_instance()  # TODO: Needs service based cache implementations and cache resolvers.
 
     def __getitem__(
         self,
@@ -382,7 +382,7 @@ class _ClientModel:
         if not self.caching_enabled:
             raise KeyError(key)         # TODO: Add custom exception for cache disabled and catch that instead.
 
-        return _CACHE.cache[key]  # TODO: Needs service based cache implementations and cache resolvers.
+        return _retrieve_cache_instance().cache[key]  # TODO: Needs service based cache implementations and cache resolvers.
 
     # Properties
     @property
@@ -398,7 +398,7 @@ class _ClientModel:
             >>> fred.keys is None
             True
         """
-        return _CACHE.keys() if self.caching_enabled else None  # TODO: Needs service based cache implementations and cache resolvers.
+        return _retrieve_cache_instance().keys() if self.caching_enabled else None  # TODO: Needs service based cache implementations and cache resolvers.
 
 
 class _BaseClient(_ClientModel):
@@ -484,6 +484,7 @@ class _BaseClient(_ClientModel):
         Args:
             endpoint_name (str): The FRED API endpoint name to query. Resolved against the endpoint specifications in :mod:`fedfred._core._endpoints`.
             data (dict[str, Any] | None, optional): The query parameters to send with the request. ``None`` values are dropped by the transport layer. Defaults to ``None``.
+            path_injection (str | None, optional): An optional string to inject into the endpoint path, for endpoints that require it. Defaults to ``None``.
 
         Returns:
             dict[str, Any]: The parsed JSON response from the API.
@@ -604,9 +605,8 @@ class _AsyncBaseClient(_ClientModel):
 
         Args:
             endpoint_name (str): The FRED API endpoint name or path to query.
-            data (dict[str, str | int | None] | None, optional): The query
-                parameters to send with the request. ``None`` values are
-                dropped by the transport layer. Defaults to ``None``.
+            data (dict[str, str | int | None] | None, optional): The query parameters to send with the request. ``None`` values are dropped by the transport layer. Defaults to ``None``.
+            path_injection (str | None, optional): An optional string to inject into the endpoint path, for endpoints that require it. Defaults to ``None``.
 
         Returns:
             dict[str, Any]: The parsed JSON response from the API.

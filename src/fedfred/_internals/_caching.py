@@ -39,17 +39,7 @@ from ..exceptions import (
     CacheDeleteError,
 )
 
-__all__ = [
-    # Typing Aliases
-    "K", "V", "T",
-    # Sentinel
-    "_MISSING",
-    # Cache Abstractions
-    "AdjustableFIFOCache",
-    # Global Cache Interface
-    "set_cache_maxsize", "get_cache_maxsize", 
-    "_CACHE",
-]
+#__all__ = []
 
 # Typing aliases
 K = TypeVar("K", bound=Hashable)
@@ -496,3 +486,11 @@ def get_cache_maxsize() -> int:
     """
 
     return _CACHE.maxsize
+
+def _retrieve_cache_instance() -> AdjustableFIFOCache[Tuple, object]:
+    """Internal helper to retrieve the global cache instance.
+
+    Returns:
+        AdjustableFIFOCache[Tuple, object]: The global adjustable FIFO cache instance.
+    """
+    return _CACHE
