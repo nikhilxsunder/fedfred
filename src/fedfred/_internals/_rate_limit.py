@@ -386,34 +386,6 @@ def _resolve_limiter(service: str) -> LimiterSpec:
 
     return LimiterSpec(service)
 
-async def _resolve_limiter_async(service: str) -> LimiterSpec:
-    """Asynchronously resolve the limiter specification for the given service.
-    
-    Args:
-        service (str): The name of the service for which to resolve the limiter specification.
-
-    Raises:
-        LimiterServiceError: If the specified service is unknown or unsupported.
-        LimiterLoopError: If there is no running event loop to manage timing for rate limiting.
-        LimiterLimitError: If the maximum requests per minute for the service is invalid (e.g., less than 1).
-
-    Returns:
-        LimiterSpec: The limiter specification containing the request times, maximum requests per minute, lock, and semaphore for the specified service.
-        RateLimiterConfigurationError: If max_requests_per_minute is less than 1, indicating an invalid configuration for rate limiting.
-        RateLimiterStateError: If the semaphore is in an invalid state (e.g., limit less than 1) or if the request time queue state is inconsistent with the computed request volume.
-        LimiterLoopError: If there is no running event loop to acquire the lock.
-        LimiterLimitError: If the semaphore limit is invalid, indicating that it cannot be updated based on the current request volume.
-
-    Examples:
-        >>> # Internal use
-        >>> from ._core import _resolve_limiter_async
-        >>> limiter_spec = await _resolve_limiter_async(service="fred")  # Asynchronously resolves limiter specification for FRED API
-        >>> bad_limiter_spec = await _resolve_limiter_async(service="unknown")  # Raises LimiterServiceError
-        LimiterServiceError: Unknown rate-limited service: unknown
-    """
-
-    return await asyncio.to_thread(_resolve_limiter, service)
-
 async def _semaphore_updater(request_times: deque, max_requests_per_minute: int, lock: asyncio.Lock, semaphore: AdjustableLimiter) -> Tuple[Any, float]:
     """Dynamically adjusts the semaphore based on requests left in the minute.
 
@@ -539,7 +511,7 @@ async def _rate_limiter_async(service: str) -> None:
         This method should be used within an asynchronous context to ensure proper locking and timing.
     """
 
-    spec = await _resolve_limiter_async(service)
+    spec = _resolve_limiter(service)
 
     async with spec.semaphore:
         requests_left, time_left = await _semaphore_updater(spec.request_times, spec.max_requests_per_minute, spec.lock, spec.semaphore)
