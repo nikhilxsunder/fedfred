@@ -60,14 +60,16 @@ from collections.abc import KeysView
 from types import NotImplementedType, TracebackType
 from typing import Any
 
-from .._core import _hashable_type_converter, _hashable_type_converter_async
-from ..settings import _resolve_api_key, set_api_key
+from .._core import _hashable_type_converter
+from ..settings import Service, _resolve_api_key, set_api_key
 from ._caching import get_cache_maxsize, set_cache_maxsize
 from ._transport import (
     _cached_get_request,
     _cached_get_request_async,
     _get_request,
     _get_request_async,
+    _post_request,
+    _post_request_async,
 )
 
 # TODO: Fix all docstrings post error design.
@@ -106,7 +108,7 @@ class _ClientModel:
         :class:`_ClientModel` is also the structural type that response model objects type their ``client`` attribute against, since either flavour of concrete client may be attached.
     """
 
-    _service_key: str
+    _service_key: Service
     """Lowercase service identifier (e.g., ``"fred"``, ``"alfred"``, ``"fraser"``). Derived from the concrete class name at construction time."""
 
     _base_url: str
@@ -467,6 +469,7 @@ class _BaseClient(_ClientModel):
         self,
         endpoint_name: str,
         data: dict[str, Any] | None = None,
+        path_injection: str | None = None
     ) -> dict[str, Any]:
         """Perform a synchronous GET request to the FRED-family API.
 
@@ -495,19 +498,23 @@ class _BaseClient(_ClientModel):
             into tuples by that helper.
         """
         if self.caching_enabled:
-            return _cached_get_request(endpoint_name, _hashable_type_converter(data))
+            return _cached_get_request(self._service_key, endpoint_name, _hashable_type_converter(data), path_injection)
 
         else:
-            return _get_request(self._service_key, endpoint_name, data)
+            return _get_request(self._service_key, endpoint_name, data, path_injection)
 
-    def _client_post_request(self):
+    def _client_post_request(
+        self,
+        endpoint_name: str,
+        data: dict[str, str | int | None] | None = None
+    ) -> dict[str, Any]:
         """Reserved hook for synchronous POST requests.
 
         Placeholder for the v4 design pass; no FRED-family endpoint
         currently requires a POST body, but the slot exists so the
         public client surface remains stable when one does.
         """
-        pass
+        return _post_request(self._service_key, endpoint_name, data)
 
 
 class _AsyncBaseClient(_ClientModel):
@@ -580,8 +587,9 @@ class _AsyncBaseClient(_ClientModel):
     # Private Methods
     async def _client_get_request(
         self,
-        url_endpoint: str,
+        endpoint_name: str,
         data: dict[str, str | int | None] | None = None,
+        path_injection: str | None = None
     ) -> dict[str, Any]:
         """Perform an asynchronous GET request to the FRED-family API.
 
@@ -595,7 +603,7 @@ class _AsyncBaseClient(_ClientModel):
         caching is disabled.
 
         Args:
-            url_endpoint (str): The FRED API endpoint name or path to query.
+            endpoint_name (str): The FRED API endpoint name or path to query.
             data (dict[str, str | int | None] | None, optional): The query
                 parameters to send with the request. ``None`` values are
                 dropped by the transport layer. Defaults to ``None``.
@@ -616,17 +624,21 @@ class _AsyncBaseClient(_ClientModel):
         """
         if self.caching_enabled:
             return await _cached_get_request_async(
-                url_endpoint, await _hashable_type_converter_async(data)
+                self._service_key, endpoint_name, _hashable_type_converter(data), path_injection
             )
 
         else:
-            return await _get_request_async(url_endpoint, data)
+            return await _get_request_async(self._service_key, endpoint_name, data, path_injection)
 
-    async def _client_post_request(self):
+    async def _client_post_request(
+        self,
+        endpoint_name: str,
+        data: dict[str, str | int | None] | None = None
+    ) -> dict[str, Any]:
         """Reserved hook for asynchronous POST requests.
 
         Placeholder for the v4 design pass; no FRED-family endpoint
         currently requires a POST body, but the slot exists so the
         public async client surface remains stable when one does.
         """
-        pass
+        return await _post_request_async(self._service_key, endpoint_name, data)

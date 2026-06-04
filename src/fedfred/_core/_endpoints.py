@@ -84,7 +84,6 @@ __all__ = [
     "_resolve_endpoint",
 ]
 
-
 # Typing Aliases
 AuthStyle = Literal["api_key_param", "bearer_header", "api_key_header", "none"]
 """How the transport layer injects the API key for an endpoint.
@@ -431,7 +430,6 @@ Used as query parameters for GET endpoints and as the POST body for the
 services invite cross-service corruption.
 """
 
-
 # Endpoint Registry
 def _build_fred_style_specs(service: Service) -> dict[str, EndpointSpec]:
     """Build the per-endpoint :class:`EndpointSpec` registry for a FRED-style service.
@@ -478,7 +476,6 @@ def _build_fred_style_specs(service: Service) -> dict[str, EndpointSpec]:
 
     return specs
 
-
 _ENDPOINT_REGISTRY: dict[Service, dict[str, EndpointSpec]] = {
     "fred": _build_fred_style_specs("fred"),
     "alfred": _build_fred_style_specs("alfred"),
@@ -517,7 +514,6 @@ example ``"get_series_observations"``) deliberately resolves under both
 ``"fred"`` and ``"alfred"`` — the spec it returns will carry the correct
 ``service`` field so the rest of the stack can branch on it.
 """
-
 
 # Endpoint Resolution
 def _resolve_endpoint(service: Service, endpoint_name: str) -> EndpointSpec:
