@@ -5,13 +5,13 @@
         "url": "https://nikhilxsunder.github.io/fedfred/dev/"
     },
     {
-        "name": "4.0 (stable)",
+        "name": "4.0.0 (stable)",
         "version": "4.0.0",
         "url": "https://nikhilxsunder.github.io/fedfred/",
         "preferred": true
     },
     {
-        "name": "3.0 (legacy)",
+        "name": "3.0.0 (legacy)",
         "version": "3.0.0",
         "url": "https://nikhilxsunder.github.io/fedfred/v3.0.0/"
     }

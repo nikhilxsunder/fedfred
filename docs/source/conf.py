@@ -67,7 +67,7 @@ html_theme_options = {
     "show_version_warning_banner": True,
     "header_links_before_dropdown": 5,
     "switcher": {
-        "json_url": "https://nikhilxsunder.github.io/fedfred/_static/switcher.json",
+        "json_url": "https://raw.githubusercontent.com/nikhilxsunder/fedfred/v4-dev/docs/source/_static/switcher.json", # TODO: update this url to point to the stable switcher.json once version 4 is released
         "version_match": release,   # matches the "version" field in the JSON
     },
     "check_switcher": True,
