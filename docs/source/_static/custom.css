@@ -1,0 +1,20 @@
+/* Full-width page */
+.bd-page-width {
+    max-width: 100%;
+}
+
+/* Wide article column with PyTorch-style gutters */
+.bd-main .bd-content .bd-article-container {
+    max-width: 100%;
+    padding: 0 4rem;        /* ← the knob: left/right breathing room */
+}
+
+/* Keep the right TOC off the screen edge */
+.bd-sidebar-secondary {
+    padding-right: 1.5rem;
+}
+
+.bd-header .bd-header__inner {
+    padding-left: 2.5rem;
+    padding-right: 2.5rem;
+}

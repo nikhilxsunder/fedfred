@@ -110,7 +110,7 @@ To simplify API key management, FedFred now supports setting a **global API key*
 Setting a Global API Key
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-You can set a global API key using the :function:`fedfred.config.set_api_key(api_key)` function:
+You can set a global API key using the :func:`fedfred.config.set_api_key(api_key)` function:
 
 .. code-block:: python
 

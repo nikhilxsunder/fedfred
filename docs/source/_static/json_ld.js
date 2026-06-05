@@ -8,7 +8,7 @@ script.text = JSON.stringify({
     "description": "A feature-rich Python package for interacting with the Federal Reserve Bank of St. Louis Economic Database (FRED).",
     "applicationCategory": "FinanceApplication",
     "operatingSystem": "Linux, MacOS, Windows",
-    "softwareVersion": "2.1.1",
+    "softwareVersion": "4.0.0",
     "author": {
         "@type": "Person",
         "name": "Nikhil Sunder"

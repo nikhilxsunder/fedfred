@@ -83,7 +83,7 @@ FedFred **automatically** enforces FRED's 120 calls/minute API limit.
 ---
 
 Concurrent Requests with :class:`AsyncAPI`
----------------------------------
+------------------------------------------
 
 .. dropdown:: See Example
     :color: primary

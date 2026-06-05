@@ -22,7 +22,6 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx_autodoc_typehints',
     'myst_parser',
-    'sphinxcontrib.googleanalytics',
     'sphinx_sitemap',
     'sphinxext.opengraph',
     'sphinx.ext.intersphinx',
@@ -53,23 +52,28 @@ sys.path.insert(0, os.path.abspath('../../src'))
 sitemap_filename = "sitemap.xml"
 sitemap_url_scheme = "{link}"
 
-# google analytics
-googleanalytics_id = 'G-Q7LK34R0CV'
-googleanalytics_enabled = True
-
 # html
 html_baseurl = 'https://nikhilxsunder.github.io/fedfred/'
-html_extra_path = ['robots.txt', 'BingSiteAuth.xml', '1bf488999066430fb8b8b741dc2a3486.txt']
+html_extra_path = ['robots.txt', 'BingSiteAuth.xml', '29979ea943cf4526830870100b86564a.txt']
 html_theme = "pydata_sphinx_theme"
 html_theme_options = {
-    "logo": {
-        "image_light": "_static/fedfred-logo.png",
-        "image_dark": "_static/fedfred-logo.png",
+    "analytics": {
+        "google_analytics_id": "G-Q7LK34R0CV",
     },
+    "logo": {
+        "image_light": "_static/fedfred_banner_transparent.png",
+        "image_dark": "_static/fedfred_banner_transparent.png",
+    },
+    "show_version_warning_banner": True,
     "header_links_before_dropdown": 5,
-    "navbar_start": ["navbar-logo"],
+    "switcher": {
+        "json_url": "https://nikhilxsunder.github.io/fedfred/_static/switcher.json",
+        "version_match": release,   # matches the "version" field in the JSON
+    },
+    "check_switcher": True,
+    "navbar_start": ["navbar-logo", "version-switcher"],
     "navbar_center": ["navbar-nav"],
-    "navbar_end": [ "navbar-icon-links"],
+    "navbar_end": [ "navbar-icon-links", "theme-switcher",],
     "icon_links": [
         {
             "name": "GitHub",
@@ -102,7 +106,7 @@ html_theme_options = {
             "icon": "fas fa-trophy",
         },
     ],
-    "navbar_align": "right",
+    "navbar_align": "left",
     "primary_sidebar_end": ["sidebar-ethical-ads"],
     "footer_start": ["copyright"],
     "footer_end": ["sphinx-version", "theme-version"],
@@ -123,7 +127,7 @@ html_theme_options = {
 html_static_path = ['_static']
 html_title = "fedfred"
 html_favicon = "_static/fedfred_favicon.ico"
-html_logo = "_static/fedfred-logo.png"
+html_logo = "_static/fedfred_banner.png"
 html_context = {
     "github_user": "nikhilxsunder",
     "github_repo": "fedfred",
@@ -136,6 +140,9 @@ html_meta ={
 }
 html_js_files = [
     'json_ld.js',
+]
+html_css_files = [
+    'custom.css',
 ]
 
 templates_path = ['_templates']
@@ -157,7 +164,7 @@ source_suffix = {
 
 # opengraph
 ogp_site_url = "https://nikhilxsunder.github.io/fedfred/"
-ogp_image = "https://nikhilxsunder.github.io/fedfred/_static/fedfred-logo.png"
+ogp_image = "https://nikhilxsunder.github.io/fedfred/_static/fedfred_banner.png"
 ogp_description_length = 300
 ogp_type = "website"
 ogp_custom_meta_tags = [

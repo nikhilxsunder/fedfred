@@ -84,7 +84,6 @@ docs = [
     "sphinx-autodoc-typehints",
     "myst-parser",
     "linkify-it-py",
-    "sphinxcontrib-googleanalytics",
     "sphinx-sitemap",
     "sphinxext-opengraph",
     "matplotlib",

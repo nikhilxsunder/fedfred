@@ -10,64 +10,35 @@ All API documentation is generated from the live source code using Sphinx :mod:`
 
 ---
 
+Settings
+--------
+
+
+
 API Clients
 -----------
 
-.. autosummary::
-   :toctree: _autosummary
-   :template: autosummary/class.rst
 
-   fedfred.Fred
-   fedfred.AsyncFred
-   fedfred.GeoFred
-   fedfred.AsyncGeoFred
-   fedfred.Fraser
-
-Utility Helpers
----------------
-
-.. autosummary::
-   :toctree: _autosummary
-   :template: autosummary/class.rst
-
-   fedfred.Helpers
-   fedfred.AsyncHelpers
 
 Data Models
+-----------
+
+
+
+Tools
+-----
+
+
+
+Integrations
 ------------
 
-.. autosummary::
-   :toctree: _autosummary
-   :template: autosummary/class.rst
 
-   fedfred.Category
-   fedfred.Series
-   fedfred.Tag
-   fedfred.Release
-   fedfred.ReleaseDate
-   fedfred.Source
-   fedfred.Element
-   fedfred.VintageDate
-   fedfred.SeriesGroup
-   fedfred.BulkRelease
 
-API Key Config
---------------
-.. autosummary::
-   :toctree: _autosummary
-   :template: autosummary/function.rst
+Exceptions
+----------
 
-   fedfred.set_api_key
-   fedfred.get_api_key
 
-Deprecated Feature Reference
-----------------------------
-.. autosummary::
-   :toctree: _autosummary
-   :template: autosummary/class.rst
-
-   fedfred.FredHelpers
-   fedfred.FredAPI
 
 
 ---
