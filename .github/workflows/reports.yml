@@ -13,7 +13,7 @@ jobs:
     env:
       FEDFRED_SRC: "src/fedfred"
       FEDFRED_TESTS: "tests"
-      REPORT_DIR: "reports/sonar"
+      REPORT_DIR: "reports/"
 
     steps:
       - name: Checkout

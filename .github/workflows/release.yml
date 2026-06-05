@@ -34,7 +34,7 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v5
         with:
-          python-version: "3.10"
+          python-version: "3.13"
 
       - name: Install dependencies
         run: uv sync --group dev
@@ -81,7 +81,7 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v5
         with:
-          python-version: "3.10"
+          python-version: "3.13"
 
       - name: Publish to PyPI
         run: uv publish dist/*
@@ -116,7 +116,7 @@ jobs:
         uses: conda-incubator/setup-miniconda@v3
         with:
           auto-update-conda: true
-          python-version: "3.10"
+          python-version: "3.13"
           channels: conda-forge,defaults
 
       - name: Install conda-build and anaconda-client
@@ -170,7 +170,7 @@ jobs:
         uses: conda-incubator/setup-miniconda@v3
         with:
           auto-update-conda: true
-          python-version: "3.10"
+          python-version: "3.13"
           channels: conda-forge,defaults
 
       - name: Install conda-smithy and dependencies
