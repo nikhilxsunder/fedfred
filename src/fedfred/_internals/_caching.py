@@ -19,61 +19,73 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""fedfred._internals._caching
+"""Thread-safe, runtime-adjustable caching for the fedfred core package.
 
-This module provides adjustable cache abstractions for the fedfred core package.
+This module provides :class:`AdjustableFIFOCache`, a ``MutableMapping`` wrapper
+around :class:`cachetools.FIFOCache` whose capacity can be resized at runtime
+under an internal re-entrant lock, and the module-global ``_CACHE`` instance
+that backs transport-layer request caching. The :func:`set_cache_maxsize` and
+:func:`get_cache_maxsize` helpers expose the global cache's capacity as the
+public, ergonomic surface; :func:`_retrieve_cache_instance` returns the
+instance itself for internal use.
 """
 
 from __future__ import annotations
+
+from collections.abc import ItemsView, Iterator, KeysView, MutableMapping, ValuesView
 from dataclasses import dataclass, field
 from threading import RLock
-from collections.abc import Hashable, MutableMapping, Iterator
-from typing import Generic, TypeVar, ItemsView, KeysView, ValuesView, Tuple, overload
+from typing import TypeVar, overload
+
 from cachetools import FIFOCache
+
 from ..exceptions import (
-    CacheInitializationError,
-    CacheResizeError,
-    CacheKeyError,
     CacheBackendError,
-    CacheSetError,
     CacheDeleteError,
+    CacheInitializationError,
+    CacheKeyError,
+    CacheResizeError,
+    CacheSetError,
 )
 
-#__all__ = []
+__all__ = [
+    "AdjustableFIFOCache",
+    "_retrieve_cache_instance",
+    "get_cache_maxsize",
+    "set_cache_maxsize",
+]
 
 # Typing aliases
-K = TypeVar("K", bound=Hashable)
-"""Type variable for cache keys, bounded to hashable types."""
-
-V = TypeVar("V")
-"""Type variable for cache values."""
-
 T = TypeVar("T")
-"""Generic type variable for cache entries."""
+"""Generic type variable for caller-supplied default values."""
 
 _MISSING = object()
-"""Sentinel value for missing cache entries."""
+"""Sentinel distinguishing "no default supplied" from an explicit ``None`` default."""
 
 # Cache Abstractions
 @dataclass(slots=True)
-class AdjustableFIFOCache(MutableMapping[K, V], Generic[K, V]):
-    """Runtime-adjustable FIFO cache wrapper.
+class AdjustableFIFOCache[K, V](MutableMapping[K, V]):
+    """Thread-safe FIFO cache with a runtime-adjustable capacity.
 
-    This class wraps :class:`cachetools.FIFOCache` and provides an explicit, validated API for runtime cache resizing.
+    Wraps :class:`cachetools.FIFOCache` behind the full ``MutableMapping``
+    protocol, adding an explicit, validated :meth:`resize` for changing the
+    capacity at runtime. All operations are guarded by an internal re-entrant
+    lock, so a single instance may be shared across threads.
 
     Attributes:
         maxsize (int): Maximum number of entries allowed in the cache.
-        cache (FIFOCache): The underlying FIFO cache instance used to store entries.
+        cache (FIFOCache): The underlying FIFO cache instance (read-only property).
 
     Examples:
-        >>> # Internal usage
         >>> cache = AdjustableFIFOCache(maxsize=10)
         >>> cache[1] = "a"
         >>> cache[1]
         'a'
 
     Notes:
-        When the cache is shrunk, the oldest items are evicted first to preserve FIFO semantics.
+        When the cache is shrunk, the oldest entries are evicted first to
+        preserve FIFO semantics. ``resize`` rebuilds the backing cache
+        deterministically rather than relying on the backend's own resize.
     """
 
     maxsize: int
@@ -83,10 +95,10 @@ class AdjustableFIFOCache(MutableMapping[K, V], Generic[K, V]):
     """Underlying FIFO cache instance."""
 
     _lock: RLock = field(init=False, repr=False)
-    """Re-entrant lock protecting cache operations."""
+    """Re-entrant lock protecting all cache operations."""
 
     def __post_init__(self) -> None:
-        """Initialize the adjustable FIFO cache.
+        """Validate ``maxsize`` and initialize the backing cache and lock.
 
         Raises:
             CacheInitializationError: If ``maxsize`` is less than 1.
@@ -108,10 +120,10 @@ class AdjustableFIFOCache(MutableMapping[K, V], Generic[K, V]):
         self._lock = RLock()
 
     def __iter__(self) -> Iterator[K]:
-        """Return an iterator over cache keys in FIFO order.
-        
+        """Return an iterator over the cache keys in FIFO order.
+
         Returns:
-            Iterator[K]: An iterator over the cache keys in FIFO order.
+            Iterator[K]: Iterator over the cache keys, oldest first.
 
         Examples:
             >>> cache = AdjustableFIFOCache(maxsize=10)
@@ -119,20 +131,23 @@ class AdjustableFIFOCache(MutableMapping[K, V], Generic[K, V]):
             >>> cache[2] = "b"
             >>> list(cache)
             [1, 2]
-        """
 
+        Notes:
+            Iterates over a snapshot of the keys taken under the lock, so the
+            iterator is safe against concurrent mutation of the cache.
+        """
         with self._lock:
 
             return iter(list(self._cache.keys()))
 
     def __contains__(self, key: object) -> bool:
-        """Return whether a key exists in the cache.
-        
+        """Return whether a key is present in the cache.
+
         Args:
-            key (object): Key to check in the cache.
+            key (object): Key to test for membership.
 
         Returns:
-            bool: True if the key exists in the cache, False otherwise.
+            bool: ``True`` if the key is present, otherwise ``False``.
 
         Examples:
             >>> cache = AdjustableFIFOCache(maxsize=10)
@@ -140,7 +155,6 @@ class AdjustableFIFOCache(MutableMapping[K, V], Generic[K, V]):
             >>> 1 in cache
             True
         """
-
         with self._lock:
             return key in self._cache
 
@@ -151,7 +165,7 @@ class AdjustableFIFOCache(MutableMapping[K, V], Generic[K, V]):
             key (K): Cache key.
 
         Returns:
-            V: Cached value.
+            V: The cached value.
 
         Raises:
             CacheKeyError: If the key is not present in the cache.
@@ -163,7 +177,6 @@ class AdjustableFIFOCache(MutableMapping[K, V], Generic[K, V]):
             >>> cache[1]
             'a'
         """
-
         with self._lock:
             try:
                 return self._cache[key]
@@ -178,7 +191,7 @@ class AdjustableFIFOCache(MutableMapping[K, V], Generic[K, V]):
                 ) from exc
 
     def __setitem__(self, key: K, value: V) -> None:
-        """Store a key-value pair in the cache.
+        """Store a key-value pair, evicting the oldest entry if at capacity.
 
         Args:
             key (K): Cache key.
@@ -193,7 +206,6 @@ class AdjustableFIFOCache(MutableMapping[K, V], Generic[K, V]):
             >>> cache[1]
             'a'
         """
-
         with self._lock:
             try:
                 self._cache[key] = value
@@ -220,7 +232,6 @@ class AdjustableFIFOCache(MutableMapping[K, V], Generic[K, V]):
             >>> 1 in cache
             False
         """
-
         with self._lock:
             try:
                 del self._cache[key]
@@ -237,7 +248,7 @@ class AdjustableFIFOCache(MutableMapping[K, V], Generic[K, V]):
 
     def __len__(self) -> int:
         """Return the number of cached entries.
-        
+
         Returns:
             int: Number of entries currently in the cache.
 
@@ -247,21 +258,28 @@ class AdjustableFIFOCache(MutableMapping[K, V], Generic[K, V]):
             >>> len(cache)
             1
         """
-
         with self._lock:
             return len(self._cache)
 
     @property
     def cache(self) -> FIFOCache:
-        """Return the underlying FIFO cache instance."""
+        """The underlying FIFO cache instance.
 
+        Returns:
+            FIFOCache: The wrapped cache. Intended for inspection; mutating it
+            directly bypasses this wrapper's locking and validation.
+        """
         with self._lock:
             return self._cache
 
     @property
     def currsize(self) -> float:
-        """Return the current number of cached entries."""
+        """The current size of the cache.
 
+        Returns:
+            float: The current total size as reported by the backend (the entry
+            count, since each entry has unit size).
+        """
         with self._lock:
             return self._cache.currsize
 
@@ -274,14 +292,14 @@ class AdjustableFIFOCache(MutableMapping[K, V], Generic[K, V]):
         ...
 
     def get(self, key: K, /, default: V | T | None = None) -> V | T | None:
-        """Return a cached value if present.
+        """Return a cached value if present, otherwise a default.
 
         Args:
-            key: Cache key.
-            default: Value to return if key is absent.
+            key (K): Cache key.
+            default (V | T | None, optional): Value to return if the key is absent. Defaults to ``None``.
 
         Returns:
-            Cached value or ``default``.
+            V | T | None: The cached value, or ``default`` if the key is absent.
 
         Examples:
             >>> cache = AdjustableFIFOCache[int, str](maxsize=10)
@@ -291,7 +309,6 @@ class AdjustableFIFOCache(MutableMapping[K, V], Generic[K, V]):
             >>> cache.get(2, default="b")
             'b'
         """
-
         with self._lock:
             return self._cache.get(key, default)
 
@@ -308,21 +325,25 @@ class AdjustableFIFOCache(MutableMapping[K, V], Generic[K, V]):
         ...
 
     def pop(self, key: K, /, default: object = _MISSING) -> V | object:
-        """Remove and return a cached value.
+        """Remove a key and return its value, or a default if absent.
 
         Args:
             key (K): Cache key.
-            default (Optional[V]): Value to return if key is absent.
+            default (V | T, optional): Value to return if the key is absent. If
+                omitted, a missing key raises :class:`KeyError`.
 
         Returns:
-            Optional[V]: Removed cached value or ``default``.
+            V | T: The removed value, or ``default`` if the key was absent.
+
+        Raises:
+            KeyError: If the key is absent and no ``default`` is supplied.
 
         Examples:
             >>> cache = AdjustableFIFOCache(maxsize=10)
             >>> cache[1] = "a"
             >>> cache.pop(1)
-            >>> cache.pop(2, default="b")
             'a'
+            >>> cache.pop(2, default="b")
             'b'
         """
         with self._lock:
@@ -333,7 +354,7 @@ class AdjustableFIFOCache(MutableMapping[K, V], Generic[K, V]):
 
     def clear(self) -> None:
         """Remove all cached entries.
-        
+
         Examples:
             >>> cache = AdjustableFIFOCache(maxsize=10)
             >>> cache[1] = "a"
@@ -341,31 +362,31 @@ class AdjustableFIFOCache(MutableMapping[K, V], Generic[K, V]):
             >>> len(cache)
             0
         """
-
         with self._lock:
             self._cache.clear()
 
     def resize(self, new_maxsize: int) -> None:
-        """Resize the cache capacity at runtime.
+        """Change the cache capacity at runtime.
 
         Args:
-            new_maxsize (int): New maximum cache size.
+            new_maxsize (int): New maximum number of entries. Must be >= 1.
 
         Raises:
             CacheResizeError: If ``new_maxsize`` is less than 1.
 
-        Notes:
-            If the cache is shrunk below the current size, the oldest entries are
-            evicted first until the cache fits within the new capacity.
-        
         Examples:
             >>> cache = AdjustableFIFOCache(maxsize=10)
             >>> cache[1] = "a"
             >>> cache.resize(5)
             >>> cache.maxsize
             5
-        """
 
+        Notes:
+            If the cache currently holds more than ``new_maxsize`` entries, the
+            oldest entries are evicted first until it fits. The backing cache is
+            rebuilt deterministically rather than relying on backend resize
+            behavior, preserving FIFO order across the resize.
+        """
         if new_maxsize < 1:
             raise CacheResizeError(
                 message="Cache resize target must be greater than or equal to 1.",
@@ -390,10 +411,10 @@ class AdjustableFIFOCache(MutableMapping[K, V], Generic[K, V]):
             self.maxsize = new_maxsize
 
     def keys(self) -> KeysView[K]:
-        """Return a dynamic view of cache keys.
+        """Return a view of the cache keys.
 
         Returns:
-            KeysView[K]: A dynamic view of the cache keys.
+            KeysView[K]: A view of the cache keys.
 
         Examples:
             >>> cache = AdjustableFIFOCache(maxsize=10)
@@ -401,31 +422,29 @@ class AdjustableFIFOCache(MutableMapping[K, V], Generic[K, V]):
             >>> list(cache.keys())
             [1]
         """
-
         with self._lock:
             return self._cache.keys()
 
     def values(self) -> ValuesView[V]:
-        """Return a dynamic view of cache values.
-        
+        """Return a view of the cache values.
+
         Returns:
-            ValuesView[V]: A dynamic view of the cache values.
-    
+            ValuesView[V]: A view of the cache values.
+
         Examples:
             >>> cache = AdjustableFIFOCache(maxsize=10)
             >>> cache[1] = "a"
             >>> list(cache.values())
             ['a']
         """
-
         with self._lock:
             return self._cache.values()
 
     def items(self) -> ItemsView[K, V]:
-        """Return a dynamic view of cache items.
-        
+        """Return a view of the cache items.
+
         Returns:
-            ItemsView[K, V]: A dynamic view of the cache items.
+            ItemsView[K, V]: A view of the cache (key, value) pairs.
 
         Examples:
             >>> cache = AdjustableFIFOCache(maxsize=10)
@@ -433,15 +452,16 @@ class AdjustableFIFOCache(MutableMapping[K, V], Generic[K, V]):
             >>> list(cache.items())
             [(1, 'a')]
         """
-
         with self._lock:
             return self._cache.items()
 
     def snapshot(self) -> dict[K, V]:
-        """Return a shallow snapshot of the cache contents.
+        """Return a shallow copy of the cache contents.
 
         Returns:
-            dict[K, V]: Snapshot of current cache contents in FIFO order.
+            dict[K, V]: A new dict of the current contents in FIFO order. Safe to
+            iterate without holding the lock, unlike the live ``keys``/``values``/
+            ``items`` views.
 
         Examples:
             >>> cache = AdjustableFIFOCache(maxsize=10)
@@ -449,18 +469,17 @@ class AdjustableFIFOCache(MutableMapping[K, V], Generic[K, V]):
             >>> cache.snapshot()
             {1: 'a'}
         """
-
         with self._lock:
             return dict(self._cache.items())
 
-_CACHE: AdjustableFIFOCache[Tuple, object] = AdjustableFIFOCache(maxsize=128)
-"""Global adjustable FIFO cache instance used for transport caching in the fedfred core package. Initialized with a default maximum size of 128 entries."""
+_CACHE: AdjustableFIFOCache[tuple, object] = AdjustableFIFOCache(maxsize=128)
+"""Module-global cache backing transport-layer request caching, defaulting to 128 entries."""
 
 def set_cache_maxsize(maxsize: int) -> None:
-    """Set the global transport cache maximum size.
+    """Set the global transport cache's maximum size.
 
     Args:
-        maxsize (int): New cache maximum size.
+        maxsize (int): New maximum number of entries. Must be >= 1.
 
     Raises:
         CacheResizeError: If ``maxsize`` is less than 1.
@@ -470,27 +489,25 @@ def set_cache_maxsize(maxsize: int) -> None:
         >>> get_cache_maxsize()
         256
     """
-
     _CACHE.resize(new_maxsize=maxsize)
 
 def get_cache_maxsize() -> int:
-    """Return the global transport cache maximum size.
+    """Return the global transport cache's maximum size.
 
     Returns:
-        int: Current global cache maximum size.
+        int: The current global cache capacity.
 
     Examples:
         >>> set_cache_maxsize(256)
         >>> get_cache_maxsize()
         256
     """
-
     return _CACHE.maxsize
 
-def _retrieve_cache_instance() -> AdjustableFIFOCache[Tuple, object]:
-    """Internal helper to retrieve the global cache instance.
+def _retrieve_cache_instance() -> AdjustableFIFOCache[tuple, object]:
+    """Return the module-global cache instance.
 
     Returns:
-        AdjustableFIFOCache[Tuple, object]: The global adjustable FIFO cache instance.
+        AdjustableFIFOCache[tuple, object]: The global cache backing transport caching.
     """
     return _CACHE

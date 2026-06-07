@@ -29,6 +29,7 @@ requirements:
     - cachetools
     - dask
     - asyncache
+    - orjson
 
 test:
   imports:

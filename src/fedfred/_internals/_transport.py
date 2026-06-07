@@ -19,67 +19,84 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""fedfred._internals._transport
+"""HTTP transport layer for the fedfred core package.
 
-This module provides internal transport functions for the fedfred core package.
+This module owns the network boundary: it maintains a pooled synchronous
+client and a per-event-loop asynchronous client, paces requests through the
+rate limiter, decodes JSON responses with orjson, and translates every
+``httpx`` failure into the corresponding fedfred exception via
+:data:`_HTTP_EXCEPTION_MAP` and :data:`_HTTP_STATUS_MAP`. It exposes cached and
+uncached GET/POST entry points in both synchronous and asynchronous flavours.
+Cache entries are keyed on resolved request identity (see
+:func:`_request_cache_key`) so byte-identical wire requests are shared across
+services and client instances.
 """
 
 from __future__ import annotations
-from typing import Any
+
 import asyncio
-import httpx
 import atexit
+from typing import Any
+
+import httpx
 import orjson
-from tenacity import retry, wait_fixed, stop_after_attempt, retry_if_exception_type
+from asyncache import cached as async_cached
 from cachetools import cached
 from cachetools.keys import hashkey
-from asyncache import cached as async_cached
-from ._rate_limit import _rate_limiter, _rate_limiter_async
-from ._caching import _CACHE
-from .._core import(
+from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
+
+from .._core import (
     _dict_type_converter,
     _resolve_endpoint,
-    _resolve_preparation_function
+    _resolve_preparation_function,
 )
-from ..settings import Service
 from ..exceptions import (
-    TransportError,
-    RequestPreparationError,
-    TransportRequestError,
-    TransportConnectionError,
-    TransportTimeoutError,
-    ConnectTimeoutError,
-    ReadTimeoutError,
-    WriteTimeoutError,
-    PoolTimeoutError,
-    TransportReadError,
-    TransportWriteError,
-    TransportProtocolError,
-    ProxyTransportError,
-    UnsupportedProtocolError,
-    TooManyRedirectsError,
-    ResponseDecodingError,
-    TransportRetryError,
-    HTTPResponseError,
-    HTTPClientError,
-    BadRequestError,
     AuthenticationError,
     AuthorizationError,
-    NotFoundError,
-    MethodNotAllowedError,
+    BadGatewayError,
+    BadRequestError,
     ConflictError,
+    ConnectTimeoutError,
+    GatewayTimeoutError,
     GoneError,
-    UnprocessableEntityError,
-    RateLimitError,
+    HTTPClientError,
+    HTTPResponseError,
     HTTPServerError,
     InternalServerError,
-    BadGatewayError,
+    MethodNotAllowedError,
+    NotFoundError,
+    PoolTimeoutError,
+    ProxyTransportError,
+    RateLimitError,
+    ReadTimeoutError,
+    RequestPreparationError,
+    ResponseDecodingError,
     ServiceUnavailableError,
-    GatewayTimeoutError,
-    UnexpectedHTTPStatusError
+    TooManyRedirectsError,
+    TransportConnectionError,
+    TransportError,
+    TransportProtocolError,
+    TransportReadError,
+    TransportRequestError,
+    TransportRetryError,
+    TransportTimeoutError,
+    TransportWriteError,
+    UnexpectedHTTPStatusError,
+    UnprocessableEntityError,
+    UnsupportedProtocolError,
+    WriteTimeoutError,
 )
+from ..settings import Service
+from ._caching import _CACHE
+from ._rate_limit import _rate_limiter, _rate_limiter_async
 
-#__all__ = []
+__all__ = [
+    "_cached_get_request",
+    "_cached_get_request_async",
+    "_get_request",
+    "_get_request_async",
+    "_post_request",
+]
 
 _HTTP_CLIENT: httpx.Client = httpx.Client(
     timeout=httpx.Timeout(10.0),
@@ -89,15 +106,27 @@ _HTTP_CLIENT: httpx.Client = httpx.Client(
         keepalive_expiry=60.0,
     ),
 )
+"""Process-global pooled synchronous client, closed at interpreter exit via :func:`atexit`."""
 
 _ASYNC_CLIENT_STATE: tuple[asyncio.AbstractEventLoop, httpx.AsyncClient] | None = None
+"""Cached ``(event_loop, async_client)`` pair, or ``None`` before first use. See :func:`_get_async_client`."""
 
 def _get_async_client() -> httpx.AsyncClient:
-    """Return the shared async client for the running event loop.
+    """Return the shared async client bound to the running event loop.
 
-    Connections are bound to the loop that created them, so the client is
-    cached per loop: same loop -> same pooled client (cross-instance reuse);
-    new loop -> stale client is evicted and a fresh one is created.
+    Returns:
+        httpx.AsyncClient: A pooled client owned by the current event loop.
+
+    Raises:
+        RuntimeError: If called outside a running event loop.
+
+    Notes:
+        httpx connections are bound to the loop that created them, so the client
+        is cached per loop: the same loop reuses one pooled client across all
+        clients and calls; a different loop evicts the cached state and creates a
+        fresh client. The previously cached client is dropped without being
+        closed here, so callers needing deterministic cleanup should use
+        :func:`_aclose_async_client`.
     """
     global _ASYNC_CLIENT_STATE
 
@@ -113,9 +142,11 @@ def _get_async_client() -> httpx.AsyncClient:
 
     client = httpx.AsyncClient(
         timeout=httpx.Timeout(10.0),
-        limits=httpx.Limits(max_connections=100,
-                            max_keepalive_connections=20,
-                            keepalive_expiry=60.0),
+        limits=httpx.Limits(
+            max_connections=100,
+            max_keepalive_connections=20,
+            keepalive_expiry=60.0
+        ),
     )
 
     _ASYNC_CLIENT_STATE = (loop, client)             # single atomic store
@@ -123,7 +154,13 @@ def _get_async_client() -> httpx.AsyncClient:
     return client
 
 async def _aclose_async_client() -> None:
-    """Close the running loop's shared client cleanly. Test teardown hook."""
+    """Close the running loop's shared async client and clear the cached state.
+
+    Notes:
+        Intended as a test-teardown hook so pooled connections do not leak
+        between event loops created during testing. Closing is idempotent: the
+        cached state is cleared first, and an already-closed client is skipped.
+    """
     global _ASYNC_CLIENT_STATE
 
     state = _ASYNC_CLIENT_STATE
@@ -133,7 +170,7 @@ async def _aclose_async_client() -> None:
     if state is not None and not state[1].is_closed:
         await state[1].aclose()
 
-atexit.register(_HTTP_CLIENT.close)
+atexit.register(_HTTP_CLIENT.close) # TODO: Consider refactoring this to a function that gets called explicitly from within package __init__.py
 
 _HTTP_EXCEPTION_MAP: dict[type[httpx.HTTPError], type[TransportError]] = {
     httpx.ConnectTimeout: ConnectTimeoutError,
@@ -151,7 +188,7 @@ _HTTP_EXCEPTION_MAP: dict[type[httpx.HTTPError], type[TransportError]] = {
     httpx.DecodingError: ResponseDecodingError,
     httpx.RequestError: TransportRequestError,
 }
-"""Exception mapping from httpx exceptions to fedfred transport exceptions. Each key is an httpx exception class, and the corresponding value is the fedfred transport exception class to map to."""
+"""Maps httpx request-error classes to fedfred transport exceptions. Resolved most-specific-first via the exception MRO; see :func:`_resolve_httpx_exception_class`."""
 
 _HTTP_STATUS_MAP: dict[int, type[HTTPResponseError]] = {
     400: BadRequestError,
@@ -168,89 +205,81 @@ _HTTP_STATUS_MAP: dict[int, type[HTTPResponseError]] = {
     503: ServiceUnavailableError,
     504: GatewayTimeoutError,
 }
-"""Mapping of HTTP status codes to fedfred HTTP response exceptions. Each key is an HTTP status code, and the corresponding value is the fedfred exception class to map to."""
+"""Maps HTTP status codes to fedfred HTTP response exceptions. Unmapped codes fall back to the 4xx/5xx family class; see :func:`_map_http_status_error`."""
 
 def _request_url(exception: httpx.HTTPError) -> str | None:
     """Extract the request URL from an httpx exception, if available.
-    
+
     Args:
         exception (httpx.HTTPError): The raised httpx exception.
 
     Returns:
-        str | None: The request URL if available, otherwise None.
+        str | None: The request URL, or ``None`` if the exception carries no request.
 
     Examples:
-        >>> # Internal use
-        >>> from ._core import _request_url
-        >>> import httpx
-        >>> try:
-        ...     response = httpx.get("https://httpbin.org/status/404")
-        ...     response.raise_for_status()
+        >>> import httpx  # doctest: +SKIP
+        >>> from fedfred._internals._transport import _request_url  # doctest: +SKIP
+        >>> try:  # doctest: +SKIP
+        ...     httpx.get("https://api.stlouisfed.org/missing").raise_for_status()
         ... except httpx.HTTPError as exc:
-        ...     url = _request_url(exc)
-        ...     print(url)
-        https://httpbin.org/status/404
+        ...     print(_request_url(exc))
+        https://api.stlouisfed.org/missing
 
     Notes:
-        This function attempts to access the 'request' attribute of the exception and extract the URL. If the 'request' attribute is not present, or if the URL cannot be extracted, it returns None.
+        Reads the exception's ``request`` attribute defensively; returns ``None``
+        when it is absent (e.g. for errors raised before the request was built).
     """
     request = getattr(exception, "request", None)
 
     return None if request is None else str(request.url)
 
 def _request_method(exception: httpx.HTTPError) -> str | None:
-    """Extract the request method from an httpx exception, if available.
-    
+    """Extract the HTTP request method from an httpx exception, if available.
+
     Args:
         exception (httpx.HTTPError): The raised httpx exception.
 
     Returns:
-        str | None: The request method if available, otherwise None.
+        str | None: The request method (e.g. ``"GET"``), or ``None`` if unavailable.
 
     Examples:
-        >>> # Internal use
-        >>> from ._core import _request_method
-        >>> import httpx
-        >>> try:
-        ...     response = httpx.get("https://httpbin.org/status/404")
-        ...     response.raise_for_status()
+        >>> import httpx  # doctest: +SKIP
+        >>> from fedfred._internals._transport import _request_method  # doctest: +SKIP
+        >>> try:  # doctest: +SKIP
+        ...     httpx.get("https://api.stlouisfed.org/missing").raise_for_status()
         ... except httpx.HTTPError as exc:
-        ...     method = _request_method(exc)
-        ...     print(method)
+        ...     print(_request_method(exc))
         GET
 
     Notes:
-        This function attempts to access the 'request' attribute of the exception and extract the HTTP method (e.g., GET, POST). If the 'request' attribute is not 
-        present, or if the method cannot be extracted, it returns None.
+        Reads the exception's ``request`` attribute defensively; returns ``None``
+        when it is absent.
     """
     request = getattr(exception, "request", None)
 
     return None if request is None else request.method
 
 def _safe_response_text(exception: httpx.HTTPStatusError) -> str | None:
-    """Safely extract decoded response text from an HTTP status error.
+    """Safely extract the decoded response body from an HTTP status error.
 
     Args:
         exception (httpx.HTTPStatusError): The raised HTTP status exception.
 
     Returns:
-        str | None: The decoded response text if available, otherwise None.
+        str | None: The decoded response text, or ``None`` if it is missing or undecodable.
 
     Examples:
-        >>> # Internal use
-        >>> from ._core import _safe_response_text
-        >>> import httpx
-        >>> try:
-        ...     response = httpx.get("https://httpbin.org/status/404")
-        ...     response.raise_for_status()
+        >>> import httpx  # doctest: +SKIP
+        >>> from fedfred._internals._transport import _safe_response_text  # doctest: +SKIP
+        >>> try:  # doctest: +SKIP
+        ...     httpx.get("https://api.stlouisfed.org/missing").raise_for_status()
         ... except httpx.HTTPStatusError as exc:
-        ...     text = _safe_response_text(exc)
-        ...     print(text)
+        ...     print(_safe_response_text(exc))
         Not Found
 
     Notes:
-        This function attempts to access the 'response' attribute of the exception and extract the decoded text. If the 'response' attribute is not present, or if the text cannot be extracted, 
-        it returns None.
+        Swallows ``AttributeError`` (no response attached) and
+        ``UnicodeDecodeError`` (undecodable body), returning ``None`` in both cases.
     """
     try:
         return exception.response.text
@@ -265,20 +294,21 @@ def _map_http_status_error(exception: httpx.HTTPStatusError) -> HTTPResponseErro
         exception (httpx.HTTPStatusError): The raised HTTP status exception.
 
     Returns:
-        HTTPResponseError: The mapped fedfred HTTP exception instance.
+        HTTPResponseError: A fedfred exception carrying the status code, URL, method, and response text.
 
     Examples:
-        >>> # Internal use
-        >>> from ._core import _map_http_status_error
-        >>> import httpx
-        >>> try:
-        ...     response = httpx.get("https://httpbin.org/status/404")
-        ...     response.raise_for_status()
+        >>> import httpx  # doctest: +SKIP
+        >>> from fedfred._internals._transport import _map_http_status_error  # doctest: +SKIP
+        >>> try:  # doctest: +SKIP
+        ...     httpx.get("https://api.stlouisfed.org/missing").raise_for_status()
         ... except httpx.HTTPStatusError as exc:
-        ...     mapped_exc = _map_http_status_error(exc)
-        ...     print(type(mapped_exc))
-        <class 'fedfred.exceptions.HTTPClientError'>
+        ...     print(type(_map_http_status_error(exc)))
         <class 'fedfred.exceptions.NotFoundError'>
+
+    Notes:
+        Uses :data:`_HTTP_STATUS_MAP` for known codes, falling back to
+        :class:`HTTPClientError` (4xx), :class:`HTTPServerError` (5xx), or
+        :class:`UnexpectedHTTPStatusError` for anything else.
     """
     status_code: int = exception.response.status_code
 
@@ -313,27 +343,26 @@ def _map_http_status_error(exception: httpx.HTTPStatusError) -> HTTPResponseErro
     )
 
 def _resolve_httpx_exception_class(exception: httpx.HTTPError) -> type[TransportError]:
-    """Resolve the fedfred exception class corresponding to an ``httpx`` exception.
+    """Resolve the fedfred transport exception class for a (non-status) httpx error.
 
     Args:
-        exception (httpx.HTTPError): The raised ``httpx`` exception.
+        exception (httpx.HTTPError): The raised httpx exception.
 
     Returns:
-        type[TransportError]: The fedfred exception class to instantiate.
+        type[TransportError]: The fedfred exception class to instantiate, or :class:`TransportError` if unmapped.
 
     Examples:
-        >>> # Internal use
-        >>> from ._core import _resolve_httpx_exception_class
-        >>> import httpx
-        >>> try:
-        ...     response = httpx.get("https://httpbin.org/delay/10", timeout=1)
+        >>> import httpx  # doctest: +SKIP
+        >>> from fedfred._internals._transport import _resolve_httpx_exception_class  # doctest: +SKIP
+        >>> try:  # doctest: +SKIP
+        ...     httpx.get("https://api.stlouisfed.org/slow", timeout=0.001)
         ... except httpx.HTTPError as exc:
-        ...     exc_cls = _resolve_httpx_exception_class(exc)
-        ...     print(exc_cls)
-        <class 'fedfred.exceptions.TransportTimeoutError'>
+        ...     print(_resolve_httpx_exception_class(exc))
+        <class 'fedfred.exceptions.ConnectTimeoutError'>
 
     Notes:
-        Resolution walks the exception MRO so that specific exception classes are preferred before broader parent classes.
+        Walks the exception's MRO so a specific class (e.g. ``ConnectTimeout``) is
+        matched before a broader parent (e.g. ``RequestError``).
     """
     for cls in type(exception).__mro__:
         mapped = _HTTP_EXCEPTION_MAP.get(cls)
@@ -344,24 +373,26 @@ def _resolve_httpx_exception_class(exception: httpx.HTTPError) -> type[Transport
     return TransportError
 
 def _map_httpx_exception(exception: httpx.HTTPError) -> TransportError:
-    """Map an ``httpx`` exception to the appropriate fedfred transport exception.
+    """Map any ``httpx`` exception to the appropriate fedfred transport exception.
 
     Args:
-        exception (httpx.HTTPError): The raised ``httpx`` exception.
+        exception (httpx.HTTPError): The raised httpx exception.
 
     Returns:
         TransportError: The mapped fedfred exception instance.
 
     Examples:
-        >>> # Internal use
-        >>> from ._core import _map_httpx_exception
-        >>> import httpx
-        >>> try:
-        ...     response = httpx.get("https://httpbin.org/delay/10", timeout=1)
+        >>> import httpx  # doctest: +SKIP
+        >>> from fedfred._internals._transport import _map_httpx_exception  # doctest: +SKIP
+        >>> try:  # doctest: +SKIP
+        ...     httpx.get("https://api.stlouisfed.org/slow", timeout=0.001)
         ... except httpx.HTTPError as exc:
-        ...     mapped_exc = _map_httpx_exception(exc)
-        ...     print(type(mapped_exc))
-        <class 'fedfred.exceptions.TransportTimeoutError'>
+        ...     print(type(_map_httpx_exception(exc)))
+        <class 'fedfred.exceptions.ConnectTimeoutError'>
+
+    Notes:
+        Status errors are routed to :func:`_map_http_status_error`; all other
+        request errors are resolved via :func:`_resolve_httpx_exception_class`.
     """
     if isinstance(exception, httpx.HTTPStatusError):
         return _map_http_status_error(exception)
@@ -378,13 +409,30 @@ def _request_cache_key(
     service_name: Service,
     endpoint_name: str,
     hashable_data: tuple[tuple[str, str | int | None], ...] | None = None,
+    path_injection: str | None = None
 ) -> tuple:
-    """Cache key: resolved request identity, not caller identity.
+    """Build a cache key from resolved request identity rather than caller identity.
 
-    Keys on (resolved URL, canonical params) so byte-identical wire requests
-    share one entry regardless of issuing client — FRED and ALFRED resolve
-    shared endpoints to the same URL. ``service_name`` is deliberately
-    excluded from the key.
+    Args:
+        service_name (Service): The service used to resolve the endpoint.
+        endpoint_name (str): The endpoint to resolve.
+        hashable_data (tuple[tuple[str, str | int | None], ...] | None, optional): Canonical, hashable request parameters. Defaults to None.
+        path_injection (str | None, optional): A value substituted into the URL path; included in the key so path variants are cached separately. Defaults to None.
+
+    Returns:
+        tuple: A ``cachetools`` hash key over the resolved URL, parameters, and path injection.
+
+    Raises:
+        RequestPreparationError: If the endpoint cannot be resolved. Note this is
+            raised during key computation, i.e. before the cached function body runs.
+
+    Notes:
+        Keys on ``(resolved URL, canonical params, path injection)`` so
+        byte-identical wire requests share a single cache entry regardless of the
+        issuing client — FRED and ALFRED resolve shared endpoints to the same URL.
+        ``service_name`` is deliberately excluded from the key. Used as the ``key``
+        argument to the ``@cached`` / ``@async_cached`` decorators, so its
+        positional signature mirrors that of the wrapped request functions.
     """
     try:
         spec = _resolve_endpoint(service_name, endpoint_name)   # -> (service_name, endpoint_name) once service-first lands
@@ -392,7 +440,7 @@ def _request_cache_key(
         raise RequestPreparationError(
             f"Failed to resolve endpoint: {endpoint_name}", url=None, method="GET",
         ) from exc
-    return hashkey(spec.url, hashable_data)
+    return hashkey(spec.url, hashable_data, path_injection)
 
 @retry(
     wait=wait_fixed(1),
@@ -407,37 +455,34 @@ def _get_request(
     data: dict[str, str | int | None] | None = None,
     path_injection: str | None = None
 ) -> dict[str, Any]:
-    """Perform a GET request without caching.
+    """Perform a synchronous GET request without caching.
 
     Args:
-        service_name (Service): The name of the service to query.
+        service_name (Service): The service to query.
         endpoint_name (str): The endpoint to query.
-        data (dict[str, str | int | None] | None, optional): The query parameters for the request. Defaults to None.
-        path_injection (str | None, optional): An optional string to inject into the URL path if the endpoint specification includes a placeholder. Defaults to None.
+        data (dict[str, str | int | None] | None, optional): Query parameters. Defaults to None.
+        path_injection (str | None, optional): A value to substitute into the URL path when the endpoint spec includes a placeholder. Defaults to None.
 
     Returns:
-        dict[str, Any]: The JSON response from the requested service's API.
+        dict[str, Any]: The decoded JSON response.
 
     Raises:
-        TransportError: If the request fails due to transport-level issues, including connection failures, timeouts, protocol errors, or unsuccessful HTTP responses.
-        ResponseDecodingError: If the response body cannot be decoded as valid JSON.
-        RequestPreparationError: If there is an error preparing the request, such as resolving the endpoint specification.
-        TransportRetryError: If the request fails after retrying the specified number of times due to transport timeouts.
-        EndpointServiceError: If the service name is invalid.
-        EndpointURLError: If the URL is invalid.
-        EndpointParametersError: If params are invalid.
-        EndpointHeadersError: If headers are invalid.
-        UnsupportedEndpointError: If the endpoint name is not recognized in any service registry.
-        LimiterServiceError: If the specified service is unknown or unsupported.
-        LimiterLimitError: If the rate limiter is configured with an invalid maximum requests per minute value.
-        LimiterLoopError: If there is no running event loop to manage timing for rate limiting.
+        RequestPreparationError: If the endpoint specification cannot be resolved.
+        TransportError: For transport-level failures, including connection errors, protocol errors, and unsuccessful HTTP responses.
+        TransportRetryError: If the request still times out after the configured retries.
+        ResponseDecodingError: If the response body is not valid JSON.
+        LimiterServiceError: If the service is unknown to the rate limiter.
+        LimiterLimitError: If the rate limiter is misconfigured.
+        LimiterLoopError: If rate limiting requires a running event loop that is absent.
 
     Examples:
-        >>> # Internal use
-        >>> from ._core import _get_request
-        >>> response = _get_request("fred/series", {"series_id": "GNPCA"})
-        >>> print(response)
-         {...JSON response from the FRED API...}
+        >>> from fedfred._internals._transport import _get_request  # doctest: +SKIP
+        >>> _get_request("fred", "series_observations", {"series_id": "GNPCA"})  # doctest: +SKIP
+        {...}
+
+    Notes:
+        Retries up to three times on :class:`TransportTimeoutError`, then raises
+        :class:`TransportRetryError`. Uses the process-global pooled client.
     """
     try:
         spec = _resolve_endpoint(service_name, endpoint_name)
@@ -461,62 +506,66 @@ def _get_request(
 
     _rate_limiter(service_name)
 
-    with _HTTP_CLIENT as client:
-        try:
-            response = client.get(url, params=params, headers=spec.headers or None, timeout=10)
+    client = _HTTP_CLIENT
 
-            response.raise_for_status()
+    try:
+        response = client.get(url, params=params, headers=spec.headers or None, timeout=10)
 
-            return orjson.loads(response.content)
+        response.raise_for_status()
 
-        except httpx.HTTPError as exc:
-            raise _map_httpx_exception(exc) from exc
+        return orjson.loads(response.content)
 
-        except ValueError as exc:
-            raise ResponseDecodingError(
-                "Response body could not be decoded as valid JSON.",
-                url=url,
-                method="GET",
-            ) from exc
+    except httpx.HTTPError as exc:
+        raise _map_httpx_exception(exc) from exc
 
-@cached(cache=_CACHE)
+    except ValueError as exc:
+        raise ResponseDecodingError(
+            "Response body could not be decoded as valid JSON.",
+            url=url,
+            method="GET",
+        ) from exc
+
+@cached(cache=_CACHE, key=_request_cache_key)
 def _cached_get_request(
     service_name: Service,
     url_endpoint: str,
     hashable_data: tuple[tuple[str, str | int | None], ...] | None=None,
     path_injection: str | None = None
     ) -> dict[str, Any]:
-    """Perform a GET request with caching.
+    """Perform a synchronous GET request, caching the result.
 
     Args:
-        service_name (Service): The name of the service to query.
-        url_endpoint (str): The FRED API endpoint to query.
-        hashable_data (tuple[tuple[str, str | int | None], ...] | None, optional): The hashable representation of the data. Defaults to None.
-        path_injection (str | None, optional): An optional string to inject into the URL path if the endpoint specification includes a placeholder. Defaults to None.
+        service_name (Service): The service to query.
+        url_endpoint (str): The endpoint to query.
+        hashable_data (tuple[tuple[str, str | int | None], ...] | None, optional): A hashable representation of the query parameters, used for caching. Defaults to None.
+        path_injection (str | None, optional): A value to substitute into the URL path when the endpoint spec includes a placeholder. Defaults to None.
 
     Returns:
-        dict[str, Any]: The JSON response from the FRED API.
+        dict[str, Any]: The decoded JSON response (possibly served from cache).
 
     Raises:
-        TransportError: If the request fails due to transport-level issues, including connection failures, timeouts, protocol errors, or unsuccessful HTTP responses.
-        ResponseDecodingError: If the response body cannot be decoded as valid JSON.
-        RequestPreparationError: If there is an error preparing the request, such as resolving the endpoint specification.
-        TransportRetryError: If the request fails after retrying the specified number of times due to transport timeouts.
-        EndpointServiceError: If the service name is invalid.
-        EndpointURLError: If the URL is invalid.
-        EndpointParametersError: If params are invalid.
-        EndpointHeadersError: If headers are invalid.
-        UnsupportedEndpointError: If the endpoint name is not recognized in any service registry.
-        LimiterServiceError: If the specified service is unknown or unsupported.
-        LimiterLimitError: If the rate limiter is configured with an invalid maximum requests per minute value.
-        LimiterLoopError: If there is no running event loop to manage timing for rate limiting.
+        RequestPreparationError: If the endpoint specification cannot be resolved (including during cache-key computation).
+        TransportError: For transport-level failures, including connection errors, protocol errors, and unsuccessful HTTP responses.
+        TransportRetryError: If the request still times out after the configured retries.
+        ResponseDecodingError: If the response body is not valid JSON.
+        LimiterServiceError: If the service is unknown to the rate limiter.
+        LimiterLimitError: If the rate limiter is misconfigured.
+        LimiterLoopError: If rate limiting requires a running event loop that is absent.
 
     Examples:
-        >>> # Internal use
-        >>> from ._core import _cached_get_request
-        >>> response = _cached_get_request("get_series_observations", ((series_id, "GNPCA"),(realtime_start, "2020-01-01"),(realtime_end, "2020-12-31")))
-        >>> print(response)
-        {...JSON response from the FRED API...}
+        >>> from fedfred._internals._transport import _cached_get_request  # doctest: +SKIP
+        >>> _cached_get_request(  # doctest: +SKIP
+        ...     "fred",
+        ...     "series_observations",
+        ...     (("series_id", "GNPCA"), ("realtime_start", "2020-01-01")),
+        ... )
+        {...}
+
+    Notes:
+        Cache keys are computed by :func:`_request_cache_key` on resolved request
+        identity, so equivalent requests issued through different services share a
+        cache entry. Wraps :func:`_get_request`; ``hashable_data`` is converted
+        back to a dict before the underlying call.
     """
     return _get_request(service_name, url_endpoint, _dict_type_converter(hashable_data), path_injection)
 
@@ -533,39 +582,37 @@ async def _get_request_async(
     data: dict[str, str | int | None] | None = None,
     path_injection: str | None = None
 ) -> dict[str, Any]:
-    """Perform a GET request without caching.
+    """Perform an asynchronous GET request without caching.
 
     Args:
-        service_name (Service): The name of the service to query.
+        service_name (Service): The service to query.
         endpoint_name (str): The endpoint to query.
-        data (dict[str, Optional[str | int]], optional): The query parameters for the request. Defaults to None.
-        path_injection (str | None, optional): An optional string to inject into the URL path if the endpoint specification includes a placeholder. Defaults to None.
+        data (dict[str, str | int | None] | None, optional): Query parameters. Defaults to None.
+        path_injection (str | None, optional): A value to substitute into the URL path when the endpoint spec includes a placeholder. Defaults to None.
 
     Returns:
-        dict[str, Any]: The JSON response from the requested service's API.
+        dict[str, Any]: The decoded JSON response.
 
     Raises:
-        TransportError: If the request fails due to transport-level issues, including connection failures, timeouts, protocol errors, or unsuccessful HTTP responses.
-        ResponseDecodingError: If the response body cannot be decoded as valid JSON.
-        RequestPreparationError: If there is an error preparing the request, such as resolving the endpoint specification.
-        TransportRetryError: If the request fails after retrying the specified number of times due to transport timeouts.
-        EndpointServiceError: If the service name is invalid.
-        EndpointURLError: If the URL is invalid.
-        EndpointParametersError: If params are invalid.
-        EndpointHeadersError: If headers are invalid.
-        UnsupportedEndpointError: If the endpoint name is not recognized in any service registry.
-        LimiterServiceError: If the specified service is unknown or unsupported.
-        LimiterLimitError: If the rate limiter is configured with an invalid maximum requests per minute value.
-        RateLimiterConfigurationError: If max_requests_per_minute is less than 1, indicating an invalid configuration for rate limiting.
-        RateLimiterStateError: If there is an issue with the internal state of the rate limiter.
-        LimiterLoopError: If there is no running event loop to manage timing for rate limiting or to acquire the lock.
-        LimiterLimitError: If the semaphore limit is invalid, indicating that it cannot be updated based on the current request volume.
+        RequestPreparationError: If the endpoint specification cannot be resolved.
+        TransportError: For transport-level failures, including connection errors, protocol errors, and unsuccessful HTTP responses.
+        TransportRetryError: If the request still times out after the configured retries.
+        ResponseDecodingError: If the response body is not valid JSON.
+        LimiterServiceError: If the service is unknown to the rate limiter.
+        LimiterLimitError: If the rate limiter or its semaphore is misconfigured.
+        RateLimiterConfigurationError: If the per-minute limit is less than 1.
+        RateLimiterStateError: If the rate limiter's internal state is inconsistent.
+        LimiterLoopError: If rate limiting cannot acquire its lock for lack of a running event loop.
 
     Examples:
-        >>> # Internal use
-        >>> from ._core import _get_request_async
-        >>> import asyncio
-        >>> response = await _get_request_async("get_series", {"series_id": "GNPCA"})
+        >>> from fedfred._internals._transport import _get_request_async  # doctest: +SKIP
+        >>> await _get_request_async("fred", "series_observations", {"series_id": "GNPCA"})  # doctest: +SKIP
+        {...}
+
+    Notes:
+        Uses the per-loop client from :func:`_get_async_client`. Retries up to
+        three times on :class:`TransportTimeoutError`, then raises
+        :class:`TransportRetryError`.
     """
     try:
         spec = _resolve_endpoint(service_name, endpoint_name)
@@ -608,50 +655,48 @@ async def _get_request_async(
             method="GET",
         ) from exc
 
-@async_cached(cache=_CACHE)
+@async_cached(cache=_CACHE, key=_request_cache_key)
 async def _cached_get_request_async(
     service_name: Service,
     url_endpoint: str,
     hashable_data: tuple[tuple[str, str | int | None], ...] | None=None,
     path_injection: str | None = None
 ) -> dict[str, Any]:
-    """Perform a GET request with caching.
+    """Perform an asynchronous GET request, caching the result.
 
     Args:
-        service_name (Service): The name of the service to query.
-        url_endpoint (str): The FRED API endpoint to query.
-        hashable_data (Optional[tuple[tuple[str, Optional[str | int]], ...]], optional): The hashable representation of the data. Defaults to None.
-        path_injection (str | None, optional): An optional string to inject into the URL path if the endpoint specification includes a placeholder. Defaults to None.
+        service_name (Service): The service to query.
+        url_endpoint (str): The endpoint to query.
+        hashable_data (tuple[tuple[str, str | int | None], ...] | None, optional): A hashable representation of the query parameters, used for caching. Defaults to None.
+        path_injection (str | None, optional): A value to substitute into the URL path when the endpoint spec includes a placeholder. Defaults to None.
 
     Returns:
-        dict[str, Any]: The JSON response from the FRED API.
+        dict[str, Any]: The decoded JSON response (possibly served from cache).
 
     Raises:
-        TransportError: If the request fails due to transport-level issues, including connection failures, timeouts, protocol errors, or unsuccessful HTTP responses.
-        ResponseDecodingError: If the response body cannot be decoded as valid JSON.
-        RequestPreparationError: If there is an error preparing the request, such as resolving the endpoint specification.
-        TransportRetryError: If the request fails after retrying the specified number of times due to transport timeouts.
-        EndpointServiceError: If the service name is invalid.
-        EndpointURLError: If the URL is invalid.
-        EndpointParametersError: If params are invalid.
-        EndpointHeadersError: If headers are invalid.
-        UnsupportedEndpointError: If the endpoint name is not recognized in any service registry.
-        LimiterServiceError: If the specified service is unknown or unsupported.
-        LimiterLimitError: If the rate limiter is configured with an invalid maximum requests per minute value.
-        RateLimiterConfigurationError: If max_requests_per_minute is less than 1, indicating an invalid configuration for rate limiting.
-        RateLimiterStateError: If there is an issue with the internal state of the rate limiter.
-        LimiterLoopError: If there is no running event loop to manage timing for rate limiting or to acquire the lock.
-        LimiterLimitError: If the semaphore limit is invalid, indicating that it cannot be updated based on the current request volume.
+        RequestPreparationError: If the endpoint specification cannot be resolved (including during cache-key computation).
+        TransportError: For transport-level failures, including connection errors, protocol errors, and unsuccessful HTTP responses.
+        TransportRetryError: If the request still times out after the configured retries.
+        ResponseDecodingError: If the response body is not valid JSON.
+        LimiterServiceError: If the service is unknown to the rate limiter.
+        LimiterLimitError: If the rate limiter or its semaphore is misconfigured.
+        RateLimiterConfigurationError: If the per-minute limit is less than 1.
+        RateLimiterStateError: If the rate limiter's internal state is inconsistent.
+        LimiterLoopError: If rate limiting cannot acquire its lock for lack of a running event loop.
 
     Examples:
-        >>> # Internal use
-        >>> from ._core import _cached_get_request_async
-        >>> import asyncio
-        >>> response = await _cached_get_request_async("get_series_observations", ((series_id, "GNPCA"),
-        ... (realtime_start, "2020-01-01"),
-        ... (realtime_end, "2020-12-31")))
-        >>> print(response)
-        {...JSON response from the FRED API...}
+        >>> from fedfred._internals._transport import _cached_get_request_async  # doctest: +SKIP
+        >>> await _cached_get_request_async(  # doctest: +SKIP
+        ...     "fred",
+        ...     "series_observations",
+        ...     (("series_id", "GNPCA"), ("realtime_start", "2020-01-01")),
+        ... )
+        {...}
+
+    Notes:
+        Cache keys are computed by :func:`_request_cache_key`. Wraps
+        :func:`_get_request_async` with an async-aware cache; ``hashable_data`` is
+        converted back to a dict before the underlying call.
     """
     return await _get_request_async(service_name, url_endpoint, _dict_type_converter(hashable_data), path_injection)
 
@@ -667,36 +712,33 @@ def _post_request(
     endpoint_name: str,
     data: dict[str, str | int | None] | None = None
 ) -> dict[str, Any]:
-    """Perform a POST request without caching.
+    """Perform a synchronous POST request without caching.
 
     Args:
-        service_name (Service): The name of the service to query.
+        service_name (Service): The service to query.
         endpoint_name (str): The endpoint to query.
-        data (dict[str, Optional[str | int]], optional): The payload for the request. Defaults to None.
+        data (dict[str, str | int | None] | None, optional): The JSON payload, merged over the endpoint spec's default payload. Defaults to None.
 
     Returns:
-        dict[str, Any]: The JSON response from the requested service's API.
+        dict[str, Any]: The decoded JSON response.
 
     Raises:
-        TransportError: If the request fails due to transport-level issues, including connection failures, timeouts, protocol errors, or unsuccessful HTTP responses.
-        ResponseDecodingError: If the response body cannot be decoded as valid JSON.
-        RequestPreparationError: If there is an error preparing the request, such as resolving the endpoint specification.
-        TransportRetryError: If the request fails after retrying the specified number of times due to transport timeouts.
-        EndpointServiceError: If the service name is invalid.
-        EndpointURLError: If the URL is invalid.
-        EndpointParametersError: If params are invalid.
-        EndpointHeadersError: If headers are invalid.
-        UnsupportedEndpointError: If the endpoint name is not recognized in any service registry.
-        LimiterServiceError: If the specified service is unknown or unsupported.
-        LimiterLimitError: If the rate limiter is configured with an invalid maximum requests per minute value.
-        LimiterLoopError: If there is no running event loop to manage timing for rate limiting.
+        RequestPreparationError: If the endpoint specification cannot be resolved.
+        TransportError: For transport-level failures, including connection errors, protocol errors, and unsuccessful HTTP responses.
+        TransportRetryError: If the request still times out after the configured retries.
+        ResponseDecodingError: If the response body is not valid JSON.
+        LimiterServiceError: If the service is unknown to the rate limiter.
+        LimiterLimitError: If the rate limiter is misconfigured.
+        LimiterLoopError: If rate limiting requires a running event loop that is absent.
 
     Examples:
-        >>> # Internal use
-        >>> from ._core import _post_request
-        >>> response = _post_request("some_service/some_endpoint", {"param1": "value1", "param2": 123})
-        >>> print(response)
-        {...JSON response from the service's API...}
+        >>> from fedfred._internals._transport import _post_request  # doctest: +SKIP
+        >>> _post_request("fred", "some_endpoint", {"param": "value"})  # doctest: +SKIP
+        {...}
+
+    Notes:
+        The payload is serialized with orjson and sent as the request body; the
+        endpoint spec's headers must set ``Content-Type: application/json``.
     """
     try:
         spec = _resolve_endpoint(service_name, endpoint_name)
@@ -715,23 +757,24 @@ def _post_request(
         **(data or {}),
     }
 
-    with httpx.Client() as client:
-        try:
-            response = client.post(spec.url, json=payload, headers=spec.headers or None, timeout=10)
+    client = _HTTP_CLIENT
 
-            response.raise_for_status()
+    try:
+        response = client.post(spec.url, content=orjson.dumps(payload), headers=spec.headers or None, timeout=10)
 
-            return orjson.loads(response.content)
+        response.raise_for_status()
 
-        except httpx.HTTPError as exc:
-            raise _map_httpx_exception(exc) from exc
+        return orjson.loads(response.content)
 
-        except ValueError as exc:
-            raise ResponseDecodingError(
-                "Response body could not be decoded as valid JSON.",
-                url=spec.url,
-                method="POST",
-            ) from exc
+    except httpx.HTTPError as exc:
+        raise _map_httpx_exception(exc) from exc
+
+    except ValueError as exc:
+        raise ResponseDecodingError(
+            "Response body could not be decoded as valid JSON.",
+            url=spec.url,
+            method="POST",
+        ) from exc
 
 async def _post_request_async(
     service_name: Service,
@@ -741,36 +784,33 @@ async def _post_request_async(
     """Perform an asynchronous POST request without caching.
 
     Args:
-        service_name (Service): The name of the service to query.
+        service_name (Service): The service to query.
         endpoint_name (str): The endpoint to query.
-        data (dict[str, str | int | None], optional): The payload for the request. Defaults to None.
+        data (dict[str, str | int | None] | None, optional): The JSON payload, merged over the endpoint spec's default payload. Defaults to None.
 
     Returns:
-        dict[str, Any]: The JSON response from the requested service's API.
+        dict[str, Any]: The decoded JSON response.
 
     Raises:
-        TransportError: If the request fails due to transport-level issues, including connection failures, timeouts, protocol errors, or unsuccessful HTTP responses.
-        ResponseDecodingError: If the response body cannot be decoded as valid JSON.
-        RequestPreparationError: If there is an error preparing the request, such as resolving the endpoint specification.
-        TransportRetryError: If the request fails after retrying the specified number of times due to transport timeouts.
-        EndpointServiceError: If the service name is invalid.
-        EndpointURLError: If the URL is invalid.
-        EndpointParametersError: If params are invalid.
-        EndpointHeadersError: If headers are invalid.
-        UnsupportedEndpointError: If the endpoint name is not recognized in any service registry.
-        LimiterServiceError: If the specified service is unknown or unsupported.
-        LimiterLimitError: If the rate limiter is configured with an invalid maximum requests per minute value.
-        LimiterLoopError: If there is no running event loop to manage timing for rate limiting.
-        RateLimiterConfigurationError: If max_requests_per_minute is less than 1, indicating an invalid configuration for rate limiting.
-        RateLimiterStateError: If the semaphore is in an invalid state (e.g., limit less than 1) or if the request time queue state is inconsistent with the computed request volume.
+        RequestPreparationError: If the endpoint specification cannot be resolved.
+        TransportError: For transport-level failures, including connection errors, protocol errors, and unsuccessful HTTP responses.
+        TransportRetryError: If the request still times out after the configured retries.
+        ResponseDecodingError: If the response body is not valid JSON.
+        LimiterServiceError: If the service is unknown to the rate limiter.
+        LimiterLimitError: If the rate limiter or its semaphore is misconfigured.
+        RateLimiterConfigurationError: If the per-minute limit is less than 1.
+        RateLimiterStateError: If the rate limiter's internal state is inconsistent.
+        LimiterLoopError: If rate limiting requires a running event loop that is absent.
 
     Examples:
-        >>> # Internal use
-        >>> from ._core import _post_request_async
-        >>> import asyncio
-        >>> response = await _post_request_async("post_api_key", "some_endpoint", {"param1": "value1", "param2": 123})
-        >>> print(response)
-        {...JSON response from the service's API...}
+        >>> from fedfred._internals._transport import _post_request_async  # doctest: +SKIP
+        >>> await _post_request_async("fred", "some_endpoint", {"param": "value"})  # doctest: +SKIP
+        {...}
+
+    Notes:
+        The payload is serialized with orjson and sent as the request body; the
+        endpoint spec's headers must set ``Content-Type: application/json``. Uses
+        the per-loop client from :func:`_get_async_client`.
     """
     try:
         spec = _resolve_endpoint(service_name, endpoint_name)
@@ -789,20 +829,21 @@ async def _post_request_async(
         **(data or {}),
     }
 
-    async with httpx.AsyncClient() as client:
-        try:
-            response = await client.post(spec.url, json=payload, headers=spec.headers or None, timeout=10)
+    client = _get_async_client()
 
-            response.raise_for_status()
+    try:
+        response = await client.post(spec.url, content=orjson.dumps(payload), headers=spec.headers or None, timeout=10)
 
-            return response.json()
+        response.raise_for_status()
 
-        except httpx.HTTPError as exc:
-            raise _map_httpx_exception(exc) from exc
+        return orjson.loads(response.content)
 
-        except ValueError as exc:
-            raise ResponseDecodingError(
-                "Response body could not be decoded as valid JSON.",
-                url=spec.url,
-                method="POST",
-            ) from exc
+    except httpx.HTTPError as exc:
+        raise _map_httpx_exception(exc) from exc
+
+    except ValueError as exc:
+        raise ResponseDecodingError(
+            "Response body could not be decoded as valid JSON.",
+            url=spec.url,
+            method="POST",
+        ) from exc

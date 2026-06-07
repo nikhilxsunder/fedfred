@@ -19,16 +19,54 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""fedfred._internals.__init__
+"""Internal subpackage of fedfred.
 
-This module initializes the _internals subpackage of fedfred. It imports and exposes the internal helper 
-methods for transport, caching, and rate limiting used across the fedfred package.
+Aggregates the private building blocks that the public package surface is
+composed from and re-exports them under a single namespace for internal use:
+the runtime-adjustable cache and its accessors from :mod:`._caching`, the
+synchronous and asynchronous client bases and the ``_ClientModel`` typing
+contract from :mod:`._clients`, and the response-model and sequence bases from
+:mod:`._models`.
+
+These names are private implementation details. They are exported only so that
+sibling internal modules and the public model classes can import them from one
+place; downstream users should depend on the public ``fedfred`` surface
+(``Fred``, ``Category``, ``Series``, etc.) rather than on anything here.
+
+See Also:
+    - :mod:`fedfred._internals._caching`: Runtime-adjustable FIFO cache.
+    - :mod:`fedfred._internals._clients`: Client bases and the ``_ClientModel`` contract.
+    - :mod:`fedfred._internals._models`: Response-model and sequence bases.
 """
 
+from ._caching import (
+    AdjustableFIFOCache,
+    _retrieve_cache_instance,
+    get_cache_maxsize,
+    set_cache_maxsize,
+)
 from ._clients import (
-    _BaseClient, _AsyncBaseClient, _ClientModel
+    _AsyncBaseClient,
+    _BaseClient,
+    _ClientModel,
+)
+from ._models import (
+    _DateBase,
+    _DateSequence,
+    _ModelBase,
+    _ModelSequence,
 )
 
-from ._models import (
-    _ModelBase, _ModelSequence, _DateBase, _DateSequence
-)
+__all__ = [
+    "AdjustableFIFOCache",
+    "_AsyncBaseClient",
+    "_BaseClient",
+    "_ClientModel",
+    "_DateBase",
+    "_DateSequence",
+    "_ModelBase",
+    "_ModelSequence",
+    "_retrieve_cache_instance",
+    "get_cache_maxsize",
+    "set_cache_maxsize",
+]

@@ -78,6 +78,7 @@ from typing import (
     Self,
     SupportsIndex,
     TypeVar,
+    cast,
     overload,
 )
 
@@ -91,7 +92,6 @@ __all__ = [
     "_DateSequence",
     "_ModelBase",
     "_ModelSequence",
-    "_Sequence",
 ]
 
 type JSON = (
@@ -512,7 +512,7 @@ class _Sequence(Sequence[T]):
     # Dunder Methods
     def __init_subclass__(
         cls,
-        **kwargs: Any
+        **kwargs:object
     ) -> None:
         """Auto-wire ``_response_key`` and ``_element_cls`` from the generic parameter.
 
@@ -853,8 +853,7 @@ class _ModelSequence(_Sequence[MT]):
         Returns:
             MT: A single element instance built by the element class's ``_from_dict``.
         """
-        factory = getattr(cls._element_cls, "_from_dict")
-        return factory(data, client=client)
+        return cast("type[MT]", cls._element_cls)._from_dict(data, client)
 
     @classmethod
     def _from_response(
@@ -958,7 +957,7 @@ class _DateSequence(_Sequence[DT]):
 
     # Class Methods
     @classmethod
-    def _parse_value(cls, raw: Any) -> DT:
+    def _parse_value(cls, raw: dict[str, Any]) -> DT:
         """Build a single element by delegating to the element class's ``_parse_value``.
 
         Resolves the element class through the auto-wired ``_element_cls``
@@ -971,7 +970,7 @@ class _DateSequence(_Sequence[DT]):
         Returns:
             DT: A single element instance built by the element class's ``_parse_value``.
         """
-        return getattr(cls._element_cls, "_parse_value")(raw)
+        return cast("type[DT]", cls._element_cls)._parse_value(raw)
 
     @classmethod
     def _from_response(cls, response: dict[str, Any]) -> Self:
