@@ -1,6 +1,6 @@
 # filepath: /src/fedfred/_core/_parameters.py
 #
-# Copyright (c) 2025-2026 Nikhil Sunder
+# Copyright (c) 2026 Nikhil Sunder
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -19,37 +19,45 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""fedfred._core._parameters
+"""Request-parameter preparation for the FRED, GeoFRED, and FRASER APIs.
 
-This module provides internal helper functions and data structures for preparing API request parameters for the FRED, GeoFRED, and FRASER APIs. 
-It defines a ParameterSpec dataclass to specify how to convert and validate parameters, and provides functions to prepare parameters according 
-to these specifications. This module is intended for internal use within the fedfred package and is not part of the public API.
+This module is the single place where caller-supplied parameters are turned into
+API-ready request parameters. A :class:`ParameterSpec` pairs an optional
+converter (Python value -> wire value) with an optional validator and a
+required flag; per-service spec maps (:data:`FRED_PARAMETER_SPECS`,
+:data:`GEOFRED_PARAMETER_SPECS`, :data:`FRASER_PARAMETER_SPECS`) declare the
+handling for every known parameter. :func:`_prepare_parameters` applies a spec
+map to a parameter mapping, and :func:`_resolve_preparation_function` dispatches
+to the correct per-service preparer by service name. All names here are internal.
 """
 
 from __future__ import annotations
+
+from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import Any, Mapping, Optional, Dict
-from ..exceptions import ValueValidationError, ParameterServiceError
+from typing import Any
+
+from ..exceptions import ParameterServiceError, ValueValidationError
 from ._converters import (
     ParameterConverter,
-    _semicolon_list_converter,
-    _date_parameter_converter,
-    _time_parameter_converter,
     _comma_date_list_converter,
+    _date_parameter_converter,
+    _semicolon_list_converter,
+    _time_parameter_converter,
 )
 from ._validators import (
     ParameterValidator,
-    _validate_nonnegative_int,
+    _validate_bool,
+    _validate_choice,
+    _validate_comma_date_list_string,
+    _validate_hh_mm,
     _validate_nonempty_str,
+    _validate_nonnegative_int,
+    _validate_semicolon_list_string,
+    _validate_series_id,
     _validate_str,
     _validate_str_choice,
-    _validate_choice,
-    _validate_bool,
     _validate_yyyy_mm_dd,
-    _validate_hh_mm,
-    _validate_series_id,
-    _validate_semicolon_list_string,
-    _validate_comma_date_list_string
 )
 
 __all__ = [
@@ -60,59 +68,71 @@ __all__ = [
 class ParameterSpec:
     """Specification for preparing a single API request parameter.
 
+    Pairs an optional converter (run first, to normalize a Python value into its
+    wire form) with an optional validator (run on the converted value) and a
+    required flag.
+
     Attributes:
-        converter: Optional function used to normalize Python values into API-ready values.
-        validator: Optional function used to validate the normalized value.
-        required: Whether the parameter must be present and non-None.
+        converter (ParameterConverter | None): Optional ``(name, value) -> value`` callable that normalizes a raw value into its API form. Run before validation.
+        validator (ParameterValidator | None): Optional ``(name, value) -> None`` callable that raises on an invalid value. Run after conversion.
+        required (bool): Whether the parameter must be present and non-``None`` after preparation.
 
     Examples:
-        >>> # Internal use
-        >>> from ._core import ParameterSpec
-        >>> spec = ParameterSpec(converter=str, validator=lambda n, v: isinstance(v, str), required=True)
-        >>> spec.converter("example_param", 123)
-        '123'
+        >>> from fedfred._core._parameters import ParameterSpec
+        >>> from fedfred._core._validators import _validate_nonnegative_int
+        >>> spec = ParameterSpec(validator=_validate_nonnegative_int, required=True)
+        >>> spec.required
+        True
     """
 
-    converter: Optional[ParameterConverter] = None
-    """Optional function to convert raw parameter values into API-ready formats. Used for normalization before validation and request preparation."""
+    converter: ParameterConverter | None = None
+    """Optional ``(name, value) -> value`` converter, run before validation to normalize raw values into their API form."""
 
-    validator: Optional[ParameterValidator] = None
-    """Optional function to validate parameter values after conversion. Should raise an exception if validation fails."""
+    validator: ParameterValidator | None = None
+    """Optional ``(name, value) -> None`` validator, run after conversion; raises on an invalid value."""
 
     required: bool = False
-    """Indicates whether this parameter is required. If True, the parameter must be present and non-None after conversion, or a ValueValidationError will be raised."""
+    """Whether the parameter must be present and non-``None`` after preparation; if so, a missing value raises :class:`~fedfred.exceptions.ValueValidationError`."""
 
-def _prepare_parameters(parameters: Optional[Mapping[str, Any]], specs: Mapping[str, ParameterSpec],
-                        *, service: str, allow_unknown: bool = False) -> Dict[str, Any]:
-    """Internal helper function to prepare API request parameters based on provided specifications.
+
+def _prepare_parameters(
+    parameters: Mapping[str, Any] | None,
+    specs: Mapping[str, ParameterSpec],
+    *,
+    service: str,
+    allow_unknown: bool = False
+) -> dict[str, Any]:
+    """Convert and validate a parameter mapping against a spec map.
+
+    Skips ``None`` values, applies each parameter's converter then validator,
+    handles unknown parameters per ``allow_unknown``, and enforces required
+    parameters after processing.
 
     Args:
-        parameters: Raw parameter dictionary.
-        specs: Parameter specification map.
-        service: Service name used for error context.
-        allow_unknown: Whether unknown parameters should be passed through.
+        parameters (Mapping[str, Any] | None): The raw parameters, or ``None`` (treated as empty).
+        specs (Mapping[str, ParameterSpec]): The per-parameter specifications.
+        service (str): The service name, used only for error context.
+        allow_unknown (bool): If ``True``, parameters with no spec are passed through unchanged; if ``False``, they raise. Defaults to ``False``.
 
     Returns:
-        Dict[str, Any]: Prepared parameters ready for API requests.
+        dict[str, Any]: The prepared parameters, ready to send.
 
     Raises:
-        TypeConversionError: If conversion fails.
-        TypeValidationError: If type validation fails.
-        ValueValidationError: If value validation fails.
+        TypeConversionError: If a converter fails to normalize a value.
+        TypeValidationError: If a validator rejects a value's type.
+        ValueValidationError: If a value is invalid, an unknown parameter is encountered with ``allow_unknown=False``, or a required parameter is missing.
 
     Examples:
-        >>> from ._core import _prepare_parameters, ParameterSpec
-        >>> specs = {
-        ...     "param1": ParameterSpec(converter=int, validator=lambda n, v: v > 0, required=True),
-        ...     "param2": ParameterSpec(converter=str, validator=lambda n, v: v in {"option1", "option2"}, required=False),
-        ... }
-        >>> _prepare_parameters({"param1": "123", "param2": "option1"}, specs=specs, service="TestService")
+        >>> from fedfred._core._parameters import _prepare_parameters, ParameterSpec
+        >>> from fedfred._core._validators import _validate_nonnegative_int
+        >>> specs = {"limit": ParameterSpec(validator=_validate_nonnegative_int)}
+        >>> _prepare_parameters({"limit": 100}, specs, service="Test")
+        {'limit': 100}
     """
-
     if parameters is None:
         parameters = {}
 
-    prepared: Dict[str, Any] = {}
+    prepared: dict[str, Any] = {}
 
     for name, value in parameters.items():
         if value is None:
@@ -156,25 +176,46 @@ def _prepare_parameters(parameters: Optional[Mapping[str, Any]], specs: Mapping[
     return prepared
 
 FRED_FREQUENCIES = {
-    "d", "w", "bw", "m", "q", "sa", "a",
-    "wef", "weth", "wew", "wetu", "wem", "wesu", "wesa",
-    "bwew", "bwem",
+    "d",
+    "w",
+    "bw",
+    "m",
+    "q",
+    "sa",
+    "a",
+    "wef",
+    "weth",
+    "wew",
+    "wetu",
+    "wem",
+    "wesu",
+    "wesa",
+    "bwew",
+    "bwem",
 }
-"""Set of valid frequency values for FRED API parameters."""
+"""Valid ``frequency`` values for FRED API parameters."""
 
 FRED_UNITS = {
-    "lin", "chg", "ch1", "pch", "pc1", "pca", "cch", "cca", "log",
+    "lin",
+    "chg",
+    "ch1",
+    "pch",
+    "pc1",
+    "pca",
+    "cch",
+    "cca",
+    "log",
 }
-"""Set of valid units values for FRED API parameters."""
+"""Valid ``units`` values for FRED API parameters."""
 
 SORT_ORDERS = {"asc", "desc"}
-"""Set of valid sort order values for FRED API parameters."""
+"""Valid ``sort_order`` values for FRED API parameters."""
 
 AGGREGATION_METHODS = {"sum", "avg", "eop"}
-"""Set of valid aggregation method values for FRED API parameters."""
+"""Valid ``aggregation_method`` values for FRED API parameters."""
 
 OUTPUT_TYPES = {1, 2, 3, 4}
-"""Set of valid output type values for FRED API parameters."""
+"""Valid ``output_type`` values for FRED API parameters."""
 
 FRED_ORDER_BY = {
     "series_id",
@@ -197,7 +238,7 @@ FRED_ORDER_BY = {
     "group_id",
     "search_rank",
 }
-"""Set of valid order by values for FRED API parameters."""
+"""Valid ``order_by`` values for FRED API parameters."""
 
 GEOFRED_REGION_TYPES = {
     "bea",
@@ -210,9 +251,9 @@ GEOFRED_REGION_TYPES = {
     "censusregion",
     "censusdivision",
 }
-"""Set of valid region type values for GeoFRED API parameters."""
+"""Valid region-type values for GeoFRED API parameters."""
 
-FRED_PARAMETER_SPECS: Dict[str, ParameterSpec] = {
+FRED_PARAMETER_SPECS: dict[str, ParameterSpec] = {
     "category_id": ParameterSpec(validator=_validate_nonnegative_int),
     "release_id": ParameterSpec(validator=_validate_nonnegative_int),
     "limit": ParameterSpec(validator=_validate_nonnegative_int),
@@ -277,9 +318,9 @@ FRED_PARAMETER_SPECS: Dict[str, ParameterSpec] = {
         validator=_validate_str_choice({"seasonally_adjusted", "not_seasonally_adjusted"})
     ),
 }
-"""Mapping of parameter names to their specifications for FRED API parameters. Each entry defines how to convert and validate the parameter values when preparing API requests."""
+"""Per-parameter specifications for FRED API requests, mapping each known parameter name to its converter/validator handling."""
 
-GEOFRED_PARAMETER_SPECS: Dict[str, ParameterSpec] = {
+GEOFRED_PARAMETER_SPECS: dict[str, ParameterSpec] = {
     "api_key": ParameterSpec(validator=_validate_nonempty_str),
     "file_type": ParameterSpec(
         validator=_validate_str_choice({"json", "geojson", "shp", "kml", "gdb", "gpkg"})
@@ -303,9 +344,9 @@ GEOFRED_PARAMETER_SPECS: Dict[str, ParameterSpec] = {
     ),
     "transformation": ParameterSpec(validator=_validate_str_choice(FRED_UNITS)),
 }
-"""Mapping of parameter names to their specifications for GeoFRED API parameters. Each entry defines how to convert and validate the parameter values when preparing API requests."""
+"""Per-parameter specifications for GeoFRED API requests, mapping each known parameter name to its converter/validator handling."""
 
-FRASER_PARAMETER_SPECS: Dict[str, ParameterSpec] = {
+FRASER_PARAMETER_SPECS: dict[str, ParameterSpec] = {
     "limit": ParameterSpec(validator=_validate_nonnegative_int),
     "page": ParameterSpec(validator=_validate_nonnegative_int),
     "format": ParameterSpec(validator=_validate_str_choice({"json"})),
@@ -315,28 +356,30 @@ FRASER_PARAMETER_SPECS: Dict[str, ParameterSpec] = {
         )
     ),
 }
-"""Mapping of parameter names to their specifications for FRASER API parameters. Each entry defines how to convert and validate the parameter values when preparing API requests."""
+"""Per-parameter specifications for FRASER API requests, mapping each known parameter name to its converter/validator handling."""
 
-def _prepare_fred_parameters(parameters: Optional[Mapping[str, Any]]) -> Dict[str, Any]:
-    """Prepare FRED API request parameters by converting and validating them according to the defined specifications.
-    
+def _prepare_fred_parameters(parameters: Mapping[str, Any] | None) -> dict[str, Any]:
+    """Prepare FRED API request parameters against :data:`FRED_PARAMETER_SPECS`.
+
     Args:
-        parameters: Raw parameter dictionary to prepare.
-    
+        parameters (Mapping[str, Any] | None): The raw parameters to prepare.
+
     Returns:
-        Dict[str, Any]: A dictionary of prepared FRED API request parameters.
-    
+        dict[str, Any]: The prepared FRED request parameters.
+
     Raises:
-        TypeConversionError: If any parameter value fails to convert properly.
-        TypeValidationError: If any parameter value fails type validation.
-        ValueValidationError: If any parameter value fails value validation, or if required parameters are missing.
+        TypeConversionError: If a converter fails to normalize a value.
+        TypeValidationError: If a validator rejects a value's type.
+        ValueValidationError: If a value is invalid or a required parameter is missing.
 
     Examples:
-        >>> from ._core import _prepare_fred_parameters
-        >>> _prepare_fred_parameters({"limit": "100", "sort_order": "asc"})
+        >>> from fedfred._core._parameters import _prepare_fred_parameters
+        >>> _prepare_fred_parameters({"limit": 100, "sort_order": "asc"})
         {'limit': 100, 'sort_order': 'asc'}
-    """
 
+    Notes:
+        Unknown parameters are passed through unchanged (``allow_unknown=True``).
+    """
     return _prepare_parameters(
         parameters,
         FRED_PARAMETER_SPECS,
@@ -344,26 +387,28 @@ def _prepare_fred_parameters(parameters: Optional[Mapping[str, Any]]) -> Dict[st
         allow_unknown=True,
     )
 
-def _prepare_geofred_parameters(parameters: Optional[Mapping[str, Any]]) -> Dict[str, Any]:
-    """Prepare GeoFRED API request parameters by converting and validating them according to the defined specifications.
-    
+def _prepare_geofred_parameters(parameters: Mapping[str, Any] | None) -> dict[str, Any]:
+    """Prepare GeoFRED API request parameters against :data:`GEOFRED_PARAMETER_SPECS`.
+
     Args:
-        parameters: Raw parameter dictionary to prepare.
-    
+        parameters (Mapping[str, Any] | None): The raw parameters to prepare.
+
     Returns:
-        Dict[str, Any]: A dictionary of prepared GeoFRED API request parameters.
+        dict[str, Any]: The prepared GeoFRED request parameters.
 
     Raises:
-        TypeConversionError: If any parameter value fails to convert properly.
-        TypeValidationError: If any parameter value fails type validation.
-        ValueValidationError: If any parameter value fails value validation, or if required parameters are missing.
+        TypeConversionError: If a converter fails to normalize a value.
+        TypeValidationError: If a validator rejects a value's type.
+        ValueValidationError: If a value is invalid or a required parameter is missing.
 
     Examples:
-        >>> from ._core import _prepare_geofred_parameters
+        >>> from fedfred._core._parameters import _prepare_geofred_parameters
         >>> _prepare_geofred_parameters({"shape": "state", "file_type": "geojson"})
         {'shape': 'state', 'file_type': 'geojson'}
-    """
 
+    Notes:
+        Unknown parameters are passed through unchanged (``allow_unknown=True``).
+    """
     return _prepare_parameters(
         parameters,
         GEOFRED_PARAMETER_SPECS,
@@ -371,26 +416,28 @@ def _prepare_geofred_parameters(parameters: Optional[Mapping[str, Any]]) -> Dict
         allow_unknown=True,
     )
 
-def _prepare_fraser_parameters(parameters: Optional[Mapping[str, Any]]) -> Dict[str, Any]:
-    """Prepare FRASER API request parameters by converting and validating them according to the defined specifications.
-    
-    Args:
-        parameters: Raw parameter dictionary to prepare.
-    
-    Returns:
-        Dict[str, Any]: A dictionary of prepared FRASER API request parameters.
-    
-    Raises:
-        TypeConversionError: If any parameter value fails to convert properly.
-        TypeValidationError: If any parameter value fails type validation.
-        ValueValidationError: If any parameter value fails value validation, or if required parameters are missing.
-    
-    Examples:
-        >>> from ._core import _prepare_fraser_parameters
-        >>> _prepare_fraser_parameters({"limit": "100", "page": "1"})
-        {'limit': 100, 'page': 1}
-    """
+def _prepare_fraser_parameters(parameters: Mapping[str, Any] | None) -> dict[str, Any]:
+    """Prepare FRASER API request parameters against :data:`FRASER_PARAMETER_SPECS`.
 
+    Args:
+        parameters (Mapping[str, Any] | None): The raw parameters to prepare.
+
+    Returns:
+        dict[str, Any]: The prepared FRASER request parameters.
+
+    Raises:
+        TypeConversionError: If a converter fails to normalize a value.
+        TypeValidationError: If a validator rejects a value's type.
+        ValueValidationError: If a value is invalid or a required parameter is missing.
+
+    Examples:
+        >>> from fedfred._core._parameters import _prepare_fraser_parameters
+        >>> _prepare_fraser_parameters({"limit": 100, "page": 1})
+        {'limit': 100, 'page': 1}
+
+    Notes:
+        Unknown parameters are passed through unchanged (``allow_unknown=True``).
+    """
     return _prepare_parameters(
         parameters,
         FRASER_PARAMETER_SPECS,
@@ -398,41 +445,46 @@ def _prepare_fraser_parameters(parameters: Optional[Mapping[str, Any]]) -> Dict[
         allow_unknown=True,
     )
 
-FRED_PREPERATION_FUNCTIONS: Dict[str, Any] = {
+FRED_PREPARATION_FUNCTIONS: dict[str, Any] = {
     "fred": _prepare_fred_parameters,
     "geofred": _prepare_geofred_parameters,
     "fraser": _prepare_fraser_parameters,
 }
-"""Mapping of service names to their respective parameter preparation functions."""
+"""Mapping of lowercase service name to its parameter-preparation function."""
 
-def _resolve_preparation_function(parameters: Optional[Mapping[str, Any]], service: str) -> Optional[Dict[str, Any]]:
-    """Internal helper function to resolve the appropriate parameter preparation function based on the service name.
+def _resolve_preparation_function(
+    parameters: Mapping[str, Any] | None,
+    service: str
+) -> dict[str, Any]:
+    """Prepare parameters using the preparer for ``service``.
 
     Args:
-        service: The name of the service (e.g., "FRED", "GeoFRED", "FRASER").
+        parameters (Mapping[str, Any] | None): The raw parameters to prepare.
+        service (str): The service name (case-insensitive): ``"fred"``, ``"geofred"``, or ``"fraser"``.
 
     Returns:
-        Optional[Dict[str, Any]]: The prepared parameters dictionary, or None if the service is unrecognized.
+        dict[str, Any]: The prepared parameters from the resolved service preparer.
 
     Raises:
-        TypeConversionError: If any parameter value fails to convert properly.
-        TypeValidationError: If any parameter value fails type validation.
-        ValueValidationError: If any parameter value fails value validation, or if required parameters are missing.
-    
+        ParameterServiceError: If ``service`` is not a recognized service.
+        TypeConversionError: If a converter fails to normalize a value.
+        TypeValidationError: If a validator rejects a value's type.
+        ValueValidationError: If a value is invalid or a required parameter is missing.
+
     Examples:
-        >>> from ._core import _resolve_preparation_function
-        >>> _resolve_preparation_function({"limit": "100"}, service="fred")
+        >>> from fedfred._core._parameters import _resolve_preparation_function
+        >>> _resolve_preparation_function({"limit": 100}, service="fred")
         {'limit': 100}
     """
-
     service = service.lower()
 
     try:
-        return FRED_PREPERATION_FUNCTIONS[service](parameters)
+        return FRED_PREPARATION_FUNCTIONS[service](parameters)
+
     except KeyError as exc:
         raise ParameterServiceError(
             message=f"Unknown service {service!r} for parameter preparation.",
             service=service,
             reason="Unrecognized service name.",
-            details={"service": service, "expected_services": tuple(FRED_PREPERATION_FUNCTIONS)},
+            details={"service": service, "expected_services": tuple(FRED_PREPARATION_FUNCTIONS)},
         ) from exc

@@ -19,32 +19,46 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""fedfred._core.__init__
+"""Internal core subpackage of fedfred.
 
-This module initializes the _core subpackage of fedfred. It imports and exposes the core helper 
-methods for data conversion, validation, and extraction used across the fedfred package.
+Aggregates the request- and response-processing helpers used across the package
+and re-exports them under one namespace for internal use: cache-key conversion
+from :mod:`._converters`, endpoint resolution from :mod:`._endpoints`,
+per-service parameter preparation from :mod:`._parameters`, and response-shape
+parsing from :mod:`._parsers`.
+
+These names are private implementation details, exported only so that sibling
+internal modules can import them from a single place; downstream users should
+depend on the public ``fedfred`` surface rather than on anything here.
+
+See Also:
+    - :mod:`fedfred._core._converters`: Value, DataFrame, and cache-key converters.
+    - :mod:`fedfred._core._endpoints`: Endpoint specification resolution.
+    - :mod:`fedfred._core._parameters`: Per-service parameter preparation.
+    - :mod:`fedfred._core._parsers`: Response-shape parsers.
+    - :mod:`fedfred._core._validators`: Parameter validators (used internally; not re-exported here).
 """
 
 from ._converters import (
-    _hashable_type_converter, _hashable_type_converter_async,
-    _resolve_dataframe_converter, _resolve_geodataframe_converter,
-    _resolve_dataframe_converter_async, _resolve_geodataframe_converter_async,
-    _dict_type_converter, _dict_type_converter_async,
-    _coerce_lower
+    _dict_type_converter,
+    _hashable_type_converter,
 )
-
-from ._endpoints import (
-    _ST_LOUIS_FED_BASE_URL, _FRED_PATH, _GEOFRED_PATH,
-    _resolve_endpoint, _resolve_endpoint_async
-)
-
-from ._parsers import(
+from ._endpoints import _resolve_endpoint
+from ._parameters import _resolve_preparation_function
+from ._parsers import (
+    _objects_iter_dict_or_list,
     _region_type_parser,
-    _region_type_parser_async,
-    _require_list, _require_first_list,
-    _objects_iter_dict_or_list
+    _require_first_list,
+    _require_list,
 )
 
-from ._parameters import (
-    _resolve_preparation_function, #_resolve_preparation_function_async
-)
+__all__ = [
+    "_dict_type_converter",
+    "_hashable_type_converter",
+    "_objects_iter_dict_or_list",
+    "_region_type_parser",
+    "_require_first_list",
+    "_require_list",
+    "_resolve_endpoint",
+    "_resolve_preparation_function",
+]

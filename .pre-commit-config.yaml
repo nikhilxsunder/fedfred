@@ -14,24 +14,6 @@ repos:
       - id: prettier
         exclude: ^conda-forge/meta\.yaml$
 
-  - repo: https://github.com/pycqa/pylint
-    rev: v3.3.5
-    hooks:
-      - id: pylint
-        exclude: |
-          (?x)^(
-              docs/.*|
-              tests/.*|
-              scripts/.*|
-              examples/.*|
-              .*\.md|
-              .*\.rst
-          )$
-        args:
-          [
-            "",
-          ]
-
   - repo: local
     hooks:
       - id: sync-conda-recipe

@@ -1,6 +1,6 @@
 # filepath: /src/fedfred/_internals/_models.py
 #
-# Copyright (c) 2025-2026 Nikhil Sunder
+# Copyright (c) 2026 Nikhil Sunder
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -82,7 +82,7 @@ from typing import (
     overload,
 )
 
-from .._core import _require_list
+from .._core import _require_list # TODO: function _require_first_list is used at the public level but it is from core so consdier class atr bool to resolve which func.
 from ._clients import _ClientModel  # pragma: no cover
 
 # TODO: Fix all docstrings post error design.

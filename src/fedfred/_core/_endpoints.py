@@ -80,9 +80,7 @@ from ..exceptions import (
 )
 from ..settings import Service
 
-__all__ = [
-    "_resolve_endpoint",
-]
+__all__ = ["_resolve_endpoint",]
 
 # Typing Aliases
 AuthStyle = Literal["api_key_param", "bearer_header", "api_key_header", "none"]

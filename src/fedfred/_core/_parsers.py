@@ -1,6 +1,6 @@
 # filepath: /src/fedfred/_core/_parsers.py
 #
-# Copyright (c) 2025–2026 Nikhil Sunder
+# Copyright (c) 2026 Nikhil Sunder
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -19,60 +19,61 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""fedfred._core._parsers
+"""Response-shape parsers for FRED-family API payloads.
 
-This module provides internal helper methods for the fedfred package, specifically for extracting data from certain FRED API responses.
+This module provides the internal helpers that extract and validate the
+list-shaped data inside FRED, GeoFRED, and FRASER responses before it is handed
+to the model layer. The helpers normalize the inconsistencies in FRED's payload
+shapes — singular vs. plural container keys, elements returned as an
+id-keyed dict instead of a list — and raise
+:class:`~fedfred.exceptions.parsing.ParsingError` on any unexpected structure so
+malformed responses fail loudly at the boundary rather than deep in parsing.
 """
 
 from __future__ import annotations
-import asyncio
-from typing import Dict, Any, Tuple, List
+
+from typing import Any
+
 from ..exceptions.parsing import ParsingError
 
 __all__ = [
-    "_region_type_parser", "_region_type_parser_async", 
-    "_require_list", "_require_first_list",
     "_objects_iter_dict_or_list",
+    "_region_type_parser",
+    "_require_first_list",
+    "_require_list",
 ]
 
-def _region_type_parser(response: Dict) -> str:
-    """Internal parser function to extract the region type from a GeoFred response dictionary.
+def _region_type_parser(response: dict[str, Any]) -> str:
+    """Extract the region type from a GeoFRED response.
 
     Args:
-        response (Dict): FRED GeoFred response dictionary.
+        response (dict[str, Any]): The GeoFRED response payload.
 
     Returns:
-        str: Extracted region type.
+        str: The region type (e.g. ``"state"``), read from ``response["meta"]["region"]``.
 
     Raises:
-        ParsingError: If no meta data or region type is found in the response.
-    
+        ParsingError: If the response has no ``meta`` section, or the ``meta`` section has no ``region`` value.
+
     Examples:
-        >>> # Internal use
-        >>> from ._core import _region_type_parser
-        >>> response = {
-        >>>     "meta": {
-        >>>         "region_type": "state"
-        >>>     },
-        >>>     "data": {
-        >>>         "observations": []
-        >>>     }
-        >>> }
-        >>> region_type = _region_type_parser(response)
-        >>> print(region_type)
-        state
+        >>> from fedfred._core._parsers import _region_type_parser
+        >>> _region_type_parser({"meta": {"region": "state"}, "data": {"observations": []}})
+        'state'
 
     Notes:
-        This method looks for the 'region' key in the 'meta' section of the response dictionary.
+        GeoFRED reports the region type under the ``region`` key of the ``meta``
+        section; despite the function name, the underlying payload key is
+        ``region``, not ``region_type``.
     """
-
     meta_data = response.get('meta', {})
+
     if not meta_data:
         raise ParsingError(
             message="No meta data found in the response"
             )
 
     region_type = meta_data.get('region')
+
     if not region_type:
         raise ParsingError(
             message="No region type found in the response meta data"
@@ -80,32 +81,27 @@ def _region_type_parser(response: Dict) -> str:
 
     return region_type
 
-def _require_list(response: Dict[str, Any], key: str) -> List[Any]:
-    """Validate a response has ``key`` pointing to a list. Raise otherwise.
-    
+def _require_list(
+    response: dict[str, Any],
+    key: str
+) -> list[Any]:
+    """Return the value under ``key``, requiring it to be a list.
+
     Args:
-        response (Dict[str, Any]): The API response to validate.
-        key (str): The key that should point to a list.
+        response (dict[str, Any]): The response (or sub-section) to read from.
+        key (str): The key expected to point to a list.
 
     Returns:
-        List[Any]: The list found under ``key``.
+        list[Any]: The list found under ``key``.
 
     Raises:
-        ParsingError: If the response is not a dict, if ``key`` is missing, or if the value under ``key`` is not a list.
+        ParsingError: If ``response`` is not a dict, ``key`` is missing, or the value under ``key`` is not a list.
 
     Examples:
-        >>> # Internal use
-        >>> from ._core import _require_list
-        >>> response = {
-        >>>     "data": {
-        >>>         "observations": []
-        >>>     }
-        >>> }
-        >>> data = _require_list(response["data"], "observations")
-        >>> print(data)
+        >>> from fedfred._core._parsers import _require_list
+        >>> _require_list({"observations": []}, "observations")
         []
     """
-
     if not isinstance(response, dict) or key not in response:
         raise ParsingError(f"Invalid API response: missing {key!r} field")
 
@@ -116,24 +112,33 @@ def _require_list(response: Dict[str, Any], key: str) -> List[Any]:
 
     return raw
 
-def _require_first_list(response: Dict[str, Any], keys: Tuple[str, ...]) -> List[Any]:
-    """Return the list under the first matching key in ``keys``, or raise.
+def _require_first_list(
+    response: dict[str, Any],
+    keys: tuple[str, ...]
+) -> list[Any]:
+    """Return the list under the first key in ``keys`` that is present.
 
     Args:
-        response (Dict[str, Any]): The API response to validate.
-        keys (Tuple[str, ...]): The keys to check for a list value.
+        response (dict[str, Any]): The response to read from.
+        keys (tuple[str, ...]): Candidate keys, tried in order; the first present key wins.
 
     Returns:
-        List[Any]: The list found under the first matching key.
+        list[Any]: The list found under the first matching key.
 
     Raises:
-        ParsingError: If the response is not a dict, if none of the keys are present, or if the value under the first matching key is not a list.
+        ParsingError: If ``response`` is not a dict, none of ``keys`` are present, or the value under the first matching key is not a list.
 
-    Note: 
-        FRED's ``series`` and ``release`` endpoints sometimes return data under the plural key (``seriess``/``releases``) and sometimes 
-        the singular (``series``/``release``); this lets a single parser handle both shapes.
+    Examples:
+        >>> from fedfred._core._parsers import _require_first_list
+        >>> _require_first_list({"seriess": [{"id": "GDP"}]}, ("seriess", "series"))
+        [{'id': 'GDP'}]
+
+    Notes:
+        FRED's ``series`` and ``release`` endpoints sometimes return data under
+        the plural key (``seriess`` / ``releases``) and sometimes the singular
+        (``series`` / ``release``); passing both lets a single parser handle
+        either shape.
     """
-
     if not isinstance(response, dict):
         raise ParsingError(
             f"Invalid API response: expected a mapping, got {type(response).__name__}"
@@ -151,14 +156,43 @@ def _require_first_list(response: Dict[str, Any], keys: Tuple[str, ...]) -> List
 
     raise ParsingError(f"Invalid API response: missing {pretty} field")
 
-def _objects_iter_dict_or_list(response: Dict[str, Any], key: str) -> List[Dict[str, Any]]:
-    """Helper for Element/Elements: FRED returns 'elements' as a dict-keyed-by-id, not a list."""
+def _objects_iter_dict_or_list(
+    response: dict[str, Any],
+    key: str
+) -> list[dict[str, Any]]:
+    """Return the objects under ``key`` as a list, accepting either a list or an id-keyed dict.
 
+    Args:
+        response (dict[str, Any]): The response to read from.
+        key (str): The key expected to point to either a list of objects or a dict mapping ids to objects.
+
+    Returns:
+        list[dict[str, Any]]: The objects as a list. If the value was a dict, its values are returned (keys discarded).
+
+    Raises:
+        ParsingError: If ``response`` is not a dict, ``key`` is missing, or the value under ``key`` is neither a dict nor a list.
+
+    Examples:
+        >>> from fedfred._core._parsers import _objects_iter_dict_or_list
+        >>> _objects_iter_dict_or_list({"elements": {"1": {"id": 1}}}, "elements")
+        [{'id': 1}]
+        >>> _objects_iter_dict_or_list({"elements": [{"id": 1}]}, "elements")
+        [{'id': 1}]
+
+    Notes:
+        FRED's category ``related_tags``/``elements`` payloads return the objects
+        as a dict keyed by id rather than a list; this normalizes both shapes to
+        a list so the model layer sees one form.
+    """
     if not isinstance(response, dict) or key not in response:
         raise ParsingError(f"Invalid API response: missing {key!r} field")
+
     raw = response[key]
+
     if isinstance(raw, dict):
         return list(raw.values())
+
     if isinstance(raw, list):
         return raw
+
     raise ParsingError(f"Invalid API response: {key!r} must be a dict or list")

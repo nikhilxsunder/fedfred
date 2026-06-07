@@ -1,6 +1,6 @@
 # filepath: /src/fedfred/_internals/_caching.py
 #
-# Copyright (c) 2025-2026 Nikhil Sunder
+# Copyright (c) 2026 Nikhil Sunder
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal

@@ -1,6 +1,6 @@
 # filepath: /src/fedfred/_core/_validators.py
 #
-# Copyright (c) 2025-2026 Nikhil Sunder
+# Copyright (c) 2026 Nikhil Sunder
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -19,64 +19,141 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""fedfred._core._validators
+"""Parameter validation for FRED, GeoFRED, and FRASER API requests.
 
-This module provides internal validation methods for request parameters sent to the FRED, GeoFRED, and FRASER API. These methods are used to validate 
-parameters passed to the various API endpoint methods, ensuring that they conform to expected types, formats, 
-and value constraints before being sent in API requests.
+This module provides the internal validators that endpoint methods run over
+their arguments before a request is issued, enforcing expected types, string
+formats (dates, times, delimited lists, series identifiers), and value
+constraints. Validators share a uniform contract: each takes a parameter name
+and a value and either returns ``None`` or raises
+:class:`~fedfred.exceptions.TypeValidationError` /
+:class:`~fedfred.exceptions.ValueValidationError`. Validators that depend on a
+runtime-configured allowed set (:func:`_validate_choice`,
+:func:`_validate_str_choice`) are produced by factory functions returning a
+callable conforming to :data:`ParameterValidator`.
 """
 
 from __future__ import annotations
-from typing import Callable, Any
+
+from collections.abc import Callable
+from dataclasses import dataclass
 from datetime import datetime
-from ..exceptions import ValueValidationError, TypeValidationError
+from typing import cast
 
-__all__ = [
-    # Typing Aliases
-    "ParameterValidator",
-    # Scalar Validators
-    "_validate_type",
-    "_validate_str",
-    "_validate_nonempty_str",
-    "_validate_bool",
-    "_validate_nonnegative_int",
-    "_validate_choice",
-    "_validate_str_choice",
-    "_validate_yyyy_mm_dd",
-    "_validate_hh_mm",
-    "_validate_semicolon_list_string",
-    "_validate_comma_date_list_string",
-    "_validate_series_id",
-]
+from ..exceptions import TypeValidationError, ValueValidationError
 
-ParameterValidator = Callable[[str, Any], None]
-"""Typing alias for parameter validator functions. These functions take a parameter name and a value, and raise an exception if the value is invalid."""
+ParameterValidator = Callable[[str, object], None]
+"""Type alias for a parameter validator: takes a parameter name and a value, returns ``None``, and raises on invalid input."""
 
-# Scalar Validators
-def _validate_type(parameter: str, value: Any, expected_type: type | tuple[type, ...]) -> None:
-    """Internal validator function to check if a parameter value is of the expected type.
-    
-    Args:
-        parameter (str): The name of the parameter being validated.
-        value (Any): The value of the parameter to validate.
-        expected_type (type | tuple[type, ...]): The expected type or tuple of types for the parameter.
+@dataclass(frozen=True, slots=True)
+class _ChoiceValidator:
+    """Validate that a parameter value is one of an allowed set of choices.
 
-    Raises:
-        TypeValidationError: If the value is not of the expected type.
+    Constructed by :func:`_validate_choice`; instances are callable with the
+    :data:`ParameterValidator` signature.
 
-    Examples:
-        >>> # Internal use
-        >>> from ._core import _validate_type
-        >>> _validate_type("limit", 100, int)  # Valid case
-        >>> _validate_type("limit", -5, int)   # Valid case (type is correct, value validation is separate)
-        >>> _validate_type("limit", "100", int) # Invalid case (raises TypeValidationError)
+    Attributes:
+        choices (frozenset[object]): The allowed values for the parameter.
     """
 
+    choices: frozenset[object]
+    """The allowed values for the parameter."""
+
+    def __call__(
+        self,
+        parameter: str,
+        value: object
+    ) -> None:
+        """Validate ``value`` against the allowed choices.
+
+        Args:
+            parameter (str): The name of the parameter being validated.
+            value (object): The value of the parameter to validate.
+
+        Raises:
+            ValueValidationError: If ``value`` is not one of the allowed choices.
+        """
+        if value not in self.choices:
+            raise ValueValidationError(
+                message=f"Invalid value for parameter {parameter!r}.",
+                parameter=parameter,
+                reason="Value is not one of the allowed choices.",
+                details={
+                    "value": value,
+                    "choices": tuple(sorted(self.choices, key=str)),
+                },
+            )
+
+
+@dataclass(frozen=True, slots=True)
+class _StrChoiceValidator:
+    """Validate that a parameter value is a string in an allowed set of choices.
+
+    Constructed by :func:`_validate_str_choice`; instances are callable with the
+    :data:`ParameterValidator` signature.
+
+    Attributes:
+        choices (frozenset[str]): The allowed string values for the parameter.
+    """
+
+    choices: frozenset[str]
+    """The allowed string values for the parameter."""
+
+    def __call__(
+        self,
+        parameter: str,
+        value: object
+    ) -> None:
+        """Validate ``value`` is a string and one of the allowed choices.
+
+        Args:
+            parameter (str): The name of the parameter being validated.
+            value (object): The value of the parameter to validate.
+
+        Raises:
+            TypeValidationError: If ``value`` is not a string.
+            ValueValidationError: If ``value`` is not one of the allowed choices.
+        """
+        _validate_str(parameter, value)
+
+        if value not in self.choices:
+            raise ValueValidationError(
+                message=f"Invalid value for parameter {parameter!r}.",
+                parameter=parameter,
+                reason="Value is not one of the allowed choices.",
+                details={
+                    "value": value,
+                    "choices": tuple(sorted(self.choices)),
+                },
+            )
+
+# Scalar Validators
+def _validate_type(
+    parameter: str,
+    value: object,
+    expected_type: type | tuple[type, ...]
+) -> None:
+    """Validate that a parameter value is of an expected type.
+
+    Args:
+        parameter (str): The name of the parameter being validated.
+        value (object): The value of the parameter to validate.
+        expected_type (type | tuple[type, ...]): The expected type, or a tuple of acceptable types.
+
+    Raises:
+        TypeValidationError: If ``value`` is not an instance of ``expected_type``.
+
+    Examples:
+        >>> from fedfred._core._validators import _validate_type
+        >>> _validate_type("limit", 100, int)
+        >>> _validate_type("limit", "100", int)  # doctest: +SKIP
+    """
     if not isinstance(value, expected_type):
-        if isinstance(expected_type, tuple):
-            expected = " | ".join(t.__name__ for t in expected_type)
-        else:
-            expected = expected_type.__name__
+        expected = (
+            " | ".join(t.__name__ for t in expected_type)
+            if isinstance(expected_type, tuple)
+            else expected_type.__name__
+        )
 
         raise TypeValidationError(
             message=f"Invalid type for parameter {parameter!r}.",
@@ -86,26 +163,30 @@ def _validate_type(parameter: str, value: Any, expected_type: type | tuple[type,
             received=type(value).__name__,
         )
 
-def _validate_nonnegative_int(parameter: str, value: Any) -> None:
-    """Internal validator function to check if a parameter value is a non-negative integer.
-    
+def _validate_nonnegative_int(
+    parameter: str,
+    value: object
+) -> None:
+    """Validate that a parameter value is a non-negative integer.
+
+    Booleans are rejected even though ``bool`` is a subclass of ``int``, since a
+    boolean is never a valid integer parameter.
+
     Args:
         parameter (str): The name of the parameter being validated.
-        value (Any): The value of the parameter to validate.
-    
+        value (object): The value of the parameter to validate.
+
     Raises:
-        TypeValidationError: If the value is not an integer.
-        ValueValidationError: If the value is a negative integer.
+        TypeValidationError: If ``value`` is not an integer, or is a boolean.
+        ValueValidationError: If ``value`` is a negative integer.
 
     Examples:
-        >>> # Internal use
-        >>> from ._core import _validate_nonnegative_int
-        >>> _validate_nonnegative_int("limit", 100)  # Valid case
-        >>> _validate_nonnegative_int("limit", 0)    # Valid case
-        >>> _validate_nonnegative_int("limit", -5)   # Invalid case (raises ValueValidationError)
-        >>> _validate_nonnegative_int("limit", "100") # Invalid case (raises TypeValidationError)
+        >>> from fedfred._core._validators import _validate_nonnegative_int
+        >>> _validate_nonnegative_int("limit", 100)
+        >>> _validate_nonnegative_int("limit", 0)
+        >>> _validate_nonnegative_int("limit", -5)     # doctest: +SKIP
+        >>> _validate_nonnegative_int("limit", "100")  # doctest: +SKIP
     """
-
     _validate_type(parameter, value, int)
 
     if isinstance(value, bool):
@@ -117,73 +198,78 @@ def _validate_nonnegative_int(parameter: str, value: Any) -> None:
             received="bool",
         )
 
-    if value < 0:
+    value_int = cast(int, value)
+
+    if value_int < 0:
         raise ValueValidationError(
             message=f"Invalid value for parameter {parameter!r}.",
             parameter=parameter,
             reason="Expected non-negative integer.",
-            details={"value": value},
+            details={"value": value_int},
         )
 
-def _validate_bool(parameter: str, value: Any) -> None:
-    """Internal validator function to check if a parameter value is a boolean.
-    
+def _validate_bool(
+    parameter: str,
+    value: object
+) -> None:
+    """Validate that a parameter value is a boolean.
+
     Args:
         parameter (str): The name of the parameter being validated.
-        value (Any): The value of the parameter to validate.
-    
+        value (object): The value of the parameter to validate.
+
     Raises:
-        TypeValidationError: If the value is not a boolean.
+        TypeValidationError: If ``value`` is not a boolean.
 
     Examples:
-        >>> # Internal use
-        >>> from ._core import _validate_bool
-        >>> _validate_bool("flag", True)  # Valid case
-        >>> _validate_bool("flag", False) # Valid case
-        >>> _validate_bool("flag", "True") # Invalid case (raises TypeValidationError)
+        >>> from fedfred._core._validators import _validate_bool
+        >>> _validate_bool("flag", True)
+        >>> _validate_bool("flag", False)
+        >>> _validate_bool("flag", "True")  # doctest: +SKIP
     """
-
     _validate_type(parameter, value, bool)
 
-def _validate_str(parameter: str, value: Any) -> None:
-    """Internal validator function to check if a parameter value is a string.
-    
+def _validate_str(
+    parameter: str,
+    value: object
+) -> None:
+    """Validate that a parameter value is a string.
+
     Args:
         parameter (str): The name of the parameter being validated.
-        value (Any): The value of the parameter to validate.
-    
+        value (object): The value of the parameter to validate.
+
     Raises:
-        TypeValidationError: If the value is not a string.
+        TypeValidationError: If ``value`` is not a string.
 
     Examples:
-        >>> # Internal use
-        >>> from ._core import _validate_str
-        >>> _validate_str("name", "GDP")  # Valid case
-        >>> _validate_str("name", "")     # Valid case (empty string is still a string)
-        >>> _validate_str("name", 123)  # Invalid case (raises TypeValidationError)
+        >>> from fedfred._core._validators import _validate_str
+        >>> _validate_str("name", "GDP")
+        >>> _validate_str("name", "")
+        >>> _validate_str("name", 123)  # doctest: +SKIP
     """
-
     _validate_type(parameter, value, str)
 
-def _validate_nonempty_str(parameter: str, value: Any) -> None:
-    """Internal validator function to check if a parameter value is a non-empty string.
-    
+def _validate_nonempty_str(
+    parameter: str,
+    value: object
+) -> None:
+    """Validate that a parameter value is a non-empty string.
+
     Args:
         parameter (str): The name of the parameter being validated.
-        value (Any): The value of the parameter to validate.
+        value (object): The value of the parameter to validate.
 
     Raises:
-        TypeValidationError: If the value is not a string.
-        ValueValidationError: If the value is an empty string.
+        TypeValidationError: If ``value`` is not a string.
+        ValueValidationError: If ``value`` is an empty string.
 
     Examples:
-        >>> # Internal use
-        >>> from ._core import _validate_nonempty_str
-        >>> _validate_nonempty_str("name", "GDP")  # Valid case
-        >>> _validate_nonempty_str("name", "")     # Invalid case (raises ValueValidationError)
-        >>> _validate_nonempty_str("name", 123)  # Invalid case (raises TypeValidationError)
+        >>> from fedfred._core._validators import _validate_nonempty_str
+        >>> _validate_nonempty_str("name", "GDP")
+        >>> _validate_nonempty_str("name", "")   # doctest: +SKIP
+        >>> _validate_nonempty_str("name", 123)  # doctest: +SKIP
     """
-
     _validate_str(parameter, value)
 
     if not value:
@@ -194,265 +280,203 @@ def _validate_nonempty_str(parameter: str, value: Any) -> None:
             details={"value": value},
         )
 
-def _validate_choice(choices: set[Any]) -> ParameterValidator:
-    """Internal factory function to create a validator that checks if a parameter value is one of a set of allowed choices.
-    
+def _validate_choice(choices: set[int]) -> ParameterValidator:
+    """Create a validator that checks a parameter value against allowed choices.
+
     Args:
-        choices (set[Any]): A set of allowed values for the parameter.
+        choices (set[int]): The allowed values for the parameter.
 
     Returns:
-        ParameterValidator: A validator function that checks if a parameter value is in the specified set of choices.
-
-    Raises:
-        ValueValidationError: If the value is not one of the allowed choices.
+        ParameterValidator: A validator that raises if a value is not in ``choices``.
 
     Examples:
-        >>> # Internal use
-        >>> from ._core import _validate_choice
-        >>> validate_sort_order = _validate_choice({"asc", "desc"})
-        >>> validate_sort_order("sort_order", "asc")  # Valid case
-        >>> validate_sort_order("sort_order", "desc") # Valid case
-        >>> validate_sort_order("sort_order", "ascending") # Invalid case (raises ValueValidationError)
+        >>> from fedfred._core._validators import _validate_choice
+        >>> validate_sort_order = _validate_choice({1, 2, 3})
+        >>> validate_sort_order("sort_order", 1)
+        >>> validate_sort_order("sort_order", 4)  # doctest: +SKIP
     """
-
-    def validator(parameter: str, value: Any) -> None:
-        """Validator function to check if a parameter value is one of the allowed choices.
-        
-        Args:
-            parameter (str): The name of the parameter being validated.
-            value (Any): The value of the parameter to validate.
-
-        Raises:
-            ValueValidationError: If the value is not one of the allowed choices.
-
-        Examples:
-            >>> # Internal use
-            >>> from ._core import _validate_choice
-            >>> validate_sort_order = _validate_choice({"asc", "desc"})
-            >>> validate_sort_order("sort_order", "asc")  # Valid case
-            >>> validate_sort_order("sort_order", "desc") # Valid case
-            >>> validate_sort_order("sort_order", "ascending") # Invalid case (raises ValueValidationError)
-        """
-
-        if value not in choices:
-            raise ValueValidationError(
-                message=f"Invalid value for parameter {parameter!r}.",
-                parameter=parameter,
-                reason="Value is not one of the allowed choices.",
-                details={
-                    "value": value,
-                    "choices": tuple(sorted(choices)),
-                },
-            )
-
-    return validator
+    return _ChoiceValidator(frozenset(choices))
 
 def _validate_str_choice(choices: set[str]) -> ParameterValidator:
-    """Internal factory function to create a validator that checks if a parameter value is a string and one of a set of allowed choices.
-    
+    """Create a validator that checks a parameter value is a string in allowed choices.
+
     Args:
-        choices (set[str]): A set of allowed string values for the parameter.
+        choices (set[str]): The allowed string values for the parameter.
 
     Returns:
-        ParameterValidator: A validator function that checks if a parameter value is a string and in the specified set of choices.
-
-    Raises:
-        TypeValidationError: If the value is not a string.
-        ValueValidationError: If the value is not one of the allowed choices.
+        ParameterValidator: A validator that raises if a value is not a string or not in ``choices``.
 
     Examples:
-        >>> # Internal use
-        >>> from ._core import _validate_str_choice
+        >>> from fedfred._core._validators import _validate_str_choice
         >>> validate_sort_order = _validate_str_choice({"asc", "desc"})
-        >>> validate_sort_order("sort_order", "asc")  # Valid case
-        >>> validate_sort_order("sort_order", "desc") # Valid case
-        >>> validate_sort_order("sort_order", "ascending") # Invalid case (raises ValueValidationError)
+        >>> validate_sort_order("sort_order", "asc")
+        >>> validate_sort_order("sort_order", "ascending")  # doctest: +SKIP
     """
+    return _StrChoiceValidator(frozenset(choices))
 
-    def validator(parameter: str, value: Any) -> None:
-        """Validator function to check if a parameter value is a string and one of the allowed choices.
-        
-        Args:
-            parameter (str): The name of the parameter being validated.
-            value (Any): The value of the parameter to validate.
+def _validate_yyyy_mm_dd(
+    parameter: str,
+    value: object
+) -> None:
+    """Validate that a parameter value is a string in ``YYYY-MM-DD`` date format.
 
-        Raises:
-            TypeValidationError: If the value is not a string.
-            ValueValidationError: If the value is not one of the allowed choices.
-
-        Examples:
-            >>> # Internal use
-            >>> from ._core import _validate_str_choice
-            >>> validate_sort_order = _validate_str_choice({"asc", "desc"})
-            >>> validate_sort_order("sort_order", "asc")  # Valid case
-            >>> validate_sort_order("sort_order", "desc") # Valid case
-            >>> validate_sort_order("sort_order", "ascending") # Invalid case (raises ValueValidationError)
-        """
-
-        _validate_str(parameter, value)
-
-        if value not in choices:
-            raise ValueValidationError(
-                message=f"Invalid value for parameter {parameter!r}.",
-                parameter=parameter,
-                reason="Value is not one of the allowed choices.",
-                details={
-                    "value": value,
-                    "choices": tuple(sorted(choices)),
-                },
-            )
-
-    return validator
-
-def _validate_yyyy_mm_dd(parameter: str, value: Any) -> None:
-    """Internal validator function to check if a parameter value is a string in YYYY-MM-DD date format.
-    
     Args:
         parameter (str): The name of the parameter being validated.
-        value (Any): The value of the parameter to validate.
+        value (object): The value of the parameter to validate.
 
     Raises:
-        TypeValidationError: If the value is not a string.
-        ValueValidationError: If the value is not a valid YYYY-MM-DD date string.
+        TypeValidationError: If ``value`` is not a string.
+        ValueValidationError: If ``value`` is not a valid ``YYYY-MM-DD`` date string.
 
     Examples:
-        >>> # Internal use
-        >>> from ._core import _validate_yyyy_mm_dd
-        >>> _validate_yyyy_mm_dd("realtime_start", "2020-01-01")  # Valid case
-        >>> _validate_yyyy_mm_dd("realtime_start", "2020-13-01")  # Invalid case (raises ValueValidationError)
-        >>> _validate_yyyy_mm_dd("realtime_start", "01-01-2020")  # Invalid case (raises ValueValidationError)
-        >>> _validate_yyyy_mm_dd("realtime_start", 20200101)      # Invalid case (raises TypeValidationError)
+        >>> from fedfred._core._validators import _validate_yyyy_mm_dd
+        >>> _validate_yyyy_mm_dd("realtime_start", "2020-01-01")
+        >>> _validate_yyyy_mm_dd("realtime_start", "2020-13-01")  # doctest: +SKIP
+        >>> _validate_yyyy_mm_dd("realtime_start", "01-01-2020")  # doctest: +SKIP
+        >>> _validate_yyyy_mm_dd("realtime_start", 20200101)      # doctest: +SKIP
     """
-
     _validate_str(parameter, value)
 
+    value_str = cast(str, value)
+
     try:
-        datetime.strptime(value, "%Y-%m-%d")
+        datetime.strptime(value_str, "%Y-%m-%d")
+
     except ValueError as exc:
         raise ValueValidationError(
             message=f"Invalid date string for parameter {parameter!r}.",
             parameter=parameter,
             reason="Expected YYYY-MM-DD date string.",
             details={
-                "value": value,
+                "value": value_str,
                 "expected_format": "YYYY-MM-DD",
             },
             original_exception=exc,
         ) from exc
 
-def _validate_hh_mm(parameter: str, value: Any) -> None:
-    """Internal validator function to check if a parameter value is a string in HH:MM time format.
-    
+def _validate_hh_mm(
+    parameter: str,
+    value: object
+) -> None:
+    """Validate that a parameter value is a string in ``HH:MM`` 24-hour time format.
+
     Args:
         parameter (str): The name of the parameter being validated.
-        value (Any): The value of the parameter to validate.
+        value (object): The value of the parameter to validate.
 
     Raises:
-        TypeValidationError: If the value is not a string.
-        ValueValidationError: If the value is not a valid HH:MM time string.
+        TypeValidationError: If ``value`` is not a string.
+        ValueValidationError: If ``value`` is not a valid ``HH:MM`` time string.
 
     Examples:
-        >>> # Internal use
-        >>> from ._core import _validate_hh_mm
-        >>> _validate_hh_mm("start_time", "14:30")  # Valid case
-        >>> _validate_hh_mm("start_time", "25:00")  # Invalid case (raises ValueValidationError)
-        >>> _validate_hh_mm("start_time", "14:60")  # Invalid case (raises ValueValidationError)
-        >>> _validate_hh_mm("start_time", "2:30 PM") # Invalid case (raises ValueValidationError)
-        >>> _validate_hh_mm("start_time", 1430)      # Invalid case (raises TypeValidationError)
+        >>> from fedfred._core._validators import _validate_hh_mm
+        >>> _validate_hh_mm("start_time", "14:30")
+        >>> _validate_hh_mm("start_time", "25:00")    # doctest: +SKIP
+        >>> _validate_hh_mm("start_time", "14:60")    # doctest: +SKIP
+        >>> _validate_hh_mm("start_time", "2:30 PM")  # doctest: +SKIP
+        >>> _validate_hh_mm("start_time", 1430)       # doctest: +SKIP
     """
-
     _validate_str(parameter, value)
 
+    value_str = cast(str, value)
+
     try:
-        datetime.strptime(value, "%H:%M")
+        datetime.strptime(value_str, "%H:%M")
+
     except ValueError as exc:
         raise ValueValidationError(
             message=f"Invalid time string for parameter {parameter!r}.",
             parameter=parameter,
             reason="Expected HH:MM time string.",
             details={
-                "value": value,
+                "value": value_str,
                 "expected_format": "HH:MM",
             },
             original_exception=exc,
         ) from exc
 
-def _validate_semicolon_list_string(parameter: str, value: Any) -> None:
-    """Internal validator function to check if a parameter value is a string that represents a list of terms separated by semicolons.
+def _validate_semicolon_list_string(
+    parameter: str,
+    value: object
+) -> None:
+    """Validate that a parameter value is a semicolon-separated list of non-empty terms.
 
     Args:
         parameter (str): The name of the parameter being validated.
-        value (Any): The value of the parameter to validate.
+        value (object): The value of the parameter to validate.
 
     Raises:
-        TypeValidationError: If the value is not a string.
-        ValueValidationError: If the value is an empty string or contains empty terms.
+        TypeValidationError: If ``value`` is not a string.
+        ValueValidationError: If ``value`` is an empty string or contains empty terms.
 
     Examples:
-        >>> # Internal use
-        >>> from ._core import _validate_semicolon_list_string
-        >>> _validate_semicolon_list_string("tag_names", "tag1;tag2;tag3")  # Valid case
-        >>> _validate_semicolon_list_string("tag_names", "")  # Invalid case (raises ValueValidationError)
-        >>> _validate_semicolon_list_string("tag_names", "tag1;;tag3")  # Invalid case (raises ValueValidationError)
+        >>> from fedfred._core._validators import _validate_semicolon_list_string
+        >>> _validate_semicolon_list_string("tag_names", "tag1;tag2;tag3")
+        >>> _validate_semicolon_list_string("tag_names", "")          # doctest: +SKIP
+        >>> _validate_semicolon_list_string("tag_names", "tag1;;tag3")  # doctest: +SKIP
     """
-
     _validate_str(parameter, value)
 
-    if value == "":
+    value_str = cast(str, value)
+
+    if value_str == "":
         raise ValueValidationError(
             message=f"Invalid list-string for parameter {parameter!r}.",
             parameter=parameter,
             reason="Value cannot be empty.",
-            details={"value": value},
+            details={"value": value_str},
         )
 
-    terms = value.split(";")
+    terms = value_str.split(";")
 
     if any(term == "" for term in terms):
         raise ValueValidationError(
             message=f"Invalid list-string for parameter {parameter!r}.",
             parameter=parameter,
             reason="Empty terms are not permitted.",
-            details={"value": value, "separator": ";"},
+            details={"value": value_str, "separator": ";"},
         )
 
-def _validate_comma_date_list_string(parameter: str, value: Any) -> None:
-    """Internal validator function to check if a parameter value is a string that represents a list of date terms separated by commas, where each term is in YYYY-MM-DD format.
-    
+def _validate_comma_date_list_string(
+    parameter: str,
+    value: object
+) -> None:
+    """Validate that a parameter value is a comma-separated list of ``YYYY-MM-DD`` dates.
+
     Args:
         parameter (str): The name of the parameter being validated.
-        value (Any): The value of the parameter to validate.
+        value (object): The value of the parameter to validate.
 
     Raises:
-        TypeValidationError: If the value is not a string.
-        ValueValidationError: If the value is an empty string, contains empty terms, or if any term is not a valid YYYY-MM-DD date string.
+        TypeValidationError: If ``value`` is not a string.
+        ValueValidationError: If ``value`` is empty, contains empty terms, or contains any term that is not a valid ``YYYY-MM-DD`` date.
 
-    Examples:   
-        >>> # Internal use
-        >>> from ._core import _validate_comma_date_list_string
-        >>> _validate_comma_date_list_string("vintage_dates", "2020-01-01,2020-02-01,2020-03-01")  # Valid case
-        >>> _validate_comma_date_list_string("vintage_dates", "")  # Invalid case (raises ValueValidationError)
-        >>> _validate_comma_date_list_string("vintage_dates", "2020-01-01,,2020-03-01")  # Invalid case (raises ValueValidationError)
+    Examples:
+        >>> from fedfred._core._validators import _validate_comma_date_list_string
+        >>> _validate_comma_date_list_string("vintage_dates", "2020-01-01,2020-02-01,2020-03-01")
+        >>> _validate_comma_date_list_string("vintage_dates", "")                      # doctest: +SKIP
+        >>> _validate_comma_date_list_string("vintage_dates", "2020-01-01,,2020-03-01")  # doctest: +SKIP
     """
-
     _validate_str(parameter, value)
 
-    if value == "":
+    value_str = cast(str, value)
+
+    if value_str == "":
         raise ValueValidationError(
             message=f"Invalid vintage_dates for parameter {parameter!r}.",
             parameter=parameter,
             reason="Value cannot be empty.",
-            details={"value": value},
+            details={"value": value_str},
         )
 
-    terms = value.split(",")
+    terms = value_str.split(",")
 
     if any(term == "" for term in terms):
         raise ValueValidationError(
             message=f"Invalid vintage_dates for parameter {parameter!r}.",
             parameter=parameter,
             reason="Empty date terms are not permitted.",
-            details={"value": value, "separator": ","},
+            details={"value": value_str, "separator": ","},
         )
 
     invalid_terms: list[str] = []
@@ -469,40 +493,42 @@ def _validate_comma_date_list_string(parameter: str, value: Any) -> None:
             parameter=parameter,
             reason="One or more date terms are invalid.",
             details={
-                "value": value,
+                "value": value_str,
                 "invalid_terms": tuple(invalid_terms),
                 "expected_format": "YYYY-MM-DD",
             },
         )
 
-def _validate_series_id(parameter: str, value: Any) -> None:
-    """Internal validator function to check if a parameter value is a valid series_id string (non-empty, alphanumeric, no spaces).
-    
+def _validate_series_id(
+    parameter: str,
+    value: object
+) -> None:
+    """Validate that a parameter value is a non-empty series identifier without whitespace.
+
     Args:
         parameter (str): The name of the parameter being validated.
-        value (Any): The value of the parameter to validate.
+        value (object): The value of the parameter to validate.
 
     Raises:
-        TypeValidationError: If the value is not a string.
-        ValueValidationError: If the value is an empty string, contains spaces, or is not alphanumeric.
+        TypeValidationError: If ``value`` is not a string.
+        ValueValidationError: If ``value`` is an empty string or contains whitespace.
 
     Examples:
-        >>> # Internal use
-        >>> from ._core import _validate_series_id
-        >>> _validate_series_id("series_id", "GDP")  # Valid case
-        >>> _validate_series_id("series_id", "GDP2020")  # Valid case
-        >>> _validate_series_id("series_id", "")  # Invalid case (raises ValueValidationError)
-        >>> _validate_series_id("series_id", "GDP 2020")  # Invalid case (raises ValueValidationError)
-        >>> _validate_series_id("series_id", "GDP-2020")  # Invalid case (raises ValueValidationError)
-        >>> _validate_series_id("series_id", 12345)  # Invalid case (raises TypeValidationError)
+        >>> from fedfred._core._validators import _validate_series_id
+        >>> _validate_series_id("series_id", "GDP")
+        >>> _validate_series_id("series_id", "GDP2020")
+        >>> _validate_series_id("series_id", "")         # doctest: +SKIP
+        >>> _validate_series_id("series_id", "GDP 2020")  # doctest: +SKIP
+        >>> _validate_series_id("series_id", 12345)       # doctest: +SKIP
     """
-
     _validate_nonempty_str(parameter, value)
 
-    if " " in value:
+    value_str = cast(str, value)
+
+    if " " in value_str:
         raise ValueValidationError(
             message=f"Invalid series_id for parameter {parameter!r}.",
             parameter=parameter,
             reason="Series ID cannot contain whitespace.",
-            details={"value": value},
+            details={"value": value_str},
         )
