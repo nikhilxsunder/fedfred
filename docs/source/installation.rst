@@ -1,7 +1,7 @@
 .. _installation:
 
-Installing FedFred
-==================
+Install FedFred
+===============
 
 FedFred is available on both **PyPI** and **Conda-Forge**.  
 This page covers multiple ways to install FedFred for production or development use.
@@ -130,10 +130,10 @@ Related Resources
 .. grid::
    :gutter: 2
 
-   .. grid-item-card:: Installation & Usage Guide
-      :link: installation-usage
+   .. grid-item-card:: User Guide
+      :link: user-guide
       :link-type: ref
-      :link-alt: Installation and Usage Documentation
+      :link-alt: User Guide
 
       Full beginner tutorial for setting up FedFred and fetching data.
 

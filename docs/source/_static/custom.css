@@ -18,3 +18,25 @@
     padding-left: 2.5rem;
     padding-right: 2.5rem;
 }
+
+#cc-float-btn {
+    position: fixed;
+    bottom: 1.25rem;
+    right: 1.25rem;
+    z-index: 1000;
+    width: 3rem;
+    height: 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    border: 1px solid var(--pst-color-border);
+    background: var(--pst-color-background);
+    color: var(--pst-color-text-base);
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+#cc-float-btn:hover {
+    background: var(--pst-color-surface);
+    color: var(--pst-color-primary);
+}

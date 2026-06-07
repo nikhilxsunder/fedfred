@@ -63,8 +63,8 @@ Related Topics
 
         Get started instantly with FedFred — install, configure, and fetch your first series.
 
-    .. grid-item-card:: Installation and Setup
-        :link: installation-usage
+    .. grid-item-card:: Installation
+        :link: installation
         :link-type: ref
         :link-alt: Installation and Configuration Guide
 

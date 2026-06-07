@@ -213,7 +213,8 @@ Explore the documentation:
    :maxdepth: 2
    :caption: Get Started
 
-   installation/index
+   installation
+   user_guide/index
 
 .. toctree::
    :maxdepth: 2

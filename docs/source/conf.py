@@ -138,11 +138,15 @@ html_meta ={
     "description": "A feature-rich python package for interacting with the Federal Reserve Bank of St. Louis Economic Database: FRED",
     "keywords": "fred, federal reserve, api, economics, finance, economic data, financial data, fred pandas, fred polars, fred dask, fred geopandas, async, pandas, polars, dask, geopandas, cache, financial analysis, economic analysis, data analysis, data science, data visualization, data mining, data wrangling, data cleaning"
 }
-html_js_files = [
-    'json_ld.js',
-]
 html_css_files = [
     'custom.css',
+    'https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.1.0/dist/cookieconsent.css',
+]
+html_js_files = [
+    'consent-default.js',                       # FIRST: deny-by-default before gtag
+    'json_ld.js',
+    ('https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.1.0/dist/cookieconsent.umd.js', {'defer': 'defer'}),
+    ('cookie-consent.js', {'defer': 'defer'}),
 ]
 
 templates_path = ['_templates']
@@ -164,7 +168,7 @@ source_suffix = {
 
 # opengraph
 ogp_site_url = "https://nikhilxsunder.github.io/fedfred/"
-ogp_image = "https://nikhilxsunder.github.io/fedfred/_static/fedfred_banner.png"
+ogp_image = "https://nikhilxsunder.github.io/fedfred/_static/fedfred_social_preview_transparent.png"
 ogp_description_length = 300
 ogp_type = "website"
 ogp_custom_meta_tags = [

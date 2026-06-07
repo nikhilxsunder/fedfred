@@ -1,7 +1,7 @@
-.. _installation-usage:
+.. _user-guide:
 
-Installation and Usage Guide
-=============================
+User Guide
+==========
 
 Learn how to **install FedFred**, initialize the client, and quickly start interacting with the **FRED® API**.  
 This section covers everything from **basic examples** to **advanced asynchronous usage** and **data visualization**.
@@ -15,7 +15,6 @@ Contents
    :maxdepth: 1
    :caption: Installation & Getting Started
 
-   installation
    quickstart
 
 .. toctree::
