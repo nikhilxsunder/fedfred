@@ -56,7 +56,7 @@ Notes:
     ``AsyncFred``, ``AsyncAlfred``, ``AsyncFraser``).
 """
 
-from collections.abc import KeysView
+from collections.abc import Callable, KeysView
 from types import NotImplementedType, TracebackType
 from typing import Any, cast
 
@@ -119,6 +119,7 @@ class _ClientModel:
 
     _max_requests_per_minute: int
     """The per-service rate limit applied by the transport layer. Declared by concrete subclasses."""
+
 
     # Dunder Methods
     def __init__(

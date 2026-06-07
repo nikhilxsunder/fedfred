@@ -85,6 +85,7 @@ __all__ = [
     "Fred",
 ]
 
+
 class Fred(_BaseClient):
     """Client for the Federal Reserve FRED/ALFRED API.
 
@@ -2126,6 +2127,7 @@ class Fred(_BaseClient):
         seriess = Seriess._from_response(response, client=self)
 
         return seriess
+
 
 class AsyncFred(_AsyncBaseClient):
     """Asynchronous client for the Federal Reserve FRED/ALFRED API.

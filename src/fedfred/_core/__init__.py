@@ -46,19 +46,17 @@ from ._converters import (
 from ._endpoints import _resolve_endpoint
 from ._parameters import _resolve_preparation_function
 from ._parsers import (
-    _objects_iter_dict_or_list,
+    _ResponseShape,
+    _extract_objects,
     _region_type_parser,
-    _require_first_list,
-    _require_list,
 )
 
 __all__ = [
+    "_ResponseShape",
     "_dict_type_converter",
+    "_extract_objects",
     "_hashable_type_converter",
-    "_objects_iter_dict_or_list",
     "_region_type_parser",
-    "_require_first_list",
-    "_require_list",
     "_resolve_endpoint",
     "_resolve_preparation_function",
 ]

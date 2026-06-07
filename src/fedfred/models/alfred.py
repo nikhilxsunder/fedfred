@@ -23,7 +23,7 @@
 from __future__ import annotations
 
 import asyncio
-from typing import Dict, ClassVar, Any, Optional, Iterable
+from typing import ClassVar, Any, Iterable
 from datetime import date
 from .._internals import _DateBase, _DateSequence
 from .._core import _require_list
@@ -59,7 +59,7 @@ class VintageDate(_DateBase):
     _response_key: ClassVar[str] = "vintage_dates"
 
     @classmethod
-    def _parse_value(cls, raw: Any) -> "VintageDate":
+    def _parse_value(cls, raw: Any) -> VintageDate:
         """Build a single VintageDate from one raw ISO-string payload."""
 
         if not isinstance(raw, str):
@@ -81,10 +81,10 @@ class VintageDate(_DateBase):
 class VintageDates(_DateSequence[VintageDate]):
     __slots__ = ("series_id",)
 
-    series_id: Optional[str]
+    series_id: str | None
 
     def __init__(
-        self, items: Iterable[VintageDate], series_id: Optional[str] = None
+        self, items: Iterable[VintageDate], series_id: str | None = None
     ) -> None:
         super().__init__(items)
         self.series_id = series_id
@@ -94,14 +94,14 @@ class VintageDates(_DateSequence[VintageDate]):
 
     @classmethod
     def to_object(
-        cls, response: Dict[str, Any], series_id: Optional[str] = None
+        cls, response: dict[str, Any], series_id: str | None = None
     ) -> "VintageDates":
         raw = _require_list(response, cls._response_key)
         return cls((cls._parse_value(v) for v in raw), series_id=series_id)
 
     @classmethod
     async def to_object_async(
-        cls, response: Dict[str, Any], series_id: Optional[str] = None
+        cls, response: dict[str, Any], series_id: str | None = None
     ) -> "VintageDates":
         return await asyncio.to_thread(cls.to_object, response, series_id)
 

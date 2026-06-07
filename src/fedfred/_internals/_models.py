@@ -82,8 +82,8 @@ from typing import (
     overload,
 )
 
-from .._core import _require_list # TODO: function _require_first_list is used at the public level but it is from core so consdier class atr bool to resolve which func.
-from ._clients import _ClientModel  # pragma: no cover
+from .._core import _ResponseShape, _extract_objects
+from ._clients import _ClientModel
 
 # TODO: Fix all docstrings post error design.
 
@@ -129,8 +129,11 @@ class _ModelBase:
     client: _ClientModel | None = field(default=None, repr=False, compare=False)
     """The FRED client instance attached to this object, or ``None`` if unattached. Excluded from ``repr`` and dataclass equality."""
 
-    _response_key: ClassVar[str]
-    """Subclass-declared key under which FRED returns the list of objects of this type in a response payload."""
+    _response_keys: ClassVar[tuple[str, ...]]
+    """Payload key(s) under which FRED returns the list of objects of this type; tried in order."""
+
+    _response_shape: ClassVar[_ResponseShape] = "list"
+    """Response container shape: ``"list"`` for a plain list, ``"dict_or_list"`` for id-keyed-dict element payloads."""
 
     # Class Methods
     @classmethod
@@ -165,11 +168,9 @@ class _ModelBase:
     ) -> Self:
         """Build a single instance from a full FRED API response payload.
 
-        Default implementation extracts the list under ``cls._response_key``,
-        validates it is non-empty, and dispatches the first entry through
-        :meth:`_from_dict`. Subclasses with non-standard payload shapes
-        (e.g., dual-key responses or dict-indexed elements) override this
-        method.
+        Extracts the object list per the subclass-declared
+        ``_response_keys`` / ``_response_shape``, validates it is non-empty,
+        and dispatches the first entry through :meth:`_from_dict`.
 
         Args:
             response (dict[str, Any]): The raw FRED API response payload.
@@ -179,12 +180,13 @@ class _ModelBase:
             Self: A single subclass instance built from the first payload entry.
 
         Raises:
-            ModelError: If the response does not contain the expected key or if the resolved list is empty.
+            ModelError: If the resolved list is empty.
+            ParsingError: If the response lacks the expected key or shape.
         """
-        raw = _require_list(response, cls._response_key)
+        raw = _extract_objects(response, cls._response_keys, cls._response_shape)
 
         if not raw:
-            raise ModelError(f"No {cls._response_key} found in the response")  # TODO: ModelError
+            raise ModelError(f"No {cls._response_keys[0]} found in the response")  # TODO: ModelError
 
         return cls._from_dict(raw[0], client=client)
 
@@ -247,8 +249,11 @@ class _DateBase(date):
 
     __slots__ = ()
 
-    _response_key: ClassVar[str] = ""
-    """Subclass-declared key under which FRED returns the list of objects of this type."""
+    _response_keys: ClassVar[tuple[str, ...]] = ()
+    """Payload key(s) under which FRED returns the list of objects of this type; tried in order."""
+
+    _response_shape: ClassVar[_ResponseShape] = "list"
+    """Response container shape: ``"list"`` for a plain list, ``"dict_or_list"`` for id-keyed-dict element payloads."""
 
     # Class Methods
     @classmethod
@@ -280,8 +285,8 @@ class _DateBase(date):
     ) -> Self:
         """Build a single instance from a full FRED API response payload.
 
-        Extracts the list under ``cls._response_key``, validates it is
-        non-empty, and dispatches the first entry through
+        Extracts the object list per ``_response_keys`` / ``_response_shape``,
+        validates it is non-empty, and dispatches the first entry through
         :meth:`_parse_value`.
 
         Args:
@@ -291,13 +296,13 @@ class _DateBase(date):
             Self: A single subclass instance built from the first payload entry.
 
         Raises:
-            ModelError: If the response does not contain the expected key
-                or if the resolved list is empty.
+            ModelError: If the resolved list is empty.
+            ParsingError: If the response lacks the expected key or shape.
         """
-        raw = _require_list(response, cls._response_key)
+        raw = _extract_objects(response, cls._response_keys, cls._response_shape)
 
         if not raw:
-            raise ModelError(f"No {cls._response_key!r} found in the response")
+            raise ModelError(f"No {cls._response_keys[0]!r} found in the response")
 
         return cls._parse_value(raw[0])
 
@@ -480,8 +485,11 @@ class _Sequence(Sequence[T]):
 
     __slots__ = ("_items",)
 
-    _response_key: ClassVar[str] = ""
-    """Auto-wired from the generic parameter on subclass definition. Matches the FRED payload key under which the element list is returned."""
+    _response_keys: ClassVar[tuple[str, ...]] = ()
+    """Auto-wired from the element class on subclass definition. Payload key(s) under which the element list is returned."""
+
+    _response_shape: ClassVar[_ResponseShape] = "list"
+    """Auto-wired from the element class. Response container shape for the element type."""
 
     _element_cls: ClassVar[type] = object
     """Auto-wired element class used by subclass ``_parse_*`` methods to delegate construction."""
@@ -545,11 +553,17 @@ class _Sequence(Sequence[T]):
 
                     if isinstance(element_cls, type):
 
-                        if "_response_key" not in cls.__dict__:
-                            key = getattr(element_cls, "_response_key", None)
+                        if "_response_keys" not in cls.__dict__:
+                            keys = getattr(element_cls, "_response_keys", None)
 
-                            if isinstance(key, str):
-                                cls._response_key = key
+                            if isinstance(keys, tuple):
+                                cls._response_keys = keys
+
+                        if "_response_shape" not in cls.__dict__:
+                            shape = getattr(element_cls, "_response_shape", None)
+
+                            if shape is not None:
+                                cls._response_shape = shape
 
                         if "_element_cls" not in cls.__dict__:
                             cls._element_cls = element_cls
@@ -863,28 +877,22 @@ class _ModelSequence(_Sequence[MT]):
     ) -> Self:
         """Build a sequence from a FRED API response payload.
 
-        Extracts the element list under ``cls._response_key``, parses each
-        entry through :meth:`_parse_item`, and threads the ``client``
-        through both the elements and the resulting sequence so that
-        traversal continues to work on individual entries.
-
-        Subclasses with non-standard payload shapes (dual-key responses
-        such as ``"seriess"``/``"series"``, dict-indexed elements) override
-        this method.
+        Extracts the element list per the auto-wired ``_response_keys`` /
+        ``_response_shape``, parses each entry through :meth:`_parse_item`, and
+        threads the ``client`` through both the elements and the sequence.
 
         Args:
             response (dict[str, Any]): The raw FRED API response payload.
-            client (_ClientModel, optional): The FRED client to propagate
-                to elements and to the resulting sequence. Defaults to
-                ``None``.
+            client (_ClientModel, optional): The FRED client to propagate to elements and to the resulting sequence. Defaults to ``None``.
 
         Returns:
             Self: A sequence of elements.
 
         Raises:
-            ModelError: If the response does not contain the expected key.
+            ParsingError: If the response lacks the expected key or shape.
         """
-        raw = _require_list(response, cls._response_key)
+        raw = _extract_objects(response, cls._response_keys, cls._response_shape)
+
         return cls(
             (cls._parse_item(item, client=client) for item in raw),
             client=client,
@@ -976,8 +984,8 @@ class _DateSequence(_Sequence[DT]):
     def _from_response(cls, response: dict[str, Any]) -> Self:
         """Build a sequence from a FRED API response payload.
 
-        Extracts the element list under ``cls._response_key`` and parses
-        each entry through :meth:`_parse_value`.
+        Extracts the element list per ``_response_keys`` / ``_response_shape``
+        and parses each entry through :meth:`_parse_value`.
 
         Args:
             response (dict[str, Any]): The raw FRED API response payload.
@@ -986,9 +994,9 @@ class _DateSequence(_Sequence[DT]):
             Self: A sequence of elements.
 
         Raises:
-            ModelError: If the response does not contain the expected key.
+            ParsingError: If the response lacks the expected key or shape.
         """
-        raw = _require_list(response, cls._response_key)
+        raw = _extract_objects(response, cls._response_keys, cls._response_shape)
 
         return cls(cls._parse_value(item) for item in raw)
 

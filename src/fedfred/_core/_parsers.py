@@ -32,15 +32,14 @@ malformed responses fail loudly at the boundary rather than deep in parsing.
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Literal
 
 from ..exceptions.parsing import ParsingError
 
 __all__ = [
-    "_objects_iter_dict_or_list",
+    "_ResponseShape",
+    "_extract_objects",
     "_region_type_parser",
-    "_require_first_list",
-    "_require_list",
 ]
 
 def _region_type_parser(response: dict[str, Any]) -> str:
@@ -80,37 +79,6 @@ def _region_type_parser(response: dict[str, Any]) -> str:
             )
 
     return region_type
-
-def _require_list(
-    response: dict[str, Any],
-    key: str
-) -> list[Any]:
-    """Return the value under ``key``, requiring it to be a list.
-
-    Args:
-        response (dict[str, Any]): The response (or sub-section) to read from.
-        key (str): The key expected to point to a list.
-
-    Returns:
-        list[Any]: The list found under ``key``.
-
-    Raises:
-        ParsingError: If ``response`` is not a dict, ``key`` is missing, or the value under ``key`` is not a list.
-
-    Examples:
-        >>> from fedfred._core._parsers import _require_list
-        >>> _require_list({"observations": []}, "observations")
-        []
-    """
-    if not isinstance(response, dict) or key not in response:
-        raise ParsingError(f"Invalid API response: missing {key!r} field")
-
-    raw = response[key]
-
-    if not isinstance(raw, list):
-        raise ParsingError(f"Invalid API response: {key!r} must be a list")
-
-    return raw
 
 def _require_first_list(
     response: dict[str, Any],
@@ -196,3 +164,31 @@ def _objects_iter_dict_or_list(
         return raw
 
     raise ParsingError(f"Invalid API response: {key!r} must be a dict or list")
+
+type _ResponseShape = Literal["list", "dict_or_list"]
+
+def _extract_objects(
+    response: dict[str, Any],
+    keys: tuple[str, ...],
+    shape: _ResponseShape,
+) -> list[Any]:
+    """Extract the raw object list from a response per the declared shape.
+
+    Args:
+        response (dict[str, Any]): The raw FRED API response payload.
+        keys (tuple[str, ...]): Candidate payload keys, tried in order.
+        shape (_ResponseShape): ``"list"`` for a plain list under the first
+            matching key, or ``"dict_or_list"`` for FRED's id-keyed-dict
+            element payloads.
+
+    Returns:
+        list[Any]: The extracted object list.
+
+    Raises:
+        ParsingError: If ``response`` is not a mapping, none of ``keys`` are
+            present, or the value has the wrong shape.
+    """
+    if shape == "dict_or_list":
+        return _objects_iter_dict_or_list(response, keys[0])
+
+    return _require_first_list(response, keys)

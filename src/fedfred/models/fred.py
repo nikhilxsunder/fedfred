@@ -93,7 +93,7 @@ from typing import (
 
 import pandas as pd
 
-from .._core import _coerce_lower, _objects_iter_dict_or_list, _require_first_list
+from .._core import _coerce_lower
 from .._internals import (
     _ClientModel,
     _DateBase,
