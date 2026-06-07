@@ -88,7 +88,7 @@ html_theme_options = {
         {
             "name": "Conda-Forge",
             "url": "https://anaconda.org/conda-forge/fedfred",
-            "icon": "fas fa-database",
+            "icon": "fas fa-flask",
         },
         {
             "name": "Codecov",

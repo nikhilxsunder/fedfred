@@ -58,7 +58,7 @@ Notes:
 
 from collections.abc import KeysView
 from types import NotImplementedType, TracebackType
-from typing import Any
+from typing import Any, cast
 
 from .._core import _hashable_type_converter
 from ..settings import Service, _resolve_api_key, set_api_key
@@ -137,13 +137,9 @@ class _ClientModel:
         ``caching_enabled`` is ``True``.
 
         Args:
-            api_key (str, optional): Your FRED-family API key. If omitted,
-                the API key is resolved from the global setting or the
-                service's environment variable at request time.
-            caching_enabled (bool, optional): Whether to enable the module-
-                global cache for this client's requests. Defaults to ``True``.
-            cache_size (int, optional): The maximum number of cache entries
-                when caching is enabled. Defaults to 256.
+            api_key (str, optional): Your FRED-family API key. If omitted, the API key is resolved from the global setting or the service's environment variable at request time.
+            caching_enabled (bool, optional): Whether to enable the module-global cache for this client's requests. Defaults to ``True``.
+            cache_size (int, optional): The maximum number of cache entries when caching is enabled. Defaults to 256.
 
         Raises:
             RuntimeError: If ``api_key`` is supplied but cannot be
@@ -164,10 +160,10 @@ class _ClientModel:
             >>> fred = fd.Fred()                 # uses global/env key
             >>> fred_explicit = fd.Fred(api_key="your_api_key")
         """
-        self._service_key = type(self).__name__.lower()
+        self._service_key = cast(Service, type(self).__name__.lower())
 
         if api_key:
-            set_api_key(api_key, service=self._service_key)  # TODO: Typing alias logic rewrite origination point.
+            set_api_key(api_key, service=self._service_key)
 
         if caching_enabled:
             set_cache_maxsize(cache_size)
@@ -196,7 +192,7 @@ class _ClientModel:
         try:
             has_key = bool(_resolve_api_key(service=self._service_key))  # TODO: Typing alias logic rewrite origination point.
 
-        except RuntimeError:                        # TODO: Add custom exception for missing API key and catch that instead.
+        except ClientError:                        # TODO: Add custom exception for missing API key and catch that instead.
             has_key = False
 
         auth = "<set>" if has_key else "None"
@@ -233,8 +229,8 @@ class _ClientModel:
               Rate Limit: 120 req/min
         """
         try:
-            has_key = bool(_resolve_api_key(service=self._service_key))  # TODO: Typing alias logic rewrite origination point.
-        except RuntimeError:                           # TODO: Add custom exception for missing API key and catch that instead.
+            has_key = bool(_resolve_api_key(service=self._service_key))
+        except SettingsError:                           # TODO: Add custom exception for missing API key and catch that instead.
             has_key = False
 
         auth_line = "configured" if has_key else "not configured"
@@ -329,7 +325,7 @@ class _ClientModel:
             >>> len(fred)
             0
         """
-        return len(_retrieve_cache_instance()) if self.caching_enabled else 0  # TODO: Needs service based cache implementations and cache resolvers.
+        return len(_retrieve_cache_instance()) if self.caching_enabled else 0
 
     def __contains__(
         self,
@@ -352,12 +348,12 @@ class _ClientModel:
             >>> ('get_category', (('category_id', 125),)) in fred
             False
         """
-        return self.caching_enabled and key in _retrieve_cache_instance()  # TODO: Needs service based cache implementations and cache resolvers.
+        return self.caching_enabled and key in _retrieve_cache_instance()
 
     def __getitem__(
         self,
         key: str
-    ) -> Any:
+    ) -> object:
         """Return the cached response for a key from the module-global cache.
 
         Provides dict-like read access to cached responses for inspection
@@ -368,7 +364,7 @@ class _ClientModel:
             key (str): The cache key to retrieve.
 
         Returns:
-            Any: The cached response payload.
+            object: The cached response payload.
 
         Raises:
             KeyError: If caching is disabled or the key is not present in the cache.
@@ -380,9 +376,9 @@ class _ClientModel:
             >>> # fred[('get_category', (('category_id', 125),))]
         """
         if not self.caching_enabled:
-            raise KeyError(key)         # TODO: Add custom exception for cache disabled and catch that instead.
+            raise ClientError(key)         # TODO: Add custom exception for cache disabled and catch that instead.
 
-        return _retrieve_cache_instance().cache[key]  # TODO: Needs service based cache implementations and cache resolvers.
+        return _retrieve_cache_instance().cache[key]
 
     # Properties
     @property
@@ -398,7 +394,7 @@ class _ClientModel:
             >>> fred.keys is None
             True
         """
-        return _retrieve_cache_instance().keys() if self.caching_enabled else None  # TODO: Needs service based cache implementations and cache resolvers.
+        return _retrieve_cache_instance().keys() if self.caching_enabled else None
 
 
 class _BaseClient(_ClientModel):

@@ -19,62 +19,74 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""fedfred._internals._rate_limit
+"""Rolling-window rate limiting for the FRED family of services.
 
-This module provides an adjustable capacity limiter for managing concurrent access to resources. The AdjustableLimiter class allows for 
-runtime adjustment of the maximum number of concurrent holders, ensuring that resource usage can be controlled dynamically.
+This module provides the concurrency and request-pacing primitives shared by
+the synchronous and asynchronous clients. :class:`AdjustableLimiter` is a
+capacity limiter whose cap can be changed at runtime; :class:`LimiterSpec`
+binds a service to its module-global request-time deque, lock, semaphore, and
+per-minute limit. Separate buckets are maintained for the FRED group
+(FRED, ALFRED, GeoFRED) and for FRASER, reflecting their different rate limits.
 """
 
 from __future__ import annotations
+
 import asyncio
-from dataclasses import dataclass, field
 import time
 from collections import deque
+from dataclasses import dataclass, field
 from types import TracebackType
 from typing import Any
-from ..exceptions import(
+
+from ..exceptions import (
     LimiterLimitError,
-    LimiterWakeError,
     LimiterLoopError,
     LimiterReleaseError,
     LimiterServiceError,
+    LimiterWakeError,
     RateLimiterConfigurationError,
     RateLimiterStateError,
 )
 from ..settings import Service
 
 __all__ = [
-    # Limiter Abstractions
-    "AdjustableLimiter", 
-    # Specs
+    "_FRASER_LOCK",
+    "_FRASER_MAX_REQUESTS_PER_MINUTE",
+    "_FRASER_REQUEST_TIMES",
+    "_FRASER_SEMAPHORE",
+    "_FRED_LOCK",
+    "_FRED_MAX_REQUESTS_PER_MINUTE",
+    "_FRED_REQUEST_TIMES",
+    "_FRED_SEMAPHORE",
+    "AdjustableLimiter",
     "LimiterSpec",
-    # Global Constants
-    "_FRED_MAX_REQUESTS_PER_MINUTE", "_FRASER_MAX_REQUESTS_PER_MINUTE",
-    # Global State
-    "_FRED_REQUEST_TIMES", "_FRASER_REQUEST_TIMES",
-    "_FRED_LOCK", "_FRASER_LOCK",
-    "_FRED_SEMAPHORE", "_FRASER_SEMAPHORE",
-    # Limiter Interface
-    "_resolve_limiter", "_resolve_limiter_async",
-    "_rate_limiter", "_rate_limiter_async",
+    "_rate_limiter",
+    "_rate_limiter_async",
+    "_resolve_limiter",
     "_semaphore_updater",
 ]
 
 @dataclass(slots=True)
 class AdjustableLimiter:
-    """Capacity limiter with runtime-adjustable limit.
+    """Capacity limiter with a runtime-adjustable limit.
+
+    Permits at most ``limit`` concurrent holders. Used as an asynchronous
+    context manager (``async with``) or via explicit :meth:`acquire` /
+    :meth:`release`. :meth:`set_limit` changes the cap at runtime; holders
+    that already own a slot keep it until they release.
 
     Attributes:
         limit (int): The maximum number of concurrent holders allowed.
 
     Examples:
-        >>> # Internal use
-        >>> from ._internals._rate_limit import AdjustableLimiter
+        >>> from fedfred._internals._rate_limit import AdjustableLimiter
         >>> limiter = AdjustableLimiter(limit=5)
-        >>> _FRED_SEMAPHORE = limiter(max_requests_per_minute=60)
+        >>> limiter.limit
+        5
 
     Notes:
-        At most `limit` concurrent holders. `set_limit()` adjusts the cap; existing holders keep their slots.
+        Instances are constructed at module import to back the FRED and FRASER
+        semaphores. GeoFRED and ALFRED share the FRED limiter.
     """
 
     limit: int
@@ -86,19 +98,22 @@ class AdjustableLimiter:
     _cond: asyncio.Condition = field(init=False)
     """Condition variable for managing waiters."""
 
+    _background_tasks: set[asyncio.Task[None]] = field(init=False)
+    """Strong references to scheduled wake-up tasks, preventing premature garbage collection."""
+
     # Dunder methods
+
     def __post_init__(self) -> None:
-        """Initialize the limiter with the specified limit and set up internal state.
+        """Validate the limit and initialize internal state.
 
         Raises:
-            LimiterLimitError: If the limit is less than 1.
-            LimiterLoopError: If there is no running event loop to notify waiters when the limit is adjusted.
+            LimiterLimitError: If ``limit`` is less than 1.
 
         Examples:
-            >>> # Internal use
-            >>> from ._core import AdjustableLimiter
-            >>> limiter = AdjustableLimiter(limit=5)  # Initializes successfully
-            >>> bad_limiter = AdjustableLimiter(limit=0)  # Raises LimiterLimitError
+            >>> from fedfred._internals._rate_limit import AdjustableLimiter
+            >>> AdjustableLimiter(limit=5).limit
+            5
+            >>> AdjustableLimiter(limit=0)  # doctest: +SKIP
             LimiterLimitError: limit must be >= 1
         """
         if self.limit < 1:
@@ -108,22 +123,21 @@ class AdjustableLimiter:
 
         self._cond = asyncio.Condition()
 
+        self._background_tasks = set()
+
     async def __aenter__(self) -> AdjustableLimiter:
         """Enter the asynchronous context manager, acquiring a slot.
 
         Returns:
-            AdjustableLimiter: The instance of the limiter for use within the context.
-
-        Raises:
-            LimiterLimitError: If the limit is less than 1.
-            LimiterLoopError: If there is no running event loop to notify waiters when the limit is adjusted.
+            AdjustableLimiter: This limiter instance, for use within the ``async with`` block.
 
         Examples:
-            >>> # Internal use
-            >>> from ._core import AdjustableLimiter
-            >>> async with AdjustableLimiter(limit=5) as limiter:
-            ...     # Use limiter within this block
-            ...     # Exiting the block will automatically release the slot
+            >>> from fedfred._internals._rate_limit import AdjustableLimiter  # doctest: +SKIP
+            >>> async with AdjustableLimiter(limit=5) as limiter:  # doctest: +SKIP
+            ...     ...  # the slot is released automatically on exit
+
+        Notes:
+            Blocks until a slot is available; see :meth:`acquire`.
         """
         await self.acquire()
 
@@ -136,64 +150,65 @@ class AdjustableLimiter:
         tb: TracebackType | None
     ) -> None:
         """Exit the asynchronous context manager, releasing the slot.
-        
+
         Args:
             exc_type (Optional[Type[BaseException]]): The exception type, if any.
             exc (Optional[BaseException]): The exception instance, if any.
             tb (Optional[TracebackType]): The traceback, if any.
 
         Raises:
-            LimiterReleaseError: If release() is called more times than acquire(), indicating an imbalance in the number of holders.
+            LimiterReleaseError: If the limiter is released more times than it was acquired.
 
         Examples:
-            >>> # Internal use
-            >>> from ._core import AdjustableLimiter
-            >>> async with AdjustableLimiter(limit=5) as limiter:
-            ...     # Use limiter within this block
-            ...     # Exiting the block will automatically release the slot
-            
-        Notes:
-            This method ensures that the slot is released regardless of whether an exception occurred within the context.
-        """
+            >>> from fedfred._internals._rate_limit import AdjustableLimiter  # doctest: +SKIP
+            >>> async with AdjustableLimiter(limit=5) as limiter:  # doctest: +SKIP
+            ...     ...
 
+        Notes:
+            The slot is released whether or not an exception occurred within the context.
+        """
         await self.release()
 
     # Protected methods
     def _notify(self) -> None:
-        """Notify all waiters that the limit has changed.
+        """Schedule a task to wake all waiters after a limit change.
 
         Raises:
-            LimiterWakeError: If the wake-up task cannot be scheduled due to the absence of a running event loop.
+            LimiterWakeError: If the wake-up task cannot be scheduled because no event loop is running.
 
         Examples:
-            >>> # Internal use
-            >>> from ._core import AdjustableLimiter
-            >>> limiter = AdjustableLimiter(limit=5)
-            >>> limiter._notify()  # Schedules a wake-up task for waiters
-        
-        Notes:
-            This method is called in a thread-safe manner to wake up any tasks waiting on the condition variable when the limit is adjusted.
-        """
+            >>> from fedfred._internals._rate_limit import AdjustableLimiter  # doctest: +SKIP
+            >>> limiter = AdjustableLimiter(limit=5)  # doctest: +SKIP
+            >>> limiter._notify()  # requires a running event loop  # doctest: +SKIP
 
+        Notes:
+            Invoked via ``call_soon_threadsafe`` from :meth:`set_limit`, so it may run on
+            the event-loop thread in response to a cross-thread limit change. The scheduled
+            task is held in ``_background_tasks`` until completion to prevent it from being
+            garbage-collected mid-flight.
+        """
         try:
-            asyncio.create_task(self._wake_waiters())
+            task = asyncio.create_task(self._wake_waiters())
 
         except RuntimeError as exc:
             raise LimiterWakeError(
                 "Failed to schedule waiter wake-up task."
             ) from exc
 
+        self._background_tasks.add(task)
+
+        task.add_done_callback(self._background_tasks.discard)
+
     async def _wake_waiters(self) -> None:
-        """Wake tasks waiting on the condition.
+        """Wake every task waiting on the condition variable.
 
         Examples:
-            >>> # Internal use
-            >>> from ._core import AdjustableLimiter
-            >>> limiter = AdjustableLimiter(limit=5)
-            >>> await limiter._wake_waiters()  # Notifies all waiters to attempt acquiring a slot
+            >>> from fedfred._internals._rate_limit import AdjustableLimiter  # doctest: +SKIP
+            >>> limiter = AdjustableLimiter(limit=5)  # doctest: +SKIP
+            >>> await limiter._wake_waiters()  # doctest: +SKIP
 
         Notes:
-            This method notifies all tasks waiting on the condition variable, allowing them to attempt to acquire a slot.
+            Acquires the condition and calls ``notify_all`` so waiters re-check the limit.
         """
         async with self._cond:
             self._cond.notify_all()
@@ -203,26 +218,24 @@ class AdjustableLimiter:
         self,
         new_limit: int
     ) -> None:
-        """Set a new limit for the number of concurrent holders.
-        
+        """Change the maximum number of concurrent holders at runtime.
+
         Args:
-            new_limit (int): The new maximum number of concurrent holders allowed.
+            new_limit (int): The new maximum number of concurrent holders. Must be >= 1.
 
         Raises:
-            LimiterLimitError: If the new limit is less than 1.
-            LimiterLoopError: If there is no running event loop to notify waiters.
+            LimiterLimitError: If ``new_limit`` is less than 1.
+            LimiterLoopError: If no event loop is running to notify waiters.
 
         Examples:
-            >>> # Internal use
-            >>> from ._core import AdjustableLimiter
-            >>> limiter = AdjustableLimiter(limit=5)
-            >>> limiter.set_limit(10)  # Updates the limit to 10 and notifies waiters
-            >>> limiter.set_limit(0)  # Raises LimiterLimitError
-            LimiterLimitError: new_limit must be >= 1, got 0
+            >>> from fedfred._internals._rate_limit import AdjustableLimiter  # doctest: +SKIP
+            >>> limiter = AdjustableLimiter(limit=5)  # doctest: +SKIP
+            >>> limiter.set_limit(10)  # requires a running event loop  # doctest: +SKIP
 
         Notes:
-            This method allows for dynamic adjustment of the concurrency limit. When the limit is changed, it notifies all waiting 
-            tasks so they can attempt to acquire a slot under the new limit. Existing holders are not affected by the change in limit and will keep their slots until they release them.
+            Existing holders keep their slots; only newly waiting tasks observe the new cap.
+            Waiters are notified via a thread-safe callback so the limit may be adjusted
+            from a thread other than the event-loop thread.
         """
         if new_limit < 1:
             raise LimiterLimitError(f"new_limit must be >= 1, got {new_limit}")
@@ -238,22 +251,16 @@ class AdjustableLimiter:
             ) from exc
 
     async def acquire(self) -> None:
-        """Acquire a slot, waiting if necessary until one is available.
-
-        Raises:
-            LimiterLoopError: If there is no running event loop to wait on the condition variable.
-            LimiterLimitError: If the limit is less than 1, indicating an invalid state for acquiring a slot.
+        """Acquire a slot, waiting until one is available.
 
         Examples:
-            >>> # Internal use
-            >>> from ._core import AdjustableLimiter
-            >>> limiter = AdjustableLimiter(limit=5)
-            >>> await limiter.acquire()  # Acquires a slot, waiting if necessary
-            >>> limiter.set_limit(0)  # Updates the limit to 0, making it
-            >>> await limiter.acquire()  # Raises LimiterLimitError due to invalid limit
+            >>> from fedfred._internals._rate_limit import AdjustableLimiter  # doctest: +SKIP
+            >>> limiter = AdjustableLimiter(limit=5)  # doctest: +SKIP
+            >>> await limiter.acquire()  # doctest: +SKIP
 
         Notes:
-            This method waits asynchronously until a slot becomes available, ensuring that the number of concurrent holders does not exceed the limit.
+            Suspends on the condition variable until ``_in_use`` falls below ``limit``,
+            then claims a slot. Must be called from within a running event loop.
         """
         async with self._cond:
             while self._in_use >= self.limit:
@@ -262,21 +269,19 @@ class AdjustableLimiter:
             self._in_use += 1
 
     async def release(self) -> None:
-        """Release a slot, notifying any waiters.
+        """Release a held slot and notify waiters.
 
         Raises:
-            LimiterReleaseError: If release() is called more times than acquire(), indicating an imbalance in the number of holders.
-            LimiterLoopError: If there is no running event loop to notify waiters.
+            LimiterReleaseError: If called when no slot is currently held (more releases than acquires).
 
         Examples:
-            >>> # Internal use
-            >>> from ._core import AdjustableLimiter
-            >>> limiter = AdjustableLimiter(limit=5)
-            >>> await limiter.acquire()  # Acquires a slot
-            >>> await limiter.release()  # Releases the slot, notifying waiters
+            >>> from fedfred._internals._rate_limit import AdjustableLimiter  # doctest: +SKIP
+            >>> limiter = AdjustableLimiter(limit=5)  # doctest: +SKIP
+            >>> await limiter.acquire()  # doctest: +SKIP
+            >>> await limiter.release()  # doctest: +SKIP
 
         Notes:
-            This method decreases the count of active holders and notifies all waiting tasks, allowing them to attempt to acquire a slot.
+            Decrements the holder count and wakes all waiters so they can re-attempt acquisition.
         """
         async with self._cond:
             if self._in_use <= 0:
@@ -287,78 +292,78 @@ class AdjustableLimiter:
             self._cond.notify_all()
 
 _FRED_MAX_REQUESTS_PER_MINUTE: int = 120
-"""Maximum requests per minute for the FRED API, including GeoFRED."""
+"""Maximum requests per minute for the FRED API, shared by GeoFRED and ALFRED."""
 
 _FRASER_MAX_REQUESTS_PER_MINUTE: int = 30
 """Maximum requests per minute for the FRASER API."""
 
 _FRED_REQUEST_TIMES: deque = deque()
-"""Deque to track timestamps of requests made to the FRED API, including GeoFRED."""
+"""Deque tracking timestamps of recent FRED-group requests (FRED, GeoFRED, ALFRED)."""
 
 _FRASER_REQUEST_TIMES: deque = deque()
-"""Deque to track timestamps of requests made to the FRASER API."""
+"""Deque tracking timestamps of recent FRASER requests."""
 
 _FRED_LOCK: asyncio.Lock = asyncio.Lock()
-"""Lock for synchronizing access to the FRED request times and semaphore."""
+"""Lock synchronizing access to the FRED-group request times and semaphore."""
 
 _FRASER_LOCK: asyncio.Lock = asyncio.Lock()
-"""Lock for synchronizing access to the FRASER request times and semaphore."""
+"""Lock synchronizing access to the FRASER request times and semaphore."""
 
 _FRED_SEMAPHORE: AdjustableLimiter = AdjustableLimiter(limit=_FRED_MAX_REQUESTS_PER_MINUTE // 10)
-"""Semaphore for limiting concurrent requests to the FRED API."""
+"""Semaphore limiting concurrent requests to the FRED group."""
 
 _FRASER_SEMAPHORE: AdjustableLimiter = AdjustableLimiter(limit=_FRASER_MAX_REQUESTS_PER_MINUTE // 10)
-"""Semaphore for limiting concurrent requests to the FRASER API."""
+"""Semaphore limiting concurrent requests to FRASER."""
 
 @dataclass(slots=True)
 class LimiterSpec:
-    """Specification for rate limiter configuration based on the target service.
+    """Resolved rate-limiting configuration for a single service.
+
+    Binds a service to its module-global request-time deque, per-minute limit,
+    lock, and semaphore. Constructed via :func:`_resolve_limiter`.
 
     Attributes:
-        service (str): The name of the service for which the limiter is being configured. Options include "fred", and "fraser".
-        request_times (deque): A deque to track the timestamps of requests made to the service.
-        max_requests_per_minute (int): The maximum number of requests allowed per minute for the service.
-        lock (asyncio.Lock): A lock to synchronize access to the request times and semaphore for the service.
-        semaphore (AdjustableLimiter): An adjustable limiter to control concurrent access to the service based on the rate limits.
+        service (Service): The target service. ``"fred"``, ``"geofred"``, and ``"alfred"`` share the FRED bucket; ``"fraser"`` uses its own.
+        request_times (deque): Deque tracking timestamps of recent requests to the service's bucket.
+        max_requests_per_minute (int): The per-minute request ceiling for the service's bucket.
+        lock (asyncio.Lock): Lock synchronizing access to the bucket's request times and semaphore.
+        semaphore (AdjustableLimiter): Adjustable limiter controlling concurrent access to the bucket.
 
     Examples:
-        >>> # Internal use
-        >>> from ._core import LimiterSpec
-        >>> limiter_spec = LimiterSpec(service="fred")  # Initializes with FRED API configuration
+        >>> from fedfred._internals._rate_limit import LimiterSpec
+        >>> LimiterSpec(service="fred").max_requests_per_minute
+        120
 
     Notes:
-        GeoFRED shares the same rate limits as FRED, so it is included in the "fred" service configuration. The limiter specification is 
-        resolved based on the service name, allowing for centralized management of rate-limiting parameters for different services.
+        GeoFRED and ALFRED resolve to the same bucket as FRED, since they share its rate limits.
     """
 
     service: Service
-    """The name of the service for which the limiter is being configured."""
+    """The target service for which the limiter is resolved."""
 
     request_times: deque = field(init=False)
-    """A deque to track the timestamps of requests made to the service."""
+    """Deque tracking timestamps of recent requests to the service's bucket."""
 
     max_requests_per_minute: int = field(init=False)
-    """The maximum number of requests allowed per minute for the service."""
+    """The per-minute request ceiling for the service's bucket."""
 
     lock: asyncio.Lock = field(init=False)
-    """A lock to synchronize access to the request times and semaphore for the service."""
+    """Lock synchronizing access to the bucket's request times and semaphore."""
 
     semaphore: AdjustableLimiter = field(init=False)
-    """An adjustable limiter to control concurrent access to the service based on the rate limits."""
+    """Adjustable limiter controlling concurrent access to the bucket."""
 
     def __post_init__(self) -> None:
-        """Initialize the limiter specification based on the target service.
+        """Resolve the service to its module-global bucket.
 
         Raises:
-            LimiterServiceError: If the specified service is unknown or unsupported.
-            LimiterLimitError: If the maximum requests per minute for the service is invalid (e.g., less than 1).
-            LimiterLoopError: If there is no running event loop to manage timing for rate limiting.
+            LimiterServiceError: If ``service`` is not a known rate-limited service.
 
         Examples:
-            >>> # Internal use
-            >>> from ._core import LimiterSpec
-            >>> limiter_spec = LimiterSpec(service="fred")  # Initializes with FRED API configuration
-            >>> bad_limiter_spec = LimiterSpec(service="unknown")  # Raises LimiterServiceError
+            >>> from fedfred._internals._rate_limit import LimiterSpec
+            >>> LimiterSpec(service="fraser").max_requests_per_minute
+            30
+            >>> LimiterSpec(service="unknown")  # doctest: +SKIP
             LimiterServiceError: Unknown rate-limited service: unknown
         """
         if self.service in {"fred", "geofred", "alfred"}:
@@ -383,22 +388,22 @@ class LimiterSpec:
             raise LimiterServiceError(f"Unknown rate-limited service: {self.service}")
 
 def _resolve_limiter(service: Service) -> LimiterSpec:
-    """Resolve the limiter specification for the given service.
+    """Resolve the limiter specification for a service.
 
     Args:
-        service (str): The name of the service for which to resolve the limiter specification.
-
-    Raises:
-        LimiterServiceError: If the specified service is unknown or unsupported.
+        service (Service): The service to resolve.
 
     Returns:
-        LimiterSpec: The limiter specification containing the request times, maximum requests per minute, lock, and semaphore for the specified service.
+        LimiterSpec: The resolved request times, per-minute limit, lock, and semaphore for the service's bucket.
+
+    Raises:
+        LimiterServiceError: If ``service`` is not a known rate-limited service.
 
     Examples:
-        >>> # Internal use
-        >>> from ._core import _resolve_limiter
-        >>> limiter_spec = _resolve_limiter(service="fred")  # Resolves limiter specification for FRED API
-        >>> bad_limiter_spec = _resolve_limiter(service="unknown")  # Raises LimiterServiceError
+        >>> from fedfred._internals._rate_limit import _resolve_limiter
+        >>> _resolve_limiter("fred").max_requests_per_minute
+        120
+        >>> _resolve_limiter("unknown")  # doctest: +SKIP
         LimiterServiceError: Unknown rate-limited service: unknown
     """
     return LimiterSpec(service)
@@ -409,32 +414,37 @@ async def _semaphore_updater(
     lock: asyncio.Lock,
     semaphore: AdjustableLimiter
 ) -> tuple[Any, float]:
-    """Dynamically adjusts the semaphore based on requests left in the minute.
+    """Recompute the semaphore limit from the requests remaining this minute.
+
+    Args:
+        request_times (deque[float]): Timestamps of recent requests; entries older than 60 seconds are evicted.
+        max_requests_per_minute (int): The per-minute request ceiling for the bucket.
+        lock (asyncio.Lock): Lock guarding the request-time deque and semaphore.
+        semaphore (AdjustableLimiter): The limiter whose cap is updated in place.
 
     Returns:
-        Tuple[Any, float]: A tuple containing the number of requests left and the time left in seconds.
+        tuple[Any, float]: The number of requests remaining this minute and the seconds left in the current window.
 
     Raises:
-        RateLimiterConfigurationError: If max_requests_per_minute is less than 1, indicating an invalid configuration for rate limiting.
-        RateLimiterStateError: If the semaphore is in an invalid state (e.g., limit less than 1) or if the request time queue state is inconsistent with the computed request volume.
-        LimiterLoopError: If there is no running event loop to acquire the lock.
-        LimiterLimitError: If the semaphore limit is invalid, indicating that it cannot be updated based on the current request volume.
+        RateLimiterConfigurationError: If ``max_requests_per_minute`` is less than 1.
+        RateLimiterStateError: If the semaphore limit is below 1, or if the request-time queue is inconsistent with the computed request volume.
+        LimiterLimitError: If the recomputed limit is rejected by :meth:`AdjustableLimiter.set_limit`.
+        LimiterLoopError: If no event loop is running to notify waiters during the limit update.
 
     Examples:
-        >>> # Internal use
-        >>> from ._core import _semaphore_updater
-        >>> import asyncio
-        >>> request_times = deque([time.time() - 30, time.time() - 10])  # Simulate 2 requests made in the last minute
-        >>> lock = asyncio.Lock()
-        >>> semaphore = AdjustableLimiter(limit=10)
-        >>> max_requests_per_minute = 60
-        >>> requests_left, time_left = await _semaphore_updater(request_times, max_requests_per_minute, lock, semaphore)
+        >>> from fedfred._internals._rate_limit import _semaphore_updater, AdjustableLimiter  # doctest: +SKIP
+        >>> import asyncio, time  # doctest: +SKIP
+        >>> request_times = deque([time.time() - 30, time.time() - 10])  # doctest: +SKIP
+        >>> left, remaining = await _semaphore_updater(  # doctest: +SKIP
+        ...     request_times, 60, asyncio.Lock(), AdjustableLimiter(limit=10)
+        ... )
 
     Notes:
-        This method updates the semaphore limit based on the number of requests made in the last minute, allowing for dynamic rate limiting.
+        Evicts stale timestamps, then narrows the semaphore toward the remaining headroom so
+        concurrency tapers as the per-minute budget is consumed.
 
     Warnings:
-        This method should be used within an asynchronous context to ensure proper locking and timing.
+        Must be awaited within a running event loop; it acquires ``lock`` and may adjust the semaphore.
     """
     if max_requests_per_minute < 1:
         raise RateLimiterConfigurationError(
@@ -470,25 +480,27 @@ async def _semaphore_updater(
         return requests_left, time_left
 
 def _rate_limiter(service: Service) -> None:
-    """Ensures synchronous requests comply with rate limits.
+    """Pace a synchronous request to comply with the service's rate limit.
+
+    Args:
+        service (Service): The service whose bucket governs pacing.
 
     Raises:
-        LimiterServiceError: If the specified service is unknown or unsupported.
-        LimiterLimitError: If the rate limiter is configured with an invalid maximum requests per minute value.
-        LimiterLoopError: If there is no running event loop to manage timing for rate limiting.
+        LimiterServiceError: If ``service`` is not a known rate-limited service.
 
     Examples:
-        >>> # Internal use
-        >>> from ._core import _rate_limiter
-        >>> _rate_limiter(service="fred")  # Ensures compliance with FRED API rate limits
-        >>> _rate_limiter(service="unknown")  # Raises LimiterServiceError
+        >>> from fedfred._internals._rate_limit import _rate_limiter
+        >>> _rate_limiter("fred")
+        >>> _rate_limiter("unknown")  # doctest: +SKIP
+        LimiterServiceError: Unknown rate-limited service: unknown
 
     Notes:
-        This method tracks the timestamps of requests and enforces rate limiting by sleeping when the maximum 
-        number of requests per minute is reached.
+        Evicts timestamps older than 60 seconds and, if the window is full, sleeps until the
+        oldest request ages out before recording the new request.
 
     Warnings:
-        This method uses time.sleep(), which blocks the current thread. Avoid using it in asynchronous contexts.
+        Uses ``time.sleep()``, which blocks the calling thread. Do not call from asynchronous code;
+        use :func:`_rate_limiter_async` instead.
     """
     spec = _resolve_limiter(service)
 
@@ -511,29 +523,29 @@ def _rate_limiter(service: Service) -> None:
     spec.request_times.append(now)
 
 async def _rate_limiter_async(service: Service) -> None:
-    """Ensures asynchronous requests comply with rate limits.
+    """Pace an asynchronous request to comply with the service's rate limit.
+
+    Args:
+        service (Service): The service whose bucket governs pacing.
 
     Raises:
-        LimiterServiceError: If the specified service is unknown or unsupported.
-        LimiterLimitError: If the rate limiter is configured with an invalid maximum requests per minute value.
-        RateLimiterConfigurationError: If max_requests_per_minute is less than 1, indicating an invalid configuration for rate limiting.
-        RateLimiterStateError: If the semaphore is in an invalid state (e.g., limit less than 1) or if the request time queue state is inconsistent with the computed request volume.
-        LimiterLoopError: If there is no running event loop to manage timing for rate limiting or to acquire the lock.
-        LimiterLimitError: If the semaphore limit is invalid, indicating that it cannot be updated based on the current request volume.
+        LimiterServiceError: If ``service`` is not a known rate-limited service.
+        RateLimiterConfigurationError: If the bucket's ``max_requests_per_minute`` is less than 1.
+        RateLimiterStateError: If the semaphore is in an invalid state or the request-time queue is inconsistent with the computed request volume.
+        LimiterLimitError: If a recomputed semaphore limit is rejected during the update.
+        LimiterLoopError: If no event loop is running to acquire the lock or notify waiters.
 
     Examples:
-        >>> # Internal use
-        >>> from ._core import _rate_limiter_async
-        >>> import asyncio
-        >>> await _rate_limiter_async(service="fred")  # Ensures compliance with FRED API rate limits
-        >>> await _rate_limiter_async(service="unknown")  # Raises LimiterServiceError
+        >>> from fedfred._internals._rate_limit import _rate_limiter_async  # doctest: +SKIP
+        >>> import asyncio  # doctest: +SKIP
+        >>> await _rate_limiter_async("fred")  # doctest: +SKIP
 
     Notes:
-        This method ensures that API requests adhere to the rate limit by dynamically adjusting the wait time based on the 
-        number of requests left and the time remaining in the current minute.
+        Holds the bucket semaphore for the duration, recomputes the per-request spacing from the
+        requests remaining and time left in the window, sleeps accordingly, then records the request.
 
     Warnings:
-        This method should be used within an asynchronous context to ensure proper locking and timing.
+        Must be awaited within a running event loop.
     """
     spec = _resolve_limiter(service)
 

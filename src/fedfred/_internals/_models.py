@@ -68,7 +68,7 @@ References:
 
 from __future__ import annotations
 
-from collections.abc import Iterable, Iterator, Sequence
+from collections.abc import Iterable, Iterator, Mapping, Sequence
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta
 from typing import (
@@ -93,6 +93,10 @@ __all__ = [
     "_ModelSequence",
     "_Sequence",
 ]
+
+type JSON = (
+    str | int | float | bool | None | Mapping[str, JSON] | Sequence[JSON] # TODO: Consider refactoring to core types module and reusing across the package.
+)
 
 @dataclass(slots=True, kw_only=True)
 class _ModelBase:
@@ -250,7 +254,7 @@ class _DateBase(date):
     @classmethod
     def _parse_value(
         cls,
-        raw: Any
+        raw: JSON
     ) -> Self:
         """Build one element from its raw payload.
 
