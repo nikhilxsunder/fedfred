@@ -517,6 +517,26 @@ class _Sequence(Sequence[T]):
             or cls._lookup_value is not _Sequence._lookup_value
         )
 
+    @classmethod
+    def _extract(cls, response: dict[str, Any]) -> list[Any]:
+        """Extract the raw object list per this class's ``_response_keys`` / ``_response_shape``.
+
+        Protected accessor so subclasses with custom constructors (e.g.
+        :class:`fedfred.VintageDates`, which threads a ``series_id``) can reuse
+        the declared extraction without importing the ``_core`` parsers
+        directly.
+
+        Args:
+            response (dict[str, Any]): The raw FRED API response payload.
+
+        Returns:
+            list[Any]: The extracted object list.
+
+        Raises:
+            ParsingError: If the response lacks the expected key or shape.
+        """
+        return _extract_objects(response, cls._response_keys, cls._response_shape)
+
     # Dunder Methods
     def __init_subclass__(
         cls,

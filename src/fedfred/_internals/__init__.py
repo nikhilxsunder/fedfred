@@ -39,6 +39,10 @@ See Also:
     - :mod:`fedfred._internals._models`: Response-model and sequence bases.
 """
 
+from .._core import (
+    _ResponseShape,
+    _coerce_lower,
+)
 from ._caching import (
     AdjustableFIFOCache,
     _retrieve_cache_instance,

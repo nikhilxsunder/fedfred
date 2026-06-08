@@ -22,13 +22,12 @@
 
 from __future__ import annotations
 
-import asyncio
-from typing import ClassVar, Any, Iterable
+from collections.abc import Iterable
 from datetime import date
-from .._internals import _DateBase, _DateSequence
-from .._core import _require_list
+from typing import Any, ClassVar, Self
 
-# TODO: Fix all docstrings post error design.
+from .._internals import _DateBase, _DateSequence
+
 
 class VintageDate(_DateBase):
     """A FRED/ALFRED vintage date that *is* a ``datetime.date`` subclass.
@@ -56,54 +55,129 @@ class VintageDate(_DateBase):
 
     __slots__ = ()
 
-    _response_key: ClassVar[str] = "vintage_dates"
+    _response_keys: ClassVar[tuple[str, ...]] = ("vintage_dates",)
+    """Payload key(s) under which FRED returns the vintage-date list."""
 
     @classmethod
-    def _parse_value(cls, raw: Any) -> VintageDate:
-        """Build a single VintageDate from one raw ISO-string payload."""
+    def _parse_value(
+        cls,
+        raw: object
+    ) -> VintageDate:
+        """Build a single :class:`VintageDate` from one raw ISO-string payload.
 
+        Args:
+            raw (object): The raw payload entry. Expected to be an ISO ``YYYY-MM-DD`` string.
+
+        Returns:
+            VintageDate: The parsed vintage date.
+
+        Raises:
+            ModelError: If ``raw`` is not a string.
+        """
         if not isinstance(raw, str):
-            raise ModelError("Invalid vintage_date payload: expected an ISO string")
+            raise ModelError("Invalid vintage_date payload: expected an ISO string")  # TODO: ModelError
+
         d = date.fromisoformat(raw)
+
         return cls(d.year, d.month, d.day)
 
     @property
     def vintage_date(self) -> str:
-        """v3-compat alias for the ISO string (matches the old ``vintage_date`` attribute)."""
+        """v3-compat alias for the ISO string (matches the old ``vintage_date`` attribute).
 
+        Returns:
+            str: The ISO 8601 representation of the date.
+        """
         return self.isoformat()
 
     def __repr__(self) -> str:
+        """Return the bare ISO date string.
 
+        Returns:
+            str: The ISO 8601 representation of the date.
+        """
         return self.isoformat()
 
 
 class VintageDates(_DateSequence[VintageDate]):
+    """An immutable, notebook-friendly sequence of :class:`VintageDate` objects.
+
+    Carries an optional ``series_id`` sidecar (the series these vintages belong
+    to), forwarded through slicing via :meth:`_clone`. String-keyed by ISO date
+    via :meth:`_lookup_value`.
+
+    Attributes:
+        series_id (str, optional): The series these vintage dates belong to.
+
+    See Also:
+        - :class:`fedfred.VintageDate`: The element type.
+
+    References:
+        - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.VintageDates.html
+    """
+
     __slots__ = ("series_id",)
 
     series_id: str | None
+    """The series these vintage dates belong to, or ``None`` if unattached."""
 
     def __init__(
-        self, items: Iterable[VintageDate], series_id: str | None = None
+        self,
+        items: Iterable[VintageDate],
+        series_id: str | None = None
     ) -> None:
+        """Materialize ``items`` and attach an optional ``series_id``.
+
+        Args:
+            items (Iterable[VintageDate]): The vintage dates to store.
+            series_id (str, optional): The owning series id. Forwarded to sliced copies by :meth:`_clone`. Defaults to ``None``.
+        """
         super().__init__(items)
         self.series_id = series_id
 
-    def _clone(self, items: Iterable[VintageDate]) -> Self:
+    def _clone(
+        self,
+        items: Iterable[VintageDate]
+    ) -> Self:
+        """Construct a new :class:`VintageDates` forwarding the ``series_id``.
+
+        Args:
+            items (Iterable[VintageDate]): The elements for the new sequence.
+
+        Returns:
+            VintageDates: A new sequence carrying the same ``series_id``.
+        """
         return type(self)(items, series_id=self.series_id)
 
     @classmethod
-    def to_object(
-        cls, response: dict[str, Any], series_id: str | None = None
-    ) -> "VintageDates":
-        raw = _require_list(response, cls._response_key)
+    def _from_response(
+        cls,
+        response: dict[str, Any],
+        series_id: str | None = None
+    ) -> VintageDates:
+        """Build a :class:`VintageDates` from a FRED/ALFRED response payload.
+
+        Args:
+            response (dict[str, Any]): The raw FRED/ALFRED response payload.
+            series_id (str, optional): The owning series id to attach. Defaults to ``None``.
+
+        Returns:
+            VintageDates: A sequence of :class:`VintageDate` objects.
+
+        Raises:
+            ParsingError: If the response lacks the ``vintage_dates`` key or it is not a list.
+        """
+        raw = cls._extract(response)
+
         return cls((cls._parse_value(v) for v in raw), series_id=series_id)
 
-    @classmethod
-    async def to_object_async(
-        cls, response: dict[str, Any], series_id: str | None = None
-    ) -> "VintageDates":
-        return await asyncio.to_thread(cls.to_object, response, series_id)
-
     def _lookup_value(self, item: VintageDate) -> str:
+        """Compute the lookup key for an item as its ISO date string.
+
+        Args:
+            item (VintageDate): The element to compute a lookup key for.
+
+        Returns:
+            str: The ISO 8601 representation of the date.
+        """
         return item.isoformat()

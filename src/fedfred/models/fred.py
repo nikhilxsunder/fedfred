@@ -93,13 +93,14 @@ from typing import (
 
 import pandas as pd
 
-from .._core import _coerce_lower
 from .._internals import (
     _ClientModel,
+    _coerce_lower,
     _DateBase,
     _DateSequence,
     _ModelBase,
     _ModelSequence,
+    _ResponseShape,
 )
 from .alfred import VintageDates
 
@@ -107,7 +108,7 @@ if TYPE_CHECKING:
     import dask.dataframe as dd
     import polars as pl
 
-    #from ..clients import Fred # TODO: Uncomment if useable for rseolving property issue.
+    #from ..clients import Fred # TODO: Uncomment if useable for resolving property issue.
 
 # TODO: Fix all docstrings post error design.
 
@@ -192,7 +193,7 @@ class Category(_ModelBase):
     parent_id: int | None
     """The unique identifier for the parent category, if any. Can itself be used as a ``category_id`` in the FRED API to traverse the tree upward."""
 
-    _response_key: ClassVar[str] = "categories"
+    _response_keys: ClassVar[tuple[str, ...]] = ("categories",)
     """The key in the FRED API response payload that contains the category list."""
 
     # Class Methods
@@ -490,8 +491,8 @@ class Series(_ModelBase):
     _observations: pd.DataFrame | pl.DataFrame | dd.DataFrame | None = None
     """Reserved slot for the cached observations DataFrame (BulkRelease pipeline). Not part of the public surface."""
 
-    _response_key: ClassVar[str] = "seriess"
-    """The key in the FRED API response payload that contains the series list."""
+    _response_keys: ClassVar[tuple[str, ...]] = ("seriess", "series")
+    """Payload key(s) under which FRED returns the series list. Both singular and plural keys are accepted to accommodate different endpoint shapes."""
 
     # Class Methods
     @classmethod
@@ -667,43 +668,6 @@ class Seriess(_ModelSequence[Series]):
     _lookup_key: ClassVar[str | None] = "id"
     """Attribute used for string-key lookup and tab completion (``seriess["<series_id>"]``)."""
 
-    # Class Methods
-    @classmethod
-    def _from_response(
-        cls,
-        response: dict[str, Any],
-        client: _ClientModel | None = None
-    ) -> Seriess:
-        """Build a :class:`Seriess` from a FRED API response payload.
-
-        Accepts both ``"seriess"`` and ``"series"`` as the response key,
-        since FRED uses the latter on some endpoints (e.g., release_series)
-        and the former on others (e.g., category_series).
-
-        Args:
-            response (dict[str, Any]): The raw FRED API response payload.
-            client (_ClientModel, optional): The FRED client to propagate to each constructed :class:`Series` and to the sequence itself. Defaults to ``None``.
-
-        Returns:
-            Seriess: A sequence of :class:`Series` objects.
-
-        Raises:
-            ModelError: If the response lacks both ``"seriess"`` and ``"series"`` keys.
-
-        Examples:
-            >>> import fedfred as fd
-            >>> response = {"seriess": [{"id": "GNPCA", "title": "Real GNP",
-            ...                          "frequency": "Annual", "units": "Bil.",
-            ...                          "seasonal_adjustment": "NSA",
-            ...                          "last_updated": "2024-01-01"}]}
-            >>> seriess = fd.Seriess._from_response(response)
-            >>> seriess[0].id
-            'GNPCA'
-        """
-        raw = _require_first_list(response, ("seriess", "series"))
-
-        return cls((cls._parse_item(item, client=client) for item in raw), client=client)
-
     # Sunder Methods
     def _repr_html_(self) -> str:
         """Render a compact HTML table preview of the first ten series.
@@ -791,7 +755,7 @@ class Tag(_ModelBase):
     notes: str | None = None
     """Free-form notes accompanying the tag, if any."""
 
-    _response_key: ClassVar[str] = "tags"
+    _response_keys: ClassVar[tuple[str, ...]] = ("tags",)
     """The key in the FRED API response payload that contains the tag list."""
 
     # Class Methods
@@ -998,8 +962,8 @@ class Release(_ModelBase):
     _sources: Sources | None = None
     """Reserved slot for the cached sources (BulkRelease pipeline). Not part of the public surface."""
 
-    _response_key: ClassVar[str] = "releases"
-    """The key in the FRED API response payload that contains the release list."""
+    _response_keys: ClassVar[tuple[str, ...]] = ("releases", "release")
+    """Payload key(s) under which FRED returns the release list. Both singular and plural keys are accepted to accommodate different endpoint shapes."""
 
     # Class Methods
     @classmethod
@@ -1049,44 +1013,6 @@ class Release(_ModelBase):
             notes=data.get("notes"),
             client=client,
         )
-
-    @classmethod
-    def _from_response(cls,
-                  response: dict[str, Any],
-                  client: _ClientModel | None = None
-                  ) -> Release:
-        """Build a single :class:`Release` from a FRED API response payload.
-
-        Accepts both ``"releases"`` and ``"release"`` as the response key.
-        FRED's ``get_release`` endpoint returns the singular form wrapped in a
-        list of one, while bulk endpoints return many; this method handles
-        both shapes uniformly and returns the first entry.
-
-        Args:
-            response (dict[str, Any]): The raw FRED API response payload.
-            client (_ClientModel, optional): The FRED client to attach to the
-                resulting :class:`Release`. Defaults to ``None``.
-
-        Returns:
-            Release: A single :class:`Release` instance.
-
-        Raises:
-            ModelError: If the response lacks both ``"releases"`` and
-                ``"release"`` keys, or if the resolved list is empty.
-
-        Examples:
-            >>> import fedfred as fd
-            >>> response = {"releases": [{"id": 82, "name": "Employment Situation"}]}
-            >>> release = fd.Release._from_response(response)
-            >>> release.name
-            'Employment Situation'
-        """
-        raw = _require_first_list(response, ("releases", "release"))
-
-        if not raw:
-            raise ModelError("No release found in the response")
-
-        return cls._from_dict(raw[0], client=client)
 
     # Properties
     @property
@@ -1207,31 +1133,6 @@ class Releases(_ModelSequence[Release]):
     _lookup_key: ClassVar[str | None] = "name"
     """Attribute used for string-key lookup and tab completion (``releases["<release_name>"]``)."""
 
-    # Class Methods
-    @classmethod
-    def _from_response(cls,
-        response: dict[str, Any],
-        client: _ClientModel | None = None
-    ) -> Releases:
-        """Build a :class:`Releases` sequence from a FRED API response payload.
-
-        Accepts both ``"releases"`` and ``"release"`` as the response key for
-        compatibility with FRED's inconsistent payload shapes.
-
-        Args:
-            response (dict[str, Any]): The raw FRED API response payload.
-            client (_ClientModel, optional): The FRED client to propagate to each constructed :class:`Release` and to the sequence itself. Defaults to ``None``.
-
-        Returns:
-            Releases: A sequence of :class:`Release` objects.
-
-        Raises:
-            ModelError: If the response lacks both ``"releases"`` and ``"release"`` keys.
-        """
-        raw = _require_first_list(response, ("releases", "release"))
-
-        return cls((cls._parse_item(item, client=client) for item in raw), client=client)
-
     # Sunder Methods
     def _repr_html_(self) -> str:
         """Render a compact HTML table preview of the first ten releases.
@@ -1304,8 +1205,8 @@ class ReleaseDate(_DateBase):
     release_name: str | None
     """The human-readable name of the release. Corresponds to ``release_name`` in the FRED API."""
 
-    _response_key: ClassVar[str] = "release_dates"
-    """The key in the FRED API response payload that contains the release-date list."""
+    _response_keys: ClassVar[tuple[str, ...]] = ("release_dates",)
+    """The key in the FRED API response payload that contains the release date list."""
 
     # Class Methods
     @classmethod
@@ -1582,7 +1483,7 @@ class Source(_ModelBase):
     notes: str | None = None
     """Free-form notes accompanying the source, if any."""
 
-    _response_key: ClassVar[str] = "sources"
+    _response_keys: ClassVar[tuple[str, ...]] = ("sources",)
     """The key in the FRED API response payload that contains the source list."""
 
     # Class Methods
@@ -1767,8 +1668,11 @@ class Element(_ModelBase):
     children: Elements | None = None
     """Child elements in the table hierarchy, or ``None`` if this is a leaf."""
 
-    _response_key: ClassVar[str] = "elements"
-    """The key in the FRED API response payload that contains the element mapping."""
+    _response_keys: ClassVar[tuple[str, ...]] = ("elements",)
+    """The key in the FRED API response payload that contains the element list. FRED returns this as a dict keyed by element id rather than a list; :func:`fedfred._core._objects_iter_dict_or_list` normalizes both shapes."""
+
+    _response_shape: ClassVar[_ResponseShape] = "dict_or_list"
+    """The shape of the FRED API response payload for this model, used by :func:`fedfred._core._objects_iter_dict_or_list` to normalize inconsistent shapes across endpoints. FRED returns ``"elements"`` as a dict keyed by element id rather than a list."""
 
     # Class Methods
     @classmethod
@@ -1822,36 +1726,6 @@ class Element(_ModelBase):
             children=children,
             client=client,
         )
-
-    @classmethod
-    def _from_response(
-        cls,
-        response: dict[str, Any],
-        client: _ClientModel | None = None
-    ) -> Element:
-        """Build a single :class:`Element` from a FRED API response payload.
-
-        FRED returns ``"elements"`` as a dict keyed by element id rather than
-        a list; :func:`fedfred._core._objects_iter_dict_or_list` normalizes
-        both shapes. This method returns the first entry; callers needing
-        the full tree should use :class:`Elements`.
-
-        Args:
-            response (dict[str, Any]): The raw FRED API response payload.
-            client (_ClientModel, optional): The FRED client to attach to the resulting :class:`Element`. Defaults to ``None``.
-
-        Returns:
-            Element: The first :class:`Element` in the response payload.
-
-        Raises:
-            ModelError: If the response does not contain any elements.
-        """
-        items = _objects_iter_dict_or_list(response, cls._response_key)
-
-        if not items:
-            raise ModelError("No element found in the response")
-
-        return cls._from_dict(items[0], client=client)
 
     # Properties
     @property
@@ -1916,29 +1790,6 @@ class Elements(_ModelSequence[Element]):
 
     _lookup_key: ClassVar[str | None] = "name"
     """Attribute used for string-key lookup and tab completion (``elements["<element_name>"]``)."""
-
-    # Class Methods
-    @classmethod
-    def _from_response(
-        cls,
-        response: dict[str, Any],
-        client: _ClientModel | None = None
-    ) -> Elements:
-        """Build an :class:`Elements` sequence from a FRED API response payload.
-
-        Normalizes FRED's dict-keyed element payload into a flat sequence
-        via :func:`fedfred._core._objects_iter_dict_or_list`.
-
-        Args:
-            response (dict[str, Any]): The raw FRED API response payload.
-            client (_ClientModel, optional): The FRED client to propagate to each constructed :class:`Element` and to the sequence itself. Defaults to ``None``.
-
-        Returns:
-            Elements: A sequence of :class:`Element` objects.
-        """
-        items = _objects_iter_dict_or_list(response, cls._response_key)
-
-        return cls((cls._parse_item(item, client=client) for item in items), client=client)
 
     # Sunder Methods
     def _repr_html_(self) -> str:

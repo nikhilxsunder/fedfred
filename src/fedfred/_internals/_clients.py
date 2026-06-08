@@ -56,7 +56,7 @@ Notes:
     ``AsyncFred``, ``AsyncAlfred``, ``AsyncFraser``).
 """
 
-from collections.abc import Callable, KeysView
+from collections.abc import KeysView
 from types import NotImplementedType, TracebackType
 from typing import Any, cast
 
