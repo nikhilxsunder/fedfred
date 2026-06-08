@@ -171,11 +171,12 @@ class Fred(_BaseClient):
 
         return category
 
-    def get_category_children(self,
-                              category_id: int,
-                              realtime_start: str | datetime | date | None = None,
-                              realtime_end: str | datetime | date | None = None
-                              ) -> Categories:
+    def get_category_children(
+        self,
+        category_id: int,
+        realtime_start: str | datetime | date | None = None,
+        realtime_end: str | datetime | date | None = None
+    ) -> Categories:
         """Get a FRED Category's Child Categories.
 
         Get the child categories for a specified category ID from the FRED API.
@@ -223,11 +224,12 @@ class Fred(_BaseClient):
 
         return categories
 
-    def get_category_related(self,
-                             category_id: int,
-                             realtime_start: str | datetime | date | None = None,
-                             realtime_end: str | datetime | date | None = None
-                             ) -> Categories:
+    def get_category_related(
+        self,
+        category_id: int,
+        realtime_start: str | datetime | date | None = None,
+        realtime_end: str | datetime | date | None = None
+    ) -> Categories:
         """Get a FRED Category's Related Categories.
 
         Get related categories for a given category ID from the FRED API.
@@ -278,19 +280,20 @@ class Fred(_BaseClient):
 
         return categories
 
-    def get_category_series(self,
-                            category_id: int,
-                            realtime_start: str | datetime | date | None = None,
-                            realtime_end: str | datetime | date | None = None,
-                            limit: int | None = None,
-                            offset: int | None = None,
-                            order_by: str | None = None,
-                            sort_order: str | None = None,
-                            filter_variable: str | None = None,
-                            filter_value: str | None = None,
-                            tag_names: str | list[str] | None = None,
-                            exclude_tag_names: str | list[str] | None = None
-                            ) -> Seriess:
+    def get_category_series(
+        self,
+        category_id: int,
+        realtime_start: str | datetime | date | None = None,
+        realtime_end: str | datetime | date | None = None,
+        limit: int | None = None,
+        offset: int | None = None,
+        order_by: str | None = None,
+        sort_order: str | None = None,
+        filter_variable: str | None = None,
+        filter_value: str | None = None,
+        tag_names: str | list[str] | None = None,
+        exclude_tag_names: str | list[str] | None = None
+    ) -> Seriess:
         """Get a FRED Category's FRED Series.
 
         Get the series info for all series in a category from the FRED API.
@@ -353,18 +356,19 @@ class Fred(_BaseClient):
 
         return series
 
-    def get_category_tags(self,
-                          category_id: int,
-                          realtime_start: str | datetime | date | None = None,
-                          realtime_end: str | datetime | date | None = None,
-                          tag_names: str | list[str] | None = None,
-                          tag_group_id: int | None = None,
-                          search_text: str | None = None,
-                          limit: int | None = None,
-                          offset: int | None = None,
-                          order_by: str | None = None,
-                          sort_order: str | None = None
-                          ) -> Tags:
+    def get_category_tags(
+        self,
+        category_id: int,
+        realtime_start: str | datetime | date | None = None,
+        realtime_end: str | datetime | date | None = None,
+        tag_names: str | list[str] | None = None,
+        tag_group_id: int | None = None,
+        search_text: str | None = None,
+        limit: int | None = None,
+        offset: int | None = None,
+        order_by: str | None = None,
+        sort_order: str | None = None
+    ) -> Tags:
         """Get a FRED Category's Tags.
 
         Get the all the tags for a category from the FRED API.
@@ -425,19 +429,20 @@ class Fred(_BaseClient):
 
         return tags
 
-    def get_category_related_tags(self,
-                                  category_id: int,
-                                  realtime_start: str | datetime | date | None = None,
-                                  realtime_end: str | datetime | date | None = None,
-                                  tag_names: str | list[str] | None = None,
-                                  exclude_tag_names: str | list[str] | None = None,
-                                  tag_group_id: str | None = None,
-                                  search_text: str | None = None,
-                                  limit: int | None = None,
-                                  offset: int | None = None,
-                                  order_by: str | None = None,
-                                  sort_order: str | None = None
-                                  ) -> Tags:
+    def get_category_related_tags(
+        self,
+        category_id: int,
+        realtime_start: str | datetime | date | None = None,
+        realtime_end: str | datetime | date | None = None,
+        tag_names: str | list[str] | None = None,
+        exclude_tag_names: str | list[str] | None = None,
+        tag_group_id: str | None = None,
+        search_text: str | None = None,
+        limit: int | None = None,
+        offset: int | None = None,
+        order_by: str | None = None,
+        sort_order: str | None = None
+    ) -> Tags:
         """Get a FRED Category's Related Tags.
 
         Retrieve all tags related to a specified category from the FRED API.
@@ -502,14 +507,15 @@ class Fred(_BaseClient):
         return tags
 
     ## Releases
-    def get_releases(self,
-                     realtime_start: str | datetime | date | None = None,
-                     realtime_end: str | datetime | date | None = None,
-                     limit: int | None = None,
-                     offset: int | None = None,
-                     order_by: str | None = None,
-                     sort_order: str | None = None
-                     ) -> Releases:
+    def get_releases(
+        self,
+        realtime_start: str | datetime | date | None = None,
+        realtime_end: str | datetime | date | None = None,
+        limit: int | None = None,
+        offset: int | None = None,
+        order_by: str | None = None,
+        sort_order: str | None = None
+    ) -> Releases:
         """Get FRED releases.
 
         Get all economic data releases from the FRED API.
@@ -562,15 +568,16 @@ class Fred(_BaseClient):
 
         return releases
 
-    def get_releases_dates(self,
-                           realtime_start: str | datetime | date | None = None,
-                           realtime_end: str | datetime | date | None = None,
-                           limit: int | None = None,
-                           offset: int | None = None,
-                           order_by: str | None = None,
-                           sort_order: str | None = None,
-                           include_releases_dates_with_no_data: bool | None = None
-                           ) -> ReleaseDates:
+    def get_releases_dates(
+        self,
+        realtime_start: str | datetime | date | None = None,
+        realtime_end: str | datetime | date | None = None,
+        limit: int | None = None,
+        offset: int | None = None,
+        order_by: str | None = None,
+        sort_order: str | None = None,
+        include_releases_dates_with_no_data: bool | None = None
+    ) -> ReleaseDates:
         """Get FRED releases dates.
 
         Get all release dates for economic data releases from the FRED API.
@@ -623,11 +630,12 @@ class Fred(_BaseClient):
 
         return ReleaseDates._from_response(response)
 
-    def get_release(self,
-                    release_id: int,
-                    realtime_start: str | datetime | date | None = None,
-                    realtime_end: str | datetime | date | None = None
-                    ) -> Release:
+    def get_release(
+        self,
+        release_id: int,
+        realtime_start: str | datetime | date | None = None,
+        realtime_end: str | datetime | date | None = None
+    ) -> Release:
         """Get a FRED release.
 
         Get the release for a given release ID from the FRED API.
@@ -671,15 +679,16 @@ class Fred(_BaseClient):
 
         return release
 
-    def get_release_dates(self,
-                          release_id: int,
-                          realtime_start: str | datetime | date | None = None,
-                          realtime_end: str | datetime | date | None = None,
-                          limit: int | None = None,
-                          offset: int | None = None,
-                          sort_order: str | None = None,
-                          include_releases_dates_with_no_data: bool | None = None
-                          ) -> ReleaseDates:
+    def get_release_dates(
+        self,
+        release_id: int,
+        realtime_start: str | datetime | date | None = None,
+        realtime_end: str | datetime | date | None = None,
+        limit: int | None = None,
+        offset: int | None = None,
+        sort_order: str | None = None,
+        include_releases_dates_with_no_data: bool | None = None
+    ) -> ReleaseDates:
         """Get FRED release dates.
 
         Get the release dates for a given release ID from the FRED API.
@@ -732,17 +741,18 @@ class Fred(_BaseClient):
 
         return ReleaseDates._from_response(response)
 
-    def get_release_series(self,
-                           release_id: int,
-                           realtime_start: str | datetime | date | None = None,
-                           realtime_end: str | datetime | date | None = None,
-                           limit: int | None = None,
-                           offset: int | None = None,
-                           sort_order: str | None = None,
-                           filter_variable: str | None = None,
-                           filter_value: str | None = None,
-                           exclude_tag_names: str | list[str] | None = None
-                           ) -> Seriess:
+    def get_release_series(
+        self,
+        release_id: int,
+        realtime_start: str | datetime | date | None = None,
+        realtime_end: str | datetime | date | None = None,
+        limit: int | None = None,
+        offset: int | None = None,
+        sort_order: str | None = None,
+        filter_variable: str | None = None,
+        filter_value: str | None = None,
+        exclude_tag_names: str | list[str] | None = None
+    ) -> Seriess:
         """Get FRED release series.
 
         Get the series in a release.
@@ -801,11 +811,12 @@ class Fred(_BaseClient):
 
         return seriess
 
-    def get_release_sources(self,
-                            release_id: int,
-                            realtime_start: str | datetime | date | None = None,
-                            realtime_end: str | datetime | date | None = None
-                            ) -> Sources:
+    def get_release_sources(
+        self,
+        release_id: int,
+        realtime_start: str | datetime | date | None = None,
+        realtime_end: str | datetime | date | None = None
+    ) -> Sources:
         """Get FRED release sources.
 
         Retrieve the sources for a specified release from the FRED API.
@@ -851,17 +862,18 @@ class Fred(_BaseClient):
 
         return sources
 
-    def get_release_tags(self,
-                         release_id: int,
-                         realtime_start: str | datetime | date | None = None,
-                         realtime_end: str | datetime | date | None = None,
-                         tag_names: str | list[str] | None = None,
-                         tag_group_id: int | None = None,
-                         search_text: str | None = None,
-                         limit: int | None = None,
-                         offset: int | None = None,
-                         order_by: str | None = None
-                         ) -> Tags:
+    def get_release_tags(
+        self,
+        release_id: int,
+        realtime_start: str | datetime | date | None = None,
+        realtime_end: str | datetime | date | None = None,
+        tag_names: str | list[str] | None = None,
+        tag_group_id: int | None = None,
+        search_text: str | None = None,
+        limit: int | None = None,
+        offset: int | None = None,
+        order_by: str | None = None
+    ) -> Tags:
         """Get FRED release tags.
 
         Get the release tags for a given release ID from the FRED API.
@@ -920,19 +932,20 @@ class Fred(_BaseClient):
 
         return tags
 
-    def get_release_related_tags(self,
-                                 release_id: int,
-                                 realtime_start: str | datetime | date | None = None,
-                                 realtime_end: str | datetime | date | None = None,
-                                 tag_names: str | list[str] | None = None,
-                                 exclude_tag_names: str | list[str] | None = None,
-                                 tag_group_id: str | None = None,
-                                 search_text: str | None = None,
-                                 limit: int | None = None,
-                                 offset: int | None = None,
-                                 order_by: str | None = None,
-                                 sort_order: str | None = None
-                                 ) -> Tags:
+    def get_release_related_tags(
+        self,
+        release_id: int,
+        realtime_start: str | datetime | date | None = None,
+        realtime_end: str | datetime | date | None = None,
+        tag_names: str | list[str] | None = None,
+        exclude_tag_names: str | list[str] | None = None,
+        tag_group_id: str | None = None,
+        search_text: str | None = None,
+        limit: int | None = None,
+        offset: int | None = None,
+        order_by: str | None = None,
+        sort_order: str | None = None
+    ) -> Tags:
         """Get FRED release related tags.
 
         Get release related tags for a given series search text.
@@ -996,12 +1009,13 @@ class Fred(_BaseClient):
 
         return tags
 
-    def get_release_tables(self,
-                           release_id: int,
-                           element_id: int | None = None,
-                           include_observation_values: bool | None = None,
-                           observation_date: str | datetime | date | None = None
-                           ) -> Elements:
+    def get_release_tables(
+        self,
+        release_id: int,
+        element_id: int | None = None,
+        include_observation_values: bool | None = None,
+        observation_date: str | datetime | date | None = None
+    ) -> Elements:
         """Get FRED release tables.
 
         Fetches release tables from the FRED API.
@@ -1113,11 +1127,12 @@ class Fred(_BaseClient):
         return return_list
 
     ## Series
-    def get_series(self,
-                   series_id: str,
-                   realtime_start: str | datetime | date | None = None,
-                   realtime_end: str | datetime | date | None = None
-                   ) -> Series:
+    def get_series(
+        self,
+        series_id: str,
+        realtime_start: str | datetime | date | None = None,
+        realtime_end: str | datetime | date | None = None
+    ) -> Series:
         """Get a FRED series.
 
         Retrieve economic data series information from the FRED API.
@@ -1161,11 +1176,12 @@ class Fred(_BaseClient):
 
         return series
 
-    def get_series_categories(self,
-                              series_id: str,
-                              realtime_start: str | datetime | date | None = None,
-                              realtime_end: str | datetime | date | None = None
-                              ) -> Categories:
+    def get_series_categories(
+        self,
+        series_id: str,
+        realtime_start: str | datetime | date | None = None,
+        realtime_end: str | datetime | date | None = None
+    ) -> Categories:
         """Get FRED series categories.
 
         Get the categories for a specified series.
@@ -1211,22 +1227,23 @@ class Fred(_BaseClient):
 
         return categories
 
-    def get_series_observations(self,
-                                series_id: str,
-                                dataframe_method: str | None = None,
-                                realtime_start: str | datetime | date | None = None,
-                                realtime_end: str | datetime | date | None = None,
-                                limit: int | None = None,
-                                offset: int | None = None,
-                                sort_order: str | None = None,
-                                observation_start: str | datetime | date | None = None,
-                                observation_end: str | datetime | date | None = None,
-                                units: str | None = None,
-                                frequency: str | None = None,
-                                aggregation_method: str | None = None,
-                                output_type: int | None = None,
-                                vintage_dates: str | datetime | date | list[str | datetime | date | None] | None = None
-                                ) -> pd.DataFrame | 'pl.DataFrame' | 'dd.DataFrame':
+    def get_series_observations(
+        self,
+        series_id: str,
+        dataframe_method: str | None = None,
+        realtime_start: str | datetime | date | None = None,
+        realtime_end: str | datetime | date | None = None,
+        limit: int | None = None,
+        offset: int | None = None,
+        sort_order: str | None = None,
+        observation_start: str | datetime | date | None = None,
+        observation_end: str | datetime | date | None = None,
+        units: str | None = None,
+        frequency: str | None = None,
+        aggregation_method: str | None = None,
+        output_type: int | None = None,
+        vintage_dates: str | datetime | date | list[str | datetime | date | None] | None = None
+    ) -> pd.DataFrame | 'pl.DataFrame' | 'dd.DataFrame':
         """Get FRED series observations.
 
         Get observations for a FRED series as a pandas or polars DataFrame.
@@ -1296,11 +1313,12 @@ class Fred(_BaseClient):
 
         return df_method(response)
 
-    def get_series_release(self,
-                           series_id: str,
-                           realtime_start: str | datetime | date | None = None,
-                           realtime_end: str | datetime | date | None = None
-                           ) -> Release:
+    def get_series_release(
+        self,
+        series_id: str,
+        realtime_start: str | datetime | date | None = None,
+        realtime_end: str | datetime | date | None = None
+    ) -> Release:
         """Get FRED series release.
 
         Get the release for a specified series from the FRED API.
@@ -1344,20 +1362,21 @@ class Fred(_BaseClient):
 
         return release
 
-    def get_series_search(self,
-                          search_text: str,
-                          search_type: str | None = None,
-                          realtime_start: str | datetime | date | None = None,
-                          realtime_end: str | datetime | date | None = None,
-                          limit: int | None = None,
-                          offset: int | None = None,
-                          order_by: str | None = None,
-                          sort_order: str | None = None,
-                          filter_variable: str | None = None,
-                          filter_value: str | None = None,
-                          tag_names: str | list[str] | None = None,
-                          exclude_tag_names: str | list[str] | None = None
-                          ) -> Seriess:
+    def get_series_search(
+        self,
+        search_text: str,
+        search_type: str | None = None,
+        realtime_start: str | datetime | date | None = None,
+        realtime_end: str | datetime | date | None = None,
+        limit: int | None = None,
+        offset: int | None = None,
+        order_by: str | None = None,
+        sort_order: str | None = None,
+        filter_variable: str | None = None,
+        filter_value: str | None = None,
+        tag_names: str | list[str] | None = None,
+        exclude_tag_names: str | list[str] | None = None
+    ) -> Seriess:
         """Get FRED series search.
 
         Searches for economic data series based on text queries.
@@ -1422,18 +1441,19 @@ class Fred(_BaseClient):
 
         return seriess
 
-    def get_series_search_tags(self,
-                               series_search_text: str,
-                               realtime_start: str | datetime | date | None = None,
-                               realtime_end: str | datetime | date | None = None,
-                               tag_names: str | list[str] | None = None,
-                               tag_group_id: str | None = None,
-                               tag_search_text: str | None = None,
-                               limit: int | None = None,
-                               offset: int | None = None,
-                               order_by: str | None = None,
-                               sort_order: str | None = None
-                               ) -> Tags:
+    def get_series_search_tags(
+        self,
+        series_search_text: str,
+        realtime_start: str | datetime | date | None = None,
+        realtime_end: str | datetime | date | None = None,
+        tag_names: str | list[str] | None = None,
+        tag_group_id: str | None = None,
+        tag_search_text: str | None = None,
+        limit: int | None = None,
+        offset: int | None = None,
+        order_by: str | None = None,
+        sort_order: str | None = None
+    ) -> Tags:
         """Get FRED series search tags.
 
         Get the tags for a series search.
@@ -1494,19 +1514,20 @@ class Fred(_BaseClient):
 
         return tags
 
-    def get_series_search_related_tags(self,
-                                       series_search_text: str,
-                                       tag_names: str | list[str] | None = None,
-                                       realtime_start: str | datetime | date | None = None,
-                                       realtime_end: str | datetime | date | None = None,
-                                       exclude_tag_names: str | list[str] | None = None,
-                                       tag_group_id: str | None = None,
-                                       tag_search_text: str | None = None,
-                                       limit: int | None = None,
-                                       offset: int | None = None,
-                                       order_by: str | None = None,
-                                       sort_order: str | None = None
-                                       ) -> Tags:
+    def get_series_search_related_tags(
+        self,
+        series_search_text: str,
+        tag_names: str | list[str] | None = None,
+        realtime_start: str | datetime | date | None = None,
+        realtime_end: str | datetime | date | None = None,
+        exclude_tag_names: str | list[str] | None = None,
+        tag_group_id: str | None = None,
+        tag_search_text: str | None = None,
+        limit: int | None = None,
+        offset: int | None = None,
+        order_by: str | None = None,
+        sort_order: str | None = None
+    ) -> Tags:
         """Get FRED series search related tags.
 
         Get related tags for a series search text.
@@ -1570,13 +1591,14 @@ class Fred(_BaseClient):
 
         return tags
 
-    def get_series_tags(self,
-                        series_id: str,
-                        realtime_start: str | datetime | date | None = None,
-                        realtime_end: str | datetime | date | None = None,
-                        order_by: str | None = None,
-                        sort_order: str | None = None
-                        ) -> Tags:
+    def get_series_tags(
+        self,
+        series_id: str,
+        realtime_start: str | datetime | date | None = None,
+        realtime_end: str | datetime | date | None = None,
+        order_by: str | None = None,
+        sort_order: str | None = None
+    ) -> Tags:
         """Get FRED series tags.
 
         Get the tags for a series.
@@ -1627,15 +1649,16 @@ class Fred(_BaseClient):
 
         return tags
 
-    def get_series_updates(self,                                                    # TODO: Consider rechecking response schema and changing return model.
-                           realtime_start: str | datetime | date | None = None,
-                           realtime_end: str | datetime | date | None = None,
-                           limit: int | None = None,
-                           offset: int | None = None,
-                           filter_value: str | None = None,
-                           start_time: str | datetime | time | None = None,
-                           end_time: str | datetime | time | None = None
-                           ) -> Seriess:
+    def get_series_updates(         # TODO: Consider rechecking response schema and changing return model.
+        self,
+        realtime_start: str | datetime | date | None = None,
+        realtime_end: str | datetime | date | None = None,
+        limit: int | None = None,
+        offset: int | None = None,
+        filter_value: str | None = None,
+        start_time: str | datetime | time | None = None,
+        end_time: str | datetime | time | None = None
+    ) -> Seriess:
         """Get FRED series updates.
 
         Retrieves updates for a series from the FRED API.
@@ -1690,14 +1713,15 @@ class Fred(_BaseClient):
 
         return seriess
 
-    def get_series_vintagedates(self,
-                                series_id: str,
-                                realtime_start: str | datetime | date | None = None,
-                                realtime_end: str | datetime | date | None = None,
-                                limit: int | None = None,
-                                offset: int | None = None,
-                                sort_order: str | None = None
-                                ) -> VintageDates:
+    def get_series_vintagedates(
+        self,
+        series_id: str,
+        realtime_start: str | datetime | date | None = None,
+        realtime_end: str | datetime | date | None = None,
+        limit: int | None = None,
+        offset: int | None = None,
+        sort_order: str | None = None
+    ) -> VintageDates:
         """Get FRED series vintage dates.
 
         Get the vintage dates for a given FRED series.
@@ -1749,14 +1773,15 @@ class Fred(_BaseClient):
         return VintageDates._from_response(response)
 
     ## Sources
-    def get_sources(self,
-                    realtime_start: str | datetime | date | None = None,
-                    realtime_end: str | datetime | date | None = None,
-                    limit: int | None = None,
-                    offset: int | None = None,
-                    order_by: str | None = None,
-                    sort_order: str | None = None
-                    ) -> Sources:
+    def get_sources(
+        self,
+        realtime_start: str | datetime | date | None = None,
+        realtime_end: str | datetime | date | None = None,
+        limit: int | None = None,
+        offset: int | None = None,
+        order_by: str | None = None,
+        sort_order: str | None = None
+    ) -> Sources:
         """Get FRED sources.
 
         Retrieve sources of economic data from the FRED API.
@@ -1809,11 +1834,12 @@ class Fred(_BaseClient):
 
         return sources
 
-    def get_source(self,
-                   source_id: int,
-                   realtime_start: str | datetime | date | None = None,
-                   realtime_end: str | datetime | date | None = None
-                   ) -> Source:
+    def get_source(
+        self,
+        source_id: int,
+        realtime_start: str | datetime | date | None = None,
+        realtime_end: str | datetime | date | None = None
+    ) -> Source:
         """Get a FRED source.
 
         Retrieves information about a source from the FRED API.
@@ -1857,15 +1883,16 @@ class Fred(_BaseClient):
 
         return source
 
-    def get_source_releases(self,
-                            source_id: int,
-                            realtime_start: str | datetime | date | None = None,
-                            realtime_end: str | datetime | date | None = None,
-                            limit: int | None = None,
-                            offset: int | None = None,
-                            order_by: str | None = None,
-                            sort_order: str | None = None
-                            ) -> Releases:
+    def get_source_releases(
+        self,
+        source_id: int,
+        realtime_start: str | datetime | date | None = None,
+        realtime_end: str | datetime | date | None = None,
+        limit: int | None = None,
+        offset: int | None = None,
+        order_by: str | None = None,
+        sort_order: str | None = None
+    ) -> Releases:
         """Get FRED source releases.
 
         Get the releases for a specified source from the FRED API.
@@ -1921,17 +1948,18 @@ class Fred(_BaseClient):
         return releases
 
     ## Tags
-    def get_tags(self,
-                 realtime_start: str | datetime | date | None = None,
-                 realtime_end: str | datetime | date | None = None,
-                 tag_names: str | list[str] | None = None,
-                 tag_group_id: str | None = None,
-                 search_text: str | None = None,
-                 limit: int | None = None,
-                 offset: int | None = None,
-                 order_by: str | None = None,
-                 sort_order: str | None = None
-                 ) -> Tags:
+    def get_tags(
+        self,
+        realtime_start: str | datetime | date | None = None,
+        realtime_end: str | datetime | date | None = None,
+        tag_names: str | list[str] | None = None,
+        tag_group_id: str | None = None,
+        search_text: str | None = None,
+        limit: int | None = None,
+        offset: int | None = None,
+        order_by: str | None = None,
+        sort_order: str | None = None
+    ) -> Tags:
         """Get FRED tags.
 
         Retrieve FRED tags based on specified parameters.
@@ -1990,18 +2018,19 @@ class Fred(_BaseClient):
 
         return tags
 
-    def get_related_tags(self,
-                         tag_names: str | list[str],
-                         realtime_start: str | datetime | date | None = None,
-                         realtime_end: str | datetime | date | None = None,
-                         exclude_tag_names: str | list[str] | None = None,
-                         tag_group_id: str | None = None,
-                         search_text: str | None = None,
-                         limit: int | None = None,
-                         offset: int | None = None,
-                         order_by: str | None = None,
-                         sort_order: str | None = None
-                         ) -> Tags:
+    def get_related_tags(
+        self,
+        tag_names: str | list[str],
+        realtime_start: str | datetime | date | None = None,
+        realtime_end: str | datetime | date | None = None,
+        exclude_tag_names: str | list[str] | None = None,
+        tag_group_id: str | None = None,
+        search_text: str | None = None,
+        limit: int | None = None,
+        offset: int | None = None,
+        order_by: str | None = None,
+        sort_order: str | None = None
+    ) -> Tags:
         """Get FRED related tags.
 
         Retrieve related tags for a given set of tags from the FRED API.
@@ -2062,16 +2091,17 @@ class Fred(_BaseClient):
 
         return tags
 
-    def get_tags_series(self,
-                        tag_names: str | list[str],
-                        exclude_tag_names: str | list[str] | None = None,
-                        realtime_start: str | datetime | date | None = None,
-                        realtime_end: str | datetime | date | None = None,
-                        limit: int | None = None,
-                        offset: int | None = None,
-                        order_by: str | None = None,
-                        sort_order: str | None = None
-                        ) -> Seriess:
+    def get_tags_series(
+        self,
+        tag_names: str | list[str],
+        exclude_tag_names: str | list[str] | None = None,
+        realtime_start: str | datetime | date | None = None,
+        realtime_end: str | datetime | date | None = None,
+        limit: int | None = None,
+        offset: int | None = None,
+        order_by: str | None = None,
+        sort_order: str | None = None
+    ) -> Seriess:
         """Get FRED tags series.
 
         Get the series matching tags.

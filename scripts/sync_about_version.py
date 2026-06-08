@@ -1,6 +1,8 @@
 import re
 from pathlib import Path
+
 import toml
+
 
 def main():
     # Paths to __about__.py and pyproject.toml

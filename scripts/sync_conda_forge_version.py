@@ -1,6 +1,8 @@
-import tomli
 import re
 from pathlib import Path
+
+import tomli
+
 
 def sync_conda_version():
     # Paths to the files

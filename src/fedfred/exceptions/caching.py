@@ -4,9 +4,10 @@ Exception hierarchy for the caching module.
 """
 
 from dataclasses import dataclass
-from typing import Optional, Any
+from typing import Any, Optional
 
 from fedfred.exceptions.base import FedFredError
+
 
 @dataclass(frozen=True, slots=True)
 class CachingError(FedFredError):

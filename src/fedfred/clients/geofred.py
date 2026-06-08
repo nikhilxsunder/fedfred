@@ -41,39 +41,51 @@ Examples:
 """
 
 from __future__ import annotations
+
 import asyncio
-from datetime import datetime, date
-from typing import TYPE_CHECKING, Optional, Dict, Union, List, Tuple, Any, KeysView
+from datetime import date, datetime
 from types import TracebackType
+from typing import TYPE_CHECKING, Any, Dict, KeysView, List, Optional, Tuple, Union
+
 import geopandas as gpd
-from ...settings import set_api_key, _resolve_api_key
+
 from ..._core import (
-    # Converters
-    _hashable_type_converter, _hashable_type_converter_async,
-    GEODATAFRAME_CONVERTER_MAP, ASYNC_GEODATAFRAME_CONVERTER_MAP,
-    # Transport
-    _get_request, _get_request_async,
-    _cached_get_request, _cached_get_request_async,
-    # Caching
-    set_cache_maxsize, get_cache_maxsize, _CACHE,
-    # Endpoints
-    _ST_LOUIS_FED_BASE_URL, _GEOFRED_PATH,
+    _CACHE,
     # Rate Limit
     _FRED_MAX_REQUESTS_PER_MINUTE,
+    _GEOFRED_PATH,
+    # Endpoints
+    _ST_LOUIS_FED_BASE_URL,
+    ASYNC_GEODATAFRAME_CONVERTER_MAP,
+    GEODATAFRAME_CONVERTER_MAP,
+    _cached_get_request,
+    _cached_get_request_async,
+    # Transport
+    _get_request,
+    _get_request_async,
+    # Converters
+    _hashable_type_converter,
+    _hashable_type_converter_async,
     # Parsers
-    _region_type_parser, _region_type_parser_async
+    _region_type_parser,
+    _region_type_parser_async,
+    get_cache_maxsize,
+    # Caching
+    set_cache_maxsize,
 )
 from ...models import SeriesGroup
-from.._internals import _BaseClient, _AsyncBaseClient
+from ...settings import _resolve_api_key, set_api_key
+from .._internals import _AsyncBaseClient, _BaseClient
 
 if TYPE_CHECKING:
-    import dask_geopandas as dd_gpd # pragma: no cover
-    import polars_st as st # pragma: no cover
+    import dask_geopandas as dd_gpd  # pragma: no cover
+    import polars_st as st  # pragma: no cover
 
 # TODO: Fix all docstrings post error design.
 
 __all__ = [
-    "GeoFred", "AsyncGeoFred"
+    "AsyncGeoFred",
+    "GeoFred"
 ]
 
 class GeoFred(_BaseClient):

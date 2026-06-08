@@ -3,10 +3,11 @@
 Script to synchronize conda-recipe/meta.yaml with pyproject.toml.
 This ensures the conda recipe always has the correct version and URL.
 """
+import os
 import re
 import sys
-import os
 from pathlib import Path
+
 try:
     import tomllib  # Python 3.11+
 except ImportError:

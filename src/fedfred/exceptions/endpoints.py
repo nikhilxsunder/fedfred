@@ -1,8 +1,8 @@
 
 
 from dataclasses import dataclass
-from .base import FedFredError
 
+from .base import FedFredError
 
 
 @dataclass(frozen=True, slots=True)

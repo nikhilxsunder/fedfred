@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from typing import Tuple
+
 from .base import FedFredError
+
 
 @dataclass(frozen=True, slots=True)
 class ConversionError(FedFredError):

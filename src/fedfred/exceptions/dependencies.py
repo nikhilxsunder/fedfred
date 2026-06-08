@@ -4,6 +4,7 @@
 
 from dataclasses import dataclass
 from typing import Optional
+
 from .base import FedFredError
 
 

@@ -40,8 +40,8 @@ See Also:
 """
 
 from .._core import (
-    _ResponseShape,
     _coerce_lower,
+    _ResponseShape,
 )
 from ._caching import (
     AdjustableFIFOCache,
@@ -70,6 +70,8 @@ __all__ = [
     "_DateSequence",
     "_ModelBase",
     "_ModelSequence",
+    "_ResponseShape",
+    "_coerce_lower",
     "_retrieve_cache_instance",
     "get_cache_maxsize",
     "set_cache_maxsize",

@@ -40,24 +40,23 @@ See Also:
 """
 
 from ._converters import (
+    _coerce_lower,
     _dict_type_converter,
     _hashable_type_converter,
-    _coerce_lower,
 )
 from ._endpoints import _resolve_endpoint
 from ._parameters import _resolve_preparation_function
 from ._parsers import (
-    _ResponseShape,
     _extract_objects,
     _region_type_parser,
+    _ResponseShape,
 )
-
 
 __all__ = [
     "_ResponseShape",
+    "_coerce_lower",
     "_dict_type_converter",
     "_extract_objects",
-    "_coerce_lower",
     "_hashable_type_converter",
     "_region_type_parser",
     "_resolve_endpoint",

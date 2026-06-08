@@ -36,19 +36,24 @@ Imports:
     BulkRelease: A class representing a bulk release in the Fred database.
 """
 
-from .fred import (
-    Category, Categories,
-    Series, Seriess,
-    Tag, Tags,
-    Release, Releases,
-    ReleaseDate, ReleaseDates,
-    Source, Sources,
-    Element, Elements,
-    #BulkRelease
-)
-
 from .alfred import VintageDate, VintageDates
-
+from .fred import (
+    Categories,
+    Category,
+    Element,
+    Elements,
+    #BulkRelease
+    Release,
+    ReleaseDate,
+    ReleaseDates,
+    Releases,
+    Series,
+    Seriess,
+    Source,
+    Sources,
+    Tag,
+    Tags,
+)
 from .geofred import SeriesGroup
 
 __all__ = [

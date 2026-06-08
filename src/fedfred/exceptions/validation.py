@@ -1,7 +1,9 @@
 
 from dataclasses import dataclass, field
 from typing import Any, Mapping
+
 from .base import FedFredError
+
 
 @dataclass(frozen=True, slots=True)
 class ValidationError(FedFredError):

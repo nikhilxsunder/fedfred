@@ -1,12 +1,14 @@
 
 import asyncio
 from typing import TYPE_CHECKING, Union
+
 import pandas as pd
-from ..__about__ import __title__, __version__, __author__, __email__, __license__, __copyright__, __description__, __docs__, __repository__
+
+from ..__about__ import __author__, __copyright__, __description__, __docs__, __email__, __license__, __repository__, __title__, __version__
 from ._converter_mappings import _FREQUENCIES_MAP
 
 if TYPE_CHECKING:
-    import polars as pl # pragma: no cover
+    import polars as pl  # pragma: no cover
 
 def _pandas_frequency_converter(frequency: str) -> str:
     """Convert FRED native frequency strings to pandas compatible ones.

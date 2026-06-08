@@ -47,66 +47,44 @@ Imports:
 
 # About
 from .__about__ import (
-    __title__,
-    __version__,
     __author__,
-    __email__,
-    __license__,
     __copyright__,
     __description__,
     __docs__,
+    __email__,
+    __license__,
     __repository__,
-)
-
-# Settings
-from .settings import set_api_key, get_api_key, clear_api_key
-
-# Models
-from .models import (
-    Category,
-    Series,
-    Tag,
-    Release,
-    ReleaseDate,
-    Source,
-    Element,
-    VintageDate,
-    VintageDates,
-    SeriesGroup,
-    BulkRelease,
-)
-
-# Clients
-from ._internals.clients import (
-    Fred,
-    AsyncFred,
-    GeoFred,
-    AsyncGeoFred,
-    Fraser,
-    Alfred,
-    AsyncAlfred
-)
-
-# Exceptions
-from .exceptions import (
-    FedFredError,
-    RequestContext,
-    FedFredTransportError,
-    FedFredParsingError,
-    FedFredAPIError,
-    FedFredRateLimitError,
-    FedFredValidationError,
-    FedFredHTTPError,
-    FedFredAuthError,
-    FedFredNotFoundError,
-    FedFredServerError
+    __title__,
+    __version__,
 )
 
 # Deprecated
-from ._core import (
-    FredHelpers,
-    FredAPI
+from ._core import FredAPI, FredHelpers
+
+# Clients
+from ._internals.clients import Alfred, AsyncAlfred, AsyncFred, AsyncGeoFred, Fraser, Fred, GeoFred
+
+# Exceptions
+from .exceptions import FedFredAPIError, FedFredAuthError, FedFredError, FedFredHTTPError, FedFredNotFoundError, FedFredParsingError, FedFredRateLimitError, FedFredServerError, FedFredTransportError, FedFredValidationError, RequestContext
+
+# Models
+from .models import (
+    BulkRelease,
+    Category,
+    Element,
+    Release,
+    ReleaseDate,
+    Series,
+    SeriesGroup,
+    Source,
+    Tag,
+    VintageDate,
+    VintageDates,
 )
+
+# Settings
+from .settings import clear_api_key, get_api_key, set_api_key
+
 AsyncAPI = FredAPI.AsyncAPI
 AsyncMapsAPI = FredAPI.AsyncAPI.AsyncMapsAPI
 MapsAPI = FredAPI.MapsAPI

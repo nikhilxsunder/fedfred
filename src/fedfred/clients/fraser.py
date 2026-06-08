@@ -24,15 +24,18 @@
 This module defines the Fraser client for interacting with the Federal Reserve Fraser API.
 """
 
-from typing import Any, Dict, Optional, Tuple, Union
-from collections import deque
 import time
-from cachetools import FIFOCache, cached
+from collections import deque
+from typing import Any, Dict, Optional, Tuple, Union
+
 import httpx
-from tenacity import retry, wait_fixed, stop_after_attempt, retry_if_exception_type
-from .._internals import _BaseClient, _AsyncBaseClient
+from cachetools import FIFOCache, cached
+from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
+
 from ..._core._parsers import Helpers
+from .._internals import _AsyncBaseClient, _BaseClient
 from ..config import resolve_api_key
+
 
 class Fraser(_BaseClient):
     """Client for the Federal Reserve FRASER API.

@@ -49,9 +49,11 @@ References:
 """
 
 from __future__ import annotations
-from typing import Optional, Literal, Dict
+
 import os
-from .__about__ import __title__, __version__, __author__, __email__, __license__, __copyright__, __description__, __docs__, __repository__
+from typing import Dict, Literal, Optional
+
+from .__about__ import __author__, __copyright__, __description__, __docs__, __email__, __license__, __repository__, __title__, __version__
 
 Service = Literal["fred", "fraser", "geofred", "alfred"]
 """Type alias for supported services in fedfred package."""

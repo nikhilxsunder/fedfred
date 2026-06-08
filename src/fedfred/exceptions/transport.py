@@ -1,8 +1,11 @@
 
 from dataclasses import dataclass
 from typing import Optional
+
 from tenacity import RetryError
+
 from .base import FedFredError
+
 
 @dataclass(frozen=True, slots=True)
 class TransportError(FedFredError):

@@ -22,17 +22,18 @@
 """
 """
 
-from datetime import datetime, date
-from typing import Optional, Union, Any, TYPE_CHECKING, Dict, List
-from types import TracebackType, NotImplementedType
+from datetime import date, datetime
+from types import NotImplementedType, TracebackType
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
+
 import pandas as pd
-from .._internals import _BaseClient, _AsyncBaseClient
+
+from .._internals import _AsyncBaseClient, _BaseClient
 from ..models import Series
 
-
 if TYPE_CHECKING:
-    import polars as pl # pragma: no cover
-    import dask.dataframe as dd # pragma: no cover
+    import dask.dataframe as dd  # pragma: no cover
+    import polars as pl  # pragma: no cover
 
 __all__ = [
     "Alfred",

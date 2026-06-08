@@ -1,7 +1,9 @@
 
 from dataclasses import dataclass
 from typing import Any, Dict, Optional
+
 from fedfred.exceptions.base import FedFredError
+
 
 @dataclass(frozen=True, slots=True)
 class ParameterServiceError(FedFredError):

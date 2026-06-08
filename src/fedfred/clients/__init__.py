@@ -32,10 +32,10 @@ Imports:
     Fraser: A class that provides methods to interact with the Fraser API.
 """
 
-from .fred import Fred, AsyncFred
-from .geofred import GeoFred, AsyncGeoFred
-from.alfred import Alfred, AsyncAlfred
+from .alfred import Alfred, AsyncAlfred
 from .fraser import Fraser
+from .fred import AsyncFred, Fred
+from .geofred import AsyncGeoFred, GeoFred
 
 __all__ = [
     # Fred Family

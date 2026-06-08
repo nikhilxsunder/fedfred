@@ -82,7 +82,7 @@ from typing import (
     overload,
 )
 
-from .._core import _ResponseShape, _extract_objects
+from .._core import _extract_objects, _ResponseShape
 from ._clients import _ClientModel
 
 # TODO: Fix all docstrings post error design.

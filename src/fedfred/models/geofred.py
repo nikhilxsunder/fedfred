@@ -1,8 +1,9 @@
 
 
-from typing import List, Dict
-from dataclasses import dataclass
 import asyncio
+from dataclasses import dataclass
+from typing import Dict, List
+
 
 @dataclass(slots=True)
 class SeriesGroup:

@@ -89,6 +89,7 @@ from typing import (
     ClassVar,
     Self,
     SupportsIndex,
+    cast,
 )
 
 import pandas as pd
@@ -108,7 +109,7 @@ if TYPE_CHECKING:
     import dask.dataframe as dd
     import polars as pl
 
-    #from ..clients import Fred # TODO: Uncomment if useable for resolving property issue.
+    from ..clients import Fred
 
 # TODO: Fix all docstrings post error design.
 
@@ -254,7 +255,8 @@ class Category(_ModelBase):
         Raises:
             ModelError: If no client is attached to this instance.
         """
-        return self._require_client().get_category_children(self.id)
+        client = cast("Fred", self._require_client())
+        return client.get_category_children(self.id)
 
     @property
     def related(self) -> Categories:
@@ -269,7 +271,8 @@ class Category(_ModelBase):
         Raises:
             ModelError: If no client is attached to this instance.
         """
-        return self._require_client().get_category_related(self.id)
+        client = cast("Fred", self._require_client())
+        return client.get_category_related(self.id)
 
     @property
     def series(self) -> Seriess:
@@ -284,7 +287,8 @@ class Category(_ModelBase):
         Raises:
             ModelError: If no client is attached to this instance.
         """
-        return self._require_client().get_category_series(self.id)
+        client = cast("Fred", self._require_client())
+        return client.get_category_series(self.id)
 
     @property
     def tags(self) -> Tags:
@@ -299,7 +303,8 @@ class Category(_ModelBase):
         Raises:
             ModelError: If no client is attached to this instance.
         """
-        return self._require_client().get_category_tags(self.id)
+        client = cast("Fred", self._require_client())
+        return client.get_category_tags(self.id)
 
     @property
     def related_tags(self) -> Tags:
@@ -314,7 +319,8 @@ class Category(_ModelBase):
         Raises:
             ModelError: If no client is attached to this instance.
         """
-        return self._require_client().get_category_related_tags(self.id)
+        client = cast("Fred", self._require_client())
+        return client.get_category_related_tags(self.id)
 
 
 class Categories(_ModelSequence[Category]):
@@ -569,7 +575,8 @@ class Series(_ModelBase):
         Raises:
             ModelError: If no client is attached to this instance.
         """
-        return self._require_client().get_series_categories(self.id)
+        client = cast("Fred", self._require_client())
+        return client.get_series_categories(self.id)
 
     @property
     def observations(self) -> pd.DataFrame | pl.DataFrame | dd.DataFrame:
@@ -586,7 +593,8 @@ class Series(_ModelBase):
         Raises:
             ModelError: If no client is attached to this instance.
         """
-        return self._require_client().get_series_observations(self.id)
+        client = cast("Fred", self._require_client())
+        return client.get_series_observations(self.id)
 
     @property
     def release(self) -> Release:
@@ -601,7 +609,8 @@ class Series(_ModelBase):
         Raises:
             ModelError: If no client is attached to this instance.
         """
-        return self._require_client().get_series_release(self.id)
+        client = cast("Fred", self._require_client())
+        return client.get_series_release(self.id)
 
     @property
     def tags(self) -> Tags:
@@ -616,7 +625,8 @@ class Series(_ModelBase):
         Raises:
             ModelError: If no client is attached to this instance.
         """
-        return self._require_client().get_series_tags(self.id)
+        client = cast("Fred", self._require_client())
+        return client.get_series_tags(self.id)
 
     @property
     def vintagedates(self) -> VintageDates:
@@ -631,7 +641,8 @@ class Series(_ModelBase):
         Raises:
             ModelError: If no client is attached to this instance.
         """
-        return self._require_client().get_series_vintagedates(self.id)
+        client = cast("Fred", self._require_client())
+        return client.get_series_vintagedates(self.id)
 
 
 class Seriess(_ModelSequence[Series]):
@@ -818,7 +829,8 @@ class Tag(_ModelBase):
         Raises:
             ModelError: If no client is attached to this instance.
         """
-        return self._require_client().get_related_tags(self.name)
+        client = cast("Fred", self._require_client())
+        return client.get_related_tags(self.name)
 
     @property
     def series(self) -> Seriess:
@@ -833,7 +845,8 @@ class Tag(_ModelBase):
         Raises:
             ModelError: If no client is attached to this instance.
         """
-        return self._require_client().get_tags_series(self.name)
+        client = cast("Fred", self._require_client())
+        return client.get_tags_series(self.name)
 
 
 class Tags(_ModelSequence[Tag]):
@@ -1028,7 +1041,8 @@ class Release(_ModelBase):
         Raises:
             ModelError: If no client is attached to this instance.
         """
-        return self._require_client().get_release_dates(self.id)
+        client = cast("Fred", self._require_client())
+        return client.get_release_dates(self.id)
 
     @property
     def series(self) -> Seriess:
@@ -1043,7 +1057,8 @@ class Release(_ModelBase):
         Raises:
             ModelError: If no client is attached to this instance.
         """
-        return self._require_client().get_release_series(self.id)
+        client = cast("Fred", self._require_client())
+        return client.get_release_series(self.id)
 
     @property
     def sources(self) -> Sources:
@@ -1058,7 +1073,8 @@ class Release(_ModelBase):
         Raises:
             ModelError: If no client is attached to this instance.
         """
-        return self._require_client().get_release_sources(self.id)
+        client = cast("Fred", self._require_client())
+        return client.get_release_sources(self.id)
 
     @property
     def tags(self) -> Tags:
@@ -1073,7 +1089,8 @@ class Release(_ModelBase):
         Raises:
             ModelError: If no client is attached to this instance.
         """
-        return self._require_client().get_release_tags(self.id)
+        client = cast("Fred", self._require_client())
+        return client.get_release_tags(self.id)
 
     @property
     def related_tags(self) -> Tags:
@@ -1088,7 +1105,8 @@ class Release(_ModelBase):
         Raises:
             ModelError: If no client is attached to this instance.
         """
-        return self._require_client().get_release_related_tags(self.id)
+        client = cast("Fred", self._require_client())
+        return client.get_release_related_tags(self.id)
 
     @property
     def tables(self) -> Elements:
@@ -1103,7 +1121,8 @@ class Release(_ModelBase):
         Raises:
             ModelError: If no client is attached to this instance.
         """
-        return self._require_client().get_release_tables(self.id)
+        client = cast("Fred", self._require_client())
+        return client.get_release_tables(self.id)
 
 
 class Releases(_ModelSequence[Release]):
@@ -1468,7 +1487,7 @@ class Source(_ModelBase):
     name: str
     """The human-readable name of the source."""
 
-    id: int | None
+    id: int
     """The unique identifier for the source. Corresponds to ``source_id`` in the FRED API. ``None`` when the FRED payload omits it."""
 
     realtime_start: str | None
@@ -1543,7 +1562,8 @@ class Source(_ModelBase):
         Raises:
             ModelError: If no client is attached to this instance.
         """
-        return self._require_client().get_source_releases(self.id)
+        client = cast("Fred", self._require_client())
+        return client.get_source_releases(self.id)
 
 
 class Sources(_ModelSequence[Source]):
@@ -1741,7 +1761,8 @@ class Element(_ModelBase):
         Raises:
             ModelError: If no client is attached to this instance.
         """
-        return self._require_client().get_release(self.release_id)
+        client = cast("Fred", self._require_client())
+        return client.get_release(self.release_id)
 
     @property
     def series(self) -> Series:
@@ -1756,7 +1777,8 @@ class Element(_ModelBase):
         Raises:
             ModelError: If no client is attached to this instance.
         """
-        return self._require_client().get_series(self.series_id)
+        client = cast("Fred", self._require_client())
+        return client.get_series(self.series_id)
 
 
 class Elements(_ModelSequence[Element]):
