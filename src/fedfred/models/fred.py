@@ -92,6 +92,7 @@ from typing import (
     cast,
 )
 
+import numpy as np
 import pandas as pd
 
 from .._internals import (
@@ -101,9 +102,11 @@ from .._internals import (
     _DateSequence,
     _ModelBase,
     _ModelSequence,
+    _ObservationBase,
+    _ObservationSequence,
     _ResponseShape,
 )
-from .alfred import VintageDates
+from .alfred import VintageDates, 
 
 if TYPE_CHECKING:
     import dask.dataframe as dd
@@ -1862,3 +1865,64 @@ class BulkRelease:  # TODO: This thing is honest to god completely fucked just r
     """
 
     pass
+
+
+@dataclass(frozen=True, slots=True)
+class PointObservation(_ObservationBase):
+    """A FRED observation: a unique observation date mapped to a value.
+
+    Within an :class:`ObservationSeries` the ``date`` is unique — one value per
+    date — so a collection of these is ``DatetimeIndex``-able. A standard FRED
+    response carries a single realtime window for the whole series; that window
+    is series-level metadata on the owning sequence, never duplicated onto each
+    row. To participate in vintage-aware operations, promote with
+    :meth:`VintageObservation.from_base` (element) or ``ObservationSeries.as_vintage``
+    (sequence), which broadcast that constant window back onto the rows.
+
+    Inherits ``date``, ``value``, and ``is_missing`` from
+    :class:`_ObservationBase` and adds no fields; it is a distinct type so the
+    date-unique invariant is carried in the type system and ``isinstance`` checks
+    cleanly separate point from vintage data.
+
+    Examples:
+        >>> import fedfred as fd
+        >>> from datetime import date
+        >>> p = fd.PointObservation(date(1929, 1, 1), 1202.659)
+        >>> (p.date, p.value)
+        (datetime.date(1929, 1, 1), 1202.659)
+        >>> p == fd.PointObservation(date(1929, 1, 1), 1202.659)
+        True
+        >>> isinstance(p, fd.VintageObservation)
+        False
+    """
+
+
+class PointSeries(_ObservationSequence[PointObservation]):
+    __slots__ = ("realtime_start", "realtime_end")
+    _element_type = PointObservation
+
+    def __init__(self, dates, values, *, series_id, realtime_start, realtime_end,
+                 units=None, frequency=None):
+        super().__init__(dates, values, series_id=series_id, units=units, frequency=frequency)
+        self.realtime_start = realtime_start    # scalar window — constant for the series
+        self.realtime_end = realtime_end
+
+    def _make(self, i):
+        v = self._values[i]
+        return PointObservation(self._dates[i].item(), None if np.isnan(v) else float(v))
+
+    def _metadata(self):
+        return {**super()._metadata(),
+                "realtime_start": self.realtime_start, "realtime_end": self.realtime_end}
+
+    def _rebuild(self, columns, metadata):
+        return PointSeries(columns["date"], columns["value"], **metadata)
+
+    def as_vintage(self) -> VintageSeries:
+        n = len(self)
+        return VintageSeries(
+            self._dates, self._values,
+            realtime_start=np.full(n, np.datetime64(self.realtime_start, "D")),
+            realtime_end=np.full(n, np.datetime64(self.realtime_end, "D")),
+            series_id=self.series_id, units=self.units, frequency=self.frequency,
+        )

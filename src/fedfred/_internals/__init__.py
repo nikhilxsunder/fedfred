@@ -59,6 +59,8 @@ from ._models import (
     _DateSequence,
     _ModelBase,
     _ModelSequence,
+    _ObservationBase,
+    _ObservationSequence,
 )
 
 __all__ = [
@@ -70,6 +72,8 @@ __all__ = [
     "_DateSequence",
     "_ModelBase",
     "_ModelSequence",
+    "_ObservationBase",
+    "_ObservationSequence",
     "_ResponseShape",
     "_coerce_lower",
     "_retrieve_cache_instance",

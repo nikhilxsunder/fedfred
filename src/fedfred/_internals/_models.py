@@ -68,10 +68,12 @@ References:
 
 from __future__ import annotations
 
+from abc import abstractmethod
 from collections.abc import Iterable, Iterator, Mapping, Sequence
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta
 from typing import (
+    TYPE_CHECKING,
     Any,
     ClassVar,
     Never,
@@ -82,8 +84,17 @@ from typing import (
     overload,
 )
 
+import numpy as np
+import pandas as pd
+
+from ..settings import _resolve_dataframe_backend
 from .._core import _extract_objects, _ResponseShape
 from ._clients import _ClientModel
+
+if TYPE_CHECKING:
+    import dask.dataframe as dd
+    import polars as pl
+    import pyarrow as pa
 
 # TODO: Fix all docstrings post error design.
 
@@ -1070,3 +1081,363 @@ class _DateSequence(_Sequence[DT]):
             f"<b>{type(self).__name__}</b> — {len(self._items)} items, "
             f"{self._items[0].isoformat()} → {self._items[-1].isoformat()}"
         )
+
+
+@dataclass(frozen=True, slots=True)
+class _ObservationBase:
+    """Immutable, hashable base for a single time-series observation.
+
+    The irreducible content of an observation is a calendar ``date`` and its
+    ``value``. Everything else a caller might associate with an observation —
+    series id, realtime window, units, frequency — is either constant across a
+    standard FRED response (and therefore series-level metadata, not row data)
+    or specific to the ALFRED vintage case (and therefore carried by the
+    :class:`VintageObservation` subclass, never broadcast onto every plain
+    observation).
+
+    This type is the crux of the observation model. It is deliberately minimal:
+    instances are synthesized on demand as views over the columnar storage of an
+    ``_ObservationSequence``, so it carries no client reference, no parsing
+    machinery, and no per-instance validation — those belong, respectively, to
+    the model layer, the converter layer, and the one-time columnar construction
+    that happens before any element is ever materialized.
+
+    Missing observations (FRED encodes these as ``"."``) are represented by a
+    ``value`` of ``None``, not ``NaN``. ``None == None`` holds, so equality and
+    hashing stay sound; ``NaN != NaN`` would silently break both. The
+    columnar and frame layers map ``None`` to ``NaN`` at their boundary.
+
+    Ordering is intentionally not generated. With a nullable ``value`` an
+    auto-generated ``__lt__`` would compare ``(date, value)`` tuples and raise
+    ``TypeError`` the moment a missing value (``None``) met a present one
+    (``float``) — which, for FRED series, is routine. Observation ordering is a
+    columnar concern performed on the date array, not on these objects; sort
+    explicitly with ``key=lambda o: o.date`` if you need it.
+
+    Attributes:
+        date (datetime.date): The observation date. FRED returns period-start
+            dates at day resolution for every frequency (daily through annual),
+            with no time component — hence ``date`` rather than ``datetime``.
+        value (float | None): The observation value, or ``None`` if the
+            observation is missing.
+
+    Examples:
+        >>> from datetime import date
+        >>> from fedfred._internals._models import _ObservationBase
+        >>> o = _ObservationBase(date(2020, 1, 1), 1.5)
+        >>> (o.date, o.value)
+        (datetime.date(2020, 1, 1), 1.5)
+        >>> o == _ObservationBase(date(2020, 1, 1), 1.5)     # value-equality
+        True
+        >>> o in {_ObservationBase(date(2020, 1, 1), 1.5)}   # hashable
+        True
+        >>> _ObservationBase(date(2020, 1, 1), None).value is None   # "." → None
+        True
+
+    See Also:
+        - :class:`fedfred.PointObservation`: FRED leaf; unique date per series.
+        - :class:`fedfred.VintageObservation`: ALFRED leaf; adds the realtime
+          bracket and is not date-unique within a series.
+
+    References:
+        - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/
+    """
+
+    date: date
+    value: float | None
+
+    @property
+    def is_missing(self) -> bool:
+        """Whether the observation has no value.
+
+        Returns:
+            bool: ``True`` if :attr:`value` is ``None`` (FRED ``"."``), else
+            ``False``.
+
+        Examples:
+            >>> from datetime import date
+            >>> from fedfred._internals._models import _ObservationBase
+            >>> _ObservationBase(date(2020, 1, 1), None).is_missing
+            True
+            >>> _ObservationBase(date(2020, 1, 1), 1.5).is_missing
+            False
+        """
+        return self.value is None
+
+
+class _ObservationSequence[OT: _ObservationBase](Sequence[OT]):
+    """Immutable, columnar-backed sequence of observations.
+
+    The crux container. Stores parallel numpy column arrays — never a tuple of
+    materialized elements — and synthesizes an ``OT`` view only on demand. This
+    is what makes ALFRED-scale pulls (10^5-10^6 rows) cheap to hold and near
+    zero-copy to convert, while still presenting the ordinary ``Sequence``
+    surface (int/str/slice indexing, iteration, membership, ISO-date lookup,
+    a Jupyter ``_repr_html_``).
+
+    The element type ``OT`` appears only in covariant (read-only) positions, so
+    the class is covariant in ``OT``: ``ObservationSeries`` and
+    ``VintageObservationSeries`` are both subtypes of
+    ``_ObservationSequence[_ObservationBase]``, which is what lets generic
+    consumers accept either via a single base-typed parameter.
+
+    Subclasses fill four hooks and nothing else of the mechanics:
+        * ``_element_type``  — the concrete ``OT`` class (for membership/lookup).
+        * ``_make(i)``       — synthesize the element at row ``i``.
+        * ``_columns()``     — the ordered ``name -> ndarray`` schema; the base
+                               supplies ``date``/``value``, vintage augments it.
+        * ``_metadata()`` / ``_rebuild(...)`` — the scalar sidecar and how to
+                               reconstruct a sliced copy from it.
+
+    All conversion methods (``to_pandas``/``to_polars``/``to_dask``/``to_arrow``)
+    and slicing are written once against those hooks.
+
+    Attributes:
+        series_id (str): The FRED series id these observations belong to.
+        units (str | None): The units transform applied, if any.
+        frequency (str | None): The frequency, if a frequency aggregation was applied.
+    """
+
+    __slots__ = ("_dates", "_values", "series_id", "units", "frequency")
+
+    __hash__ = None  # immutable by convention, but unhashable like other sequences
+
+    _element_type: ClassVar[type[_ObservationBase]]
+
+    # Dunder Methods
+    def __init__(
+        self,
+        dates: np.ndarray,
+        values: np.ndarray,
+        *,
+        series_id: str,
+        units: str | None = None,
+        frequency: str | None = None,
+    ) -> None:
+        """Store the universal columns and series metadata.
+
+        This is the single validation boundary for the observation model:
+        column dtypes and shapes are checked once, here, so the per-element
+        ``_make`` synthesis on the hot path can assume well-formed columns and
+        do no validation of its own.
+
+        Args:
+            dates (numpy.ndarray): 1-D ``datetime64[D]`` array of observation dates.
+            values (numpy.ndarray): 1-D ``float64`` array of values; ``NaN`` is missing.
+            series_id (str): The FRED series id.
+            units (str | None): Units transform, if any.
+            frequency (str | None): Frequency aggregation, if any.
+
+        Raises:
+            TypeValidationError: If a column has the wrong dtype.
+            ValueValidationError: If the columns are not 1-D or not equal length.
+        """
+        self._validate_column("dates", dates, "M")      # datetime64
+
+        self._validate_column("values", values, "f")    # float
+
+        if dates.shape[0] != values.shape[0]:
+            raise ValueValidationError(
+                f"dates ({dates.shape[0]}) and values ({values.shape[0]}) "
+                "must have equal length."
+            )
+
+        self._dates = dates
+
+        self._values = values
+
+        self.series_id = series_id
+
+        self.units = units
+
+        self.frequency = frequency
+
+    def __len__(self) -> int:
+        """
+        
+        """
+        return int(self._dates.shape[0])
+
+    def __getitem__(self, index: int | str | slice) -> OT | Self:  # type: ignore[override]
+        """Positional element, ISO-date lookup, or sliced sub-sequence."""
+        if isinstance(index, slice):
+            sliced = {k: v[index] for k, v in self._columns().items()}
+
+            return self._rebuild(sliced, self._metadata())
+
+        if isinstance(index, str):
+            return self._lookup_iso(index)
+
+        return self._make(int(index))   # numpy bounds-checks; negatives ok
+
+    def __iter__(self) -> Iterator[OT]:
+        return (self._make(i) for i in range(len(self)))
+
+    def __reversed__(self) -> Iterator[OT]:
+        return (self._make(i) for i in reversed(range(len(self))))
+
+    def __contains__(self, value: object) -> bool:
+        if not isinstance(value, self._element_type):
+            return False
+
+        mask = np.ones(len(self), dtype=bool)
+
+        for name, arr in self._columns().items():
+            target = getattr(value, name)
+
+            if arr.dtype.kind == "M":
+                mask &= arr == np.datetime64(target, "D")
+
+            elif target is None:
+                mask &= np.isnan(arr)
+
+            else:
+                mask &= arr == target
+
+        return bool(mask.any())
+
+    def __eq__(self, other: object) -> bool:
+        if type(self) is not type(other):
+            return NotImplemented
+
+        if self._metadata() != other._metadata():       # type: ignore[attr-defined]
+            return False
+
+        a, b = self._columns(), other._columns()         # type: ignore[attr-defined]
+
+        if a.keys() != b.keys():
+            return False
+
+        return all(
+            np.array_equal(a[k], b[k], equal_nan=(a[k].dtype.kind == "f"))
+            for k in a
+        )
+
+    def __repr__(self) -> str:
+        return f"{type(self).__name__}(series_id={self.series_id!r}, n={len(self)})"
+
+    def __arrow_c_stream__(self, requested_schema: object | None = None) -> object:
+        """Arrow PyCapsule export — the modern replacement for ``__dataframe__``."""
+        return self.to_arrow().__arrow_c_stream__(requested_schema)
+
+    # Sunder Methods
+    def _repr_html_(self) -> str:
+
+        head = "".join(f"<th>{c}</th>" for c in self._columns())
+
+        rows = []
+
+        for i in (*range(min(5, len(self))),):
+            cells = "".join(f"<td>{getattr(self._make(i), c)}</td>" for c in self._columns())
+
+            rows.append(f"<tr>{cells}</tr>")
+
+        more = f"<tr><td colspan={len(self._columns())}>… {len(self)} rows</td></tr>" if len(self) > 5 else ""
+
+        return f"<b>{type(self).__name__}</b> ({self.series_id})<table><tr>{head}</tr>{''.join(rows)}{more}</table>"
+
+    def _ipython_key_completions_(self) -> list[str]:
+        return [np.datetime_as_string(d, unit="D").item() for d in np.unique(self._dates)]
+
+    # Protected Methods
+    @abstractmethod
+    def _make(self, i: int) -> OT:
+        """Synthesize the element at row ``i`` from the columns."""
+
+    @abstractmethod
+    def _rebuild(self, columns: dict[str, np.ndarray], metadata: dict[str, Any]) -> Self:
+        """Reconstruct a sequence of this concrete type from sliced columns."""
+
+    def _columns(self) -> dict[str, np.ndarray]:
+        """Ordered column schema. Base supplies date/value; subclasses augment."""
+        return {"date": self._dates, "value": self._values}
+
+    def _metadata(self) -> dict[str, Any]:
+        """Scalar sidecar forwarded across slices. Subclasses extend."""
+        return {"series_id": self.series_id, "units": self.units, "frequency": self.frequency}
+
+    def _lookup_iso(self, key: str) -> OT:
+        try:
+            target = np.datetime64(key, "D")
+
+        except ValueError as e:
+            raise ModelError(f"invalid ISO date key {key!r}.") from e
+
+        idx = np.flatnonzero(self._dates == target)
+
+        if idx.size == 0:
+            raise ModelError(f"no observation with date {key!r} in {self.series_id!r}.")
+
+        return self._make(int(idx[0]))   # first vintage for that date, if vintage
+
+    def to_pandas(self, *, index: str | None = None) -> pd.DataFrame:
+        """Build a pandas DataFrame. ``index='date'`` yields a DatetimeIndex.
+
+        Note: a pandas DatetimeIndex is ``datetime64[ns]``; the day-resolution
+        dates widen to midnight timestamps. For ``VintageObservationSeries`` the
+        date is not unique, so ``index='date'`` produces a non-unique index.
+        """
+        df = pd.DataFrame(self._columns())
+
+        return df.set_index(index) if index is not None else df
+
+    def to_polars(self) -> pl.DataFrame:
+        """
+        """
+        pl = self._require("polars", "to_polars")
+
+        return pl.DataFrame({k: v for k, v in self._columns().items()})
+
+    def to_dask(self, *, npartitions: int = 1, index: str | None = None) -> dd.DataFrame:
+        """
+        """
+        dd = self._require("dask.dataframe", "to_dask", extra="dask")
+
+        return dd.from_pandas(self.to_pandas(index=index), npartitions=npartitions)
+
+    def to_arrow(self) -> pa.Table:
+        """
+        """
+        pa = self._require("pyarrow", "to_arrow", extra="arrow")
+
+        return pa.table(self._columns())
+
+    def to_dataframe(self, backend: str | None = None, **kwargs: Any) -> Any:
+        """Convert using the resolved backend (explicit > global setting > default)."""
+        return {
+            "pandas": lambda: self.to_pandas(**kwargs),
+            "polars": self.to_polars,
+            "dask": lambda: self.to_dask(**kwargs),
+        }[_resolve_dataframe_backend(backend)]()
+
+    @staticmethod
+    def _validate_column(name: str, arr: np.ndarray, kind: str) -> None: # TODO: No Static methods in models this needs a refactor to a core module
+        """
+
+        """
+        if not isinstance(arr, np.ndarray):
+            raise TypeValidationError(f"{name} must be a numpy.ndarray, got {type(arr)!r}.")
+
+        if arr.ndim != 1:
+            raise ValueValidationError(f"{name} must be 1-D, got {arr.ndim} dimensions.")
+
+        if arr.dtype.kind != kind:
+            raise TypeValidationError(
+                f"{name} must have dtype kind {kind!r}, got {arr.dtype!r}."
+            )
+
+    @staticmethod
+    def _require(module: str, feature: str, extra: str | None = None) -> Any: # TODO: No Static methods in models this needs a refactor to a core module
+        """
+        """
+        import importlib
+        try:
+            return importlib.import_module(module)
+        except ImportError as e:
+            pkg = module.split(".")[0]
+            raise OptionalDependencyError(
+                message=f"{pkg} is required for {feature}.",
+                package=pkg,
+                feature=f"_ObservationSequence.{feature}",
+                install_hint=f"pip install fedfred[{extra or pkg}]",
+            ) from e

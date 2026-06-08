@@ -23,11 +23,16 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
+from dataclasses import dataclass
 from datetime import date
-from typing import Any, ClassVar, Self
+from typing import TYPE_CHECKING, Any, ClassVar, Self
 
-from .._internals import _DateBase, _DateSequence
+import numpy as np
 
+from .._internals import _DateBase, _DateSequence, _ObservationBase, _ObservationSequence
+
+if TYPE_CHECKING:
+    from .fred import PointSeries
 
 class VintageDate(_DateBase):
     """A FRED/ALFRED vintage date that *is* a ``datetime.date`` subclass.
@@ -181,3 +186,178 @@ class VintageDates(_DateSequence[VintageDate]):
             str: The ISO 8601 representation of the date.
         """
         return item.isoformat()
+
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class VintageObservation(_ObservationBase):
+    """An ALFRED observation: a value for a date within a realtime bracket.
+
+    The same ``date`` recurs across vintages with different realtime windows, so
+    a collection of these is **not** date-unique and is not ``DatetimeIndex``-able
+    on date alone — which is why vintage observations live in a separate
+    ``VintageObservationSeries`` whose invariants differ from ``ObservationSeries``.
+
+    The realtime fields are keyword-only (``kw_only=True`` on this subclass; the
+    inherited ``date``/``value`` remain positional). Both brackets share the
+    ``date`` type and are easy to transpose, so requiring them by keyword removes
+    that class of construction bug. The ALFRED realtime bracket is inclusive on
+    both ends.
+
+    Equality compares all four fields, and (per the dataclass contract) never
+    holds across types — a ``PointObservation`` and a ``VintageObservation`` with
+    matching date/value are not equal.
+
+    Attributes:
+        realtime_start (datetime.date): First date this value was the current value.
+        realtime_end (datetime.date): Last date this value was the current value.
+
+    Examples:
+        >>> import fedfred as fd
+        >>> from datetime import date
+        >>> v = fd.VintageObservation(
+        ...     date(1929, 1, 1), 1202.659,
+        ...     realtime_start=date(2025, 2, 13), realtime_end=date(2025, 3, 12),
+        ... )
+        >>> (v.date, v.value, v.realtime_start, v.realtime_end)
+        (datetime.date(1929, 1, 1), 1202.659, datetime.date(2025, 2, 13), datetime.date(2025, 3, 12))
+        >>> v.covers(date(2025, 2, 28))
+        True
+        >>> v.covers(date(2025, 4, 1))
+        False
+    """
+
+    realtime_start: date
+    realtime_end: date
+
+    @classmethod
+    def from_base(
+        cls,
+        observation: _ObservationBase,
+        *,
+        realtime_start: date,
+        realtime_end: date,
+    ) -> VintageObservation:
+        """Promote a point-form observation to vintage form via a realtime bracket.
+
+        The lossless, total direction of the point↔vintage relationship: a plain
+        observation always corresponds to exactly one realtime window (the series
+        metadata), so attaching it yields a well-defined vintage observation. The
+        parameter is typed against :class:`_ObservationBase` rather than
+        :class:`PointObservation` so this module need not import the FRED model
+        layer — avoiding the fred↔alfred cycle — and so any base-typed
+        observation may be promoted.
+
+        Args:
+            observation (_ObservationBase): The observation to promote; its
+                ``date`` and ``value`` are carried over unchanged.
+            realtime_start (datetime.date): First date the value was current.
+            realtime_end (datetime.date): Last date the value was current.
+
+        Returns:
+            VintageObservation: The promoted observation.
+
+        Examples:
+            >>> import fedfred as fd
+            >>> from datetime import date
+            >>> p = fd.PointObservation(date(2020, 1, 1), 1.5)
+            >>> v = fd.VintageObservation.from_base(
+            ...     p, realtime_start=date(2020, 2, 1), realtime_end=date(2020, 3, 1)
+            ... )
+            >>> (v.value, v.realtime_start)
+            (1.5, datetime.date(2020, 2, 1))
+            >>> isinstance(v, fd.PointObservation)
+            False
+        """
+        return cls(
+            observation.date,
+            observation.value,
+            realtime_start=realtime_start,
+            realtime_end=realtime_end,
+        )
+
+    def covers(
+        self,
+        realtime: date
+    ) -> bool:
+        """Whether this value was the current vintage as of ``realtime``.
+
+        The ALFRED realtime bracket is inclusive on both ends; this is the
+        element-level predicate underlying sequence-level ``as_of`` selection.
+
+        Args:
+            realtime (datetime.date): The realtime date to test.
+
+        Returns:
+            bool: ``True`` if ``realtime_start <= realtime <= realtime_end``.
+
+        Examples:
+            >>> import fedfred as fd
+            >>> from datetime import date
+            >>> v = fd.VintageObservation(
+            ...     date(2020, 1, 1), 1.5,
+            ...     realtime_start=date(2020, 2, 1), realtime_end=date(2020, 3, 1),
+            ... )
+            >>> v.covers(date(2020, 2, 1))   # inclusive lower bound
+            True
+            >>> v.covers(date(2020, 1, 15))
+            False
+        """
+        return self.realtime_start <= realtime <= self.realtime_end
+
+
+class VintageSeries(_ObservationSequence[VintageObservation]):
+    """
+    """
+
+    __slots__ = ("_realtime_start", "_realtime_end")
+    _element_type = VintageObservation
+
+    def __init__(
+        self,
+        dates,
+        values,
+        realtime_start,
+        realtime_end,
+        series_id,
+        units=None,
+        frequency=None
+    ) -> None:
+        """
+        """
+        super().__init__(dates, values, series_id=series_id, units=units, frequency=frequency)
+
+        self._validate_column("realtime_start", realtime_start, "M")
+
+        self._validate_column("realtime_end", realtime_end, "M")
+
+        self._realtime_start = realtime_start    # per-row columns
+
+        self._realtime_end = realtime_end
+
+    def _make(self, i):
+        """
+        """
+        v = self._values[i]
+
+        return VintageObservation(
+            self._dates[i].item(), None if np.isnan(v) else float(v),
+            realtime_start=self._realtime_start[i].item(),
+            realtime_end=self._realtime_end[i].item(),
+        )
+
+    def _columns(self):
+        return {
+            **super()._columns(),
+            "realtime_start": self._realtime_start,
+            "realtime_end": self._realtime_end
+        }
+
+    def _rebuild(self, columns, metadata):
+        return VintageSeries(
+            columns["date"], columns["value"],
+            realtime_start=columns["realtime_start"], realtime_end=columns["realtime_end"],
+            **metadata)
+
+    def as_of(self, realtime: date) -> PointSeries: ...   # vectorized mask + collapse
+
+    def latest(self) -> PointSeries: ...
