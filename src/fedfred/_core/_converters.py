@@ -39,10 +39,9 @@ from datetime import date, datetime, time
 from typing import TYPE_CHECKING
 
 import geopandas as gpd
-import pandas as pd
+import numpy as np
 
 from ..exceptions import (
-    DataFrameConversionError,
     GeoDataFrameConversionError,
     OptionalDependencyError,
     TypeConversionError,
@@ -50,14 +49,14 @@ from ..exceptions import (
 from ..settings import _resolve_dataframe_backend, _resolve_geodataframe_backend
 
 if TYPE_CHECKING:
-    import dask.dataframe as dd  # pragma: no cover
     import dask_geopandas as dd_gpd  # pragma: no cover
-    import polars as pl  # pragma: no cover
     import polars_st as st  # pragma: no cover
 
 __all__ = [
+    "_coerce_lower",
     "_dict_type_converter",
     "_hashable_type_converter",
+    "_observation_columns",
 ]
 
 # Typing Aliases
@@ -65,130 +64,6 @@ ParameterConverter = Callable[[str, object], object]
 """Type alias for a scalar parameter converter: takes a parameter name and a raw value, returns the API-ready value."""
 
 # DataFrame Converters
-def _pandas_dataframe_converter(data: dict[str, list]) -> pd.DataFrame:
-    """Convert a FRED observations payload to a pandas DataFrame.
-
-    Args:
-        data (dict[str, list]): A FRED response containing an ``observations`` list.
-
-    Returns:
-        pandas.DataFrame: The observations, with a ``date`` ``DatetimeIndex`` and a numeric ``value`` column.
-
-    Raises:
-        DataFrameConversionError: If ``data`` has no ``observations`` key.
-
-    Examples:
-        >>> from fedfred._core._converters import _pandas_dataframe_converter  # doctest: +SKIP
-        >>> _pandas_dataframe_converter({"observations": [{"date": "2020-01-01", "value": "100"}]})  # doctest: +SKIP
-
-    Notes:
-        ``date`` becomes a ``DatetimeIndex``; ``value`` is coerced to numeric with
-        non-numeric entries set to ``NaN``.
-    """
-    if 'observations' not in data:
-        raise DataFrameConversionError(
-            message="DataFrame conversion failed: 'observations' key not found in data",
-            backend='pandas',
-            missing_fields=('observations',),
-            details="Data must contain 'observations' key"
-        )
-
-    df = pd.DataFrame(data['observations'])
-
-    df['date'] = pd.to_datetime(df['date'])
-
-    df.set_index('date', inplace=True)
-
-    df['value'] = pd.to_numeric(df['value'], errors = 'coerce')
-
-    return df
-
-def _polars_dataframe_converter(data: dict[str, list]) -> pl.DataFrame:
-    """Convert a FRED observations payload to a Polars DataFrame.
-
-    Args:
-        data (dict[str, list]): A FRED response containing an ``observations`` list.
-
-    Returns:
-        polars.DataFrame: The observations, with ``value`` cast to ``Float64``.
-
-    Raises:
-        OptionalDependencyError: If Polars is not installed.
-        DataFrameConversionError: If ``data`` has no ``observations`` key.
-
-    Examples:
-        >>> from fedfred._core._converters import _polars_dataframe_converter  # doctest: +SKIP
-        >>> _polars_dataframe_converter({"observations": [{"date": "2020-01-01", "value": "100"}]})  # doctest: +SKIP
-
-    Notes:
-        ``value`` is cast to ``Float64`` with ``'NA'`` strings mapped to ``None``.
-    """
-    try:
-        import polars as pl
-
-    except ImportError as e:
-        raise OptionalDependencyError(
-            message=f"{e}: Polars is not installed. Install it with `pip install polars` to use this method.",
-            package="polars",
-            feature="Helpers.to_pl_df",
-            install_hint="pip install polars",
-        ) from e
-
-    if 'observations' not in data:
-        raise DataFrameConversionError(
-            message="DataFrame conversion failed: 'observations' key not found in data",
-            backend='polars',
-            missing_fields=('observations',),
-            details="Data must contain 'observations' key"
-        )
-
-    df = pl.DataFrame(data['observations'])
-
-    df = df.with_columns(
-        pl.when(pl.col('value') == 'NA')
-        .then(None)
-        .otherwise(pl.col('value').cast(pl.Float64))
-        .alias('value')
-    )
-
-    return df
-
-def _dask_dataframe_converter(data: dict[str, list]) -> dd.DataFrame:
-    """Convert a FRED observations payload to a Dask DataFrame.
-
-    Args:
-        data (dict[str, list]): A FRED response containing an ``observations`` list.
-
-    Returns:
-        dask.dataframe.DataFrame: The observations as a single-partition Dask DataFrame.
-
-    Raises:
-        OptionalDependencyError: If Dask is not installed.
-        DataFrameConversionError: If ``data`` has no ``observations`` key.
-
-    Examples:
-        >>> from fedfred._core._converters import _dask_dataframe_converter  # doctest: +SKIP
-        >>> _dask_dataframe_converter({"observations": [{"date": "2020-01-01", "value": "100"}]})  # doctest: +SKIP
-
-    Notes:
-        Built by converting to pandas first (:func:`_pandas_dataframe_converter`),
-        then wrapping in a single-partition Dask DataFrame.
-    """
-    try:
-        import dask.dataframe as dd
-
-    except ImportError as e:
-        raise OptionalDependencyError(
-            message=f"{e}: Dask is not installed. Install it with `pip install dask` to use this method.",
-            package="dask",
-            feature="Helpers.to_dd_df",
-            install_hint="pip install dask",
-        ) from e
-
-    df = _pandas_dataframe_converter(data)
-
-    return dd.from_pandas(df, npartitions=1)
-
 def _geopandas_geodataframe_converter(
     shapefile: gpd.GeoDataFrame,
     meta_data: dict
@@ -324,13 +199,6 @@ def _polars_geodataframe_converter(
     return st.from_geopandas(gdf)
 
 # DataFrame Converter Maps
-DATAFRAME_CONVERTER_MAP: dict[str, Callable] = {
-    'pandas': _pandas_dataframe_converter,
-    'polars': _polars_dataframe_converter,
-    'dask': _dask_dataframe_converter,
-}
-"""Mapping of dataframe backend name to its observation converter."""
-
 GEODATAFRAME_CONVERTER_MAP: dict[str, Callable] = {
     'geopandas': _geopandas_geodataframe_converter,
     'dask': _dask_geopandas_geodataframe_converter,
@@ -339,25 +207,6 @@ GEODATAFRAME_CONVERTER_MAP: dict[str, Callable] = {
 """Mapping of geodataframe backend name to its observation converter."""
 
 # Dataframe Resolvers
-def _resolve_dataframe_converter(backend: str | None = None) -> Callable:
-    """Return the dataframe converter for a backend.
-
-    Args:
-        backend (str | None): The backend name (``"pandas"``, ``"polars"``, or ``"dask"``). If ``None``, the configured default backend is used.
-
-    Returns:
-        Callable: The observation converter for the resolved backend.
-
-    Examples:
-        >>> from fedfred._core._converters import _resolve_dataframe_converter
-        >>> _resolve_dataframe_converter("pandas").__name__
-        '_pandas_dataframe_converter'
-    """
-    if backend is None:
-        backend = _resolve_dataframe_backend()
-
-    return DATAFRAME_CONVERTER_MAP[backend]
-
 def _resolve_geodataframe_converter(backend: str | None = None) -> Callable:
     """Return the geodataframe converter for a backend.
 
@@ -637,3 +486,19 @@ def _coerce_lower(value: str | None) -> str | None:
         )
 
     return value.lower()
+
+def _observation_columns(observations: list[dict]) -> tuple[np.ndarray, np.ndarray]:
+    """Bulk-parse the observations array into (dates, values) columns.
+
+    Single O(n) pass: dates parsed vectorized as datetime64[D], FRED "." → NaN.
+    Defensive — missing keys raise ParsingError rather than KeyError.
+    """
+    try:
+        dates = np.array([o["date"] for o in observations], dtype="datetime64[D]")
+        values = np.array(
+            [np.nan if o["value"] == "." else o["value"] for o in observations],
+            dtype="float64",
+        )
+    except KeyError as e:
+        raise ParsingError(f"observation missing required key {e}.") from e
+    return dates, values

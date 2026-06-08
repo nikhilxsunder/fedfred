@@ -88,7 +88,7 @@ import numpy as np
 import pandas as pd
 
 from ..settings import _resolve_dataframe_backend
-from .._core import _extract_objects, _ResponseShape
+from .._core import _extract_objects, _ResponseShape, _observation_columns
 from ._clients import _ClientModel
 
 if TYPE_CHECKING:
@@ -1204,6 +1204,41 @@ class _ObservationSequence[OT: _ObservationBase](Sequence[OT]):
 
     _element_type: ClassVar[type[_ObservationBase]]
 
+    # Class Methods
+    @classmethod
+    def _from_response(
+        cls,
+        response: dict,
+        series_id: str,
+        frequency: str | None = None,
+        ) -> Self:
+        """Parse a FRED series_observations envelope into this concrete sequence.
+
+        Shared across point and vintage because both come from the same endpoint
+        with the same envelope shape. The realtime-specific assembly is delegated
+        to ``_assemble`` so this method never branches on the concrete type.
+        """
+        if "observations" not in response:
+            raise ParsingError("response has no 'observations' array.")
+
+        dates, values = _observation_columns(response["observations"])   # the one shared parse
+
+        return cls._assemble(response, dates, values, series_id=series_id,
+                            units=response.get("units"), frequency=frequency)
+
+    @classmethod
+    @abstractmethod
+    def _assemble(
+        cls,
+        response: dict,
+        dates: np.ndarray,
+        values: np.ndarray, *,
+        series_id: str,
+        units: str | None,
+        frequency: str | None
+        ) -> Self:
+        """Finish construction from the parsed columns — point and vintage differ only here."""
+
     # Dunder Methods
     def __init__(
         self,
@@ -1345,7 +1380,11 @@ class _ObservationSequence[OT: _ObservationBase](Sequence[OT]):
         """Synthesize the element at row ``i`` from the columns."""
 
     @abstractmethod
-    def _rebuild(self, columns: dict[str, np.ndarray], metadata: dict[str, Any]) -> Self:
+    def _rebuild(
+        self,
+        columns: dict[str, np.ndarray],
+        metadata: dict[str, Any]
+    ) -> Self:
         """Reconstruct a sequence of this concrete type from sliced columns."""
 
     def _columns(self) -> dict[str, np.ndarray]:
@@ -1356,7 +1395,10 @@ class _ObservationSequence[OT: _ObservationBase](Sequence[OT]):
         """Scalar sidecar forwarded across slices. Subclasses extend."""
         return {"series_id": self.series_id, "units": self.units, "frequency": self.frequency}
 
-    def _lookup_iso(self, key: str) -> OT:
+    def _lookup_iso(
+        self,
+        key: str
+    ) -> OT:
         try:
             target = np.datetime64(key, "D")
 
@@ -1370,7 +1412,10 @@ class _ObservationSequence[OT: _ObservationBase](Sequence[OT]):
 
         return self._make(int(idx[0]))   # first vintage for that date, if vintage
 
-    def to_pandas(self, *, index: str | None = None) -> pd.DataFrame:
+    def to_pandas(
+        self,
+        index: str | None = None
+    ) -> pd.DataFrame:
         """Build a pandas DataFrame. ``index='date'`` yields a DatetimeIndex.
 
         Note: a pandas DatetimeIndex is ``datetime64[ns]``; the day-resolution
@@ -1388,7 +1433,11 @@ class _ObservationSequence[OT: _ObservationBase](Sequence[OT]):
 
         return pl.DataFrame({k: v for k, v in self._columns().items()})
 
-    def to_dask(self, *, npartitions: int = 1, index: str | None = None) -> dd.DataFrame:
+    def to_dask(
+        self,
+        npartitions: int = 1, 
+        index: str | None = None
+    ) -> dd.DataFrame:
         """
         """
         dd = self._require("dask.dataframe", "to_dask", extra="dask")
@@ -1411,7 +1460,11 @@ class _ObservationSequence[OT: _ObservationBase](Sequence[OT]):
         }[_resolve_dataframe_backend(backend)]()
 
     @staticmethod
-    def _validate_column(name: str, arr: np.ndarray, kind: str) -> None: # TODO: No Static methods in models this needs a refactor to a core module
+    def _validate_column(
+        name: str,
+        arr: np.ndarray,
+        kind: str
+    ) -> None: # TODO: No Static methods in models this needs a refactor to a core module
         """
 
         """
@@ -1427,12 +1480,18 @@ class _ObservationSequence[OT: _ObservationBase](Sequence[OT]):
             )
 
     @staticmethod
-    def _require(module: str, feature: str, extra: str | None = None) -> Any: # TODO: No Static methods in models this needs a refactor to a core module
+    def _require(
+        module: str,
+        feature: str,
+        extra: str | None = None
+    ) -> Any: # TODO: No Static methods in models this needs a refactor to a core module
         """
         """
         import importlib
+
         try:
             return importlib.import_module(module)
+
         except ImportError as e:
             pkg = module.split(".")[0]
             raise OptionalDependencyError(

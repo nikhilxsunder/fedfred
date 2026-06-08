@@ -312,6 +312,17 @@ class VintageSeries(_ObservationSequence[VintageObservation]):
     __slots__ = ("_realtime_start", "_realtime_end")
     _element_type = VintageObservation
 
+    @classmethod
+    def _assemble(cls, response, dates, values, *, series_id, units, frequency):
+        obs = response["observations"]
+        try:
+            rstart = np.array([o["realtime_start"] for o in obs], dtype="datetime64[D]")
+            rend   = np.array([o["realtime_end"]   for o in obs], dtype="datetime64[D]")
+        except KeyError as e:
+            raise ParsingError(f"vintage observation missing {e}.") from e
+        return cls(dates, values, realtime_start=rstart, realtime_end=rend,
+                series_id=series_id, units=units, frequency=frequency)
+
     def __init__(
         self,
         dates,

@@ -106,7 +106,7 @@ from .._internals import (
     _ObservationSequence,
     _ResponseShape,
 )
-from .alfred import VintageDates, 
+from .alfred import VintageDates, VintageSeries
 
 if TYPE_CHECKING:
     import dask.dataframe as dd
@@ -1901,13 +1901,24 @@ class PointSeries(_ObservationSequence[PointObservation]):
     __slots__ = ("realtime_start", "realtime_end")
     _element_type = PointObservation
 
-    def __init__(self, dates, values, *, series_id, realtime_start, realtime_end,
-                 units=None, frequency=None):
+    def __init__(
+        self,
+        dates,
+        values,
+        series_id,
+        realtime_start,
+        realtime_end,
+        units=None,
+        frequency=None
+    ) -> None:
         super().__init__(dates, values, series_id=series_id, units=units, frequency=frequency)
         self.realtime_start = realtime_start    # scalar window — constant for the series
         self.realtime_end = realtime_end
 
-    def _make(self, i):
+    def _make(
+        self,
+        i
+    ) -> PointObservation:
         v = self._values[i]
         return PointObservation(self._dates[i].item(), None if np.isnan(v) else float(v))
 
@@ -1915,7 +1926,11 @@ class PointSeries(_ObservationSequence[PointObservation]):
         return {**super()._metadata(),
                 "realtime_start": self.realtime_start, "realtime_end": self.realtime_end}
 
-    def _rebuild(self, columns, metadata):
+    def _rebuild(
+        self,
+        columns,
+        metadata
+    ) -> PointSeries:
         return PointSeries(columns["date"], columns["value"], **metadata)
 
     def as_vintage(self) -> VintageSeries:
@@ -1925,4 +1940,24 @@ class PointSeries(_ObservationSequence[PointObservation]):
             realtime_start=np.full(n, np.datetime64(self.realtime_start, "D")),
             realtime_end=np.full(n, np.datetime64(self.realtime_end, "D")),
             series_id=self.series_id, units=self.units, frequency=self.frequency,
+        )
+
+    @classmethod
+    def _assemble(
+        cls,
+        response,
+        dates,
+        values,
+        series_id,
+        units,
+        frequency
+    ) -> PointSeries:
+        return cls(
+            dates,
+            values,
+            series_id=series_id,
+            units=units,
+            frequency=frequency,
+            realtime_start=date.fromisoformat(response["realtime_start"]),
+            realtime_end=date.fromisoformat(response["realtime_end"])
         )

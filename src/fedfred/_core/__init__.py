@@ -43,6 +43,7 @@ from ._converters import (
     _coerce_lower,
     _dict_type_converter,
     _hashable_type_converter,
+    _observation_columns,
 )
 from ._endpoints import _resolve_endpoint
 from ._parameters import _resolve_preparation_function
@@ -58,6 +59,7 @@ __all__ = [
     "_dict_type_converter",
     "_extract_objects",
     "_hashable_type_converter",
+    "_observation_columns",
     "_region_type_parser",
     "_resolve_endpoint",
     "_resolve_preparation_function",
