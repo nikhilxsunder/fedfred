@@ -111,6 +111,7 @@ from .alfred import VintageDates, VintageSeries
 if TYPE_CHECKING:
     import dask.dataframe as dd
     import polars as pl
+    import torch
 
     from ..clients import Fred
 
@@ -1899,49 +1900,11 @@ class PointObservation(_ObservationBase):
 
 class PointSeries(_ObservationSequence[PointObservation]):
     __slots__ = ("realtime_start", "realtime_end")
+
+
     _element_type = PointObservation
 
-    def __init__(
-        self,
-        dates,
-        values,
-        series_id,
-        realtime_start,
-        realtime_end,
-        units=None,
-        frequency=None
-    ) -> None:
-        super().__init__(dates, values, series_id=series_id, units=units, frequency=frequency)
-        self.realtime_start = realtime_start    # scalar window — constant for the series
-        self.realtime_end = realtime_end
-
-    def _make(
-        self,
-        i
-    ) -> PointObservation:
-        v = self._values[i]
-        return PointObservation(self._dates[i].item(), None if np.isnan(v) else float(v))
-
-    def _metadata(self):
-        return {**super()._metadata(),
-                "realtime_start": self.realtime_start, "realtime_end": self.realtime_end}
-
-    def _rebuild(
-        self,
-        columns,
-        metadata
-    ) -> PointSeries:
-        return PointSeries(columns["date"], columns["value"], **metadata)
-
-    def as_vintage(self) -> VintageSeries:
-        n = len(self)
-        return VintageSeries(
-            self._dates, self._values,
-            realtime_start=np.full(n, np.datetime64(self.realtime_start, "D")),
-            realtime_end=np.full(n, np.datetime64(self.realtime_end, "D")),
-            series_id=self.series_id, units=self.units, frequency=self.frequency,
-        )
-
+    # Class Methods
     @classmethod
     def _assemble(
         cls,
@@ -1961,3 +1924,77 @@ class PointSeries(_ObservationSequence[PointObservation]):
             realtime_start=date.fromisoformat(response["realtime_start"]),
             realtime_end=date.fromisoformat(response["realtime_end"])
         )
+
+    # Dunder Methods
+    def __init__(
+        self,
+        dates,
+        values,
+        series_id,
+        realtime_start,
+        realtime_end,
+        units=None,
+        frequency=None
+    ) -> None:
+        super().__init__(dates, values, series_id=series_id, units=units, frequency=frequency)
+        self.realtime_start = realtime_start    # scalar window — constant for the series
+        self.realtime_end = realtime_end
+
+    # Protected Methods
+    def _make(
+        self,
+        i
+    ) -> PointObservation:
+        v = self._values[i]
+        return PointObservation(self._dates[i].item(), None if np.isnan(v) else float(v))
+
+    def _metadata(self):
+        return {
+            **super()._metadata(),
+            "realtime_start": self.realtime_start,
+            "realtime_end": self.realtime_end
+        }
+
+    def _rebuild(
+        self,
+        columns,
+        metadata
+    ) -> PointSeries:
+        return PointSeries(columns["date"], columns["value"], **metadata)
+
+    # Public Methods
+    def as_vintage(self) -> VintageSeries:
+        n = len(self)
+        return VintageSeries(
+            self._dates,
+            self._values,
+            realtime_start=np.full(n, np.datetime64(self.realtime_start, "D")),
+            realtime_end=np.full(n, np.datetime64(self.realtime_end, "D")),
+            series_id=self.series_id,
+            units=self.units,
+            frequency=self.frequency,
+        )
+
+    def to_series(self) -> pd.Series:
+        """The observations as one freq-aware pandas Series, named by series id."""
+        return pd.Series(
+            self._values,
+            index=self._datetime_index(self._dates),
+            name=self.series_id
+        )
+
+    def to_torch(self, *, dtype: torch.dtype | None = None, device: Any = "cpu") -> torch.Tensor:
+        """The values as a 1-D float tensor, shape ``(T,)``.
+
+        Dates are intentionally excluded — a tensor is numeric, and the date axis is
+        not tensor-natural; use ``to_series().index`` if you need it. Missing
+        observations are ``NaN`` (derive a finite mask with ``~torch.isnan(t)``).
+
+        Args:
+            dtype: Torch dtype; defaults to ``torch.float32`` (ML/GPU convention).
+                Pass ``torch.float64`` for state-space/Kalman work where the
+                covariance recursions are precision-sensitive.
+            device: Target device (``"cpu"``, ``"cuda"``, …).
+        """
+        torch = self._require("torch", "to_torch")
+        return torch.tensor(self._values, dtype=dtype or torch.float32, device=device)

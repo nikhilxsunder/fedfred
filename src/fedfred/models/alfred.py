@@ -19,6 +19,8 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+"""
+"""
 
 from __future__ import annotations
 
@@ -28,6 +30,7 @@ from datetime import date
 from typing import TYPE_CHECKING, Any, ClassVar, Self
 
 import numpy as np
+import pandas as pd
 
 from .._internals import _DateBase, _DateSequence, _ObservationBase, _ObservationSequence
 
@@ -308,12 +311,19 @@ class VintageObservation(_ObservationBase):
 class VintageSeries(_ObservationSequence[VintageObservation]):
     """
     """
-
     __slots__ = ("_realtime_start", "_realtime_end")
     _element_type = VintageObservation
 
     @classmethod
-    def _assemble(cls, response, dates, values, *, series_id, units, frequency):
+    def _assemble(
+        cls,
+        response,
+        dates,
+        values,
+        series_id,
+        units,
+        frequency
+    ) -> VintageSeries:
         obs = response["observations"]
         try:
             rstart = np.array([o["realtime_start"] for o in obs], dtype="datetime64[D]")
@@ -345,7 +355,10 @@ class VintageSeries(_ObservationSequence[VintageObservation]):
 
         self._realtime_end = realtime_end
 
-    def _make(self, i):
+    def _make(
+        self,
+        i
+    ):
         """
         """
         v = self._values[i]
@@ -363,7 +376,11 @@ class VintageSeries(_ObservationSequence[VintageObservation]):
             "realtime_end": self._realtime_end
         }
 
-    def _rebuild(self, columns, metadata):
+    def _rebuild(
+        self,
+        columns,
+        metadata
+    ):
         return VintageSeries(
             columns["date"], columns["value"],
             realtime_start=columns["realtime_start"], realtime_end=columns["realtime_end"],
@@ -372,3 +389,24 @@ class VintageSeries(_ObservationSequence[VintageObservation]):
     def as_of(self, realtime: date) -> PointSeries: ...   # vectorized mask + collapse
 
     def latest(self) -> PointSeries: ...
+
+    def to_series(self) -> pd.Series:
+        """The observations as one freq-aware pandas Series, named by series id."""
+        return pd.Series(
+            self._values,
+            index=self._datetime_index(self._dates),
+            name=self.series_id
+        )
+
+    def to_matrix(self) -> pd.DataFrame:
+        """Real-time data matrix: freq-aware date index × realtime (vintage) columns.
+
+        The date axis is made unique by the pivot, so the same ``_datetime_index``
+        attaches the series frequency here exactly as it does for a point series.
+        The ragged upper-right (NaN) is the correct real-time structure.
+        """
+        wide = pd.DataFrame(
+            {"date": self._dates, "realtime_start": self._realtime_start, "value": self._values}
+        ).pivot(index="date", columns="realtime_start", values="value")
+        wide.index = self._datetime_index(wide.index.values)
+        return wide

@@ -39,14 +39,13 @@ from datetime import date, datetime, time
 from typing import TYPE_CHECKING
 
 import geopandas as gpd
-import numpy as np
 
 from ..exceptions import (
     GeoDataFrameConversionError,
     OptionalDependencyError,
     TypeConversionError,
 )
-from ..settings import _resolve_dataframe_backend, _resolve_geodataframe_backend
+from ..settings import _resolve_geodataframe_backend
 
 if TYPE_CHECKING:
     import dask_geopandas as dd_gpd  # pragma: no cover
@@ -56,7 +55,7 @@ __all__ = [
     "_coerce_lower",
     "_dict_type_converter",
     "_hashable_type_converter",
-    "_observation_columns",
+    "_pandas_frequency_converter",
 ]
 
 # Typing Aliases
@@ -225,6 +224,31 @@ def _resolve_geodataframe_converter(backend: str | None = None) -> Callable:
         backend = _resolve_geodataframe_backend()
 
     return GEODATAFRAME_CONVERTER_MAP[backend]
+
+# Converter Mappings
+_FRED_TO_PANDAS_FREQ: dict[str, str] = {
+        "d": "D",
+        "w": "W",
+        "bw": "2W",
+        "m": "MS",
+        "q": "QS",
+        "sa": "6MS",
+        "a": "YS",
+        "wef": "W-FRI",
+        "weth": "W-THU",
+        "wew": "W-WED",
+        "wetu": "W-TUE",
+        "wem": "W-MON",
+        "wesu": "W-SUN",
+        "wesa": "W-SAT",
+        "bwew": "2W-WED",
+        "bwem": "2W-MON",
+    }
+
+def _pandas_frequency_converter(frequency: str | None):
+    """
+    """
+    return _FRED_TO_PANDAS_FREQ.get(frequency or "")
 
 # Scalar Converters
 def _identity_converter(parameter: str, value: object) -> object: # TODO: Do something with parameter input.
@@ -486,19 +510,3 @@ def _coerce_lower(value: str | None) -> str | None:
         )
 
     return value.lower()
-
-def _observation_columns(observations: list[dict]) -> tuple[np.ndarray, np.ndarray]:
-    """Bulk-parse the observations array into (dates, values) columns.
-
-    Single O(n) pass: dates parsed vectorized as datetime64[D], FRED "." → NaN.
-    Defensive — missing keys raise ParsingError rather than KeyError.
-    """
-    try:
-        dates = np.array([o["date"] for o in observations], dtype="datetime64[D]")
-        values = np.array(
-            [np.nan if o["value"] == "." else o["value"] for o in observations],
-            dtype="float64",
-        )
-    except KeyError as e:
-        raise ParsingError(f"observation missing required key {e}.") from e
-    return dates, values

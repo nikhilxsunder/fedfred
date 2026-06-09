@@ -43,9 +43,12 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-types  = ["pandas-stubs", "types-cachetools", "types-geopandas"]
-dask   = ["dask", "dask-geopandas"]
+types = ["pandas-stubs", "types-cachetools", "types-geopandas"]
+dask = ["dask", "dask-geopandas"]
 polars = ["polars", "polars-st"]
+torch = ["torch"]
+pyarrow = ["pyarrow"]
+# cudf = ["cudf"]
 
 [project.urls]
 Repository    = "https://github.com/nikhilxsunder/fedfred"
@@ -97,6 +100,9 @@ extras = [
     "polars-st",
     "dask",
     "dask-geopandas",
+    "torch",
+    "pyarrow",
+    # "cudf",
 ]
 dev = [
     { include-group = "test" },

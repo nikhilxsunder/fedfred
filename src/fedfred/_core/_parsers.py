@@ -34,11 +34,14 @@ from __future__ import annotations
 
 from typing import Any, Literal
 
+import numpy as np
+
 from ..exceptions.parsing import ParsingError
 
 __all__ = [
     "_ResponseShape",
     "_extract_objects",
+    "_observation_columns",
     "_region_type_parser",
 ]
 
@@ -192,3 +195,22 @@ def _extract_objects(
         return _objects_iter_dict_or_list(response, keys[0])
 
     return _require_first_list(response, keys)
+
+def _observation_columns(observations: list[dict]) -> tuple[np.ndarray, np.ndarray]:
+    """Bulk-parse the observations array into (dates, values) columns.
+
+    Single O(n) pass: dates parsed vectorized as datetime64[D], FRED "." → NaN.
+    Defensive — missing keys raise ParsingError rather than KeyError.
+    """
+    try:
+        dates = np.array([o["date"] for o in observations], dtype="datetime64[D]")
+
+        values = np.array(
+            [np.nan if o["value"] == "." else o["value"] for o in observations],
+            dtype="float64",
+        )
+
+    except KeyError as e:
+        raise ParsingError(f"observation missing required key {e}.") from e
+
+    return dates, values

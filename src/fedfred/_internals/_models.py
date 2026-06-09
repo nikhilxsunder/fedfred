@@ -88,10 +88,11 @@ import numpy as np
 import pandas as pd
 
 from ..settings import _resolve_dataframe_backend
-from .._core import _extract_objects, _ResponseShape, _observation_columns
+from .._core import _extract_objects, _ResponseShape, _observation_columns, _pandas_frequency_converter
 from ._clients import _ClientModel
 
 if TYPE_CHECKING:
+    import cudf
     import dask.dataframe as dd
     import polars as pl
     import pyarrow as pa
@@ -1395,6 +1396,36 @@ class _ObservationSequence[OT: _ObservationBase](Sequence[OT]):
         """Scalar sidecar forwarded across slices. Subclasses extend."""
         return {"series_id": self.series_id, "units": self.units, "frequency": self.frequency}
 
+    def _datetime_index(self, dates: np.ndarray) -> pd.DatetimeIndex:
+        """Freq-attached DatetimeIndex from a date array.
+
+        Frequency derives from the ``frequency`` parameter (FRED period-start
+        aliases) with ``infer_freq`` fallback, and is revision-independent — it
+        describes the date interval. Only attempts attachment on a unique,
+        monotonic axis, so it is safe to call on vintage's non-unique dates
+        (it simply returns ``freq=None`` there).
+        """
+        idx = pd.DatetimeIndex(dates, name="date")
+
+        if not (idx.is_monotonic_increasing and idx.is_unique):
+            return idx
+
+        mapped = _pandas_frequency_converter(self.frequency)
+
+        inferred = pd.infer_freq(idx) if len(idx) >= 3 else None
+
+        for candidate in (mapped, inferred):
+            if candidate:
+                try:
+                    idx.freq = candidate
+
+                    break
+
+                except ValueError:
+                    continue
+
+        return idx
+
     def _lookup_iso(
         self,
         key: str
@@ -1412,17 +1443,26 @@ class _ObservationSequence[OT: _ObservationBase](Sequence[OT]):
 
         return self._make(int(idx[0]))   # first vintage for that date, if vintage
 
+    def _to_self(self) -> Self:
+        return self
+
+    # Public Methods
     def to_pandas(
         self,
         index: str | None = None
     ) -> pd.DataFrame:
-        """Build a pandas DataFrame. ``index='date'`` yields a DatetimeIndex.
-
-        Note: a pandas DatetimeIndex is ``datetime64[ns]``; the day-resolution
-        dates widen to midnight timestamps. For ``VintageObservationSeries`` the
-        date is not unique, so ``index='date'`` produces a non-unique index.
+        """Build a pandas DataFrame. ``index="date"`` yields a DatetimeIndex with
+        ``freq`` set when the date axis is unique and regular (always for point;
+        never for vintage, whose date is non-unique → ``freq=None``).
         """
-        df = pd.DataFrame(self._columns())
+        cols = self._columns()
+
+        if index == "date":
+            data = {k: v for k, v in cols.items() if k != "date"}
+
+            return pd.DataFrame(data, index=self._datetime_index(cols["date"]))
+
+        df = pd.DataFrame(cols)
 
         return df.set_index(index) if index is not None else df
 
@@ -1444,6 +1484,33 @@ class _ObservationSequence[OT: _ObservationBase](Sequence[OT]):
 
         return dd.from_pandas(self.to_pandas(index=index), npartitions=npartitions)
 
+    def to_cudf(self, index: str | None = None) -> cudf.DataFrame:
+        """Build a cuDF (GPU) DataFrame. ``index="date"`` yields a DatetimeIndex.
+
+        GPU frames are for bulk device-side compute; the pandas ``freq`` attribute
+        is a CPU/statsmodels concern and is not attached here. For transparent GPU
+        acceleration of the *pandas* path instead, activate ``cudf.pandas`` before
+        importing fedfred and use ``to_pandas``/``to_series``.
+        """
+        cudf = self._require("cudf", "to_cudf")
+
+        cols = self._columns()
+
+        if index == "date":
+            data = {k: v for k, v in cols.items() if k != "date"}
+
+            df = cudf.DataFrame(data)
+
+            df.index = cudf.DatetimeIndex(cols["date"])   # no freq on device
+
+            df.index.name = "date"
+
+            return df
+
+        df = cudf.DataFrame(cols)
+
+        return df.set_index(index) if index is not None else df
+
     def to_arrow(self) -> pa.Table:
         """
         """
@@ -1455,10 +1522,13 @@ class _ObservationSequence[OT: _ObservationBase](Sequence[OT]):
         """Convert using the resolved backend (explicit > global setting > default)."""
         return {
             "pandas": lambda: self.to_pandas(**kwargs),
-            "polars": self.to_polars,
+            "polars": lambda: self.to_polars(),
             "dask": lambda: self.to_dask(**kwargs),
+            "cudf": lambda: self.to_cudf(**kwargs),
+            "fedfred": lambda: self._to_self(),
         }[_resolve_dataframe_backend(backend)]()
 
+    # TODO: Need to be refactored out of the model layer.
     @staticmethod
     def _validate_column(
         name: str,
