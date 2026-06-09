@@ -36,9 +36,11 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from datetime import date, datetime, time
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, AnyStr
 
 import geopandas as gpd
+import numpy as np
+import pandas as pd
 
 from ..exceptions import (
     GeoDataFrameConversionError,
@@ -46,6 +48,7 @@ from ..exceptions import (
     TypeConversionError,
 )
 from ..settings import _resolve_geodataframe_backend
+from ._dependencies import _require_module
 
 if TYPE_CHECKING:
     import dask_geopandas as dd_gpd  # pragma: no cover
@@ -57,6 +60,117 @@ __all__ = [
     "_hashable_type_converter",
     "_pandas_frequency_converter",
 ]
+
+# ---- parsing (columnar) ----------------------------------------------------
+
+def _date_column(rows: list[dict], key: str) -> np.ndarray:
+    """Vectorized parse of one ISO-date field into a datetime64[D] column."""
+    try:
+        return np.array([r[key] for r in rows], dtype="datetime64[D]")
+    except KeyError as e:
+        raise ParsingError(f"observation missing required key {e}.") from e
+
+
+def _observation_columns(observations: list[dict]) -> tuple[np.ndarray, np.ndarray]:
+    """Bulk parse the observations array into (dates, values); '.' -> NaN."""
+    dates = _date_column(observations, "date")
+    try:
+        values = np.array(
+            [np.nan if o["value"] == "." else o["value"] for o in observations],
+            dtype="float64",
+        )
+    except KeyError as e:
+        raise ParsingError(f"observation missing required key {e}.") from e
+    return dates, values
+
+
+# ---- scalar cell access (used by leaf _make) -------------------------------
+
+def _cell_date(dates: np.ndarray, i: int) -> date:
+    return dates[i].item()
+
+
+def _cell_value(values: np.ndarray, i: int) -> float | None:
+    v = values[i]
+    return None if np.isnan(v) else float(v)
+
+
+# ---- frequency-aware index -------------------------------------------------
+
+def _freq_aware_index(dates: np.ndarray, frequency: str | None) -> pd.DatetimeIndex:
+    """DatetimeIndex with freq attached when the date axis is unique & regular."""
+    idx = pd.DatetimeIndex(dates, name="date")
+    if not (idx.is_monotonic_increasing and idx.is_unique):
+        return idx
+    mapped = _pandas_frequency_converter(frequency)
+    inferred = pd.infer_freq(idx) if len(idx) >= 3 else None
+    for candidate in (mapped, inferred):
+        if candidate:
+            try:
+                idx.freq = candidate
+                break
+            except ValueError:
+                continue
+    return idx
+
+
+# ---- column dict -> backend frames -----------------------------------------
+
+def _columns_to_pandas(columns: dict[str, np.ndarray], *,
+                       index: str | None = None, frequency: str | None = None) -> pd.DataFrame:
+    if index == "date":
+        data = {k: v for k, v in columns.items() if k != "date"}
+        return pd.DataFrame(data, index=_freq_aware_index(columns["date"], frequency))
+    df = pd.DataFrame(columns)
+    return df.set_index(index) if index is not None else df
+
+
+def _columns_to_polars(columns: dict[str, np.ndarray]) -> Any:
+    pl = _require_module("polars", "to_polars")
+    return pl.DataFrame({k: v for k, v in columns.items()})
+
+
+def _columns_to_dask(columns: dict[str, np.ndarray], *,
+                     npartitions: int = 1, index: str | None = None,
+                     frequency: str | None = None) -> Any:
+    dd = _require_module("dask.dataframe", "to_dask", extra="dask")
+    return dd.from_pandas(
+        _columns_to_pandas(columns, index=index, frequency=frequency),
+        npartitions=npartitions,
+    )
+
+
+def _columns_to_cudf(columns: dict[str, np.ndarray], *, index: str | None = None) -> Any:
+    cudf = _require_module("cudf", "to_cudf")
+    if index == "date":
+        data = {k: v for k, v in columns.items() if k != "date"}
+        df = cudf.DataFrame(data)
+        df.index = cudf.DatetimeIndex(columns["date"])
+        df.index.name = "date"
+        return df
+    df = cudf.DataFrame(columns)
+    return df.set_index(index) if index is not None else df
+
+
+def _columns_to_arrow(columns: dict[str, np.ndarray]) -> Any:
+    pa = _require_module("pyarrow", "to_arrow", extra="arrow")
+    return pa.table(columns)
+
+
+# ---- series / vintage-matrix builders (used by leaves) ---------------------
+
+def _columns_to_series(values: np.ndarray, dates: np.ndarray,
+                       frequency: str | None, name: str) -> pd.Series:
+    return pd.Series(values, index=_freq_aware_index(dates, frequency), name=name)
+
+
+def _vintage_matrix(dates: np.ndarray, values: np.ndarray,
+                    realtime_start: np.ndarray, frequency: str | None) -> pd.DataFrame:
+    wide = pd.DataFrame(
+        {"date": dates, "realtime_start": realtime_start, "value": values}
+    ).pivot(index="date", columns="realtime_start", values="value")
+    wide.index = _freq_aware_index(wide.index.values, frequency)
+    return wide
 
 # Typing Aliases
 ParameterConverter = Callable[[str, object], object]

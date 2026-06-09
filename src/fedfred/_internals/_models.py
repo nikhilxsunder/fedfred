@@ -84,16 +84,22 @@ from typing import (
     overload,
 )
 
-import numpy as np
-import pandas as pd
-
 from ..settings import _resolve_dataframe_backend
-from .._core import _extract_objects, _ResponseShape, _observation_columns, _pandas_frequency_converter
+from ..exceptions.models import ModelError
+from ..exceptions.parsing import ParsingError
+from .._core import (
+    _extract_objects, _ResponseShape, _observation_columns,
+    _validate_observation_columns,
+    _row_match_mask, _columns_equal, _first_date_index,
+    _columns_to_pandas, _columns_to_polars, _columns_to_dask,
+    _columns_to_cudf, _columns_to_arrow,
+)
 from ._clients import _ClientModel
 
 if TYPE_CHECKING:
     import cudf
     import dask.dataframe as dd
+    import pandas as pd          # now TYPE_CHECKING-only — no runtime pd use remains
     import polars as pl
     import pyarrow as pa
 
@@ -1268,15 +1274,7 @@ class _ObservationSequence[OT: _ObservationBase](Sequence[OT]):
             TypeValidationError: If a column has the wrong dtype.
             ValueValidationError: If the columns are not 1-D or not equal length.
         """
-        self._validate_column("dates", dates, "M")      # datetime64
-
-        self._validate_column("values", values, "f")    # float
-
-        if dates.shape[0] != values.shape[0]:
-            raise ValueValidationError(
-                f"dates ({dates.shape[0]}) and values ({values.shape[0]}) "
-                "must have equal length."
-            )
+        _validate_observation_columns(date=dates, value=values)
 
         self._dates = dates
 
@@ -1316,38 +1314,16 @@ class _ObservationSequence[OT: _ObservationBase](Sequence[OT]):
         if not isinstance(value, self._element_type):
             return False
 
-        mask = np.ones(len(self), dtype=bool)
-
-        for name, arr in self._columns().items():
-            target = getattr(value, name)
-
-            if arr.dtype.kind == "M":
-                mask &= arr == np.datetime64(target, "D")
-
-            elif target is None:
-                mask &= np.isnan(arr)
-
-            else:
-                mask &= arr == target
-
-        return bool(mask.any())
+        return bool(_row_match_mask(self._columns(), value).any())
 
     def __eq__(self, other: object) -> bool:
         if type(self) is not type(other):
             return NotImplemented
 
-        if self._metadata() != other._metadata():       # type: ignore[attr-defined]
+        if self._metadata() != other._metadata():
             return False
 
-        a, b = self._columns(), other._columns()         # type: ignore[attr-defined]
-
-        if a.keys() != b.keys():
-            return False
-
-        return all(
-            np.array_equal(a[k], b[k], equal_nan=(a[k].dtype.kind == "f"))
-            for k in a
-        )
+        return _columns_equal(self._columns(), other._columns())
 
     def __repr__(self) -> str:
         return f"{type(self).__name__}(series_id={self.series_id!r}, n={len(self)})"
@@ -1396,127 +1372,40 @@ class _ObservationSequence[OT: _ObservationBase](Sequence[OT]):
         """Scalar sidecar forwarded across slices. Subclasses extend."""
         return {"series_id": self.series_id, "units": self.units, "frequency": self.frequency}
 
-    def _datetime_index(self, dates: np.ndarray) -> pd.DatetimeIndex:
-        """Freq-attached DatetimeIndex from a date array.
-
-        Frequency derives from the ``frequency`` parameter (FRED period-start
-        aliases) with ``infer_freq`` fallback, and is revision-independent — it
-        describes the date interval. Only attempts attachment on a unique,
-        monotonic axis, so it is safe to call on vintage's non-unique dates
-        (it simply returns ``freq=None`` there).
-        """
-        idx = pd.DatetimeIndex(dates, name="date")
-
-        if not (idx.is_monotonic_increasing and idx.is_unique):
-            return idx
-
-        mapped = _pandas_frequency_converter(self.frequency)
-
-        inferred = pd.infer_freq(idx) if len(idx) >= 3 else None
-
-        for candidate in (mapped, inferred):
-            if candidate:
-                try:
-                    idx.freq = candidate
-
-                    break
-
-                except ValueError:
-                    continue
-
-        return idx
-
     def _lookup_iso(
         self,
         key: str
     ) -> OT:
         try:
-            target = np.datetime64(key, "D")
+            i = _first_date_index(self._dates, key)
 
         except ValueError as e:
             raise ModelError(f"invalid ISO date key {key!r}.") from e
 
-        idx = np.flatnonzero(self._dates == target)
-
-        if idx.size == 0:
+        if i is None:
             raise ModelError(f"no observation with date {key!r} in {self.series_id!r}.")
 
-        return self._make(int(idx[0]))   # first vintage for that date, if vintage
+        return self._make(i)
 
     def _to_self(self) -> Self:
         return self
 
     # Public Methods
-    def to_pandas(
-        self,
-        index: str | None = None
-    ) -> pd.DataFrame:
-        """Build a pandas DataFrame. ``index="date"`` yields a DatetimeIndex with
-        ``freq`` set when the date axis is unique and regular (always for point;
-        never for vintage, whose date is non-unique → ``freq=None``).
-        """
-        cols = self._columns()
-
-        if index == "date":
-            data = {k: v for k, v in cols.items() if k != "date"}
-
-            return pd.DataFrame(data, index=self._datetime_index(cols["date"]))
-
-        df = pd.DataFrame(cols)
-
-        return df.set_index(index) if index is not None else df
+    def to_pandas(self, index: str | None = None) -> pd.DataFrame:
+        return _columns_to_pandas(self._columns(), index=index, frequency=self.frequency)
 
     def to_polars(self) -> pl.DataFrame:
-        """
-        """
-        pl = self._require("polars", "to_polars")
+        return _columns_to_polars(self._columns())
 
-        return pl.DataFrame({k: v for k, v in self._columns().items()})
-
-    def to_dask(
-        self,
-        npartitions: int = 1, 
-        index: str | None = None
-    ) -> dd.DataFrame:
-        """
-        """
-        dd = self._require("dask.dataframe", "to_dask", extra="dask")
-
-        return dd.from_pandas(self.to_pandas(index=index), npartitions=npartitions)
+    def to_dask(self, npartitions: int = 1, index: str | None = None) -> dd.DataFrame:
+        return _columns_to_dask(self._columns(), npartitions=npartitions,
+                                index=index, frequency=self.frequency)
 
     def to_cudf(self, index: str | None = None) -> cudf.DataFrame:
-        """Build a cuDF (GPU) DataFrame. ``index="date"`` yields a DatetimeIndex.
-
-        GPU frames are for bulk device-side compute; the pandas ``freq`` attribute
-        is a CPU/statsmodels concern and is not attached here. For transparent GPU
-        acceleration of the *pandas* path instead, activate ``cudf.pandas`` before
-        importing fedfred and use ``to_pandas``/``to_series``.
-        """
-        cudf = self._require("cudf", "to_cudf")
-
-        cols = self._columns()
-
-        if index == "date":
-            data = {k: v for k, v in cols.items() if k != "date"}
-
-            df = cudf.DataFrame(data)
-
-            df.index = cudf.DatetimeIndex(cols["date"])   # no freq on device
-
-            df.index.name = "date"
-
-            return df
-
-        df = cudf.DataFrame(cols)
-
-        return df.set_index(index) if index is not None else df
+        return _columns_to_cudf(self._columns(), index=index)
 
     def to_arrow(self) -> pa.Table:
-        """
-        """
-        pa = self._require("pyarrow", "to_arrow", extra="arrow")
-
-        return pa.table(self._columns())
+        return _columns_to_arrow(self._columns())
 
     def to_dataframe(self, backend: str | None = None, **kwargs: Any) -> Any:
         """Convert using the resolved backend (explicit > global setting > default)."""
@@ -1527,46 +1416,3 @@ class _ObservationSequence[OT: _ObservationBase](Sequence[OT]):
             "cudf": lambda: self.to_cudf(**kwargs),
             "fedfred": lambda: self._to_self(),
         }[_resolve_dataframe_backend(backend)]()
-
-    # TODO: Need to be refactored out of the model layer.
-    @staticmethod
-    def _validate_column(
-        name: str,
-        arr: np.ndarray,
-        kind: str
-    ) -> None: # TODO: No Static methods in models this needs a refactor to a core module
-        """
-
-        """
-        if not isinstance(arr, np.ndarray):
-            raise TypeValidationError(f"{name} must be a numpy.ndarray, got {type(arr)!r}.")
-
-        if arr.ndim != 1:
-            raise ValueValidationError(f"{name} must be 1-D, got {arr.ndim} dimensions.")
-
-        if arr.dtype.kind != kind:
-            raise TypeValidationError(
-                f"{name} must have dtype kind {kind!r}, got {arr.dtype!r}."
-            )
-
-    @staticmethod
-    def _require(
-        module: str,
-        feature: str,
-        extra: str | None = None
-    ) -> Any: # TODO: No Static methods in models this needs a refactor to a core module
-        """
-        """
-        import importlib
-
-        try:
-            return importlib.import_module(module)
-
-        except ImportError as e:
-            pkg = module.split(".")[0]
-            raise OptionalDependencyError(
-                message=f"{pkg} is required for {feature}.",
-                package=pkg,
-                feature=f"_ObservationSequence.{feature}",
-                install_hint=f"pip install fedfred[{extra or pkg}]",
-            ) from e

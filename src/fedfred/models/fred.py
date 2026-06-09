@@ -1937,7 +1937,7 @@ class PointSeries(_ObservationSequence[PointObservation]):
         frequency=None
     ) -> None:
         super().__init__(dates, values, series_id=series_id, units=units, frequency=frequency)
-        self.realtime_start = realtime_start    # scalar window — constant for the series
+        self.realtime_start = realtime_start
         self.realtime_end = realtime_end
 
     # Protected Methods
@@ -1945,8 +1945,8 @@ class PointSeries(_ObservationSequence[PointObservation]):
         self,
         i
     ) -> PointObservation:
-        v = self._values[i]
-        return PointObservation(self._dates[i].item(), None if np.isnan(v) else float(v))
+        return PointObservation(_cell_date(self._dates, i), _cell_value(self._values, i))
+
 
     def _metadata(self):
         return {
@@ -1977,11 +1977,7 @@ class PointSeries(_ObservationSequence[PointObservation]):
 
     def to_series(self) -> pd.Series:
         """The observations as one freq-aware pandas Series, named by series id."""
-        return pd.Series(
-            self._values,
-            index=self._datetime_index(self._dates),
-            name=self.series_id
-        )
+        return _columns_to_series(self._values, self._dates, self.frequency, self.series_id)
 
     def to_torch(self, *, dtype: torch.dtype | None = None, device: Any = "cpu") -> torch.Tensor:
         """The values as a 1-D float tensor, shape ``(T,)``.

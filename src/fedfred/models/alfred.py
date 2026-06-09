@@ -325,13 +325,10 @@ class VintageSeries(_ObservationSequence[VintageObservation]):
         frequency
     ) -> VintageSeries:
         obs = response["observations"]
-        try:
-            rstart = np.array([o["realtime_start"] for o in obs], dtype="datetime64[D]")
-            rend   = np.array([o["realtime_end"]   for o in obs], dtype="datetime64[D]")
-        except KeyError as e:
-            raise ParsingError(f"vintage observation missing {e}.") from e
-        return cls(dates, values, realtime_start=rstart, realtime_end=rend,
-                series_id=series_id, units=units, frequency=frequency)
+        return cls(dates, values,
+                   realtime_start=_date_column(obs, "realtime_start"),
+                   realtime_end=_date_column(obs, "realtime_end"),
+                   series_id=series_id, units=units, frequency=frequency)
 
     def __init__(
         self,
@@ -361,12 +358,10 @@ class VintageSeries(_ObservationSequence[VintageObservation]):
     ):
         """
         """
-        v = self._values[i]
-
         return VintageObservation(
-            self._dates[i].item(), None if np.isnan(v) else float(v),
-            realtime_start=self._realtime_start[i].item(),
-            realtime_end=self._realtime_end[i].item(),
+            _cell_date(self._dates, i), _cell_value(self._values, i),
+            realtime_start=_cell_date(self._realtime_start, i),
+            realtime_end=_cell_date(self._realtime_end, i),
         )
 
     def _columns(self):
@@ -390,23 +385,9 @@ class VintageSeries(_ObservationSequence[VintageObservation]):
 
     def latest(self) -> PointSeries: ...
 
-    def to_series(self) -> pd.Series:
-        """The observations as one freq-aware pandas Series, named by series id."""
-        return pd.Series(
-            self._values,
-            index=self._datetime_index(self._dates),
-            name=self.series_id
-        )
-
     def to_matrix(self) -> pd.DataFrame:
-        """Real-time data matrix: freq-aware date index × realtime (vintage) columns.
+        return _vintage_matrix(self._dates, self._values, self._realtime_start, self.frequency)
 
-        The date axis is made unique by the pivot, so the same ``_datetime_index``
-        attaches the series frequency here exactly as it does for a point series.
-        The ragged upper-right (NaN) is the correct real-time structure.
-        """
-        wide = pd.DataFrame(
-            {"date": self._dates, "realtime_start": self._realtime_start, "value": self._values}
-        ).pivot(index="date", columns="realtime_start", values="value")
-        wide.index = self._datetime_index(wide.index.values)
-        return wide
+    def to_series(self, realtime: date | None = None) -> pd.Series:
+        point = self.latest() if realtime is None else self.as_of(realtime)
+        return point.to_series()

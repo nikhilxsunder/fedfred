@@ -40,7 +40,28 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import cast
 
+import numpy as np
+
 from ..exceptions import TypeValidationError, ValueValidationError
+
+_EXPECTED_KIND: dict[str, str] = {
+    "date": "M", "realtime_start": "M", "realtime_end": "M", "value": "f",
+}
+
+def _validate_observation_columns(**columns: np.ndarray) -> None:
+    """Validate observation columns: ndarray, 1-D, dtype-by-name, equal length."""
+    lengths: dict[str, int] = {}
+    for name, arr in columns.items():
+        if not isinstance(arr, np.ndarray):
+            raise TypeValidationError(f"{name} must be a numpy.ndarray, got {type(arr)!r}.")
+        if arr.ndim != 1:
+            raise ValueValidationError(f"{name} must be 1-D, got {arr.ndim} dimensions.")
+        kind = _EXPECTED_KIND.get(name)
+        if kind is not None and arr.dtype.kind != kind:
+            raise TypeValidationError(f"{name} must have dtype kind {kind!r}, got {arr.dtype!r}.")
+        lengths[name] = arr.shape[0]
+    if len(set(lengths.values())) > 1:
+        raise ValueValidationError(f"columns must be equal length, got {lengths}.")
 
 ParameterValidator = Callable[[str, object], None]
 """Type alias for a parameter validator: takes a parameter name and a value, returns ``None``, and raises on invalid input."""
