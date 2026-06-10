@@ -1,3 +1,45 @@
+# filepath: /src/fedfred/_core/_dependencies.py
+#
+# Copyright (c) 2026 Nikhil Sunder
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+"""Optional-dependency loading for the fedfred core package.
+
+A single helper that imports an optional third-party backend (polars, dask,
+pyarrow, cudf, …) on demand and, when it is absent, raises a typed
+:class:`~fedfred.exceptions.OptionalDependencyError` carrying the package name and
+an install hint. Centralizing this keeps the conversion and model layers free of
+repeated ``try/except ImportError`` blocks — every optional backend is reached
+through one consistent failure path.
+
+Functions:
+    _require_module: Import an optional module or raise OptionalDependencyError.
+
+See Also:
+    - :mod:`fedfred._core._converters`: Loads the optional dataframe backends
+      behind ``to_polars`` / ``to_dask`` / ``to_cudf`` / ``to_arrow`` through this.
+    - :class:`fedfred.exceptions.OptionalDependencyError`: The raised error type.
+
+References:
+    - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/
+"""
+
 from __future__ import annotations
 
 import importlib
@@ -6,12 +48,48 @@ from types import ModuleType
 from ..exceptions.dependencies import OptionalDependencyError
 
 
-def _require_module(module: str, feature: str, extra: str | None = None) -> ModuleType:
-    """Import an optional dependency or raise a typed OptionalDependencyError."""
+def _require_module(
+    module: str,
+    feature: str,
+    extra: str | None = None
+) -> ModuleType:
+    """Import an optional dependency, or raise a typed error if it is absent.
+
+    Resolves ``module`` via :func:`importlib.import_module` and returns it. On
+    :class:`ImportError`, raises :class:`OptionalDependencyError` with the
+    top-level package name and a ``pip install fedfred[...]`` hint, so the caller
+    and the user get a consistent, actionable message rather than a bare
+    ``ImportError`` from deep in a conversion method.
+
+    Args:
+        module (str): The importable module name (e.g. ``"polars"``,
+            ``"dask.dataframe"``). The install package name is taken from the
+            first dotted segment.
+        feature (str): The fedfred feature requiring the module, surfaced in the
+            error message (e.g. ``"to_polars"``).
+        extra (str | None): The extras-group name for the install hint
+            (``pip install fedfred[<extra>]``). Defaults to the top-level package
+            name when ``None`` — appropriate when the extra and package share a
+            name (``polars``), but not when they diverge (``dask.dataframe`` →
+            ``dask``), which is why it is overridable.
+
+    Returns:
+        ModuleType: The imported module.
+
+    Raises:
+        OptionalDependencyError: If ``module`` is not installed.
+
+    Examples:
+        >>> from fedfred._core._dependencies import _require_module
+        >>> _require_module("json", "example").__name__
+        'json'
+    """
     try:
         return importlib.import_module(module)
+
     except ImportError as e:
         pkg = module.split(".")[0]
+
         raise OptionalDependencyError(
             message=f"{pkg} is required for {feature}.",
             package=pkg,

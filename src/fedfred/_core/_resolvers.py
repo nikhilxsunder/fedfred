@@ -49,7 +49,7 @@ def _resolve_endpoint(service: Service, endpoint_name: str) -> EndpointSpec:
         raise EndpointUnsupportedError(
             f"Unsupported endpoint {endpoint_name!r} for service {service!r}."
         ) from exc
-    
+
 def _resolve_preparation_function(
     parameters: Mapping[str, Any] | None,
     service: str

@@ -1315,8 +1315,8 @@ class _ObservationSequence[OT: _ObservationBase](Sequence[OT]):
     def __contains__(self, value: object) -> bool:
         if not isinstance(value, self._element_type):
             return False
-
-        return bool(_row_match_mask(self._columns(), value).any())
+        targets = {name: getattr(value, name) for name in self._columns()}
+        return bool(_row_match_mask(self._columns(), targets).any())
 
     def __eq__(self, other: object) -> bool:
         if type(self) is not type(other):

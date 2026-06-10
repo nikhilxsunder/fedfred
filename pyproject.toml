@@ -48,7 +48,6 @@ dask = ["dask", "dask-geopandas"]
 polars = ["polars", "polars-st"]
 torch = ["torch"]
 pyarrow = ["pyarrow"]
-# cudf = ["cudf"]
 
 [project.urls]
 Repository    = "https://github.com/nikhilxsunder/fedfred"
@@ -102,7 +101,6 @@ extras = [
     "dask-geopandas",
     "torch",
     "pyarrow",
-    # "cudf",
 ]
 dev = [
     { include-group = "test" },
@@ -129,7 +127,7 @@ files = "src/fedfred"
 ignore_missing_imports = true
 
 [tool.ruff]
-line-length = 300
+line-length = 100
 target-version = "py313"
 
 [tool.ruff.lint]

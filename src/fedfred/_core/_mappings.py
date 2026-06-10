@@ -1,5 +1,75 @@
-# Service Components
-## FRED (shared by ALFRED — same host, paths, and auth; ALFRED differs only in vintage parameters, handled by the parameter-preparation layer)
+# filepath: /src/fedfred/_core/_mappings.py
+#
+# Copyright (c) 2026 Nikhil Sunder
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+"""Static lookup tables for the fedfred core package.
+
+Raw ``key -> value`` mappings consumed as *input* by the builders and converters —
+distinct from the runtime catalogs in :mod:`._registries`, which are looked up to
+resolve a request. Two kinds live here: endpoint ``name -> URL path fragment``
+tables, composed from the path atoms in :mod:`._urls` and fed to the spec builders
+to construct :class:`EndpointSpec` instances; and the FRED frequency-code ->
+pandas offset-alias table consulted by the frequency converter.
+
+These are data, not behavior — read to build or convert other objects, never
+invoked on the request path themselves.
+
+Constants:
+    _FRED_ENDPOINT_MAP: FRED/ALFRED endpoint name -> path fragment.
+    _GEOFRED_ENDPOINT_MAP: GeoFRED endpoint name -> path fragment.
+    _FRASER_ENDPOINT_MAP: FRASER endpoint name -> path fragment (``{}`` = path param).
+    _FRED_TO_PANDAS_FREQ: FRED frequency code -> pandas period-start offset alias.
+
+See Also:
+    - :mod:`fedfred._core._urls`: The path atoms the endpoint maps compose.
+    - :mod:`fedfred._core._builders`: Consumes the endpoint maps to build specs.
+    - :mod:`fedfred._core._converters`: Consumes :data:`_FRED_TO_PANDAS_FREQ` for
+      frequency-aware index construction.
+
+References:
+    - FRED API documentation. https://fred.stlouisfed.org/docs/api/fred/
+    - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/
+"""
+from __future__ import annotations
+
+from ._urls import (
+    _AUTHOR_PATH,
+    _CATEGORY_PATH,
+    _DATA_PATH,
+    _DATES_PATH,
+    _ITEM_PATH,
+    _OBSERVATIONS_PATH,
+    _RECORD_PATH,
+    _RELATED_PATH,
+    _RELEASE_PATH,
+    _SEARCH_PATH,
+    _SERIES_PATH,
+    _SOURCE_PATH,
+    _SUBJECT_PATH,
+    _TAG_PATH,
+    _THEME_PATH,
+    _TIMELINE_PATH,
+    _TITLE_PATH,
+    _TOC_PATH,
+)
+
 _FRED_ENDPOINT_MAP: dict[str, str] = {
     # Category endpoints
     "get_category": _CATEGORY_PATH,
@@ -48,16 +118,22 @@ base parameters; all other entries use query-parameter auth and the v1
 base parameters.
 """
 
-## GeoFRED
 _GEOFRED_ENDPOINT_MAP: dict[str, str] = {
     "get_shape_files": "/shapes/file",
     "get_series_group": f"{_SERIES_PATH}/group",
     "get_series_data": f"{_SERIES_PATH}{_DATA_PATH}",
     "get_regional_data": f"/regional{_DATA_PATH}",
 }
-"""Mapping of GeoFRED endpoint names to their corresponding URL path fragments."""
+"""Mapping of GeoFRED endpoint names to their corresponding URL path fragments.
 
-## FRASER
+Consumed when building the GeoFRED :class:`EndpointSpec` registry: each fragment
+is appended to the GeoFRED base URL to form the endpoint URL. All GeoFRED
+endpoints use query-parameter (``api_key``) auth and
+:data:`_GEOFRED_BASE_PARAMETERS`. Fragments reuse the shared path atoms from
+:mod:`._urls` where applicable (``_SERIES_PATH``, ``_DATA_PATH``); endpoint-specific
+segments (``/shapes/file``, ``/group``, ``/regional``) are spelled inline.
+"""
+
 _FRASER_ENDPOINT_MAP: dict[str, str] = {
     # API key endpoints
     "post_key_request": "/api-key",
@@ -95,4 +171,36 @@ Positional ``{}`` placeholders are filled with path parameters
 :meth:`str.format`. Endpoints whose name begins with ``post_`` are POST
 requests and use :data:`_FRASER_BASE_PARAMETERS` as the payload rather
 than as query parameters.
+"""
+
+_FRED_TO_PANDAS_FREQ: dict[str, str] = {
+        "d": "D",
+        "w": "W",
+        "bw": "2W",
+        "m": "MS",
+        "q": "QS",
+        "sa": "6MS",
+        "a": "YS",
+        "wef": "W-FRI",
+        "weth": "W-THU",
+        "wew": "W-WED",
+        "wetu": "W-TUE",
+        "wem": "W-MON",
+        "wesu": "W-SUN",
+        "wesa": "W-SAT",
+        "bwew": "2W-WED",
+        "bwem": "2W-MON",
+    }
+"""Mapping of FRED frequency codes to pandas period-start offset aliases.
+
+Consulted by :func:`._converters._pandas_frequency_converter` (and through it
+:func:`._converters._freq_aware_index`) to attach a frequency to a date index, and
+by :data:`._choices.FRED_FREQUENCIES`, whose accepted-frequency set is derived from
+these keys so the two cannot drift.
+
+Monthly, quarterly, and annual map to start-anchored aliases (``MS``/``QS``/``YS``)
+because FRED returns period-start dates; weekly "ending" codes map to anchored
+weekly aliases (``wef`` -> ``W-FRI``); daily maps to ``D`` (business-daily series
+are resolved by inference downstream). Unrecognized or ``None`` codes yield no
+alias.
 """
