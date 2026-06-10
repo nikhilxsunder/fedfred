@@ -62,7 +62,7 @@ def _prepare_parameters(
     parameters: Mapping[str, Any] | None,
     specs: Mapping[str, ParameterSpec],
     service: str,
-    allow_unknown: bool = False
+    allow_unknown: bool = False,
 ) -> dict[str, Any]:
     """Convert and validate a parameter mapping against a spec map.
 
@@ -106,7 +106,6 @@ def _prepare_parameters(
 
         if spec is None:
             if allow_unknown:
-
                 prepared[name] = value
                 continue
 
@@ -131,7 +130,6 @@ def _prepare_parameters(
 
     for name, spec in specs.items():
         if spec.required and name not in prepared:
-
             raise ValueValidationError(
                 message=f"Missing required parameter {name!r} for {service}.",
                 parameter=name,
@@ -140,6 +138,7 @@ def _prepare_parameters(
             )
 
     return prepared
+
 
 def _prepare_fred_parameters(parameters: Mapping[str, Any] | None) -> dict[str, Any]:
     """Prepare FRED API request parameters against :data:`FRED_PARAMETER_SPECS`.
@@ -170,6 +169,7 @@ def _prepare_fred_parameters(parameters: Mapping[str, Any] | None) -> dict[str, 
         allow_unknown=True,
     )
 
+
 def _prepare_geofred_parameters(parameters: Mapping[str, Any] | None) -> dict[str, Any]:
     """Prepare GeoFRED API request parameters against :data:`GEOFRED_PARAMETER_SPECS`.
 
@@ -198,6 +198,7 @@ def _prepare_geofred_parameters(parameters: Mapping[str, Any] | None) -> dict[st
         service="GeoFRED",
         allow_unknown=True,
     )
+
 
 def _prepare_fraser_parameters(parameters: Mapping[str, Any] | None) -> dict[str, Any]:
     """Prepare FRASER API request parameters against :data:`FRASER_PARAMETER_SPECS`.

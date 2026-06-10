@@ -19,28 +19,20 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""
-"""
+""" """
 
 from datetime import date, datetime
-from types import NotImplementedType, TracebackType
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Any
 
-import pandas as pd
-
-from .._internals import _AsyncBaseClient, _BaseClient
-from ..models import Series
+from .._internals import _BaseClient
 
 if TYPE_CHECKING:
-    import dask.dataframe as dd  # pragma: no cover
-    import polars as pl  # pragma: no cover
+    pass  # pragma: no cover
 
-__all__ = [
-    "Alfred",
-    "AsyncAlfred"
-]
+__all__ = ["Alfred", "AsyncAlfred"]
 
 # TODO: Fix all docstrings post error design.
+
 
 class Alfred(_BaseClient):
     """Client for the Federal Reserve FRED API's ALFRED endpoints.
@@ -60,9 +52,15 @@ class Alfred(_BaseClient):
     """
 
     # Public Methods
-    def get_series_vintage_dates(self, series_id: str, realtime_start: Optional[Union[str, datetime, date]]=None,
-                                 realtime_end: Optional[Union[str, datetime, date]]=None, limit: Optional[int]=None,
-                                 offset: Optional[int]=None, sort_order: Optional[str]=None):
+    def get_series_vintage_dates(
+        self,
+        series_id: str,
+        realtime_start: str | datetime | date | None = None,
+        realtime_end: str | datetime | date | None = None,
+        limit: int | None = None,
+        offset: int | None = None,
+        sort_order: str | None = None,
+    ):
         """Get the vintage dates for an ALFRED series.
 
         Returns the dates on which new releases or revisions of a series became
@@ -101,57 +99,80 @@ class Alfred(_BaseClient):
         References:
             - Fred API Documentation: https://fred.stlouisfed.org/docs/api/fred/series_vintagedates.html
         """
+        endpoint_name = "get_series_vintagedates"
 
-        endpoint_name = 'get_series_vintagedates'
-
-        data: Dict[str, Any] = {
-            'series_id': series_id,
-            'realtime_start': realtime_start,
-            'realtime_end': realtime_end,
-            'limit': limit,
-            'offset': offset,
-            'sort_order': sort_order
+        data: dict[str, Any] = {
+            "series_id": series_id,
+            "realtime_start": realtime_start,
+            "realtime_end": realtime_end,
+            "limit": limit,
+            "offset": offset,
+            "sort_order": sort_order,
         }
 
         response = self._client_get_request(endpoint_name, data)
 
         pass
 
-    def get_series_info_as_of_date(self,):
+    def get_series_info_as_of_date(
+        self,
+    ):
         pass
 
-    def get_series_observations_first_release(self,):
+    def get_series_observations_first_release(
+        self,
+    ):
 
         pass
 
-    def get_series_observations_latest_release(self,):
+    def get_series_observations_latest_release(
+        self,
+    ):
 
         pass
 
-    def get_series_observations_as_of_date(self,):
+    def get_series_observations_as_of_date(
+        self,
+    ):
         pass
 
-    def get_series_observations_all_releases(self,):
+    def get_series_observations_all_releases(
+        self,
+    ):
         pass
 
-    def get_series_observations_vintage_matrix(self,):
+    def get_series_observations_vintage_matrix(
+        self,
+    ):
         pass
 
-    def get_series_observations_revisions(self,):
+    def get_series_observations_revisions(
+        self,
+    ):
         pass
 
-    def get_series_observations_new_and_revised(self,):
+    def get_series_observations_new_and_revised(
+        self,
+    ):
         pass
 
-    def get_series_observations(self,):
+    def get_series_observations(
+        self,
+    ):
         pass
+
 
 class AsyncAlfred:
-
     # Public Methods
-    async def get_series_vintage_dates(self, series_id: str, realtime_start: Optional[Union[str, datetime, date]]=None,
-                                       realtime_end: Optional[Union[str, datetime, date]]=None, limit: Optional[int]=None,
-                                       offset: Optional[int]=None, sort_order: Optional[str]=None) -> VintageDates:
+    async def get_series_vintage_dates(
+        self,
+        series_id: str,
+        realtime_start: str | datetime | date | None = None,
+        realtime_end: str | datetime | date | None = None,
+        limit: int | None = None,
+        offset: int | None = None,
+        sort_order: str | None = None,
+    ) -> VintageDates:
         """Asynchronously get the vintage dates for an ALFRED series.
 
         Args:
@@ -184,47 +205,64 @@ class AsyncAlfred:
         References:
             - Fred API Documentation: https://fred.stlouisfed.org/docs/api/fred/series_vintagedates.html
         """
+        endpoint_name = "get_series_vintagedates"
 
-        endpoint_name = 'get_series_vintagedates'
-
-        data: Dict[str, Any] = {
-            'series_id': series_id,
-            'realtime_start': realtime_start,
-            'realtime_end': realtime_end,
-            'limit': limit,
-            'offset': offset,
-            'sort_order': sort_order
+        data: dict[str, Any] = {
+            "series_id": series_id,
+            "realtime_start": realtime_start,
+            "realtime_end": realtime_end,
+            "limit": limit,
+            "offset": offset,
+            "sort_order": sort_order,
         }
 
         response = await self._client_get_request(endpoint_name, data)
 
         return await VintageDates.to_object_async(response, series_id=series_id)
 
-    async def get_series_info_as_of_date(self,):
+    async def get_series_info_as_of_date(
+        self,
+    ):
         pass
 
-    async def get_series_observations_first_release(self,):
+    async def get_series_observations_first_release(
+        self,
+    ):
 
         pass
 
-    async def get_series_observations_latest_release(self,):
+    async def get_series_observations_latest_release(
+        self,
+    ):
 
         pass
 
-    async def get_series_observations_as_of_date(self,):
+    async def get_series_observations_as_of_date(
+        self,
+    ):
         pass
 
-    async def get_series_observations_all_releases(self,):
+    async def get_series_observations_all_releases(
+        self,
+    ):
         pass
 
-    async def get_series_observations_vintage_matrix(self,):
+    async def get_series_observations_vintage_matrix(
+        self,
+    ):
         pass
 
-    async def get_series_observations_revisions(self,):
+    async def get_series_observations_revisions(
+        self,
+    ):
         pass
 
-    async def get_series_observations_new_and_revised(self,):
+    async def get_series_observations_new_and_revised(
+        self,
+    ):
         pass
 
-    async def get_series_observations(self,):
+    async def get_series_observations(
+        self,
+    ):
         pass

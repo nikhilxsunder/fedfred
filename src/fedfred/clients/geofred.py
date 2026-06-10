@@ -24,8 +24,8 @@
 This module defines the GeoFred client for interacting with the Federal Reserve FRED Maps API.
 
 
-It provides synchronous and asynchronous methods to access various endpoints of the FRED Maps API, including 
-series groups. The client includes features such as automatic parameter conversion, unified response objects, 
+It provides synchronous and asynchronous methods to access various endpoints of the FRED Maps API, including
+series groups. The client includes features such as automatic parameter conversion, unified response objects,
 rate limiting, retries, and typed results.
 
 Classes:
@@ -43,9 +43,10 @@ Examples:
 from __future__ import annotations
 
 import asyncio
+from collections.abc import KeysView
 from datetime import date, datetime
 from types import TracebackType
-from typing import TYPE_CHECKING, Any, Dict, KeysView, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any
 
 import geopandas as gpd
 
@@ -58,13 +59,10 @@ from ..._core import (
     _ST_LOUIS_FED_BASE_URL,
     ASYNC_GEODATAFRAME_CONVERTER_MAP,
     GEODATAFRAME_CONVERTER_MAP,
-    _cached_get_request,
     _cached_get_request_async,
     # Transport
-    _get_request,
     _get_request_async,
     # Converters
-    _hashable_type_converter,
     _hashable_type_converter_async,
     # Parsers
     _region_type_parser,
@@ -83,16 +81,14 @@ if TYPE_CHECKING:
 
 # TODO: Fix all docstrings post error design.
 
-__all__ = [
-    "AsyncGeoFred",
-    "GeoFred"
-]
+__all__ = ["AsyncGeoFred", "GeoFred"]
+
 
 class GeoFred(_BaseClient):
     """Client for interacting with the Federal Reserve Economic Data (FRED) Maps API.
 
-    The GeoFred class provides methods to interact with the FRED Maps API, which offers geospatial 
-    data and maps related to economic indicators. This class extends the functionality of the Fred 
+    The GeoFred class provides methods to interact with the FRED Maps API, which offers geospatial
+    data and maps related to economic indicators. This class extends the functionality of the Fred
     class by adding specific methods for handling geospatial data and maps.
 
     Attributes:
@@ -128,7 +124,9 @@ class GeoFred(_BaseClient):
     """
 
     # Public Methods
-    def get_shape_files(self, shape: str, geodataframe_method: str='geopandas') -> Union[gpd.GeoDataFrame, 'dd_gpd.GeoDataFrame', 'st.GeoDataFrame']:
+    def get_shape_files(
+        self, shape: str, geodataframe_method: str = "geopandas"
+    ) -> gpd.GeoDataFrame | dd_gpd.GeoDataFrame | st.GeoDataFrame:
         """Get GeoFRED shape files
 
         This request returns shape files from FRED Maps in GeoJSON format.
@@ -163,41 +161,42 @@ class GeoFred(_BaseClient):
             - Fred API Documentation: https://fred.stlouisfed.org/docs/api/geofred/shapes.html
             - fedfred package documentation: https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.GeoFred.get_shape_files.html
         """
+        endpoint_name = "get_shapes_file"
 
-        endpoint_name = 'get_shapes_file'
-
-        data: Dict[str, Any] = {
-            'shape': shape
-        }
+        data: dict[str, Any] = {"shape": shape}
 
         response = self.__geofred_get_request(endpoint_name, data)
 
         # ----------------------------Needs-Abstraction-----------------------------------------------------------------
-        if geodataframe_method == 'geopandas':
-            return gpd.GeoDataFrame.from_features(response['features'])
-        elif geodataframe_method == 'dask':
-            gdf = gpd.GeoDataFrame.from_features(response['features'])
-            try:                                                     # TODO: Optional Import logic needs to be relegated to a helper
+        if geodataframe_method == "geopandas":
+            return gpd.GeoDataFrame.from_features(response["features"])
+        elif geodataframe_method == "dask":
+            gdf = gpd.GeoDataFrame.from_features(response["features"])
+            try:  # TODO: Optional Import logic needs to be relegated to a helper
                 import dask_geopandas as dd_gpd
+
                 return dd_gpd.from_geopandas(gdf, npartitions=1)
-            except ImportError as e:                                # TODO: Needs exception hierarchy defined Error Class
+            except ImportError as e:  # TODO: Needs exception hierarchy defined Error Class
                 raise ImportError(
                     f"{e}: Dask GeoPandas is not installed. Install it with `pip install dask-geopandas` to use this method."
                 ) from e
-        elif geodataframe_method == 'polars':
-            gdf = gpd.GeoDataFrame.from_features(response['features'])
+        elif geodataframe_method == "polars":
+            gdf = gpd.GeoDataFrame.from_features(response["features"])
             try:
                 import polars_st as st
+
                 return st.from_geopandas(gdf)
             except ImportError as e:
                 raise ImportError(
                     f"{e}: Polars is not installed. Install it with `pip install polars` to use this method."
                 ) from e
         else:
-            raise ValueError("geodataframe_method must be 'geopandas', 'dask', or 'polars'") # TODO: Custom Error class
+            raise ValueError(
+                "geodataframe_method must be 'geopandas', 'dask', or 'polars'"
+            )  # TODO: Custom Error class
         # ------------------------------------------------------------------------------------------------------------
 
-    def get_series_group(self, series_id: str) -> List[SeriesGroup]:
+    def get_series_group(self, series_id: str) -> list[SeriesGroup]:
         """Get a GeoFRED series group
 
         This request returns the meta information needed to make requests for FRED data. Minimum
@@ -226,20 +225,21 @@ class GeoFred(_BaseClient):
             - Fred API Documentation: https://fred.stlouisfed.org/docs/api/geofred/series_group.html
             - fedfred package documentation: https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.GeoFred.get_series_group.html
         """
+        endpoint_name = "get_series_group"
 
-        endpoint_name = 'get_series_group'
-
-        data: Dict[str, Any] = {
-            'series_id': series_id,
-            'file_type': 'json'
-        }
+        data: dict[str, Any] = {"series_id": series_id, "file_type": "json"}
 
         response = self.__geofred_get_request(endpoint_name, data)
 
         return SeriesGroup.to_object(response)
 
-    def get_series_data(self, series_id: str, geodataframe_method: str='geopandas', date: Optional[Union[str, datetime, date]]=None,
-                        start_date: Optional[Union[str, datetime, date]]=None) -> Union[gpd.GeoDataFrame, 'dd_gpd.GeoDataFrame', 'st.GeoDataFrame']:
+    def get_series_data(
+        self,
+        series_id: str,
+        geodataframe_method: str = "geopandas",
+        date: str | datetime | date | None = None,
+        start_date: str | datetime | date | None = None,
+    ) -> gpd.GeoDataFrame | dd_gpd.GeoDataFrame | st.GeoDataFrame:
         """Get GeoFRED series data
 
         This request returns a cross section of regional data for a specified release date. If no date is specified, the most recent data available are returned.
@@ -251,8 +251,8 @@ class GeoFred(_BaseClient):
             start_date (string | datetime, optional): The start date you want to request series group data from. This allows you to pull a range of data. String format: YYYY-MM-DD
 
         Returns:
-            - geopandas.GeoDataFrame 
-            - dask_geopandas.GeoDataFrame 
+            - geopandas.GeoDataFrame
+            - dask_geopandas.GeoDataFrame
             - polars_st.GeoDataFrame: Depending on the geodataframe_method selected. Default is geopandas.GeoDataFrame.
 
         Raises:
@@ -276,35 +276,49 @@ class GeoFred(_BaseClient):
             - Fred API Documentation: https://fred.stlouisfed.org/docs/api/geofred/series_data.html
             - fedfred package documentation: https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.GeoFred.get_series_data.html
         """
+        endpoint_name = "get_series_data"
 
-        endpoint_name = 'get_series_data'
-
-        data: Dict[str, Any] = {
-            'series_id': series_id,
-            'file_type': 'json',
-            'date': date,
-            'start_date': start_date
+        data: dict[str, Any] = {
+            "series_id": series_id,
+            "file_type": "json",
+            "date": date,
+            "start_date": start_date,
         }
 
         # ----------------------------Needs-Abstraction-----------------------------------------------------------------
         response = self.__geofred_get_request(endpoint_name, data)
-        meta_data = response.get('meta', {})
+        meta_data = response.get("meta", {})
         region_type = _region_type_parser(response)
         shapefile = self.get_shape_files(region_type)
         # --------------------------------------------------------------------------------------------------------------
 
-        if isinstance(shapefile, gpd.GeoDataFrame): # TODO: Slight logic fix (No front end validation)
+        if isinstance(
+            shapefile, gpd.GeoDataFrame
+        ):  # TODO: Slight logic fix (No front end validation)
             try:
                 return GEODATAFRAME_CONVERTER_MAP[geodataframe_method](shapefile, meta_data)
             except Exception as exc:
-                raise ValueError("geodataframe_method must be 'geopandas', 'polars', or 'dask'") from exc # TODO: Needs custom Error handling exception hierarchy.
+                raise ValueError(
+                    "geodataframe_method must be 'geopandas', 'polars', or 'dask'"
+                ) from exc  # TODO: Needs custom Error handling exception hierarchy.
         else:
-            raise ValueError("shapefile type error") # TODO: Needs custom Error handling exception hierarchy.
+            raise ValueError(
+                "shapefile type error"
+            )  # TODO: Needs custom Error handling exception hierarchy.
 
-    def get_regional_data(self, series_group: str, region_type: str, date: Union[str, datetime, date], season: str,
-                          units: str, frequency: str, geodataframe_method: str='geopandas',
-                          start_date: Optional[Union[str, datetime, date]]=None, transformation: Optional[str]=None,
-                          aggregation_method: Optional[str]=None) -> Union[gpd.GeoDataFrame, 'dd_gpd.GeoDataFrame', 'st.GeoDataFrame']:
+    def get_regional_data(
+        self,
+        series_group: str,
+        region_type: str,
+        date: str | datetime | date,
+        season: str,
+        units: str,
+        frequency: str,
+        geodataframe_method: str = "geopandas",
+        start_date: str | datetime | date | None = None,
+        transformation: str | None = None,
+        aggregation_method: str | None = None,
+    ) -> gpd.GeoDataFrame | dd_gpd.GeoDataFrame | st.GeoDataFrame:
         """Get GeoFRED regional data
 
         Retrieve regional data for a specified series group and date from the FRED Maps API.
@@ -322,7 +336,7 @@ class GeoFred(_BaseClient):
             aggregation_method (str, optional): The aggregation method to use. Options are 'avg', 'sum', and 'eop'.
 
         Returns:
-            - geopandas.GeoDataFrame 
+            - geopandas.GeoDataFrame
             - dask_geopandas.GeoDataFrame
             - polars_st.GeoDataFrame: Depending on the geodataframe_method selected. Default is geopandas.GeoDataFrame.
 
@@ -349,40 +363,46 @@ class GeoFred(_BaseClient):
             Fred API Documentation: https://fred.stlouisfed.org/docs/api/geofred/regional_data.html
             fedfred package documentation: https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.GeoFred.get_regional_data.html
         """
+        endpoint_name = "get_regional_data"
 
-        endpoint_name = 'get_regional_data'
-
-        data: Dict[str, Any] = {
-            'series_group': series_group,
-            'region_type': region_type,
-            'date': date,
-            'season': season,
-            'units': units,
-            'frequency': frequency,
-            'file_type': 'json',
-            'start_date': start_date,
-            'transformation': transformation,
-            'aggregation_method': aggregation_method
+        data: dict[str, Any] = {
+            "series_group": series_group,
+            "region_type": region_type,
+            "date": date,
+            "season": season,
+            "units": units,
+            "frequency": frequency,
+            "file_type": "json",
+            "start_date": start_date,
+            "transformation": transformation,
+            "aggregation_method": aggregation_method,
         }
 
         # ----------------------------Needs-Abstraction-----------------------------------------------------------------
         response = self.__geofred_get_request(endpoint_name, data)
-        meta_data = response.get('meta', {})
+        meta_data = response.get("meta", {})
         region_type = _region_type_parser(response)
         shapefile = self.get_shape_files(region_type)
         # --------------------------------------------------------------------------------------------------------------
 
-        if isinstance(shapefile, gpd.GeoDataFrame): # TODO: Slight logic fix (No front end validation)
+        if isinstance(
+            shapefile, gpd.GeoDataFrame
+        ):  # TODO: Slight logic fix (No front end validation)
             try:
                 return GEODATAFRAME_CONVERTER_MAP[geodataframe_method](shapefile, meta_data)
             except Exception as exc:
-                raise ValueError("geodataframe_method must be 'geopandas', 'polars', or 'dask'") from exc # TODO: Needs custom Error handling exception hierarchy.
+                raise ValueError(
+                    "geodataframe_method must be 'geopandas', 'polars', or 'dask'"
+                ) from exc  # TODO: Needs custom Error handling exception hierarchy.
         else:
-            raise ValueError("shapefile type error") # TODO: Needs custom Error handling exception hierarchy.
+            raise ValueError(
+                "shapefile type error"
+            )  # TODO: Needs custom Error handling exception hierarchy.
+
 
 class AsyncGeoFred(_AsyncBaseClient):
     """Asynchronous client for interacting with the Federal Reserve Economic Data (FRED) Maps API.
-    
+
     The AsyncGeoFred class provides methods to access various endpoints of the FRED Maps API asynchronously.
     It is designed to be used as part of the AsyncFred client.
 
@@ -396,10 +416,10 @@ class AsyncGeoFred(_AsyncBaseClient):
 
     Raises:
         ValueError: If the parent is not a valid AsyncFred instance.
-        
+
     Notes:
-        The AsyncGeoFred class is intended to be used as a sub-client of the AsyncFred class. It should 
-        not be instantiated directly. Instead, access it via the AsyncGeoFred property of the AsyncFred 
+        The AsyncGeoFred class is intended to be used as a sub-client of the AsyncFred class. It should
+        not be instantiated directly. Instead, access it via the AsyncGeoFred property of the AsyncFred
         instance.
 
     Examples:
@@ -421,7 +441,9 @@ class AsyncGeoFred(_AsyncBaseClient):
     """
 
     # Dunder Methods
-    def __init__(self, api_key: Optional[str]=None, caching_enabled: bool=True, cache_size: int=256) -> None:
+    def __init__(
+        self, api_key: str | None = None, caching_enabled: bool = True, cache_size: int = 256
+    ) -> None:
         """Initialize with a reference to the parent AsyncFred instance and the grandparent Fred instance.
 
         Args:
@@ -441,8 +463,8 @@ class AsyncGeoFred(_AsyncBaseClient):
             >>> asyncio.run(main())
 
         Notes:
-            The AsyncGeoFred class is intended to be used as a sub-client of the AsyncFred class. It should 
-            not be instantiated directly. Instead, access it via the AsyncGeoFred property of the AsyncFred 
+            The AsyncGeoFred class is intended to be used as a sub-client of the AsyncFred class. It should
+            not be instantiated directly. Instead, access it via the AsyncGeoFred property of the AsyncFred
             instance.
 
         See Also:
@@ -450,7 +472,6 @@ class AsyncGeoFred(_AsyncBaseClient):
             - :class:`fedfred.Fred`: The synchronous FRED API client
             - :func:`fedfred.set_api_key`: Function to set the API key for FRED API access.
         """
-
         if api_key:
             set_api_key(api_key, service="fred")
 
@@ -467,7 +488,7 @@ class AsyncGeoFred(_AsyncBaseClient):
             str: String representation of the AsyncGeoFred instance.
 
         Notes:
-            The string representation includes the parent AsyncFred instance's string representation, the grandparent 
+            The string representation includes the parent AsyncFred instance's string representation, the grandparent
             Fred instance's string representation, and the AsyncGeoFred instance's string representation.
 
         Examples:
@@ -477,15 +498,16 @@ class AsyncGeoFred(_AsyncBaseClient):
             >>> print(repr(maps_api))
             'Fred(api_key='your_api_key', cache_mode=True, cache_size=256).AsyncFred(base_url=https://api.stlouisfed.org/fred/).AsyncGeoFred(base_url=https://api.stlouisfed.org/fred/maps/)'
         """
-
         try:
             has_key = bool(_resolve_api_key(service="geofred"))
-        except RuntimeError:                        # TODO: Add custom exception for missing API key and catch that instead.
+        except (
+            RuntimeError
+        ):  # TODO: Add custom exception for missing API key and catch that instead.
             has_key = False
 
         auth = "<set>" if has_key else "None"
 
-                                                    # TODO: include size of instance object in the repr string for debugging purposes (can use sys.getsizeof() for that).
+        # TODO: include size of instance object in the repr string for debugging purposes (can use sys.getsizeof() for that).
 
         return (
             f"{type(self).__name__}("
@@ -502,7 +524,7 @@ class AsyncGeoFred(_AsyncBaseClient):
             str: String representation of the AsyncGeoFred instance.
 
         Notes:
-            The string representation includes the parent AsyncFred instance's string representation, the grandparent 
+            The string representation includes the parent AsyncFred instance's string representation, the grandparent
             Fred instance's string representation, and the AsyncGeoFred instance's string representation.
 
         Examples:
@@ -521,18 +543,17 @@ class AsyncGeoFred(_AsyncBaseClient):
             '    AsyncGeoFred Instance:'
             '      Base URL: https://api.stlouisfed.org/fred/maps/'
         """
-
         try:
             has_key = bool(_resolve_api_key(service="geofred"))
-        except RuntimeError:                           # TODO: Add custom exception for missing API key and catch that instead.
+        except (
+            RuntimeError
+        ):  # TODO: Add custom exception for missing API key and catch that instead.
             has_key = False
 
         auth_line = "configured" if has_key else "not configured"
 
         cache_line = (
-            f"enabled (FIFO, maxsize={self.cache_size})"
-            if self.caching_enabled
-            else "disabled"
+            f"enabled (FIFO, maxsize={self.cache_size})" if self.caching_enabled else "disabled"
         )
 
         return (
@@ -552,8 +573,8 @@ class AsyncGeoFred(_AsyncBaseClient):
         Returns:
             bool: True if the objects are equal, False otherwise.
 
-        Notes: 
-            This method compares two AsyncGeoFred instances based on their attributes. If the other object is not a GeoFred 
+        Notes:
+            This method compares two AsyncGeoFred instances based on their attributes. If the other object is not a GeoFred
             instance, it returns NotImplemented.
 
         Examples:
@@ -564,16 +585,12 @@ class AsyncGeoFred(_AsyncBaseClient):
             >>> print(maps_api1 == maps_api2)
             True
         """
-
         try:
             assert isinstance(other, type(self))
         except AssertionError:
             return NotImplemented
 
-        return (
-            self.caching_enabled == other.caching_enabled
-            and self.cache_size == other.cache_size
-        )
+        return self.caching_enabled == other.caching_enabled and self.cache_size == other.cache_size
 
     def __hash__(self) -> int:
         """Hash function for AsyncGeoFred instances.
@@ -582,7 +599,7 @@ class AsyncGeoFred(_AsyncBaseClient):
             int: The hash value of the AsyncGeoFred instance.
 
         Notes:
-            The hash value is computed based on the API key of the grandparent Fred instance, the cache mode of the parent 
+            The hash value is computed based on the API key of the grandparent Fred instance, the cache mode of the parent
             AsyncFred instance, and the cache size of the grandparent Fred instance.
 
         Examples:
@@ -591,7 +608,6 @@ class AsyncGeoFred(_AsyncBaseClient):
             >>> maps_api = fred.AsyncGeoFred
             >>> print(hash(maps_api))
         """
-
         return hash((type(self).__name__, self.caching_enabled, self.cache_size))
 
     def __len__(self) -> int:
@@ -609,7 +625,6 @@ class AsyncGeoFred(_AsyncBaseClient):
             >>> maps_api = fred.AsyncGeoFred
             >>> print(len(maps_api))
         """
-
         return len(_CACHE) if self.caching_enabled else 0
 
     def __contains__(self, key: str) -> bool:
@@ -631,7 +646,6 @@ class AsyncGeoFred(_AsyncBaseClient):
             >>> print('some_key' in maps_api)
             True
         """
-
         return self.caching_enabled and key in _CACHE
 
     def __getitem__(self, key: str) -> Any:
@@ -657,13 +671,14 @@ class AsyncGeoFred(_AsyncBaseClient):
             >>> print(value)
             'some_value'
         """
-
         if not self.caching_enabled:
-            raise KeyError(key)         # TODO: Add custom exception for cache disabled and catch that instead.
+            raise KeyError(
+                key
+            )  # TODO: Add custom exception for cache disabled and catch that instead.
 
         return _CACHE.cache[key]
 
-    async def __aenter__(self) -> "AsyncGeoFred":
+    async def __aenter__(self) -> AsyncGeoFred:
         """Enter the asynchronous runtime context.
 
         Returns:
@@ -682,10 +697,14 @@ class AsyncGeoFred(_AsyncBaseClient):
             ...         categories = await fred.get_category(125)
             >>> asyncio.run(main())
         """
-
         return self
 
-    async def __aexit__(self, exc_type: Optional[type[BaseException]], exc: Optional[BaseException], tb: Optional[TracebackType]) -> None:
+    async def __aexit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc: BaseException | None,
+        tb: TracebackType | None,
+    ) -> None:
         """Exit the asynchronous runtime context. No-op.
 
         Args:
@@ -697,23 +716,23 @@ class AsyncGeoFred(_AsyncBaseClient):
             Does not clear the cache or rate-limit buckets — those are shared
             across all live Fred and AsyncFred instances.
         """
-
         return None
 
     @property
-    def keys(self) -> Optional[KeysView[Tuple[Any, ...]]]:
+    def keys(self) -> KeysView[tuple[Any, ...]] | None:
         """List of keys in the cache."""
-
         return _CACHE.keys() if self.caching_enabled else None
 
     # Private Methods
-    async def __geofred_get_request(self, url_endpoint: str, data: Optional[Dict[str, Any]]=None) -> Dict[str, Any]:
+    async def __geofred_get_request(
+        self, url_endpoint: str, data: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
         """Helper method to perform an asynchronous GET request to the FRED Maps API.
 
         Args:
             url_endpoint (str): The endpoint URL to send the GET request to.
             data (Dict[str, Optional[Union[str, int]]], optional): The query parameters for the GET request.
-            
+
         Returns:
             Dict[str, Any]: The JSON response from the FRED Maps API.
 
@@ -724,18 +743,21 @@ class AsyncGeoFred(_AsyncBaseClient):
             This method handles rate limiting and caching for asynchronous GET requests to the FRED Maps API.
 
         Warnings:
-            Caching is only applied if `cache_mode` is enabled in the parent Fred instance. Ensure that the `data` parameter is hashable for 
+            Caching is only applied if `cache_mode` is enabled in the parent Fred instance. Ensure that the `data` parameter is hashable for
             caching to work correctly.
         """
-
         if self.caching_enabled:
-            return await _cached_get_request_async(url_endpoint, await _hashable_type_converter_async(data))
+            return await _cached_get_request_async(
+                url_endpoint, await _hashable_type_converter_async(data)
+            )
 
         else:
             return await _get_request_async(url_endpoint, data)
 
     # Public Methods
-    async def get_shape_files(self, shape: str, geodataframe_method: str='geopandas') -> Union[gpd.GeoDataFrame, 'dd_gpd.GeoDataFrame', 'st.GeoDataFrame']:
+    async def get_shape_files(
+        self, shape: str, geodataframe_method: str = "geopandas"
+    ) -> gpd.GeoDataFrame | dd_gpd.GeoDataFrame | st.GeoDataFrame:
         """Get GeoFRED shape files
 
         This request returns shape files from FRED in GeoJSON format.
@@ -773,41 +795,42 @@ class AsyncGeoFred(_AsyncBaseClient):
             - Fred API Documentation: https://fred.stlouisfed.org/docs/api/geofred/shapes.html
             - fedfred package documentation: https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.AsyncGeoFred.get_shape_files.html
         """
+        endpoint_name = "get_shapes_file"
 
-        endpoint_name = 'get_shapes_file'
-
-        data: Dict[str, Any] = {
-            'shape': shape
-        }
+        data: dict[str, Any] = {"shape": shape}
 
         response = await self.__geofred_get_request(endpoint_name, data)
 
         # ----------------------------Needs-Abstraction-----------------------------------------------------------------
-        if geodataframe_method == 'geopandas':
-            return await asyncio.to_thread(gpd.GeoDataFrame.from_features, response['features'])
-        elif geodataframe_method == 'dask':
-            gdf = await asyncio.to_thread(gpd.GeoDataFrame.from_features, response['features'])
+        if geodataframe_method == "geopandas":
+            return await asyncio.to_thread(gpd.GeoDataFrame.from_features, response["features"])
+        elif geodataframe_method == "dask":
+            gdf = await asyncio.to_thread(gpd.GeoDataFrame.from_features, response["features"])
             try:
                 import dask_geopandas as dd_gpd
+
                 return dd_gpd.from_geopandas(gdf, npartitions=1)
             except ImportError as e:
                 raise ImportError(
                     f"{e}: Dask GeoPandas is not installed. Install it with `pip install dask-geopandas` to use this method."
                 ) from e
-        elif geodataframe_method == 'polars':
-            gdf = await asyncio.to_thread(gpd.GeoDataFrame.from_features, response['features'])
+        elif geodataframe_method == "polars":
+            gdf = await asyncio.to_thread(gpd.GeoDataFrame.from_features, response["features"])
             try:
                 import polars_st as st
+
                 return st.from_geopandas(gdf)
             except ImportError as e:
                 raise ImportError(
                     f"{e}: Polars is not installed. Install it with `pip install polars` to use this method."
                 ) from e
         else:
-            raise ValueError("geodataframe_method must be 'geopandas', 'dask', or 'polars'") # TODO: Custom error class
+            raise ValueError(
+                "geodataframe_method must be 'geopandas', 'dask', or 'polars'"
+            )  # TODO: Custom error class
         # ---------------------------------------------------------------------------------------------------------------
 
-    async def get_series_group(self, series_id: str) -> List[SeriesGroup]:
+    async def get_series_group(self, series_id: str) -> list[SeriesGroup]:
         """Get a GeoFRED series group
 
         This request returns the meta information needed to make requests for FRED data. Minimum
@@ -839,20 +862,21 @@ class AsyncGeoFred(_AsyncBaseClient):
             - Fred API Documentation: https://fred.stlouisfed.org/docs/api/geofred/series_group.html
             - fedfred package documentation: https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.AsyncGeoFred.get_series_group.html
         """
+        endpoint_name = "get_series_group"
 
-        endpoint_name = 'get_series_group'
-
-        data: Dict[str, Any] = {
-            'series_id': series_id,
-            'file_type': 'json'
-        }
+        data: dict[str, Any] = {"series_id": series_id, "file_type": "json"}
 
         response = await self.__geofred_get_request(endpoint_name, data)
 
         return await SeriesGroup.to_object_async(response)
 
-    async def get_series_data(self, series_id: str, geodataframe_method: str='geopandas', date: Optional[Union[str, datetime, date]]=None,
-                              start_date: Optional[Union[str, datetime, date]]=None) -> Union[gpd.GeoDataFrame, 'dd_gpd.GeoDataFrame', 'st.GeoDataFrame']:
+    async def get_series_data(
+        self,
+        series_id: str,
+        geodataframe_method: str = "geopandas",
+        date: str | datetime | date | None = None,
+        start_date: str | datetime | date | None = None,
+    ) -> gpd.GeoDataFrame | dd_gpd.GeoDataFrame | st.GeoDataFrame:
         """Get GeoFRED series data
 
         This request returns a cross section of regional data for a specified release date. If no
@@ -891,34 +915,51 @@ class AsyncGeoFred(_AsyncBaseClient):
             -Fred API Documentation: https://fred.stlouisfed.org/docs/api/geofred/series_data.html
             - fedfred package documentation: https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.AsyncGeoFred.get_series_data.html
         """
+        endpoint_name = "get_series_data"
 
-        endpoint_name = 'get_series_data'
-
-        data: Dict[str, Any] = {
-            'series_id': series_id,
-            'file_type': 'json',
-            'date': date,
-            'start_date': start_date
+        data: dict[str, Any] = {
+            "series_id": series_id,
+            "file_type": "json",
+            "date": date,
+            "start_date": start_date,
         }
 
         # ----------------------------Needs-Abstraction-----------------------------------------------------------------
         response = await self.__geofred_get_request(endpoint_name, data)
-        meta_data = response.get('meta', {})
+        meta_data = response.get("meta", {})
         region_type = await _region_type_parser_async(response)
         shapefile = await self.get_shape_files(region_type)
         # --------------------------------------------------------------------------------------------------------------
 
-        if isinstance(shapefile, gpd.GeoDataFrame): # TODO: Slight logic fix (No front end validation)
+        if isinstance(
+            shapefile, gpd.GeoDataFrame
+        ):  # TODO: Slight logic fix (No front end validation)
             try:
-                return await ASYNC_GEODATAFRAME_CONVERTER_MAP[geodataframe_method](shapefile, meta_data)
+                return await ASYNC_GEODATAFRAME_CONVERTER_MAP[geodataframe_method](
+                    shapefile, meta_data
+                )
             except Exception as exc:
-                raise ValueError("geodataframe_method must be 'geopandas', 'polars', or 'dask'") from exc # TODO: Needs custom Error handling exception hierarchy.
+                raise ValueError(
+                    "geodataframe_method must be 'geopandas', 'polars', or 'dask'"
+                ) from exc  # TODO: Needs custom Error handling exception hierarchy.
         else:
-            raise ValueError("shapefile type error") # TODO: Needs custom Error handling exception hierarchy.
+            raise ValueError(
+                "shapefile type error"
+            )  # TODO: Needs custom Error handling exception hierarchy.
 
-    async def get_regional_data(self, series_group: str, region_type: str, date: Union[str, datetime], season: str,
-                                units: str, frequency: str, geodataframe_method: str='geopandas', start_date: Optional[Union[str, datetime]]=None,
-                                transformation: Optional[str]=None, aggregation_method: Optional[str]=None) -> Union[gpd.GeoDataFrame, 'dd_gpd.GeoDataFrame', 'st.GeoDataFrame']:
+    async def get_regional_data(
+        self,
+        series_group: str,
+        region_type: str,
+        date: str | datetime,
+        season: str,
+        units: str,
+        frequency: str,
+        geodataframe_method: str = "geopandas",
+        start_date: str | datetime | None = None,
+        transformation: str | None = None,
+        aggregation_method: str | None = None,
+    ) -> gpd.GeoDataFrame | dd_gpd.GeoDataFrame | st.GeoDataFrame:
         """Get GeoFRED regional data
 
         Retrieve regional data for a specified series group and date from the FRED Maps API.
@@ -964,33 +1005,38 @@ class AsyncGeoFred(_AsyncBaseClient):
             - Fred API Documentation: https://fred.stlouisfed.org/docs/api/geofred/regional_data.html
             - fedfred package documentation: https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.AsyncGeoFred.get_regional_data.html
         """
+        url_endpoint = "get_regional_data"
 
-        url_endpoint = 'get_regional_data'
-
-        data: Dict[str, Any] = {
-            'series_group': series_group,
-            'region_type': region_type,
-            'date': date,
-            'season': season,
-            'units': units,
-            'frequency': frequency,
-            'file_type': 'json',
-            'start_date': start_date,
-            'transformation': transformation,
-            'aggregation_method': aggregation_method
+        data: dict[str, Any] = {
+            "series_group": series_group,
+            "region_type": region_type,
+            "date": date,
+            "season": season,
+            "units": units,
+            "frequency": frequency,
+            "file_type": "json",
+            "start_date": start_date,
+            "transformation": transformation,
+            "aggregation_method": aggregation_method,
         }
 
         # ----------------------------Needs-Abstraction-----------------------------------------------------------------
         response = await self.__geofred_get_request(url_endpoint, data)
-        meta_data = response.get('meta', {})
+        meta_data = response.get("meta", {})
         region_type = await _region_type_parser_async(response)
         shapefile = await self.get_shape_files(region_type)
         # --------------------------------------------------------------------------------------------------------------
 
-        if isinstance(shapefile, gpd.GeoDataFrame): # TODO: Slight logic fix (No front end validation)
+        if isinstance(
+            shapefile, gpd.GeoDataFrame
+        ):  # TODO: Slight logic fix (No front end validation)
             try:
                 return ASYNC_GEODATAFRAME_CONVERTER_MAP[geodataframe_method](shapefile, meta_data)
             except Exception as exc:
-                raise ValueError("geodataframe_method must be 'geopandas', 'polars', or 'dask'") from exc # TODO: Needs custom Error handling exception hierarchy.
+                raise ValueError(
+                    "geodataframe_method must be 'geopandas', 'polars', or 'dask'"
+                ) from exc  # TODO: Needs custom Error handling exception hierarchy.
         else:
-            raise ValueError("shapefile type error") # TODO: Needs custom Error handling exception hierarchy.
+            raise ValueError(
+                "shapefile type error"
+            )  # TODO: Needs custom Error handling exception hierarchy.

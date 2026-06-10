@@ -65,7 +65,7 @@ References:
 """
 
 _FRED_BASE_PARAMETERS: dict[str, str] = {
-    'file_type': 'json',
+    "file_type": "json",
 }
 """Default query parameters for FRED v1 and ALFRED requests.
 
@@ -76,7 +76,7 @@ be mutated through the spec — see the module-level design notes.
 """
 
 _FRED_VERSION_TWO_BASE_PARAMETERS: dict[str, str] = {
-    'format': 'json',
+    "format": "json",
 }
 """Default query parameters for FRED v2 requests (endpoints under ``/v2/``).
 
@@ -86,7 +86,7 @@ time per :attr:`EndpointSpec.auth`.
 """
 
 _GEOFRED_BASE_PARAMETERS: dict[str, str] = {
-    'file_type': 'json',
+    "file_type": "json",
 }
 """Default query parameters for GeoFRED requests.
 
@@ -97,7 +97,7 @@ parameter is injected at request time per :attr:`EndpointSpec.auth`.
 """
 
 _FRASER_BASE_PARAMETERS: dict[str, str] = {
-    'format': 'json',
+    "format": "json",
 }
 """Default parameters for FRASER requests.
 

@@ -40,7 +40,7 @@ from typing import Any
 
 import numpy as np
 
-from ..exceptions.parsing import ParsingError
+from ..exceptions.core.parsing import ParsingError
 from ._types import _ResponseShape
 
 
@@ -54,7 +54,7 @@ def _region_type_parser(response: dict[str, Any]) -> str:
         str: The region type (e.g. ``"state"``), read from ``response["meta"]["region"]``.
 
     Raises:
-        ParsingError: If the response has no ``meta`` section, or the ``meta`` section has no 
+        ParsingError: If the response has no ``meta`` section, or the ``meta`` section has no
             ``region`` value.
 
     Examples:
@@ -67,26 +67,20 @@ def _region_type_parser(response: dict[str, Any]) -> str:
         section; despite the function name, the underlying payload key is
         ``region``, not ``region_type``.
     """
-    meta_data = response.get('meta', {})
+    meta_data = response.get("meta", {})
 
     if not meta_data:
-        raise ParsingError(
-            message="No meta data found in the response"
-            )
+        raise ParsingError(message="No meta data found in the response")
 
-    region_type = meta_data.get('region')
+    region_type = meta_data.get("region")
 
     if not region_type:
-        raise ParsingError(
-            message="No region type found in the response meta data"
-            )
+        raise ParsingError(message="No region type found in the response meta data")
 
     return region_type
 
-def _require_first_list(
-    response: dict[str, Any],
-    keys: tuple[str, ...]
-) -> list[Any]:
+
+def _require_first_list(response: dict[str, Any], keys: tuple[str, ...]) -> list[Any]:
     """Return the list under the first key in ``keys`` that is present.
 
     Args:
@@ -97,7 +91,7 @@ def _require_first_list(
         list[Any]: The list found under the first matching key.
 
     Raises:
-        ParsingError: If ``response`` is not a dict, none of ``keys`` are present, or the value 
+        ParsingError: If ``response`` is not a dict, none of ``keys`` are present, or the value
             under the first matching key is not a list.
 
     Examples:
@@ -118,7 +112,6 @@ def _require_first_list(
 
     for key in keys:
         if key in response:
-
             raw = response[key]
 
             if not isinstance(raw, list):
@@ -130,15 +123,13 @@ def _require_first_list(
 
     raise ParsingError(f"Invalid API response: missing {pretty} field")
 
-def _objects_iter_dict_or_list(
-    response: dict[str, Any],
-    key: str
-) -> list[dict[str, Any]]:
+
+def _objects_iter_dict_or_list(response: dict[str, Any], key: str) -> list[dict[str, Any]]:
     """Return the objects under ``key`` as a list, accepting either a list or an id-keyed dict.
 
     Args:
         response (dict[str, Any]): The response to read from.
-        key (str): The key expected to point to either a list of objects or a dict mapping ids to 
+        key (str): The key expected to point to either a list of objects or a dict mapping ids to
             objects.
 
     Returns:
@@ -174,6 +165,7 @@ def _objects_iter_dict_or_list(
 
     raise ParsingError(f"Invalid API response: {key!r} must be a dict or list")
 
+
 def _extract_objects(
     response: dict[str, Any],
     keys: tuple[str, ...],
@@ -200,10 +192,8 @@ def _extract_objects(
 
     return _require_first_list(response, keys)
 
-def _date_column(
-    rows: list[dict],
-    key: str
-) -> np.ndarray:
+
+def _date_column(rows: list[dict], key: str) -> np.ndarray:
     """Vectorized parse of one ISO-date field across rows into a ``datetime64[D]`` column.
 
     Args:
@@ -233,6 +223,7 @@ def _date_column(
 
     except KeyError as e:
         raise ParsingError(f"observation missing required key {e}.") from e
+
 
 def _observation_columns(observations: list[dict]) -> tuple[np.ndarray, np.ndarray]:
     """Bulk-parse the observations array into parallel (dates, values) columns.

@@ -51,28 +51,27 @@ References:
 from __future__ import annotations
 
 import os
-from typing import Dict, Literal, Optional
-
-from .__about__ import __author__, __copyright__, __description__, __docs__, __email__, __license__, __repository__, __title__, __version__
+from typing import Literal
 
 Service = Literal["fred", "fraser", "geofred", "alfred"]
 """Type alias for supported services in fedfred package."""
 
-ENV_VARS: Dict[Service, str] = {
+ENV_VARS: dict[Service, str] = {
     "fred": "FRED_API_KEY",
     "fraser": "FRASER_API_KEY",
     "geofred": "FRED_API_KEY",
-    "alfred": "FRED_API_KEY"
+    "alfred": "FRED_API_KEY",
 }
 """Mapping of services to their respective environment variable names for API keys."""
 
-_GLOBAL_KEYS: Dict[Service, Optional[str]] = {
+_GLOBAL_KEYS: dict[Service, str | None] = {
     "fred": None,
     "fraser": None,
     "geofred": None,
     "alfred": None,
 }
 """Global storage for API keys for each service."""
+
 
 def set_api_key(api_key: str, service: Service = "fred") -> None:
     """Set the global API key for the fedfred package.
@@ -84,14 +83,16 @@ def set_api_key(api_key: str, service: Service = "fred") -> None:
     Raises:
         ValueError: If api_key is not a non-empty string or if an unknown service is specified.
     """
-
     if not isinstance(api_key, str) or not api_key.strip():
         raise ValueError("api_key must be a non-empty string.")
     if service not in _GLOBAL_KEYS:
-        raise ValueError(f"Unknown service: {service!r}. Expected 'fred', 'geofred', 'fraser', or 'alfred'.")
+        raise ValueError(
+            f"Unknown service: {service!r}. Expected 'fred', 'geofred', 'fraser', or 'alfred'."
+        )
     _GLOBAL_KEYS[service] = api_key.strip()
 
-def get_api_key(service: Service = "fred") -> Optional[str]:
+
+def get_api_key(service: Service = "fred") -> str | None:
     """Get the currently configured global API key for a given service, if any.
 
     Args:
@@ -103,14 +104,16 @@ def get_api_key(service: Service = "fred") -> Optional[str]:
     Raises:
         ValueError: If an unknown service is specified.
     """
-
     if service not in _GLOBAL_KEYS:
-        raise ValueError(f"Unknown service: {service!r}. Expected 'fred', 'geofred', 'fraser', or 'alfred'.")
+        raise ValueError(
+            f"Unknown service: {service!r}. Expected 'fred', 'geofred', 'fraser', or 'alfred'."
+        )
     return _GLOBAL_KEYS[service]
+
 
 def clear_api_key(service: Service = "fred") -> None:
     """Clear the global API key for a service.
-    
+
     Args:
         service (Service): The service for which to clear the API key. Defaults to "fred".
 
@@ -118,10 +121,17 @@ def clear_api_key(service: Service = "fred") -> None:
         ValueError: If an unknown service is specified.
     """
     if service not in _GLOBAL_KEYS:
-        raise ValueError(f"Unknown service: {service!r}. Expected 'fred', 'geofred', 'fraser', or 'alfred'.")
+        raise ValueError(
+            f"Unknown service: {service!r}. Expected 'fred', 'geofred', 'fraser', or 'alfred'."
+        )
     _GLOBAL_KEYS[service] = None
 
-def _resolve_api_key(*, service: Service = "fred", env_var: Optional[str] = None,) -> str:
+
+def _resolve_api_key(
+    *,
+    service: Service = "fred",
+    env_var: str | None = None,
+) -> str:
     """Resolve an API key from an explicit argument, the global setting, or the environment variable. Raises if nothing is available.
 
     Args:
@@ -136,9 +146,10 @@ def _resolve_api_key(*, service: Service = "fred", env_var: Optional[str] = None
         RuntimeError: If no API key can be resolved.
         ValueError: If an unknown service is specified.
     """
-
     if service not in _GLOBAL_KEYS:
-        raise ValueError(f"Unknown service: {service!r}. Expected 'fred', 'geofred', 'fraser', or 'alfred'.")
+        raise ValueError(
+            f"Unknown service: {service!r}. Expected 'fred', 'geofred', 'fraser', or 'alfred'."
+        )
 
     # 2) global
     global_key = _GLOBAL_KEYS.get(service)
@@ -157,9 +168,11 @@ def _resolve_api_key(*, service: Service = "fred", env_var: Optional[str] = None
         f"or set the environment variable {env_name}."
     )
 
+
 _DEFAULT_DATAFRAME_BACKEND = "pandas"
 _VALID_DATAFRAME_BACKENDS = ("pandas", "polars", "dask")
-_GLOBAL_DATAFRAME_BACKEND: Optional[str] = None
+_GLOBAL_DATAFRAME_BACKEND: str | None = None
+
 
 def set_dataframe_backend(backend: str) -> None:
 
@@ -168,20 +181,24 @@ def set_dataframe_backend(backend: str) -> None:
     global _GLOBAL_DATAFRAME_BACKEND
     _GLOBAL_DATAFRAME_BACKEND = backend
 
+
 def get_dataframe_backend() -> str:
 
     return _GLOBAL_DATAFRAME_BACKEND or _DEFAULT_DATAFRAME_BACKEND
 
-def _resolve_dataframe_backend(explicit: Optional[str] = None) -> str:
+
+def _resolve_dataframe_backend(explicit: str | None = None) -> str:
 
     backend = explicit or _GLOBAL_DATAFRAME_BACKEND or _DEFAULT_DATAFRAME_BACKEND
     if backend not in _VALID_DATAFRAME_BACKENDS:
         raise ValueError(f"backend must be one of {_VALID_DATAFRAME_BACKENDS}, got {backend!r}.")
     return backend
 
+
 _DEFAULT_GEODATAFRAME_BACKEND = "pandas"
 _VALID_GEODATAFRAME_BACKENDS = ("pandas", "polars", "dask")
-_GLOBAL_GEODATAFRAME_BACKEND: Optional[str] = None
+_GLOBAL_GEODATAFRAME_BACKEND: str | None = None
+
 
 def set_geodataframe_backend(backend: str) -> None:
 
@@ -190,11 +207,13 @@ def set_geodataframe_backend(backend: str) -> None:
     global _GLOBAL_GEODATAFRAME_BACKEND
     _GLOBAL_GEODATAFRAME_BACKEND = backend
 
+
 def get_geodataframe_backend() -> str:
 
     return _GLOBAL_GEODATAFRAME_BACKEND or _DEFAULT_GEODATAFRAME_BACKEND
 
-def _resolve_geodataframe_backend(explicit: Optional[str] = None) -> str:
+
+def _resolve_geodataframe_backend(explicit: str | None = None) -> str:
 
     backend = explicit or _GLOBAL_GEODATAFRAME_BACKEND or _DEFAULT_GEODATAFRAME_BACKEND
     if backend not in _VALID_GEODATAFRAME_BACKENDS:

@@ -62,6 +62,7 @@ T = TypeVar("T")
 _MISSING = object()
 """Sentinel distinguishing "no default supplied" from an explicit ``None`` default."""
 
+
 # Cache Abstractions
 @dataclass(slots=True)
 class AdjustableFIFOCache[K, V](MutableMapping[K, V]):
@@ -137,7 +138,6 @@ class AdjustableFIFOCache[K, V](MutableMapping[K, V]):
             iterator is safe against concurrent mutation of the cache.
         """
         with self._lock:
-
             return iter(list(self._cache.keys()))
 
     def __contains__(self, key: object) -> bool:
@@ -284,12 +284,10 @@ class AdjustableFIFOCache[K, V](MutableMapping[K, V]):
             return self._cache.currsize
 
     @overload
-    def get(self, key: K, /) -> V | None:
-        ...
+    def get(self, key: K, /) -> V | None: ...
 
     @overload
-    def get(self, key: K, /, default: V | T) -> V | T:
-        ...
+    def get(self, key: K, /, default: V | T) -> V | T: ...
 
     def get(self, key: K, /, default: V | T | None = None) -> V | T | None:
         """Return a cached value if present, otherwise a default.
@@ -313,16 +311,13 @@ class AdjustableFIFOCache[K, V](MutableMapping[K, V]):
             return self._cache.get(key, default)
 
     @overload
-    def pop(self, key: K, /) -> V:
-        ...
+    def pop(self, key: K, /) -> V: ...
 
     @overload
-    def pop(self, key: K, /, default: V) -> V:
-        ...
+    def pop(self, key: K, /, default: V) -> V: ...
 
     @overload
-    def pop(self, key: K, /, default: T) -> V | T:
-        ...
+    def pop(self, key: K, /, default: T) -> V | T: ...
 
     def pop(self, key: K, /, default: object = _MISSING) -> V | object:
         """Remove a key and return its value, or a default if absent.
@@ -472,8 +467,10 @@ class AdjustableFIFOCache[K, V](MutableMapping[K, V]):
         with self._lock:
             return dict(self._cache.items())
 
+
 _CACHE: AdjustableFIFOCache[tuple, object] = AdjustableFIFOCache(maxsize=128)
 """Module-global cache backing transport-layer request caching, defaulting to 128 entries."""
+
 
 def set_cache_maxsize(maxsize: int) -> None:
     """Set the global transport cache's maximum size.
@@ -491,6 +488,7 @@ def set_cache_maxsize(maxsize: int) -> None:
     """
     _CACHE.resize(new_maxsize=maxsize)
 
+
 def get_cache_maxsize() -> int:
     """Return the global transport cache's maximum size.
 
@@ -503,6 +501,7 @@ def get_cache_maxsize() -> int:
         256
     """
     return _CACHE.maxsize
+
 
 def _retrieve_cache_instance() -> AdjustableFIFOCache[tuple, object]:
     """Return the module-global cache instance.

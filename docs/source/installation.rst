@@ -3,7 +3,7 @@
 Install FedFred
 ===============
 
-FedFred is available on both **PyPI** and **Conda-Forge**.  
+FedFred is available on both **PyPI** and **Conda-Forge**.
 This page covers multiple ways to install FedFred for production or development use.
 
 ---

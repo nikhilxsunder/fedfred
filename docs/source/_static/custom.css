@@ -1,42 +1,42 @@
 /* Full-width page */
 .bd-page-width {
-    max-width: 100%;
+  max-width: 100%;
 }
 
 /* Wide article column with PyTorch-style gutters */
 .bd-main .bd-content .bd-article-container {
-    max-width: 100%;
-    padding: 0 4rem;        /* ← the knob: left/right breathing room */
+  max-width: 100%;
+  padding: 0 4rem; /* ← the knob: left/right breathing room */
 }
 
 /* Keep the right TOC off the screen edge */
 .bd-sidebar-secondary {
-    padding-right: 1.5rem;
+  padding-right: 1.5rem;
 }
 
 .bd-header .bd-header__inner {
-    padding-left: 2.5rem;
-    padding-right: 2.5rem;
+  padding-left: 2.5rem;
+  padding-right: 2.5rem;
 }
 
 #cc-float-btn {
-    position: fixed;
-    bottom: 1.25rem;
-    right: 1.25rem;
-    z-index: 1000;
-    width: 3rem;
-    height: 3rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    border: 1px solid var(--pst-color-border);
-    background: var(--pst-color-background);
-    color: var(--pst-color-text-base);
-    cursor: pointer;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  position: fixed;
+  bottom: 1.25rem;
+  right: 1.25rem;
+  z-index: 1000;
+  width: 3rem;
+  height: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid var(--pst-color-border);
+  background: var(--pst-color-background);
+  color: var(--pst-color-text-base);
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
 }
 #cc-float-btn:hover {
-    background: var(--pst-color-surface);
-    color: var(--pst-color-primary);
+  background: var(--pst-color-surface);
+  color: var(--pst-color-primary);
 }

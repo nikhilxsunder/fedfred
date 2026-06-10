@@ -151,13 +151,7 @@ FRED_PARAMETER_SPECS: dict[str, ParameterSpec] = {
     "sort_order": ParameterSpec(validator=_validate_str_choice(SORT_ORDERS)),
     "order_by": ParameterSpec(validator=_validate_str_choice(FRED_ORDER_BY)),
     "filter_variable": ParameterSpec(
-        validator=_validate_str_choice(
-            {
-                "frequency",
-                "units",
-                "seasonal_adjustment"
-            }
-        )
+        validator=_validate_str_choice({"frequency", "units", "seasonal_adjustment"})
     ),
     "tag_names": ParameterSpec(
         converter=_semicolon_list_converter,
@@ -187,7 +181,6 @@ FRED_PARAMETER_SPECS: dict[str, ParameterSpec] = {
         converter=_comma_date_list_converter,
         validator=_validate_comma_date_list_string,
     ),
-
     "start_time": ParameterSpec(
         converter=_time_parameter_converter,
         validator=_validate_hh_mm,
@@ -201,22 +194,10 @@ FRED_PARAMETER_SPECS: dict[str, ParameterSpec] = {
     "units": ParameterSpec(validator=_validate_str_choice(FRED_UNITS)),
     "aggregation_method": ParameterSpec(validator=_validate_str_choice(AGGREGATION_METHODS)),
     "output_type": ParameterSpec(validator=_validate_choice(OUTPUT_TYPES)),
-    "search_type": ParameterSpec(
-        validator=_validate_str_choice(
-            {
-                "full_text",
-                "series_id"
-            }
-        )
-    ),
+    "search_type": ParameterSpec(validator=_validate_str_choice({"full_text", "series_id"})),
     "include_releases_dates_with_no_data": ParameterSpec(validator=_validate_bool),
     "season": ParameterSpec(
-        validator=_validate_str_choice(
-            {
-                "seasonally_adjusted",
-                "not_seasonally_adjusted"
-            }
-        )
+        validator=_validate_str_choice({"seasonally_adjusted", "not_seasonally_adjusted"})
     ),
 }
 """Per-parameter specifications for FRED API requests, mapping each known parameter name to its
@@ -225,16 +206,7 @@ converter/validator handling."""
 GEOFRED_PARAMETER_SPECS: dict[str, ParameterSpec] = {
     "api_key": ParameterSpec(validator=_validate_nonempty_str),
     "file_type": ParameterSpec(
-        validator=_validate_str_choice(
-            {
-                "json",
-                "geojson",
-                "shp",
-                "kml",
-                "gdb",
-                "gpkg"
-            }
-        )
+        validator=_validate_str_choice({"json", "geojson", "shp", "kml", "gdb", "gpkg"})
     ),
     "shape": ParameterSpec(validator=_validate_str_choice(GEOFRED_REGION_TYPES)),
     "region_type": ParameterSpec(validator=_validate_str_choice(GEOFRED_REGION_TYPES)),
@@ -250,17 +222,7 @@ GEOFRED_PARAMETER_SPECS: dict[str, ParameterSpec] = {
     ),
     "aggregation_method": ParameterSpec(validator=_validate_str_choice(AGGREGATION_METHODS)),
     "units": ParameterSpec(validator=_validate_nonempty_str),
-    "season": ParameterSpec(
-        validator=_validate_str_choice(
-            {
-                "NSA",
-                "SA",
-                "SSA",
-                "SAAR",
-                "NSAAR"
-            }
-        )
-    ),
+    "season": ParameterSpec(validator=_validate_str_choice({"NSA", "SA", "SSA", "SAAR", "NSAAR"})),
     "transformation": ParameterSpec(validator=_validate_str_choice(FRED_UNITS)),
 }
 """Per-parameter specifications for GeoFRED API requests, mapping each known parameter name to its
@@ -272,21 +234,14 @@ FRASER_PARAMETER_SPECS: dict[str, ParameterSpec] = {
     "format": ParameterSpec(validator=_validate_str_choice({"json"})),
     "role": ParameterSpec(
         validator=_validate_str_choice(
-            {
-                "creator",
-                "contributor",
-                "editor",
-                "repository",
-                "uncertain",
-                "subject"
-            }
+            {"creator", "contributor", "editor", "repository", "uncertain", "subject"}
         )
     ),
 }
 """Per-parameter specifications for FRASER API requests, mapping each known parameter name to its
 converter/validator handling."""
 
-FRED_PREPARATION_FUNCTIONS: dict[str, Any] = { # TODO: refactor to avoid import cycle
+FRED_PREPARATION_FUNCTIONS: dict[str, Any] = {  # TODO: refactor to avoid import cycle
     "fred": _prepare_fred_parameters,
     "geofred": _prepare_geofred_parameters,
     "fraser": _prepare_fraser_parameters,

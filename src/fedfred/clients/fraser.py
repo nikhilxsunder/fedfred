@@ -24,17 +24,7 @@
 This module defines the Fraser client for interacting with the Federal Reserve Fraser API.
 """
 
-import time
-from collections import deque
-from typing import Any, Dict, Optional, Tuple, Union
-
-import httpx
-from cachetools import FIFOCache, cached
-from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
-
-from ..._core._parsers import Helpers
 from .._internals import _AsyncBaseClient, _BaseClient
-from ..config import resolve_api_key
 
 
 class Fraser(_BaseClient):
@@ -87,155 +77,160 @@ class Fraser(_BaseClient):
         return None
 
     ## Titles
-    def get_single_title(self, title_id: int, limit: Optional[int]=None, page: Optional[int]=None):
+    def get_single_title(self, title_id: int, limit: int | None = None, page: int | None = None):
 
-        url_endpoint = f'/title/{title_id}'
+        url_endpoint = f"/title/{title_id}"
         data = {}
         if limit:
-            data['limit'] = limit
+            data["limit"] = limit
         if page:
-            data['page'] = page
+            data["page"] = page
         response = self.__fraser_get_request(url_endpoint, data)
 
-    def get_all_title_items(self, title_id: int, limit: Optional[int]=None, page: Optional[int]=None):
+    def get_all_title_items(self, title_id: int, limit: int | None = None, page: int | None = None):
 
-        url_endpoint = f'/title/{title_id}/items'
+        url_endpoint = f"/title/{title_id}/items"
         data = {}
         if limit:
-            data['limit'] = limit
+            data["limit"] = limit
         if page:
-            data['page'] = page
+            data["page"] = page
         response = self.__fraser_get_request(url_endpoint, data)
-        
+
     def get_single_title_table_of_contents(self, title_id: int):
 
-        url_endpoint = f'/title/{title_id}/toc'
+        url_endpoint = f"/title/{title_id}/toc"
         response = self.__fraser_get_request(url_endpoint)
 
     ## Items
     def get_single_item(self, item_id: int):
 
-        url_endpoint = f'/item/{item_id}'
+        url_endpoint = f"/item/{item_id}"
         response = self.__fraser_get_request(url_endpoint)
 
-    def get_single_item_table_of_contents(self, item_id: int, limit: Optional[int]=None, page: Optional[int]=None):
+    def get_single_item_table_of_contents(
+        self, item_id: int, limit: int | None = None, page: int | None = None
+    ):
 
-        url_endpoint = f'/item/{item_id}/toc'
+        url_endpoint = f"/item/{item_id}/toc"
         data = {}
         if limit:
-            data['limit'] = limit
+            data["limit"] = limit
         if page:
-            data['page'] = page
+            data["page"] = page
         response = self.__fraser_get_request(url_endpoint, data)
 
     ## Table of Contents
-    def get_table_of_contents(self, toc_id: int, limit: Optional[int]=None, page: Optional[int]=None):
+    def get_table_of_contents(self, toc_id: int, limit: int | None = None, page: int | None = None):
 
-        url_endpoint = f'/toc/{toc_id}'
+        url_endpoint = f"/toc/{toc_id}"
         data = {}
         if limit:
-            data['limit'] = limit
+            data["limit"] = limit
         if page:
-            data['page'] = page
+            data["page"] = page
         response = self.__fraser_get_request(url_endpoint, data)
 
     ## Authors
-    def get_all_authors(self, limit: Optional[int]=None, page: Optional[int]=None):
+    def get_all_authors(self, limit: int | None = None, page: int | None = None):
 
-        url_endpoint = '/author'
+        url_endpoint = "/author"
         data = {}
         if limit:
-            data['limit'] = limit
+            data["limit"] = limit
         if page:
-            data['page'] = page
+            data["page"] = page
         response = self.__fraser_get_request(url_endpoint, data)
 
     def get_single_author(self, author_id: int):
-        
-        url_endpoint = f'/author/{author_id}'
+
+        url_endpoint = f"/author/{author_id}"
         response = self.__fraser_get_request(url_endpoint)
 
-    def get_all_author_records(self, author_id: int, role: Optional[str]=None):
+    def get_all_author_records(self, author_id: int, role: str | None = None):
 
-        url_endpoint = f'/author/{author_id}/records'
+        url_endpoint = f"/author/{author_id}/records"
         data = {}
         if role:
-            data['role'] = role
+            data["role"] = role
         response = self.__fraser_get_request(url_endpoint, data)
 
     ## Subjects
     def get_single_subject(self, subject_id: int):
 
-        url_endpoint = f'/subject/{subject_id}'
+        url_endpoint = f"/subject/{subject_id}"
         response = self.__fraser_get_request(url_endpoint)
 
-    def get_all_subjects(self, limit: Optional[int]=None, page: Optional[int]=None):
+    def get_all_subjects(self, limit: int | None = None, page: int | None = None):
 
-        url_endpoint = '/subject'
+        url_endpoint = "/subject"
         data = {}
         if limit:
-            data['limit'] = limit
+            data["limit"] = limit
         if page:
-            data['page'] = page
+            data["page"] = page
         response = self.__fraser_get_request(url_endpoint, data)
 
-    def get_all_subject_records(self, subject_id: int, limit: Optional[int]=None, page: Optional[int]=None):
-        
-        url_endpoint = f'/subject/{subject_id}/records'
+    def get_all_subject_records(
+        self, subject_id: int, limit: int | None = None, page: int | None = None
+    ):
+
+        url_endpoint = f"/subject/{subject_id}/records"
         data = {}
         if limit:
-            data['limit'] = limit
+            data["limit"] = limit
         if page:
-            data['page'] = page
+            data["page"] = page
         response = self.__fraser_get_request(url_endpoint, data)
 
     ## Themes
-    def get_all_themes(self, limit: Optional[int]=None, page: Optional[int]=None):
+    def get_all_themes(self, limit: int | None = None, page: int | None = None):
 
-        url_endpoint = '/theme'
+        url_endpoint = "/theme"
         data = {}
         if limit:
-            data['limit'] = limit
+            data["limit"] = limit
         if page:
-            data['page'] = page
+            data["page"] = page
         response = self.__fraser_get_request(url_endpoint, data)
 
     def get_single_theme(self, theme_id: int):
-        
-        url_endpoint = f'/theme/{theme_id}'
+
+        url_endpoint = f"/theme/{theme_id}"
         response = self.__fraser_get_request(url_endpoint)
 
     def get_all_theme_records(self, theme_id: int):
-        url_endpoint = f'/theme/{theme_id}/records'
+        url_endpoint = f"/theme/{theme_id}/records"
         response = self.__fraser_get_request(url_endpoint)
 
     ## Timelines
     def get_single_timeline(self, timeline_id: int):
 
-        url_endpoint = f'/timeline/{timeline_id}'
+        url_endpoint = f"/timeline/{timeline_id}"
         response = self.__fraser_get_request(url_endpoint)
 
-    def get_all_timelines(self, limit: Optional[int]=None, page: Optional[int]=None):
-        
-        url_endpoint = '/timeline'
+    def get_all_timelines(self, limit: int | None = None, page: int | None = None):
+
+        url_endpoint = "/timeline"
         data = {}
         if limit:
-            data['limit'] = limit
+            data["limit"] = limit
         if page:
-            data['page'] = page
+            data["page"] = page
         response = self.__fraser_get_request(url_endpoint, data)
 
-    def get_all_timeline_events(self, timeline_id: int, limit: Optional[int]=None, page: Optional[int]=None):
+    def get_all_timeline_events(
+        self, timeline_id: int, limit: int | None = None, page: int | None = None
+    ):
 
-        url_endpoint = f'/timeline/{timeline_id}/events'
+        url_endpoint = f"/timeline/{timeline_id}/events"
         data = {}
         if limit:
-            data['limit'] = limit
+            data["limit"] = limit
         if page:
-            data['page'] = page
+            data["page"] = page
         response = self.__fraser_get_request(url_endpoint, data)
 
 
 class AsyncFraser(_AsyncBaseClient):
-
     pass

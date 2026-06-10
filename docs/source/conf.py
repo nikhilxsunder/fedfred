@@ -10,26 +10,26 @@ import os
 import sys
 
 # -- Project information -----------------------------------------------------
-project = 'fedfred'
-copyright = '2025, Nikhil Sunder'
-author = 'Nikhil Sunder'
-release = '4.0.0'
+project = "fedfred"
+copyright = "2025, Nikhil Sunder"
+author = "Nikhil Sunder"
+release = "4.0.0"
 
 # -- General configuration ---------------------------------------------------
 extensions = [
-    'sphinx.ext.autodoc',
-    'sphinx.ext.napoleon',
-    'sphinx.ext.viewcode',
-    'sphinx_autodoc_typehints',
-    'myst_parser',
-    'sphinx_sitemap',
-    'sphinxext.opengraph',
-    'sphinx.ext.intersphinx',
-    'sphinx.ext.autosummary',
-    'sphinx.ext.inheritance_diagram',
-    'sphinx.ext.graphviz',
-    'sphinx.ext.extlinks',
-    'sphinx.ext.doctest',
+    "sphinx.ext.autodoc",
+    "sphinx.ext.napoleon",
+    "sphinx.ext.viewcode",
+    "sphinx_autodoc_typehints",
+    "myst_parser",
+    "sphinx_sitemap",
+    "sphinxext.opengraph",
+    "sphinx.ext.intersphinx",
+    "sphinx.ext.autosummary",
+    "sphinx.ext.inheritance_diagram",
+    "sphinx.ext.graphviz",
+    "sphinx.ext.extlinks",
+    "sphinx.ext.doctest",
     "sphinx_design",
 ]
 
@@ -46,15 +46,15 @@ myst_enable_extensions = [
 myst_heading_anchors = 4
 
 # path
-sys.path.insert(0, os.path.abspath('../../src'))
+sys.path.insert(0, os.path.abspath("../../src"))
 
 # sitemap
 sitemap_filename = "sitemap.xml"
 sitemap_url_scheme = "{link}"
 
 # html
-html_baseurl = 'https://nikhilxsunder.github.io/fedfred/'
-html_extra_path = ['robots.txt', 'BingSiteAuth.xml', '29979ea943cf4526830870100b86564a.txt']
+html_baseurl = "https://nikhilxsunder.github.io/fedfred/"
+html_extra_path = ["robots.txt", "BingSiteAuth.xml", "29979ea943cf4526830870100b86564a.txt"]
 html_theme = "pydata_sphinx_theme"
 html_theme_options = {
     "analytics": {
@@ -67,13 +67,16 @@ html_theme_options = {
     "show_version_warning_banner": True,
     "header_links_before_dropdown": 5,
     "switcher": {
-        "json_url": "https://raw.githubusercontent.com/nikhilxsunder/fedfred/v4-dev/docs/source/_static/switcher.json", # TODO: update this url to point to the stable switcher.json once version 4 is released
-        "version_match": release,   # matches the "version" field in the JSON
+        "json_url": "https://raw.githubusercontent.com/nikhilxsunder/fedfred/v4-dev/docs/source/_static/switcher.json",  # TODO: update this url to point to the stable switcher.json once version 4 is released
+        "version_match": release,  # matches the "version" field in the JSON
     },
     "check_switcher": True,
     "navbar_start": ["navbar-logo", "version-switcher"],
     "navbar_center": ["navbar-nav"],
-    "navbar_end": [ "navbar-icon-links", "theme-switcher",],
+    "navbar_end": [
+        "navbar-icon-links",
+        "theme-switcher",
+    ],
     "icon_links": [
         {
             "name": "GitHub",
@@ -124,7 +127,7 @@ html_theme_options = {
         </div>
     """,
 }
-html_static_path = ['_static']
+html_static_path = ["_static"]
 html_title = "fedfred"
 html_favicon = "_static/fedfred_favicon.ico"
 html_logo = "_static/fedfred_banner.png"
@@ -134,36 +137,39 @@ html_context = {
     "github_version": "main",
     "doc_path": "docs/source",
 }
-html_meta ={
+html_meta = {
     "description": "A feature-rich python package for interacting with the Federal Reserve Bank of St. Louis Economic Database: FRED",
-    "keywords": "fred, federal reserve, api, economics, finance, economic data, financial data, fred pandas, fred polars, fred dask, fred geopandas, async, pandas, polars, dask, geopandas, cache, financial analysis, economic analysis, data analysis, data science, data visualization, data mining, data wrangling, data cleaning"
+    "keywords": "fred, federal reserve, api, economics, finance, economic data, financial data, fred pandas, fred polars, fred dask, fred geopandas, async, pandas, polars, dask, geopandas, cache, financial analysis, economic analysis, data analysis, data science, data visualization, data mining, data wrangling, data cleaning",
 }
 html_css_files = [
-    'custom.css',
-    'https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.1.0/dist/cookieconsent.css',
+    "custom.css",
+    "https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.1.0/dist/cookieconsent.css",
 ]
 html_js_files = [
-    'consent-default.js',                       # FIRST: deny-by-default before gtag
-    'json_ld.js',
-    ('https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.1.0/dist/cookieconsent.umd.js', {'defer': 'defer'}),
-    ('cookie-consent.js', {'defer': 'defer'}),
+    "consent-default.js",  # FIRST: deny-by-default before gtag
+    "json_ld.js",
+    (
+        "https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.1.0/dist/cookieconsent.umd.js",
+        {"defer": "defer"},
+    ),
+    ("cookie-consent.js", {"defer": "defer"}),
 ]
 
-templates_path = ['_templates']
+templates_path = ["_templates"]
 
 # autodocs
 autodoc_default_options = {
-    'members': True,
-    'undoc-members': True,
-    'show-inheritance': True,
+    "members": True,
+    "undoc-members": True,
+    "show-inheritance": True,
 }
 autodoc_typehints = "description"
 autodoc_typehints_format = "short"
 
 # md/rst
 source_suffix = {
-    '.rst': 'restructuredtext',
-    '.md': 'markdown',
+    ".rst": "restructuredtext",
+    ".md": "markdown",
 }
 
 # opengraph
@@ -181,11 +187,11 @@ ogp_enable_meta_description = True
 
 # intersphinx
 intersphinx_mapping = {
-    'python': ('https://docs.python.org/3', None),
-    'pandas': ('https://pandas.pydata.org/pandas-docs/stable/', None),
-    'geopandas': ('https://geopandas.org/en/stable/', None),
-    'polars': ('https://pola-rs.github.io/polars/py-polars/html/', None),
-    'dask': ('https://docs.dask.org/en/stable/', None),
+    "python": ("https://docs.python.org/3", None),
+    "pandas": ("https://pandas.pydata.org/pandas-docs/stable/", None),
+    "geopandas": ("https://geopandas.org/en/stable/", None),
+    "polars": ("https://pola-rs.github.io/polars/py-polars/html/", None),
+    "dask": ("https://docs.dask.org/en/stable/", None),
     "matplotlib": ("https://matplotlib.org/stable/", None),
     "seaborn": ("https://seaborn.pydata.org/", None),
     "tenacity": ("https://tenacity.readthedocs.io/en/latest/", None),
@@ -201,9 +207,9 @@ autosummary_generate = True
 
 # extlinks
 extlinks = {
-    'python-doc': ('https://docs.python.org/3/library/%s', 'Python Docs: %s'),
-    'pandas-doc': ('https://pandas.pydata.org/pandas-docs/stable/reference/%s', 'Pandas Docs: %s'),
-    'geopandas-doc': ('https://geopandas.org/en/stable/docs/reference/%s', 'GeoPandas Docs: %s'),
-    'fred-api': ('https://fred.stlouisfed.org/docs/api/fred/%s', 'FRED API Docs: %s'),
-    'github': ('https://github.com/nikhilxsunder/fedfred/%s', 'GitHub: %s'),
+    "python-doc": ("https://docs.python.org/3/library/%s", "Python Docs: %s"),
+    "pandas-doc": ("https://pandas.pydata.org/pandas-docs/stable/reference/%s", "Pandas Docs: %s"),
+    "geopandas-doc": ("https://geopandas.org/en/stable/docs/reference/%s", "GeoPandas Docs: %s"),
+    "fred-api": ("https://fred.stlouisfed.org/docs/api/fred/%s", "FRED API Docs: %s"),
+    "github": ("https://github.com/nikhilxsunder/fedfred/%s", "GitHub: %s"),
 }

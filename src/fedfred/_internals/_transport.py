@@ -111,6 +111,7 @@ _HTTP_CLIENT: httpx.Client = httpx.Client(
 _ASYNC_CLIENT_STATE: tuple[asyncio.AbstractEventLoop, httpx.AsyncClient] | None = None
 """Cached ``(event_loop, async_client)`` pair, or ``None`` before first use. See :func:`_get_async_client`."""
 
+
 def _get_async_client() -> httpx.AsyncClient:
     """Return the shared async client bound to the running event loop.
 
@@ -132,7 +133,7 @@ def _get_async_client() -> httpx.AsyncClient:
 
     loop = asyncio.get_running_loop()
 
-    state = _ASYNC_CLIENT_STATE                      # single atomic read
+    state = _ASYNC_CLIENT_STATE  # single atomic read
 
     if state is not None:
         state_loop, client = state
@@ -143,15 +144,14 @@ def _get_async_client() -> httpx.AsyncClient:
     client = httpx.AsyncClient(
         timeout=httpx.Timeout(10.0),
         limits=httpx.Limits(
-            max_connections=100,
-            max_keepalive_connections=20,
-            keepalive_expiry=60.0
+            max_connections=100, max_keepalive_connections=20, keepalive_expiry=60.0
         ),
     )
 
-    _ASYNC_CLIENT_STATE = (loop, client)             # single atomic store
+    _ASYNC_CLIENT_STATE = (loop, client)  # single atomic store
 
     return client
+
 
 async def _aclose_async_client() -> None:
     """Close the running loop's shared async client and clear the cached state.
@@ -170,7 +170,10 @@ async def _aclose_async_client() -> None:
     if state is not None and not state[1].is_closed:
         await state[1].aclose()
 
-atexit.register(_HTTP_CLIENT.close) # TODO: Consider refactoring this to a function that gets called explicitly from within package __init__.py
+
+atexit.register(
+    _HTTP_CLIENT.close
+)  # TODO: Consider refactoring this to a function that gets called explicitly from within package __init__.py
 
 _HTTP_EXCEPTION_MAP: dict[type[httpx.HTTPError], type[TransportError]] = {
     httpx.ConnectTimeout: ConnectTimeoutError,
@@ -207,6 +210,7 @@ _HTTP_STATUS_MAP: dict[int, type[HTTPResponseError]] = {
 }
 """Maps HTTP status codes to fedfred HTTP response exceptions. Unmapped codes fall back to the 4xx/5xx family class; see :func:`_map_http_status_error`."""
 
+
 def _request_url(exception: httpx.HTTPError) -> str | None:
     """Extract the request URL from an httpx exception, if available.
 
@@ -233,6 +237,7 @@ def _request_url(exception: httpx.HTTPError) -> str | None:
 
     return None if request is None else str(request.url)
 
+
 def _request_method(exception: httpx.HTTPError) -> str | None:
     """Extract the HTTP request method from an httpx exception, if available.
 
@@ -258,6 +263,7 @@ def _request_method(exception: httpx.HTTPError) -> str | None:
     request = getattr(exception, "request", None)
 
     return None if request is None else request.method
+
 
 def _safe_response_text(exception: httpx.HTTPStatusError) -> str | None:
     """Safely extract the decoded response body from an HTTP status error.
@@ -286,6 +292,7 @@ def _safe_response_text(exception: httpx.HTTPStatusError) -> str | None:
 
     except (AttributeError, UnicodeDecodeError):
         return None
+
 
 def _map_http_status_error(exception: httpx.HTTPStatusError) -> HTTPResponseError:
     """Map an ``httpx.HTTPStatusError`` to the appropriate fedfred HTTP exception.
@@ -342,6 +349,7 @@ def _map_http_status_error(exception: httpx.HTTPStatusError) -> HTTPResponseErro
         response_text=response_text,
     )
 
+
 def _resolve_httpx_exception_class(exception: httpx.HTTPError) -> type[TransportError]:
     """Resolve the fedfred transport exception class for a (non-status) httpx error.
 
@@ -371,6 +379,7 @@ def _resolve_httpx_exception_class(exception: httpx.HTTPError) -> type[Transport
             return mapped
 
     return TransportError
+
 
 def _map_httpx_exception(exception: httpx.HTTPError) -> TransportError:
     """Map any ``httpx`` exception to the appropriate fedfred transport exception.
@@ -405,11 +414,12 @@ def _map_httpx_exception(exception: httpx.HTTPError) -> TransportError:
         method=_request_method(exception),
     )
 
+
 def _request_cache_key(
     service_name: Service,
     endpoint_name: str,
     hashable_data: tuple[tuple[str, str | int | None], ...] | None = None,
-    path_injection: str | None = None
+    path_injection: str | None = None,
 ) -> tuple:
     """Build a cache key from resolved request identity rather than caller identity.
 
@@ -435,25 +445,30 @@ def _request_cache_key(
         positional signature mirrors that of the wrapped request functions.
     """
     try:
-        spec = _resolve_endpoint(service_name, endpoint_name)   # -> (service_name, endpoint_name) once service-first lands
+        spec = _resolve_endpoint(
+            service_name, endpoint_name
+        )  # -> (service_name, endpoint_name) once service-first lands
     except Exception as exc:
         raise RequestPreparationError(
-            f"Failed to resolve endpoint: {endpoint_name}", url=None, method="GET",
+            f"Failed to resolve endpoint: {endpoint_name}",
+            url=None,
+            method="GET",
         ) from exc
     return hashkey(spec.url, hashable_data, path_injection)
+
 
 @retry(
     wait=wait_fixed(1),
     stop=stop_after_attempt(3),
     retry=retry_if_exception_type(TransportTimeoutError),
     reraise=False,
-    retry_error_cls=TransportRetryError
+    retry_error_cls=TransportRetryError,
 )
 def _get_request(
     service_name: Service,
     endpoint_name: str,
     data: dict[str, str | int | None] | None = None,
-    path_injection: str | None = None
+    path_injection: str | None = None,
 ) -> dict[str, Any]:
     """Perform a synchronous GET request without caching.
 
@@ -525,13 +540,14 @@ def _get_request(
             method="GET",
         ) from exc
 
+
 @cached(cache=_CACHE, key=_request_cache_key)
 def _cached_get_request(
     service_name: Service,
     url_endpoint: str,
-    hashable_data: tuple[tuple[str, str | int | None], ...] | None=None,
-    path_injection: str | None = None
-    ) -> dict[str, Any]:
+    hashable_data: tuple[tuple[str, str | int | None], ...] | None = None,
+    path_injection: str | None = None,
+) -> dict[str, Any]:
     """Perform a synchronous GET request, caching the result.
 
     Args:
@@ -567,20 +583,23 @@ def _cached_get_request(
         cache entry. Wraps :func:`_get_request`; ``hashable_data`` is converted
         back to a dict before the underlying call.
     """
-    return _get_request(service_name, url_endpoint, _dict_type_converter(hashable_data), path_injection)
+    return _get_request(
+        service_name, url_endpoint, _dict_type_converter(hashable_data), path_injection
+    )
+
 
 @retry(
     wait=wait_fixed(1),
     stop=stop_after_attempt(3),
     retry=retry_if_exception_type(TransportTimeoutError),
     reraise=False,
-    retry_error_cls=TransportRetryError
+    retry_error_cls=TransportRetryError,
 )
 async def _get_request_async(
     service_name: Service,
     endpoint_name: str,
     data: dict[str, str | int | None] | None = None,
-    path_injection: str | None = None
+    path_injection: str | None = None,
 ) -> dict[str, Any]:
     """Perform an asynchronous GET request without caching.
 
@@ -655,12 +674,13 @@ async def _get_request_async(
             method="GET",
         ) from exc
 
+
 @async_cached(cache=_CACHE, key=_request_cache_key)
 async def _cached_get_request_async(
     service_name: Service,
     url_endpoint: str,
-    hashable_data: tuple[tuple[str, str | int | None], ...] | None=None,
-    path_injection: str | None = None
+    hashable_data: tuple[tuple[str, str | int | None], ...] | None = None,
+    path_injection: str | None = None,
 ) -> dict[str, Any]:
     """Perform an asynchronous GET request, caching the result.
 
@@ -698,19 +718,20 @@ async def _cached_get_request_async(
         :func:`_get_request_async` with an async-aware cache; ``hashable_data`` is
         converted back to a dict before the underlying call.
     """
-    return await _get_request_async(service_name, url_endpoint, _dict_type_converter(hashable_data), path_injection)
+    return await _get_request_async(
+        service_name, url_endpoint, _dict_type_converter(hashable_data), path_injection
+    )
+
 
 @retry(
     wait=wait_fixed(1),
     stop=stop_after_attempt(3),
     retry=retry_if_exception_type(TransportTimeoutError),
     reraise=False,
-    retry_error_cls=TransportRetryError
+    retry_error_cls=TransportRetryError,
 )
 def _post_request(
-    service_name: Service,
-    endpoint_name: str,
-    data: dict[str, str | int | None] | None = None
+    service_name: Service, endpoint_name: str, data: dict[str, str | int | None] | None = None
 ) -> dict[str, Any]:
     """Perform a synchronous POST request without caching.
 
@@ -760,7 +781,9 @@ def _post_request(
     client = _HTTP_CLIENT
 
     try:
-        response = client.post(spec.url, content=orjson.dumps(payload), headers=spec.headers or None, timeout=10)
+        response = client.post(
+            spec.url, content=orjson.dumps(payload), headers=spec.headers or None, timeout=10
+        )
 
         response.raise_for_status()
 
@@ -776,10 +799,9 @@ def _post_request(
             method="POST",
         ) from exc
 
+
 async def _post_request_async(
-    service_name: Service,
-    endpoint_name: str,
-    data: dict[str, str | int | None] | None = None
+    service_name: Service, endpoint_name: str, data: dict[str, str | int | None] | None = None
 ) -> dict[str, Any]:
     """Perform an asynchronous POST request without caching.
 
@@ -832,7 +854,9 @@ async def _post_request_async(
     client = _get_async_client()
 
     try:
-        response = await client.post(spec.url, content=orjson.dumps(payload), headers=spec.headers or None, timeout=10)
+        response = await client.post(
+            spec.url, content=orjson.dumps(payload), headers=spec.headers or None, timeout=10
+        )
 
         response.raise_for_status()
 

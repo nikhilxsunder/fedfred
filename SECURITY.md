@@ -68,10 +68,10 @@ When you report a vulnerability, you can expect:
 
 ## Supported Versions
 
-| Version   | Supported |
-| --------- | --------- |
-| 4.0.x     | Yes       |
-| < 4.0.0   | No        |
+| Version | Supported |
+| ------- | --------- |
+| 4.0.x   | Yes       |
+| < 4.0.0 | No        |
 
 Only the latest minor release within each supported major version will receive security updates.
 

@@ -45,14 +45,10 @@ from __future__ import annotations
 import importlib
 from types import ModuleType
 
-from ..exceptions.dependencies import OptionalDependencyError
+from ..exceptions.core.loading import OptionalDependencyError
 
 
-def _require_module(
-    module: str,
-    feature: str,
-    extra: str | None = None
-) -> ModuleType:
+def _require_module(module: str, feature: str, extra: str | None = None) -> ModuleType:
     """Import an optional dependency, or raise a typed error if it is absent.
 
     Resolves ``module`` via :func:`importlib.import_module` and returns it. On

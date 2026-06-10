@@ -22,22 +22,22 @@
 """fedfred.exceptions.__init__"""
 
 from .base import FedFredError
-from .caching import (
-    CacheAccessError,
-    CacheBackendError,
-    CacheClearError,
-    CacheConfigurationError,
-    CacheDeleteError,
-    CacheInitializationError,
-    CacheKeyError,
-    CacheOperationError,
-    CachePopError,
-    CacheResizeError,
-    CacheSetError,
-    CachingError,
+from .core.conversion import (
+    ConversionError,
+    DataFrameConversionError,
+    DateConversionError,
+    GeoDataFrameConversionError,
+    ParameterConversionError,
+    TypeConversionError,
 )
-from .conversion import ConversionError, DataFrameConversionError, DateConversionError, GeoDataFrameConversionError, ParameterConversionError, TypeConversionError
-from .dependencies import OptionalDependencyError
+from .core.loading import OptionalDependencyError
+from .core.parsing import ParsingError
+from .core.validation import (
+    ParameterValidationError,
+    TypeValidationError,
+    ValidationError,
+    ValueValidationError,
+)
 from .endpoints import (
     EndpointBaseURLError,
     EndpointConfigurationError,
@@ -55,11 +55,21 @@ from .endpoints import (
     EndpointUnsupportedError,
     EndpointURLError,
 )
-from .parameters import (
-    ParameterServiceError,
+from .internals.caching import (
+    CacheAccessError,
+    CacheBackendError,
+    CacheClearError,
+    CacheConfigurationError,
+    CacheDeleteError,
+    CacheInitializationError,
+    CacheKeyError,
+    CacheOperationError,
+    CachePopError,
+    CacheResizeError,
+    CacheSetError,
+    CachingError,
 )
-from .parsing import ParsingError
-from .rate_limit import (
+from .internals.rate_limit import (
     LimiterLimitError,
     LimiterLoopError,
     LimiterReleaseError,
@@ -68,7 +78,7 @@ from .rate_limit import (
     RateLimiterConfigurationError,
     RateLimiterStateError,
 )
-from .transport import (
+from .internals.transport import (
     AuthenticationError,
     AuthorizationError,
     BadGatewayError,
@@ -104,4 +114,6 @@ from .transport import (
     UnsupportedProtocolError,
     WriteTimeoutError,
 )
-from .validation import ParameterValidationError, TypeValidationError, ValidationError, ValueValidationError
+from .parameters import (
+    ParameterServiceError,
+)

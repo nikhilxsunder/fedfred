@@ -60,10 +60,7 @@ if TYPE_CHECKING:
     import pyarrow as pa  # pragma: no cover
 
 
-def _freq_aware_index(
-    dates: np.ndarray,
-    frequency: str | None
-) -> pd.DatetimeIndex:
+def _freq_aware_index(dates: np.ndarray, frequency: str | None) -> pd.DatetimeIndex:
     """Build a :class:`pandas.DatetimeIndex`, attaching ``freq`` when determinable.
 
     Frequency is a property of the observation-date interval and is independent of
@@ -99,7 +96,6 @@ def _freq_aware_index(
 
     for candidate in (mapped, inferred):
         if candidate:
-
             try:
                 return pd.DatetimeIndex(dates, freq=candidate, name="date")
 
@@ -108,10 +104,9 @@ def _freq_aware_index(
 
     return idx
 
+
 def _columns_to_pandas(
-    columns: dict[str, np.ndarray], *,
-    index: str | None = None,
-    frequency: str | None = None
+    columns: dict[str, np.ndarray], *, index: str | None = None, frequency: str | None = None
 ) -> pd.DataFrame:
     """Build a pandas DataFrame from observation columns.
 
@@ -141,6 +136,7 @@ def _columns_to_pandas(
 
     return df.set_index(index) if index is not None else df
 
+
 def _columns_to_polars(columns: dict[str, np.ndarray]) -> pl.DataFrame:
     """Build a Polars DataFrame from observation columns.
 
@@ -161,11 +157,12 @@ def _columns_to_polars(columns: dict[str, np.ndarray]) -> pl.DataFrame:
 
     return pl.DataFrame({k: v for k, v in columns.items()})
 
+
 def _columns_to_dask(
     columns: dict[str, np.ndarray],
     npartitions: int = 1,
     index: str | None = None,
-    frequency: str | None = None
+    frequency: str | None = None,
 ) -> dd.DataFrame:
     """Build a Dask DataFrame from observation columns.
 
@@ -185,18 +182,12 @@ def _columns_to_dask(
     dd = _require_module("dask.dataframe", "to_dask", extra="dask")
 
     return dd.from_pandas(
-        _columns_to_pandas(
-            columns,
-            index=index,
-            frequency=frequency
-        ),
+        _columns_to_pandas(columns, index=index, frequency=frequency),
         npartitions=npartitions,
     )
 
-def _columns_to_cudf(
-    columns: dict[str, np.ndarray],
-    index: str | None = None
-) -> cudf.DataFrame:
+
+def _columns_to_cudf(columns: dict[str, np.ndarray], index: str | None = None) -> cudf.DataFrame:
     """Build a cuDF (GPU) DataFrame from observation columns.
 
     Args:
@@ -232,6 +223,7 @@ def _columns_to_cudf(
 
     return df.set_index(index) if index is not None else df
 
+
 def _columns_to_arrow(columns: dict[str, np.ndarray]) -> pa.Table:
     """Build a PyArrow Table from observation columns.
 
@@ -249,11 +241,9 @@ def _columns_to_arrow(columns: dict[str, np.ndarray]) -> pa.Table:
 
     return pa.table(columns)
 
+
 def _columns_to_series(
-    values: np.ndarray,
-    dates: np.ndarray,
-    frequency: str | None,
-    name: str
+    values: np.ndarray, dates: np.ndarray, frequency: str | None, name: str
 ) -> pd.Series:
     """Build a single frequency-aware pandas Series from a value/date column pair.
 
@@ -272,20 +262,11 @@ def _columns_to_series(
     Returns:
         pandas.Series: The observations as a freq-aware Series.
     """
-    return pd.Series(
-        values,
-        index=_freq_aware_index(
-            dates,
-            frequency
-        ),
-        name=name
-    )
+    return pd.Series(values, index=_freq_aware_index(dates, frequency), name=name)
+
 
 def _vintage_matrix(
-    dates: np.ndarray,
-    values: np.ndarray,
-    realtime_start: np.ndarray,
-    frequency: str | None
+    dates: np.ndarray, values: np.ndarray, realtime_start: np.ndarray, frequency: str | None
 ) -> pd.DataFrame:
     """Pivot vintage observations into a real-time data matrix.
 
@@ -307,27 +288,16 @@ def _vintage_matrix(
         pandas.DataFrame: The real-time data matrix, indexed by date with one
         column per vintage.
     """
-    wide = pd.DataFrame(
-        {
-            "date": dates,
-            "realtime_start": realtime_start,
-            "value": values
-        }
-    ).pivot(
-        index="date",
-        columns="realtime_start",
-        values="value"
+    wide = pd.DataFrame({"date": dates, "realtime_start": realtime_start, "value": values}).pivot(
+        index="date", columns="realtime_start", values="value"
     )
-    wide.index = _freq_aware_index(
-        wide.index.values,
-        frequency
-    )
+    wide.index = _freq_aware_index(wide.index.values, frequency)
     return wide
 
-#-------------------This-Section--Will-Be-Refactored-By-GeoFred-Objects-Design-Implementation-------------------#
+
+# -------------------This-Section--Will-Be-Refactored-By-GeoFred-Objects-Design-Implementation-------------------#
 def _geopandas_geodataframe_converter(
-    shapefile: gpd.GeoDataFrame,
-    meta_data: dict
+    shapefile: gpd.GeoDataFrame, meta_data: dict
 ) -> gpd.GeoDataFrame:
     """Attach GeoFRED observation values to a shapefile GeoDataFrame.
 
@@ -350,26 +320,20 @@ def _geopandas_geodataframe_converter(
         Matches observation rows to geometries by region name; geometries with no
         matching observation keep ``None`` for ``value`` and ``series_id``.
     """
-    shapefile.set_index(
-        'name',
-        inplace=True
-    )
+    shapefile.set_index("name", inplace=True)
 
-    shapefile['value'] = None
+    shapefile["value"] = None
 
-    shapefile['series_id'] = None
+    shapefile["series_id"] = None
 
-    data_section = meta_data.get(
-        'data',
-        {}
-    )
+    data_section = meta_data.get("data", {})
 
     if not data_section:
         raise GeoDataFrameConversionError(
             message="GeoDataFrame conversion failed: No data section found in metadata",
-            backend='geopandas',
-            missing_fields=('data',),
-            details="Metadata must contain 'data' section with observations"
+            backend="geopandas",
+            missing_fields=("data",),
+            details="Metadata must contain 'data' section with observations",
         )
 
     data_key = next(iter(data_section))
@@ -377,16 +341,16 @@ def _geopandas_geodataframe_converter(
     items = data_section[data_key]
 
     for item in items:
-        if item['region'] in shapefile.index:
-            shapefile.loc[item['region'], 'value'] = item['value']
+        if item["region"] in shapefile.index:
+            shapefile.loc[item["region"], "value"] = item["value"]
 
-            shapefile.loc[item['region'], 'series_id'] = item['series_id']
+            shapefile.loc[item["region"], "series_id"] = item["series_id"]
 
     return shapefile
 
+
 def _dask_geopandas_geodataframe_converter(
-    shapefile: gpd.GeoDataFrame,
-    meta_data: dict
+    shapefile: gpd.GeoDataFrame, meta_data: dict
 ) -> dd_gpd.GeoDataFrame:
     """Attach GeoFRED observation values to a shapefile as a Dask GeoPandas GeoDataFrame.
 
@@ -418,17 +382,15 @@ def _dask_geopandas_geodataframe_converter(
             message=f"{e}: Dask GeoPandas is not installed. Install it with `pip install dask-geopandas` to use this method.",
             package="dask-geopandas",
             feature="Helpers.to_dd_gpd_gdf",
-            install_hint="pip install dask-geopandas"
+            install_hint="pip install dask-geopandas",
         ) from e
 
     gdf = _geopandas_geodataframe_converter(shapefile, meta_data)
 
     return dd_gpd.from_geopandas(gdf, npartitions=1)
 
-def _polars_geodataframe_converter(
-    shapefile: gpd.GeoDataFrame,
-    meta_data: dict
-) -> st.GeoDataFrame:
+
+def _polars_geodataframe_converter(shapefile: gpd.GeoDataFrame, meta_data: dict) -> st.GeoDataFrame:
     """Attach GeoFRED observation values to a shapefile as a Polars-ST GeoDataFrame.
 
     Args:
@@ -459,19 +421,21 @@ def _polars_geodataframe_converter(
             message=f"{e}: Polars with geospatial support is not installed. Install it with `pip install polars-st` to use this method.",
             package="polars-st",
             feature="Helpers.to_pl_st_gdf",
-            install_hint="pip install polars-st"
+            install_hint="pip install polars-st",
         ) from e
 
     gdf = _geopandas_geodataframe_converter(shapefile, meta_data)
 
     return st.from_geopandas(gdf)
 
+
 GEODATAFRAME_CONVERTER_MAP: dict[str, Callable] = {
-    'geopandas': _geopandas_geodataframe_converter,
-    'dask': _dask_geopandas_geodataframe_converter,
-    'polars': _polars_geodataframe_converter,
+    "geopandas": _geopandas_geodataframe_converter,
+    "dask": _dask_geopandas_geodataframe_converter,
+    "polars": _polars_geodataframe_converter,
 }
 """Mapping of geodataframe backend name to its observation converter."""
+
 
 def _resolve_geodataframe_converter(backend: str | None = None) -> Callable:
     """Return the geodataframe converter for a backend.
@@ -491,7 +455,10 @@ def _resolve_geodataframe_converter(backend: str | None = None) -> Callable:
         backend = _resolve_geodataframe_backend()
 
     return GEODATAFRAME_CONVERTER_MAP[backend]
-#---------------------------------------------------------------------------------------------------------------#
+
+
+# ---------------------------------------------------------------------------------------------------------------#
+
 
 def _pandas_frequency_converter(frequency: str | None) -> str | None:
     """Map a FRED frequency code to its pandas period-start offset alias.
@@ -518,10 +485,10 @@ def _pandas_frequency_converter(frequency: str | None) -> str | None:
     """
     return _FRED_TO_PANDAS_FREQ.get(frequency or "")
 
+
 def _identity_converter(
-    parameter: str,
-    value: object
-) -> object: # TODO: Do something with parameter input.
+    parameter: str, value: object
+) -> object:  # TODO: Do something with parameter input.
     """Return the value unchanged.
 
     Args:
@@ -538,10 +505,8 @@ def _identity_converter(
     """
     return value
 
-def _date_parameter_converter(
-    parameter: str,
-    value: object
-) -> str:
+
+def _date_parameter_converter(parameter: str, value: object) -> str:
     """Convert a string, ``date``, or ``datetime`` to a ``YYYY-MM-DD`` string.
 
     Args:
@@ -580,10 +545,8 @@ def _date_parameter_converter(
         received=type(value).__name__,
     )
 
-def _time_parameter_converter(
-    parameter: str,
-    value: object
-) -> str:
+
+def _time_parameter_converter(parameter: str, value: object) -> str:
     """Convert a string, ``time``, or ``datetime`` to an ``HH:MM`` string.
 
     Args:
@@ -622,10 +585,8 @@ def _time_parameter_converter(
         received=type(value).__name__,
     )
 
-def _semicolon_list_converter(
-    parameter: str,
-    value: object
-) -> str:
+
+def _semicolon_list_converter(parameter: str, value: object) -> str:
     """Convert a string or list of strings to a semicolon-separated string.
 
     Args:
@@ -650,7 +611,6 @@ def _semicolon_list_converter(
 
     if isinstance(value, list):
         if not all(isinstance(item, str) for item in value):
-
             raise TypeConversionError(
                 message="List-string parameter conversion failed.",
                 parameter=parameter,
@@ -667,10 +627,8 @@ def _semicolon_list_converter(
         received=type(value).__name__,
     )
 
-def _comma_date_list_converter(
-    parameter: str,
-    value: object
-) -> str:
+
+def _comma_date_list_converter(parameter: str, value: object) -> str:
     """Convert a date-like value or list of them to a comma-separated ``YYYY-MM-DD`` string.
 
     Args:
@@ -723,8 +681,13 @@ def _comma_date_list_converter(
         received=type(value).__name__,
     )
 
+
 # Cache Key Converters
-def _hashable_type_converter(data: dict[str, str | int | None] | None) -> tuple[tuple[str, str | int | None], ...] | None: # TODO: Create a typing for this specific dict and tuple shape.
+def _hashable_type_converter(
+    data: dict[str, str | int | None] | None,
+) -> (
+    tuple[tuple[str, str | int | None], ...] | None
+):  # TODO: Create a typing for this specific dict and tuple shape.
     """Convert a parameter dict to a hashable, sorted tuple of items for use as a cache key.
 
     Args:
@@ -754,7 +717,12 @@ def _hashable_type_converter(data: dict[str, str | int | None] | None) -> tuple[
 
     return tuple(sorted(data.items()))
 
-def _dict_type_converter(hashable_data: tuple[tuple[str, str | int | None], ...] | None) -> dict[str, str | int | None] | None: # TODO: Create a typing for this specific dict and tuple shape.
+
+def _dict_type_converter(
+    hashable_data: tuple[tuple[str, str | int | None], ...] | None,
+) -> (
+    dict[str, str | int | None] | None
+):  # TODO: Create a typing for this specific dict and tuple shape.
     """Convert a hashable cache-key tuple back into a parameter dict.
 
     Args:
@@ -777,6 +745,7 @@ def _dict_type_converter(hashable_data: tuple[tuple[str, str | int | None], ...]
         return None
 
     return dict(hashable_data)
+
 
 # Model Converters
 def _coerce_lower(value: str | None) -> str | None:
@@ -806,7 +775,7 @@ def _coerce_lower(value: str | None) -> str | None:
             message="Expected string or None for short-code field.",
             parameter=value,
             expected="str | None",
-            received=type(value).__name__
+            received=type(value).__name__,
         )
 
     return value.lower()

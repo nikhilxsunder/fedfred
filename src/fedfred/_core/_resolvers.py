@@ -53,10 +53,7 @@ from ._registries import _ENDPOINT_REGISTRY, FRED_PREPARATION_FUNCTIONS
 from ._specs import EndpointSpec
 
 
-def _resolve_endpoint(
-    service: Service,
-    endpoint_name: str
-) -> EndpointSpec:
+def _resolve_endpoint(service: Service, endpoint_name: str) -> EndpointSpec:
     """Resolve a ``(service, endpoint_name)`` pair to its pre-built specification.
 
     Two dict lookups, no allocation. The endpoint name is normalized by
@@ -108,9 +105,9 @@ def _resolve_endpoint(
             f"Unsupported endpoint {endpoint_name!r} for service {service!r}."
         ) from exc
 
+
 def _resolve_preparation_function(
-    parameters: Mapping[str, Any] | None,
-    service: str
+    parameters: Mapping[str, Any] | None, service: str
 ) -> dict[str, Any]:
     """Prepare parameters using the preparer for ``service``.
 

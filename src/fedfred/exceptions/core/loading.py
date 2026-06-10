@@ -1,11 +1,8 @@
-"""
-
-"""
+""" """
 
 from dataclasses import dataclass
-from typing import Optional
 
-from .base import FedFredError
+from ..base import FedFredError
 
 
 @dataclass(frozen=True, slots=True)
@@ -31,9 +28,9 @@ class OptionalDependencyError(FedFredError):
     """
 
     package: str = ""
-    feature: Optional[str] = None
-    install_hint: Optional[str] = None
-    version_spec: Optional[str] = None
+    feature: str | None = None
+    install_hint: str | None = None
+    version_spec: str | None = None
 
     def __post_init__(self) -> None:
         base_message = f"Optional dependency '{self.package}' is not installed"

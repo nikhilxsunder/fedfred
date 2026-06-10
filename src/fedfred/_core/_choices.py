@@ -72,25 +72,13 @@ FRED_UNITS: set[str] = {
 }
 """Valid ``units`` values for FRED API parameters."""
 
-SORT_ORDERS: set[str] = {
-    "asc",
-    "desc"
-}
+SORT_ORDERS: set[str] = {"asc", "desc"}
 """Valid ``sort_order`` values for FRED API parameters."""
 
-AGGREGATION_METHODS: set[str] = {
-    "sum",
-    "avg",
-    "eop"
-}
+AGGREGATION_METHODS: set[str] = {"sum", "avg", "eop"}
 """Valid ``aggregation_method`` values for FRED API parameters."""
 
-OUTPUT_TYPES: set[int] = {
-    1,
-    2,
-    3,
-    4
-}
+OUTPUT_TYPES: set[int] = {1, 2, 3, 4}
 """Valid ``output_type`` values for FRED API parameters."""
 
 FRED_ORDER_BY: set[str] = {

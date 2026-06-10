@@ -120,13 +120,9 @@ class _ClientModel:
     _max_requests_per_minute: int
     """The per-service rate limit applied by the transport layer. Declared by concrete subclasses."""
 
-
     # Dunder Methods
     def __init__(
-        self,
-        api_key: str | None = None,
-        caching_enabled: bool = True,
-        cache_size: int = 256
+        self, api_key: str | None = None, caching_enabled: bool = True, cache_size: int = 256
     ) -> None:
         """Initialize the client with an API key and caching configuration.
 
@@ -191,14 +187,18 @@ class _ClientModel:
             "Fred(api_key=<set>, caching_enabled=True, cache_size=256)"
         """
         try:
-            has_key = bool(_resolve_api_key(service=self._service_key))  # TODO: Typing alias logic rewrite origination point.
+            has_key = bool(
+                _resolve_api_key(service=self._service_key)
+            )  # TODO: Typing alias logic rewrite origination point.
 
-        except ClientError:                        # TODO: Add custom exception for missing API key and catch that instead.
+        except (
+            ClientError
+        ):  # TODO: Add custom exception for missing API key and catch that instead.
             has_key = False
 
         auth = "<set>" if has_key else "None"
 
-                                                    # TODO: include size of instance object in the repr string for debugging purposes (can use sys.getsizeof() for that).
+        # TODO: include size of instance object in the repr string for debugging purposes (can use sys.getsizeof() for that).
 
         return (
             f"{type(self).__name__}("
@@ -231,15 +231,15 @@ class _ClientModel:
         """
         try:
             has_key = bool(_resolve_api_key(service=self._service_key))
-        except SettingsError:                           # TODO: Add custom exception for missing API key and catch that instead.
+        except (
+            SettingsError
+        ):  # TODO: Add custom exception for missing API key and catch that instead.
             has_key = False
 
         auth_line = "configured" if has_key else "not configured"
 
         cache_line = (
-            f"enabled (FIFO, maxsize={self.cache_size})"
-            if self.caching_enabled
-            else "disabled"
+            f"enabled (FIFO, maxsize={self.cache_size})" if self.caching_enabled else "disabled"
         )
 
         return (
@@ -250,10 +250,7 @@ class _ClientModel:
             f"  Rate Limit: {self._max_requests_per_minute} req/min\n"
         )
 
-    def __eq__(
-        self,
-        other: object
-    ) -> bool | NotImplementedType:
+    def __eq__(self, other: object) -> bool | NotImplementedType:
         """Compare for equality against another client of the same concrete type.
 
         Two clients compare equal when they are the same concrete class and
@@ -285,10 +282,7 @@ class _ClientModel:
         except AssertionError:
             return NotImplemented
 
-        return (
-            self.caching_enabled == other.caching_enabled
-            and self.cache_size == other.cache_size
-        )
+        return self.caching_enabled == other.caching_enabled and self.cache_size == other.cache_size
 
     def __hash__(self) -> int:
         """Return a hash incorporating the concrete type name and configuration.
@@ -328,10 +322,7 @@ class _ClientModel:
         """
         return len(_retrieve_cache_instance()) if self.caching_enabled else 0
 
-    def __contains__(
-        self,
-        key: str
-    ) -> bool:
+    def __contains__(self, key: str) -> bool:
         """Return whether a key is present in the module-global cache.
 
         Returns ``False`` when caching is disabled. Like :meth:`__len__`,
@@ -351,10 +342,7 @@ class _ClientModel:
         """
         return self.caching_enabled and key in _retrieve_cache_instance()
 
-    def __getitem__(
-        self,
-        key: str
-    ) -> object:
+    def __getitem__(self, key: str) -> object:
         """Return the cached response for a key from the module-global cache.
 
         Provides dict-like read access to cached responses for inspection
@@ -377,7 +365,9 @@ class _ClientModel:
             >>> # fred[('get_category', (('category_id', 125),))]
         """
         if not self.caching_enabled:
-            raise ClientError(key)         # TODO: Add custom exception for cache disabled and catch that instead.
+            raise ClientError(
+                key
+            )  # TODO: Add custom exception for cache disabled and catch that instead.
 
         return _retrieve_cache_instance().cache[key]
 
@@ -466,7 +456,7 @@ class _BaseClient(_ClientModel):
         self,
         endpoint_name: str,
         data: dict[str, Any] | None = None,
-        path_injection: str | None = None
+        path_injection: str | None = None,
     ) -> dict[str, Any]:
         """Perform a synchronous GET request to the FRED-family API.
 
@@ -496,15 +486,15 @@ class _BaseClient(_ClientModel):
             into tuples by that helper.
         """
         if self.caching_enabled:
-            return _cached_get_request(self._service_key, endpoint_name, _hashable_type_converter(data), path_injection)
+            return _cached_get_request(
+                self._service_key, endpoint_name, _hashable_type_converter(data), path_injection
+            )
 
         else:
             return _get_request(self._service_key, endpoint_name, data, path_injection)
 
     def _client_post_request(
-        self,
-        endpoint_name: str,
-        data: dict[str, str | int | None] | None = None
+        self, endpoint_name: str, data: dict[str, str | int | None] | None = None
     ) -> dict[str, Any]:
         """Reserved hook for synchronous POST requests.
 
@@ -587,7 +577,7 @@ class _AsyncBaseClient(_ClientModel):
         self,
         endpoint_name: str,
         data: dict[str, str | int | None] | None = None,
-        path_injection: str | None = None
+        path_injection: str | None = None,
     ) -> dict[str, Any]:
         """Perform an asynchronous GET request to the FRED-family API.
 
@@ -628,9 +618,7 @@ class _AsyncBaseClient(_ClientModel):
             return await _get_request_async(self._service_key, endpoint_name, data, path_injection)
 
     async def _client_post_request(
-        self,
-        endpoint_name: str,
-        data: dict[str, str | int | None] | None = None
+        self, endpoint_name: str, data: dict[str, str | int | None] | None = None
     ) -> dict[str, Any]:
         """Reserved hook for asynchronous POST requests.
 

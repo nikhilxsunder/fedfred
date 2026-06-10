@@ -101,7 +101,7 @@ def _row_match_mask(
     mask = np.ones(n, dtype=bool)
 
     for name, arr in columns.items():
-        target = targets[name]                       # object, not Any
+        target = targets[name]  # object, not Any
 
         if arr.dtype.kind == "M":
             mask &= arr == np.datetime64(cast(date, target), "D")
@@ -114,10 +114,8 @@ def _row_match_mask(
 
     return mask
 
-def _columns_equal(
-    a: dict[str, np.ndarray],
-    b: dict[str, np.ndarray]
-) -> bool:
+
+def _columns_equal(a: dict[str, np.ndarray], b: dict[str, np.ndarray]) -> bool:
     """Whether two column mappings hold equal data, NaN-aware.
 
     Compares two ``name -> array`` mappings for equality: identical keys, and

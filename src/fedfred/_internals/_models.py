@@ -86,22 +86,29 @@ from typing import (
 
 import numpy as np
 
-from ..settings import _resolve_dataframe_backend
-from ..exceptions.models import ModelError
-from ..exceptions.parsing import ParsingError
 from .._core import (
-    _extract_objects, _ResponseShape, _observation_columns,
+    _columns_equal,
+    _columns_to_arrow,
+    _columns_to_cudf,
+    _columns_to_dask,
+    _columns_to_pandas,
+    _columns_to_polars,
+    _extract_objects,
+    _first_date_index,
+    _observation_columns,
+    _ResponseShape,
+    _row_match_mask,
     _validate_observation_columns,
-    _row_match_mask, _columns_equal, _first_date_index,
-    _columns_to_pandas, _columns_to_polars, _columns_to_dask,
-    _columns_to_cudf, _columns_to_arrow,
 )
+from ..exceptions.core.parsing import ParsingError
+from ..exceptions.internals.models import ModelError
+from ..settings import _resolve_dataframe_backend
 from ._clients import _ClientModel
 
 if TYPE_CHECKING:
     import cudf
     import dask.dataframe as dd
-    import pandas as pd          # now TYPE_CHECKING-only — no runtime pd use remains
+    import pandas as pd  # now TYPE_CHECKING-only — no runtime pd use remains
     import polars as pl
     import pyarrow as pa
 
@@ -115,8 +122,17 @@ __all__ = [
 ]
 
 type JSON = (
-    str | int | float | bool | None | Mapping[str, JSON] | Sequence[JSON] # TODO: Consider refactoring to core types module and reusing across the package.
+    str
+    | int
+    | float
+    | bool
+    | None
+    | Mapping[str, JSON]
+    | Sequence[
+        JSON
+    ]  # TODO: Consider refactoring to core types module and reusing across the package.
 )
+
 
 @dataclass(slots=True, kw_only=True)
 class _ModelBase:
@@ -157,11 +173,7 @@ class _ModelBase:
 
     # Class Methods
     @classmethod
-    def _from_dict(
-        cls,
-        data: dict[str, Any],
-        client: _ClientModel | None = None
-    ) -> Self:
+    def _from_dict(cls, data: dict[str, Any], client: _ClientModel | None = None) -> Self:
         """Build a single instance from one raw FRED payload mapping.
 
         Subclass hook. Implementations validate required fields, normalize
@@ -181,11 +193,7 @@ class _ModelBase:
         raise NotImplementedError
 
     @classmethod
-    def _from_response(
-        cls,
-        response: dict[str, Any],
-        client: _ClientModel | None = None
-    ) -> Self:
+    def _from_response(cls, response: dict[str, Any], client: _ClientModel | None = None) -> Self:
         """Build a single instance from a full FRED API response payload.
 
         Extracts the object list per the subclass-declared
@@ -206,7 +214,9 @@ class _ModelBase:
         raw = _extract_objects(response, cls._response_keys, cls._response_shape)
 
         if not raw:
-            raise ModelError(f"No {cls._response_keys[0]} found in the response")  # TODO: ModelError
+            raise ModelError(
+                f"No {cls._response_keys[0]} found in the response"
+            )  # TODO: ModelError
 
         return cls._from_dict(raw[0], client=client)
 
@@ -277,10 +287,7 @@ class _DateBase(date):
 
     # Class Methods
     @classmethod
-    def _parse_value(
-        cls,
-        raw: JSON
-    ) -> Self:
+    def _parse_value(cls, raw: JSON) -> Self:
         """Build one element from its raw payload.
 
         Subclass hook. Implementations decide whether ``raw`` is a string
@@ -299,10 +306,7 @@ class _DateBase(date):
         raise NotImplementedError
 
     @classmethod
-    def _from_response(
-        cls,
-        response: dict[str, Any]
-    ) -> Self:
+    def _from_response(cls, response: dict[str, Any]) -> Self:
         """Build a single instance from a full FRED API response payload.
 
         Extracts the object list per ``_response_keys`` / ``_response_shape``,
@@ -327,10 +331,7 @@ class _DateBase(date):
         return cls._parse_value(raw[0])
 
     # Dunder Methods
-    def __add__(
-        self,
-        other: timedelta
-    ) -> Self:
+    def __add__(self, other: timedelta) -> Self:
         """Add a :class:`timedelta` and return a new instance via :meth:`_with_date`.
 
         Routes through :meth:`_with_date` so subclass-specific metadata is
@@ -347,24 +348,12 @@ class _DateBase(date):
         return self._with_date(d.year, d.month, d.day)
 
     @overload
-    def __sub__(
-        self,
-        other: datetime
-    ) -> Never: ...
+    def __sub__(self, other: datetime) -> Never: ...
     @overload
-    def __sub__(
-        self,
-        other: Self
-    ) -> timedelta: ...
+    def __sub__(self, other: Self) -> timedelta: ...
     @overload
-    def __sub__(
-        self,
-        other: timedelta
-    ) -> Self: ...
-    def __sub__(
-        self,
-        other: datetime | Self | timedelta
-    ) -> Self | timedelta:
+    def __sub__(self, other: timedelta) -> Self: ...
+    def __sub__(self, other: datetime | Self | timedelta) -> Self | timedelta:
         """Subtract a :class:`timedelta` or another date.
 
         - ``other`` is :class:`timedelta` → return a new instance offset
@@ -402,12 +391,7 @@ class _DateBase(date):
         return self.__add__(other)
 
     # Protected Methods
-    def _with_date(
-        self,
-        year: int,
-        month: int,
-        day: int
-    ) -> Self:
+    def _with_date(self, year: int, month: int, day: int) -> Self:
         """Rebuild this instance at a new ``(year, month, day)`` preserving subclass state.
 
         Default implementation suits subclasses whose ``__new__`` accepts
@@ -532,10 +516,7 @@ class _Sequence(Sequence[T]):
         Returns:
             bool: ``True`` if string indexing and IPython completion are enabled on this subclass.
         """
-        return (
-            cls._lookup_key is not None
-            or cls._lookup_value is not _Sequence._lookup_value
-        )
+        return cls._lookup_key is not None or cls._lookup_value is not _Sequence._lookup_value
 
     @classmethod
     def _extract(cls, response: dict[str, Any]) -> list[Any]:
@@ -558,10 +539,7 @@ class _Sequence(Sequence[T]):
         return _extract_objects(response, cls._response_keys, cls._response_shape)
 
     # Dunder Methods
-    def __init_subclass__(
-        cls,
-        **kwargs:object
-    ) -> None:
+    def __init_subclass__(cls, **kwargs: object) -> None:
         """Auto-wire ``_response_key`` and ``_element_cls`` from the generic parameter.
 
         Walks ``cls.__orig_bases__`` for any base whose ``__origin__`` is a
@@ -592,7 +570,6 @@ class _Sequence(Sequence[T]):
                     element_cls = args[0]
 
                     if isinstance(element_cls, type):
-
                         if "_response_keys" not in cls.__dict__:
                             keys = getattr(element_cls, "_response_keys", None)
 
@@ -609,10 +586,7 @@ class _Sequence(Sequence[T]):
                             cls._element_cls = element_cls
                 break
 
-    def __init__(
-        self,
-        items: Iterable[T]
-    ) -> None:
+    def __init__(self, items: Iterable[T]) -> None:
         """Materialize ``items`` into the immutable backing tuple.
 
         Args:
@@ -621,24 +595,12 @@ class _Sequence(Sequence[T]):
         self._items: tuple[T, ...] = tuple(items)
 
     @overload
-    def __getitem__(
-        self,
-        index: int
-    ) -> T: ...
+    def __getitem__(self, index: int) -> T: ...
     @overload
-    def __getitem__(
-        self,
-        index: str
-    ) -> T: ...
+    def __getitem__(self, index: str) -> T: ...
     @overload
-    def __getitem__(
-        self,
-        index: slice
-    ) -> Self: ...
-    def __getitem__(
-        self,
-        index: int | str | slice
-    ) -> T | Self:
+    def __getitem__(self, index: slice) -> Self: ...
+    def __getitem__(self, index: int | str | slice) -> T | Self:
         """Dispatch indexing on the runtime type of ``index``.
 
         - :class:`slice` → return a new sequence of the same concrete type
@@ -683,10 +645,7 @@ class _Sequence(Sequence[T]):
         """
         return iter(self._items)
 
-    def __contains__(
-        self,
-        value: object
-    ) -> bool:
+    def __contains__(self, value: object) -> bool:
         """Return whether ``value`` equals any element by value.
 
         Membership is checked against item equality, not against the
@@ -708,10 +667,7 @@ class _Sequence(Sequence[T]):
         """
         return reversed(self._items)
 
-    def __eq__(
-        self,
-        other: object
-    ) -> bool:
+    def __eq__(self, other: object) -> bool:
         """Compare for value equality against another instance of the same concrete type.
 
         Returns :data:`NotImplemented` rather than ``False`` for cross-type
@@ -772,10 +728,7 @@ class _Sequence(Sequence[T]):
         return list(seen)
 
     # Protected Methods
-    def _clone(
-        self,
-        items: Iterable[T]
-    ) -> Self:
+    def _clone(self, items: Iterable[T]) -> Self:
         """Construct a new instance of ``type(self)`` holding ``items``.
 
         Used by :meth:`__getitem__` to produce sliced copies. The default
@@ -793,10 +746,7 @@ class _Sequence(Sequence[T]):
         """
         return type(self)(items)
 
-    def _lookup_value(
-        self,
-        item: T
-    ) -> str | None:
+    def _lookup_value(self, item: T) -> str | None:
         """Extract the string lookup key for an item, or ``None`` to exclude it.
 
         Override hook backing :meth:`_lookup_by_key` and
@@ -825,10 +775,7 @@ class _Sequence(Sequence[T]):
 
         return None if value is None else str(value)
 
-    def _lookup_by_key(
-        self,
-        key: str
-    ) -> T:
+    def _lookup_by_key(self, key: str) -> T:
         """Look up an item by its string key via :meth:`_lookup_value`.
 
         Linear scan over the elements, returning the first whose
@@ -888,11 +835,7 @@ class _ModelSequence(_Sequence[MT]):
 
     # Class Methods
     @classmethod
-    def _parse_item(
-        cls,
-        data: dict[str, Any],
-        client: _ClientModel | None = None
-    ) -> MT:
+    def _parse_item(cls, data: dict[str, Any], client: _ClientModel | None = None) -> MT:
         """Build a single element by delegating to its ``_from_dict`` classmethod.
 
         Resolves the element class through the auto-wired ``_element_cls``
@@ -910,11 +853,7 @@ class _ModelSequence(_Sequence[MT]):
         return cast("type[MT]", cls._element_cls)._from_dict(data, client)
 
     @classmethod
-    def _from_response(
-        cls,
-        response: dict[str, Any],
-        client: _ClientModel | None = None
-    ) -> Self:
+    def _from_response(cls, response: dict[str, Any], client: _ClientModel | None = None) -> Self:
         """Build a sequence from a FRED API response payload.
 
         Extracts the element list per the auto-wired ``_response_keys`` /
@@ -939,11 +878,7 @@ class _ModelSequence(_Sequence[MT]):
         )
 
     # Dunder Methods
-    def __init__(
-        self,
-        items: Iterable[MT],
-        client: _ClientModel | None = None
-    ) -> None:
+    def __init__(self, items: Iterable[MT], client: _ClientModel | None = None) -> None:
         """Materialize ``items`` and attach an optional client.
 
         Args:
@@ -954,10 +889,7 @@ class _ModelSequence(_Sequence[MT]):
         self.client: _ClientModel | None = client
 
     # Protected Methods
-    def _clone(
-        self,
-        items: Iterable[MT]
-    ) -> Self:
+    def _clone(self, items: Iterable[MT]) -> Self:
         """Construct a new sequence of ``type(self)`` forwarding the client.
 
         Override of :meth:`_Sequence._clone` that preserves the
@@ -1207,7 +1139,7 @@ class _ObservationSequence[OT: _ObservationBase](Sequence[OT]):
         frequency (str | None): The frequency, if a frequency aggregation was applied.
     """
 
-    __slots__ = ("_dates", "_values", "series_id", "units", "frequency")
+    __slots__ = ("_dates", "_values", "frequency", "series_id", "units")
 
     __hash__ = None  # immutable by convention, but unhashable like other sequences
 
@@ -1220,7 +1152,7 @@ class _ObservationSequence[OT: _ObservationBase](Sequence[OT]):
         response: dict,
         series_id: str,
         frequency: str | None = None,
-        ) -> Self:
+    ) -> Self:
         """Parse a FRED series_observations envelope into this concrete sequence.
 
         Shared across point and vintage because both come from the same endpoint
@@ -1230,10 +1162,16 @@ class _ObservationSequence[OT: _ObservationBase](Sequence[OT]):
         if "observations" not in response:
             raise ParsingError("response has no 'observations' array.")
 
-        dates, values = _observation_columns(response["observations"])   # the one shared parse
+        dates, values = _observation_columns(response["observations"])  # the one shared parse
 
-        return cls._assemble(response, dates, values, series_id=series_id,
-                            units=response.get("units"), frequency=frequency)
+        return cls._assemble(
+            response,
+            dates,
+            values,
+            series_id=series_id,
+            units=response.get("units"),
+            frequency=frequency,
+        )
 
     @classmethod
     @abstractmethod
@@ -1241,11 +1179,12 @@ class _ObservationSequence[OT: _ObservationBase](Sequence[OT]):
         cls,
         response: dict,
         dates: np.ndarray,
-        values: np.ndarray, *,
+        values: np.ndarray,
+        *,
         series_id: str,
         units: str | None,
-        frequency: str | None
-        ) -> Self:
+        frequency: str | None,
+    ) -> Self:
         """Finish construction from the parsed columns — point and vintage differ only here."""
 
     # Dunder Methods
@@ -1289,9 +1228,7 @@ class _ObservationSequence[OT: _ObservationBase](Sequence[OT]):
         self.frequency = frequency
 
     def __len__(self) -> int:
-        """
-        
-        """
+        """ """
         return int(self._dates.shape[0])
 
     def __getitem__(self, index: int | str | slice) -> OT | Self:  # type: ignore[override]
@@ -1304,7 +1241,7 @@ class _ObservationSequence[OT: _ObservationBase](Sequence[OT]):
         if isinstance(index, str):
             return self._lookup_iso(index)
 
-        return self._make(int(index))   # numpy bounds-checks; negatives ok
+        return self._make(int(index))  # numpy bounds-checks; negatives ok
 
     def __iter__(self) -> Iterator[OT]:
         return (self._make(i) for i in range(len(self)))
@@ -1346,7 +1283,11 @@ class _ObservationSequence[OT: _ObservationBase](Sequence[OT]):
 
             rows.append(f"<tr>{cells}</tr>")
 
-        more = f"<tr><td colspan={len(self._columns())}>… {len(self)} rows</td></tr>" if len(self) > 5 else ""
+        more = (
+            f"<tr><td colspan={len(self._columns())}>… {len(self)} rows</td></tr>"
+            if len(self) > 5
+            else ""
+        )
 
         return f"<b>{type(self).__name__}</b> ({self.series_id})<table><tr>{head}</tr>{''.join(rows)}{more}</table>"
 
@@ -1359,11 +1300,7 @@ class _ObservationSequence[OT: _ObservationBase](Sequence[OT]):
         """Synthesize the element at row ``i`` from the columns."""
 
     @abstractmethod
-    def _rebuild(
-        self,
-        columns: dict[str, np.ndarray],
-        metadata: dict[str, Any]
-    ) -> Self:
+    def _rebuild(self, columns: dict[str, np.ndarray], metadata: dict[str, Any]) -> Self:
         """Reconstruct a sequence of this concrete type from sliced columns."""
 
     def _columns(self) -> dict[str, np.ndarray]:
@@ -1374,10 +1311,7 @@ class _ObservationSequence[OT: _ObservationBase](Sequence[OT]):
         """Scalar sidecar forwarded across slices. Subclasses extend."""
         return {"series_id": self.series_id, "units": self.units, "frequency": self.frequency}
 
-    def _lookup_iso(
-        self,
-        key: str
-    ) -> OT:
+    def _lookup_iso(self, key: str) -> OT:
         try:
             i = _first_date_index(self._dates, key)
 
@@ -1400,8 +1334,9 @@ class _ObservationSequence[OT: _ObservationBase](Sequence[OT]):
         return _columns_to_polars(self._columns())
 
     def to_dask(self, npartitions: int = 1, index: str | None = None) -> dd.DataFrame:
-        return _columns_to_dask(self._columns(), npartitions=npartitions,
-                                index=index, frequency=self.frequency)
+        return _columns_to_dask(
+            self._columns(), npartitions=npartitions, index=index, frequency=self.frequency
+        )
 
     def to_cudf(self, index: str | None = None) -> cudf.DataFrame:
         return _columns_to_cudf(self._columns(), index=index)

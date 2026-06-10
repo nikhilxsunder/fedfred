@@ -82,11 +82,7 @@ class _choice_validator:
     choices: frozenset[object]
     """The allowed values for the parameter."""
 
-    def __call__(
-        self,
-        parameter: str,
-        value: object
-    ) -> None:
+    def __call__(self, parameter: str, value: object) -> None:
         """Validate ``value`` against the allowed choices.
 
         Args:
@@ -97,7 +93,6 @@ class _choice_validator:
             ValueValidationError: If ``value`` is not one of the allowed choices.
         """
         if value not in self.choices:
-
             raise ValueValidationError(
                 message=f"Invalid value for parameter {parameter!r}.",
                 parameter=parameter,
@@ -123,11 +118,7 @@ class _str_choice_validator:
     choices: frozenset[str]
     """The allowed string values for the parameter."""
 
-    def __call__(
-        self,
-        parameter: str,
-        value: object
-    ) -> None:
+    def __call__(self, parameter: str, value: object) -> None:
         """Validate ``value`` is a string and one of the allowed choices.
 
         Args:
@@ -151,12 +142,9 @@ class _str_choice_validator:
                 },
             )
 
+
 # Scalar Validators
-def _validate_type(
-    parameter: str,
-    value: object,
-    expected_type: type | tuple[type, ...]
-) -> None:
+def _validate_type(parameter: str, value: object, expected_type: type | tuple[type, ...]) -> None:
     """Validate that a parameter value is of an expected type.
 
     Args:
@@ -187,10 +175,8 @@ def _validate_type(
             received=type(value).__name__,
         )
 
-def _validate_nonnegative_int(
-    parameter: str,
-    value: object
-) -> None:
+
+def _validate_nonnegative_int(parameter: str, value: object) -> None:
     """Validate that a parameter value is a non-negative integer.
 
     Booleans are rejected even though ``bool`` is a subclass of ``int``, since a
@@ -232,10 +218,8 @@ def _validate_nonnegative_int(
             details={"value": value_int},
         )
 
-def _validate_bool(
-    parameter: str,
-    value: object
-) -> None:
+
+def _validate_bool(parameter: str, value: object) -> None:
     """Validate that a parameter value is a boolean.
 
     Args:
@@ -253,10 +237,8 @@ def _validate_bool(
     """
     _validate_type(parameter, value, bool)
 
-def _validate_str(
-    parameter: str,
-    value: object
-) -> None:
+
+def _validate_str(parameter: str, value: object) -> None:
     """Validate that a parameter value is a string.
 
     Args:
@@ -274,10 +256,8 @@ def _validate_str(
     """
     _validate_type(parameter, value, str)
 
-def _validate_nonempty_str(
-    parameter: str,
-    value: object
-) -> None:
+
+def _validate_nonempty_str(parameter: str, value: object) -> None:
     """Validate that a parameter value is a non-empty string.
 
     Args:
@@ -304,6 +284,7 @@ def _validate_nonempty_str(
             details={"value": value},
         )
 
+
 def _validate_choice(choices: set[int]) -> ParameterValidator:
     """Create a validator that checks a parameter value against allowed choices.
 
@@ -320,6 +301,7 @@ def _validate_choice(choices: set[int]) -> ParameterValidator:
         >>> validate_sort_order("sort_order", 4)  # doctest: +SKIP
     """
     return _choice_validator(frozenset(choices))
+
 
 def _validate_str_choice(choices: set[str]) -> ParameterValidator:
     """Create a validator that checks a parameter value is a string in allowed choices.
@@ -339,10 +321,8 @@ def _validate_str_choice(choices: set[str]) -> ParameterValidator:
     """
     return _str_choice_validator(frozenset(choices))
 
-def _validate_yyyy_mm_dd(
-    parameter: str,
-    value: object
-) -> None:
+
+def _validate_yyyy_mm_dd(parameter: str, value: object) -> None:
     """Validate that a parameter value is a string in ``YYYY-MM-DD`` date format.
 
     Args:
@@ -379,10 +359,8 @@ def _validate_yyyy_mm_dd(
             original_exception=exc,
         ) from exc
 
-def _validate_hh_mm(
-    parameter: str,
-    value: object
-) -> None:
+
+def _validate_hh_mm(parameter: str, value: object) -> None:
     """Validate that a parameter value is a string in ``HH:MM`` 24-hour time format.
 
     Args:
@@ -420,10 +398,8 @@ def _validate_hh_mm(
             original_exception=exc,
         ) from exc
 
-def _validate_semicolon_list_string(
-    parameter: str,
-    value: object
-) -> None:
+
+def _validate_semicolon_list_string(parameter: str, value: object) -> None:
     """Validate that a parameter value is a semicolon-separated list of non-empty terms.
 
     Args:
@@ -462,10 +438,8 @@ def _validate_semicolon_list_string(
             details={"value": value_str, "separator": ";"},
         )
 
-def _validate_comma_date_list_string(
-    parameter: str,
-    value: object
-) -> None:
+
+def _validate_comma_date_list_string(parameter: str, value: object) -> None:
     """Validate that a parameter value is a comma-separated list of ``YYYY-MM-DD`` dates.
 
     Args:
@@ -525,10 +499,8 @@ def _validate_comma_date_list_string(
             },
         )
 
-def _validate_series_id(
-    parameter: str,
-    value: object
-) -> None:
+
+def _validate_series_id(parameter: str, value: object) -> None:
     """Validate that a parameter value is a non-empty series identifier without whitespace.
 
     Args:

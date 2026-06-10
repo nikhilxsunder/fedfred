@@ -58,12 +58,7 @@ from typing import Literal, get_args
 
 from ..settings import Service
 
-AuthStyle = Literal[
-    "api_key_param",
-    "bearer_header",
-    "api_key_header",
-    "none"
-]
+AuthStyle = Literal["api_key_param", "bearer_header", "api_key_header", "none"]
 """How the transport layer injects the API key for an endpoint.
 
 One of:
@@ -90,10 +85,7 @@ ParameterConverter = Callable[[str, object], object]
 """Type alias for a scalar parameter converter: takes a parameter name and a raw value, returns the
 API-ready value."""
 
-_ResponseShape = Literal[
-    "list",
-    "dict_or_list"
-]
+_ResponseShape = Literal["list", "dict_or_list"]
 _ResponseShape = Literal[
     "list",
     "dict_or_list",

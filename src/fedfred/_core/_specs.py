@@ -175,8 +175,7 @@ class EndpointSpec:
 
         if self.auth not in _VALID_AUTH_STYLES:
             raise EndpointAuthError(
-                f"EndpointSpec.auth must be one of {sorted(_VALID_AUTH_STYLES)}, "
-                f"got {self.auth!r}."
+                f"EndpointSpec.auth must be one of {sorted(_VALID_AUTH_STYLES)}, got {self.auth!r}."
             )
 
         if self.params is not None and not isinstance(self.params, dict):

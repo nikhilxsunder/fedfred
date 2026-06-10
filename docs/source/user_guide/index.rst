@@ -3,7 +3,7 @@
 User Guide
 ==========
 
-Learn how to **install FedFred**, initialize the client, and quickly start interacting with the **FRED® API**.  
+Learn how to **install FedFred**, initialize the client, and quickly start interacting with the **FRED® API**.
 This section covers everything from **basic examples** to **advanced asynchronous usage** and **data visualization**.
 
 ---

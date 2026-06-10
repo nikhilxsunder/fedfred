@@ -50,10 +50,7 @@ from datetime import date
 import numpy as np
 
 
-def _cell_date(
-    dates: np.ndarray,
-    i: int
-) -> date:
+def _cell_date(dates: np.ndarray, i: int) -> date:
     """Materialize the observation date at row ``i`` as a :class:`datetime.date`.
 
     Reads one cell of a ``datetime64[D]`` column and converts it to a native
@@ -76,10 +73,8 @@ def _cell_date(
     """
     return dates[i].item()
 
-def _cell_value(
-    values: np.ndarray,
-    i: int
-) -> float | None:
+
+def _cell_value(values: np.ndarray, i: int) -> float | None:
     """Materialize the observation value at row ``i`` as ``float`` or ``None``.
 
     Reads one cell of a ``float64`` column and maps the missing sentinel to
@@ -108,10 +103,8 @@ def _cell_value(
 
     return None if np.isnan(v) else float(v)
 
-def _first_date_index(
-    dates: np.ndarray,
-    key: str
-) -> int | None:
+
+def _first_date_index(dates: np.ndarray, key: str) -> int | None:
     """Locate the first row whose date equals the ISO ``key``.
 
     Backs string indexing on ``_ObservationSequence`` (``obs["2020-01-01"]``)

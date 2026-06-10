@@ -21,19 +21,18 @@
 # SOFTWARE.
 """fedfred.exceptions.base"""
 
+from collections.abc import Mapping
 from dataclasses import dataclass, field
-from typing import Any, Mapping, Optional
+from typing import Any
 
 
 @dataclass(frozen=True, slots=True)
 class FedFredError(Exception):
-    """
-    Root base exception for all fedfred errors.
-    """
+    """Root base exception for all fedfred errors."""
 
     message: str
     context: Mapping[str, Any] = field(default_factory=dict)
-    original_exception: Optional[BaseException] = None
+    original_exception: BaseException | None = None
 
     def __str__(self) -> str:
         return self.message

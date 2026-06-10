@@ -3,7 +3,7 @@
 FedFred: A Modern Python Client for FRED® API
 =============================================
 
-FedFred is a **feature-rich Python package** for interacting with the **Federal Reserve Bank of St. Louis Economic Database (FRED®)**.  
+FedFred is a **feature-rich Python package** for interacting with the **Federal Reserve Bank of St. Louis Economic Database (FRED®)**.
 It supports **synchronous** and **asynchronous** access to FRED data, along with **DataFrame transformations**, **rate-limiting**, **local caching**, and **typed object models** — making it the most modern FRED client available for Python developers.
 
 Install FedFred

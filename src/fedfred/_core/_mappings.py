@@ -47,6 +47,7 @@ References:
     - FRED API documentation. https://fred.stlouisfed.org/docs/api/fred/
     - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/
 """
+
 from __future__ import annotations
 
 from ._urls import (
@@ -174,23 +175,23 @@ than as query parameters.
 """
 
 _FRED_TO_PANDAS_FREQ: dict[str, str] = {
-        "d": "D",
-        "w": "W",
-        "bw": "2W",
-        "m": "MS",
-        "q": "QS",
-        "sa": "6MS",
-        "a": "YS",
-        "wef": "W-FRI",
-        "weth": "W-THU",
-        "wew": "W-WED",
-        "wetu": "W-TUE",
-        "wem": "W-MON",
-        "wesu": "W-SUN",
-        "wesa": "W-SAT",
-        "bwew": "2W-WED",
-        "bwem": "2W-MON",
-    }
+    "d": "D",
+    "w": "W",
+    "bw": "2W",
+    "m": "MS",
+    "q": "QS",
+    "sa": "6MS",
+    "a": "YS",
+    "wef": "W-FRI",
+    "weth": "W-THU",
+    "wew": "W-WED",
+    "wetu": "W-TUE",
+    "wem": "W-MON",
+    "wesu": "W-SUN",
+    "wesa": "W-SAT",
+    "bwew": "2W-WED",
+    "bwem": "2W-MON",
+}
 """Mapping of FRED frequency codes to pandas period-start offset aliases.
 
 Consulted by :func:`._converters._pandas_frequency_converter` (and through it

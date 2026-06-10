@@ -54,6 +54,7 @@ __all__ = [
     "_rate_limiter_async",
 ]
 
+
 @dataclass(slots=True)
 class AdjustableLimiter:
     """Capacity limiter with a runtime-adjustable limit.
@@ -135,7 +136,7 @@ class AdjustableLimiter:
         self,
         exc_type: type[BaseException] | None,
         exc: BaseException | None,
-        tb: TracebackType | None
+        tb: TracebackType | None,
     ) -> None:
         """Exit the asynchronous context manager, releasing the slot.
 
@@ -179,9 +180,7 @@ class AdjustableLimiter:
             task = asyncio.create_task(self._wake_waiters())
 
         except RuntimeError as exc:
-            raise LimiterWakeError(
-                "Failed to schedule waiter wake-up task."
-            ) from exc
+            raise LimiterWakeError("Failed to schedule waiter wake-up task.") from exc
 
         self._background_tasks.add(task)
 
@@ -202,10 +201,7 @@ class AdjustableLimiter:
             self._cond.notify_all()
 
     # Public methods
-    def set_limit(
-        self,
-        new_limit: int
-    ) -> None:
+    def set_limit(self, new_limit: int) -> None:
         """Change the maximum number of concurrent holders at runtime.
 
         Args:
@@ -301,8 +297,11 @@ _FRASER_LOCK: asyncio.Lock = asyncio.Lock()
 _FRED_SEMAPHORE: AdjustableLimiter = AdjustableLimiter(limit=_FRED_MAX_REQUESTS_PER_MINUTE // 10)
 """Semaphore limiting concurrent requests to the FRED group."""
 
-_FRASER_SEMAPHORE: AdjustableLimiter = AdjustableLimiter(limit=_FRASER_MAX_REQUESTS_PER_MINUTE // 10)
+_FRASER_SEMAPHORE: AdjustableLimiter = AdjustableLimiter(
+    limit=_FRASER_MAX_REQUESTS_PER_MINUTE // 10
+)
 """Semaphore limiting concurrent requests to FRASER."""
+
 
 @dataclass(slots=True)
 class LimiterSpec:
@@ -398,11 +397,12 @@ def _resolve_limiter(service: Service) -> LimiterSpec:
     """
     return LimiterSpec(service)
 
+
 async def _semaphore_updater(
     request_times: deque[float],
     max_requests_per_minute: int,
     lock: asyncio.Lock,
-    semaphore: AdjustableLimiter
+    semaphore: AdjustableLimiter,
 ) -> tuple[Any, float]:
     """Recompute the semaphore limit from the requests remaining this minute.
 
@@ -469,6 +469,7 @@ async def _semaphore_updater(
 
         return requests_left, time_left
 
+
 def _rate_limiter(service: Service) -> None:
     """Pace a synchronous request to comply with the service's rate limit.
 
@@ -512,6 +513,7 @@ def _rate_limiter(service: Service) -> None:
 
     spec.request_times.append(now)
 
+
 async def _rate_limiter_async(service: Service) -> None:
     """Pace an asynchronous request to comply with the service's rate limit.
 
@@ -541,9 +543,7 @@ async def _rate_limiter_async(service: Service) -> None:
 
     async with spec.semaphore:
         requests_left, time_left = await _semaphore_updater(
-            spec.request_times,
-            spec.max_requests_per_minute,
-            spec.lock, spec.semaphore
+            spec.request_times, spec.max_requests_per_minute, spec.lock, spec.semaphore
         )
 
         if requests_left > 0:

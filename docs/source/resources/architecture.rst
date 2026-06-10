@@ -16,10 +16,10 @@ Class Hierarchy Overview
     :color: secondary
 
     - :class:`fedfred.clients.FredAPI` (synchronous core client)
-    
+
       - :class:`fedfred.clients.FredAPI.AsyncAPI` (asynchronous core client)
         - :class:`fedfred.clients.FredAPI.AsyncAPI.AsyncMapsAPI` (async Maps API client)
-    
+
       - :class:`fedfred.clients.FredAPI.MapsAPI` (synchronous Maps API client)
 
     ➤ Nested clients are accessible via attributes like :class:`fedfred.clients.FredAPI.Async`, :class:`fedfred.clients.FredAPI.Maps`, and :class:`fedfred.clients.AsyncAPI.Maps`.
@@ -37,25 +37,25 @@ Key Internal Mechanisms
     .. grid-item-card:: Rate Limiting
         :link-alt: FRED API Rate Limits
 
-        Enforces the FRED 120 requests/min limit using a **timestamp deque**.  
+        Enforces the FRED 120 requests/min limit using a **timestamp deque**.
         Automatically evicts old calls and blocks excess requests.
 
     .. grid-item-card:: Retry Strategy
         :link-alt: Retry on Failure
 
-        Failed API calls (timeouts/network errors) retry using `tenacity`.  
+        Failed API calls (timeouts/network errors) retry using `tenacity`.
         Uses exponential backoff with jitter to avoid hammering FRED.
 
     .. grid-item-card:: Local Caching
         :link-alt: Local FIFO Cache
 
-        In-memory FIFO cache stores **256 entries** by default.  
+        In-memory FIFO cache stores **256 entries** by default.
         Works in sync and async clients. Toggle via ``cache_mode``.
 
     .. grid-item-card:: Asynchronous Engine
         :link-alt: Async Architecture
 
-        Async clients use `httpx.AsyncClient` and `asyncio.Lock` for concurrency-safe access and rate compliance.  
+        Async clients use `httpx.AsyncClient` and `asyncio.Lock` for concurrency-safe access and rate compliance.
         Suitable for high-throughput pipelines.
 
     .. grid-item-card:: Structured Objects

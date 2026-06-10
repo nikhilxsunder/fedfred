@@ -3,7 +3,7 @@
 Comparison with Other FRED Clients
 ==================================
 
-FedFred offers a **modern, feature-rich alternative** to existing Python clients for the **St. Louis FRED® API**.  
+FedFred offers a **modern, feature-rich alternative** to existing Python clients for the **St. Louis FRED® API**.
 Below is a detailed comparison.
 
 ---
@@ -38,13 +38,13 @@ Key Differences Explained
 .. dropdown:: Why Async Support Matters
     :color: secondary
 
-    FedFred enables **true concurrency** when downloading large batches of FRED data, dramatically improving speed.  
+    FedFred enables **true concurrency** when downloading large batches of FRED data, dramatically improving speed.
     Ideal for production pipelines, real-time apps, and bulk research.
 
 .. dropdown:: Caching and Rate Limit Handling
     :color: secondary
 
-    No need to manually throttle API calls or install external caches.  
+    No need to manually throttle API calls or install external caches.
     FedFred includes **intelligent caching** and **built-in 120 requests/minute throttling**.
 
 .. dropdown:: Structured Objects vs Raw JSON
@@ -76,7 +76,7 @@ FedFred is the **most complete** and **future-proof** choice if you are building
 
 It combines modern Python practices (asyncio, typing, DataFrames) with the full breadth of FRED API capabilities.
 
-➔ Check real-world examples in :ref:`use-cases`.  
+➔ Check real-world examples in :ref:`use-cases`.
 ➔ Explore client internals at :ref:`api-overview`.
 
 ---

@@ -1,7 +1,9 @@
 ### Roadmap
 
 #### v4 Release (Current Focus)
+
 The v4 branch represents a major backend rewrite with focus on:
+
 - Complete internal refactor: `_core` and `_internals` subpackage architecture
 - Unified endpoint resolution across FRED, ALFRED, GeoFRED, FRASER
 - Sync/async parity throughout the public surface
@@ -9,6 +11,7 @@ The v4 branch represents a major backend rewrite with focus on:
 - Comprehensive documentation with endpoint coverage and advanced workflows
 
 #### Post-v4 Stability Phase (12+ Months)
+
 After v4 stabilizes, expansions are limited to three targeted areas:
 
 1. **Low-Latency Revisions**

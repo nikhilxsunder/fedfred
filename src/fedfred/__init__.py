@@ -65,7 +65,19 @@ from ._core import FredAPI, FredHelpers
 from ._internals.clients import Alfred, AsyncAlfred, AsyncFred, AsyncGeoFred, Fraser, Fred, GeoFred
 
 # Exceptions
-from .exceptions import FedFredAPIError, FedFredAuthError, FedFredError, FedFredHTTPError, FedFredNotFoundError, FedFredParsingError, FedFredRateLimitError, FedFredServerError, FedFredTransportError, FedFredValidationError, RequestContext
+from .exceptions import (
+    FedFredAPIError,
+    FedFredAuthError,
+    FedFredError,
+    FedFredHTTPError,
+    FedFredNotFoundError,
+    FedFredParsingError,
+    FedFredRateLimitError,
+    FedFredServerError,
+    FedFredTransportError,
+    FedFredValidationError,
+    RequestContext,
+)
 
 # Models
 from .models import (
