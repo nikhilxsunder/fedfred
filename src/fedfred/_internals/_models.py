@@ -84,6 +84,8 @@ from typing import (
     overload,
 )
 
+import numpy as np
+
 from ..settings import _resolve_dataframe_backend
 from ..exceptions.models import ModelError
 from ..exceptions.parsing import ParsingError

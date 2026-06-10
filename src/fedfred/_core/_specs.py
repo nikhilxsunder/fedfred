@@ -1,0 +1,142 @@
+
+
+
+# Endpoint Specification Model
+@dataclass(frozen=True, slots=True)
+class EndpointSpec:
+    """Immutable request specification for a single FRED-family API endpoint.
+
+    Instances are pre-built into :data:`_ENDPOINT_REGISTRY` at import time
+    and shared across all requests and threads for the life of the
+    process. The dataclass is ``frozen=True`` so accidental field
+    reassignment raises :class:`dataclasses.FrozenInstanceError`;
+    ``slots=True`` cuts the per-instance memory cost and provides a small
+    attribute-access speedup since the spec is read on every request.
+
+    Attributes:
+        service (Service): The owning service (``"fred"``, ``"alfred"``, ``"geofred"``, or ``"fraser"``).
+        url (str): The absolute URL for the endpoint. FRASER endpoints with path parameters contain positional ``{}`` placeholders filled at request time via :meth:`str.format`.
+        auth (AuthStyle): How the transport layer injects the API key at request time. Secrets are never stored on the spec itself.
+        params (dict[str, str] | None): Default query parameters merged (copy-merge, never mutated) into each request. ``None`` when the endpoint takes no defaults.
+        payload (dict[str, Any] | None): Default POST payload. ``None`` for GET endpoints.
+        headers (dict[str, str] | None): Default headers, if any. ``None`` when the endpoint takes no custom headers.
+
+    Examples:
+        >>> from ._endpoints import _resolve_endpoint
+        >>> spec = _resolve_endpoint("fred", "get_series_observations")
+        >>> spec.service
+        'fred'
+        >>> spec.url
+        'https://api.stlouisfed.org/fred/series/observations'
+        >>> spec.params
+        {'file_type': 'json'}
+        >>> spec.auth
+        'api_key_param'
+
+    Notes:
+        The ``params``/``payload``/``headers`` dicts are shared between
+        specs built from the same base-parameter constants. ``frozen=True``
+        does *not* deep-freeze them: consumers must copy-merge
+        (``{**spec.params, ...}``) and never write through the spec. A
+        single mutation in the transport layer would corrupt every other
+        endpoint sharing the same default dict.
+    """
+
+    service: Service
+    """The owning service identifier (``"fred"``, ``"alfred"``, ``"geofred"``, or ``"fraser"``)."""
+
+    url: str
+    """The absolute URL for the endpoint. May contain positional ``{}`` placeholders for FRASER path parameters filled at request time."""
+
+    auth: AuthStyle = "api_key_param"
+    """API-key injection style applied by the transport layer at request time. Defaults to ``"api_key_param"`` (FRED v1 / GeoFRED convention)."""
+
+    params: dict[str, str] | None = None
+    """Default query parameters copy-merged into each request to this endpoint, or ``None`` for endpoints with no defaults."""
+
+    payload: dict[str, Any] | None = None
+    """Default POST payload for endpoints that take a body, or ``None`` for GET endpoints."""
+
+    headers: dict[str, str] | None = None
+    """Default headers for requests to this endpoint, or ``None`` for endpoints that take no custom headers."""
+
+    def __post_init__(self) -> None:
+        """Validate the endpoint specification at construction time.
+
+        Runs once per spec, at import time, because every instance lives
+        in :data:`_ENDPOINT_REGISTRY` and is built during module load. A
+        malformed spec therefore fails at ``import fedfred`` rather than
+        on first request, which keeps the call-site code paths free of
+        defensive shape checks.
+
+        Raises:
+            EndpointServiceError: If :attr:`service` is not a known :data:`fedfred.settings.Service` value.
+            EndpointURLError: If :attr:`url` is empty, non-string, or does not start with ``https://``.
+            EndpointAuthError: If :attr:`auth` is not a known :data:`AuthStyle` value.
+            EndpointParametersError: If :attr:`params` is set but is not a :class:`dict`.
+            EndpointPayloadError: If :attr:`payload` is set but is not a :class:`dict`.
+            EndpointHeadersError: If :attr:`headers` is set but is not a :class:`dict`.
+
+        Examples:
+            >>> from ._endpoints import EndpointSpec
+            >>> try:
+            ...     EndpointSpec(service="frd", url="https://api.stlouisfed.org/fred")
+            ... except Exception as exc:
+            ...     print(type(exc).__name__)
+            EndpointServiceError
+        """
+        if self.service not in _VALID_SERVICES:
+            raise EndpointServiceError(
+                f"EndpointSpec.service must be one of {sorted(_VALID_SERVICES)}, got {self.service!r}."
+            )
+
+        if not isinstance(self.url, str) or not self.url.strip():
+            raise EndpointURLError("EndpointSpec.url must be a non-empty string.")
+
+        if not self.url.startswith("https://"):
+            raise EndpointURLError("EndpointSpec.url must start with 'https://'.")
+
+        if self.auth not in _VALID_AUTH_STYLES:
+            raise EndpointAuthError(
+                f"EndpointSpec.auth must be one of {sorted(_VALID_AUTH_STYLES)}, got {self.auth!r}."
+            )
+
+        if self.params is not None and not isinstance(self.params, dict):
+            raise EndpointParametersError("EndpointSpec.params must be a dictionary or None.")
+
+        if self.payload is not None and not isinstance(self.payload, dict):
+            raise EndpointPayloadError("EndpointSpec.payload must be a dictionary or None.")
+
+        if self.headers is not None and not isinstance(self.headers, dict):
+            raise EndpointHeadersError("EndpointSpec.headers must be a dictionary or None.")
+
+
+@dataclass(frozen=True, slots=True)
+class ParameterSpec:
+    """Specification for preparing a single API request parameter.
+
+    Pairs an optional converter (run first, to normalize a Python value into its
+    wire form) with an optional validator (run on the converted value) and a
+    required flag.
+
+    Attributes:
+        converter (ParameterConverter | None): Optional ``(name, value) -> value`` callable that normalizes a raw value into its API form. Run before validation.
+        validator (ParameterValidator | None): Optional ``(name, value) -> None`` callable that raises on an invalid value. Run after conversion.
+        required (bool): Whether the parameter must be present and non-``None`` after preparation.
+
+    Examples:
+        >>> from fedfred._core._parameters import ParameterSpec
+        >>> from fedfred._core._validators import _validate_nonnegative_int
+        >>> spec = ParameterSpec(validator=_validate_nonnegative_int, required=True)
+        >>> spec.required
+        True
+    """
+
+    converter: ParameterConverter | None = None
+    """Optional ``(name, value) -> value`` converter, run before validation to normalize raw values into their API form."""
+
+    validator: ParameterValidator | None = None
+    """Optional ``(name, value) -> None`` validator, run after conversion; raises on an invalid value."""
+
+    required: bool = False
+    """Whether the parameter must be present and non-``None`` after preparation; if so, a missing value raises :class:`~fedfred.exceptions.ValueValidationError`."""

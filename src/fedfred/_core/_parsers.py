@@ -214,3 +214,23 @@ def _observation_columns(observations: list[dict]) -> tuple[np.ndarray, np.ndarr
         raise ParsingError(f"observation missing required key {e}.") from e
 
     return dates, values
+
+def _date_column(rows: list[dict], key: str) -> np.ndarray:
+    """Vectorized parse of one ISO-date field into a datetime64[D] column."""
+    try:
+        return np.array([r[key] for r in rows], dtype="datetime64[D]")
+    except KeyError as e:
+        raise ParsingError(f"observation missing required key {e}.") from e
+
+
+def _observation_columns(observations: list[dict]) -> tuple[np.ndarray, np.ndarray]:
+    """Bulk parse the observations array into (dates, values); '.' -> NaN."""
+    dates = _date_column(observations, "date")
+    try:
+        values = np.array(
+            [np.nan if o["value"] == "." else o["value"] for o in observations],
+            dtype="float64",
+        )
+    except KeyError as e:
+        raise ParsingError(f"observation missing required key {e}.") from e
+    return dates, values

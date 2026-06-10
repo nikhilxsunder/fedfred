@@ -64,35 +64,6 @@ __all__ = [
     "_resolve_preparation_function",
 ]
 
-@dataclass(frozen=True, slots=True)
-class ParameterSpec:
-    """Specification for preparing a single API request parameter.
-
-    Pairs an optional converter (run first, to normalize a Python value into its
-    wire form) with an optional validator (run on the converted value) and a
-    required flag.
-
-    Attributes:
-        converter (ParameterConverter | None): Optional ``(name, value) -> value`` callable that normalizes a raw value into its API form. Run before validation.
-        validator (ParameterValidator | None): Optional ``(name, value) -> None`` callable that raises on an invalid value. Run after conversion.
-        required (bool): Whether the parameter must be present and non-``None`` after preparation.
-
-    Examples:
-        >>> from fedfred._core._parameters import ParameterSpec
-        >>> from fedfred._core._validators import _validate_nonnegative_int
-        >>> spec = ParameterSpec(validator=_validate_nonnegative_int, required=True)
-        >>> spec.required
-        True
-    """
-
-    converter: ParameterConverter | None = None
-    """Optional ``(name, value) -> value`` converter, run before validation to normalize raw values into their API form."""
-
-    validator: ParameterValidator | None = None
-    """Optional ``(name, value) -> None`` validator, run after conversion; raises on an invalid value."""
-
-    required: bool = False
-    """Whether the parameter must be present and non-``None`` after preparation; if so, a missing value raises :class:`~fedfred.exceptions.ValueValidationError`."""
 
 
 def _prepare_parameters(
@@ -175,83 +146,7 @@ def _prepare_parameters(
 
     return prepared
 
-FRED_FREQUENCIES = {
-    "d",
-    "w",
-    "bw",
-    "m",
-    "q",
-    "sa",
-    "a",
-    "wef",
-    "weth",
-    "wew",
-    "wetu",
-    "wem",
-    "wesu",
-    "wesa",
-    "bwew",
-    "bwem",
-}
-"""Valid ``frequency`` values for FRED API parameters."""
 
-FRED_UNITS = {
-    "lin",
-    "chg",
-    "ch1",
-    "pch",
-    "pc1",
-    "pca",
-    "cch",
-    "cca",
-    "log",
-}
-"""Valid ``units`` values for FRED API parameters."""
-
-SORT_ORDERS = {"asc", "desc"}
-"""Valid ``sort_order`` values for FRED API parameters."""
-
-AGGREGATION_METHODS = {"sum", "avg", "eop"}
-"""Valid ``aggregation_method`` values for FRED API parameters."""
-
-OUTPUT_TYPES = {1, 2, 3, 4}
-"""Valid ``output_type`` values for FRED API parameters."""
-
-FRED_ORDER_BY = {
-    "series_id",
-    "title",
-    "units",
-    "frequency",
-    "seasonal_adjustment",
-    "realtime_start",
-    "realtime_end",
-    "last_updated",
-    "observation_start",
-    "observation_end",
-    "popularity",
-    "group_popularity",
-    "series_count",
-    "created",
-    "name",
-    "release_id",
-    "press_release",
-    "group_id",
-    "search_rank",
-}
-"""Valid ``order_by`` values for FRED API parameters."""
-
-GEOFRED_REGION_TYPES = {
-    "bea",
-    "msa",
-    "frb",
-    "necta",
-    "state",
-    "country",
-    "county",
-    "censusregion",
-    "censusdivision",
-}
-"""Valid region-type values for GeoFRED API parameters."""
 
 FRED_PARAMETER_SPECS: dict[str, ParameterSpec] = {
     "category_id": ParameterSpec(validator=_validate_nonnegative_int),
@@ -452,39 +347,4 @@ FRED_PREPARATION_FUNCTIONS: dict[str, Any] = {
 }
 """Mapping of lowercase service name to its parameter-preparation function."""
 
-def _resolve_preparation_function(
-    parameters: Mapping[str, Any] | None,
-    service: str
-) -> dict[str, Any]:
-    """Prepare parameters using the preparer for ``service``.
 
-    Args:
-        parameters (Mapping[str, Any] | None): The raw parameters to prepare.
-        service (str): The service name (case-insensitive): ``"fred"``, ``"geofred"``, or ``"fraser"``.
-
-    Returns:
-        dict[str, Any]: The prepared parameters from the resolved service preparer.
-
-    Raises:
-        ParameterServiceError: If ``service`` is not a recognized service.
-        TypeConversionError: If a converter fails to normalize a value.
-        TypeValidationError: If a validator rejects a value's type.
-        ValueValidationError: If a value is invalid or a required parameter is missing.
-
-    Examples:
-        >>> from fedfred._core._parameters import _resolve_preparation_function
-        >>> _resolve_preparation_function({"limit": 100}, service="fred")
-        {'limit': 100}
-    """
-    service = service.lower()
-
-    try:
-        return FRED_PREPARATION_FUNCTIONS[service](parameters)
-
-    except KeyError as exc:
-        raise ParameterServiceError(
-            message=f"Unknown service {service!r} for parameter preparation.",
-            service=service,
-            reason="Unrecognized service name.",
-            details={"service": service, "expected_services": tuple(FRED_PREPARATION_FUNCTIONS)},
-        ) from exc
