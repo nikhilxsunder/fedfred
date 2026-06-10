@@ -35,7 +35,6 @@ callable conforming to :data:`ParameterValidator`.
 
 from __future__ import annotations
 
-from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
 from typing import cast
@@ -43,31 +42,34 @@ from typing import cast
 import numpy as np
 
 from ..exceptions import TypeValidationError, ValueValidationError
+from ._schemas import _EXPECTED_KIND
+from ._types import ParameterValidator
 
-_EXPECTED_KIND: dict[str, str] = {
-    "date": "M", "realtime_start": "M", "realtime_end": "M", "value": "f",
-}
 
 def _validate_observation_columns(**columns: np.ndarray) -> None:
     """Validate observation columns: ndarray, 1-D, dtype-by-name, equal length."""
     lengths: dict[str, int] = {}
+
     for name, arr in columns.items():
         if not isinstance(arr, np.ndarray):
             raise TypeValidationError(f"{name} must be a numpy.ndarray, got {type(arr)!r}.")
+
         if arr.ndim != 1:
             raise ValueValidationError(f"{name} must be 1-D, got {arr.ndim} dimensions.")
+
         kind = _EXPECTED_KIND.get(name)
+
         if kind is not None and arr.dtype.kind != kind:
             raise TypeValidationError(f"{name} must have dtype kind {kind!r}, got {arr.dtype!r}.")
+
         lengths[name] = arr.shape[0]
+
     if len(set(lengths.values())) > 1:
         raise ValueValidationError(f"columns must be equal length, got {lengths}.")
 
-ParameterValidator = Callable[[str, object], None]
-"""Type alias for a parameter validator: takes a parameter name and a value, returns ``None``, and raises on invalid input."""
 
 @dataclass(frozen=True, slots=True)
-class _ChoiceValidator:
+class _choice_validator:
     """Validate that a parameter value is one of an allowed set of choices.
 
     Constructed by :func:`_validate_choice`; instances are callable with the
@@ -95,6 +97,7 @@ class _ChoiceValidator:
             ValueValidationError: If ``value`` is not one of the allowed choices.
         """
         if value not in self.choices:
+
             raise ValueValidationError(
                 message=f"Invalid value for parameter {parameter!r}.",
                 parameter=parameter,
@@ -107,7 +110,7 @@ class _ChoiceValidator:
 
 
 @dataclass(frozen=True, slots=True)
-class _StrChoiceValidator:
+class _str_choice_validator:
     """Validate that a parameter value is a string in an allowed set of choices.
 
     Constructed by :func:`_validate_str_choice`; instances are callable with the
@@ -316,7 +319,7 @@ def _validate_choice(choices: set[int]) -> ParameterValidator:
         >>> validate_sort_order("sort_order", 1)
         >>> validate_sort_order("sort_order", 4)  # doctest: +SKIP
     """
-    return _ChoiceValidator(frozenset(choices))
+    return _choice_validator(frozenset(choices))
 
 def _validate_str_choice(choices: set[str]) -> ParameterValidator:
     """Create a validator that checks a parameter value is a string in allowed choices.
@@ -325,7 +328,8 @@ def _validate_str_choice(choices: set[str]) -> ParameterValidator:
         choices (set[str]): The allowed string values for the parameter.
 
     Returns:
-        ParameterValidator: A validator that raises if a value is not a string or not in ``choices``.
+        ParameterValidator: A validator that raises if a value is not a string or not in
+            ``choices``.
 
     Examples:
         >>> from fedfred._core._validators import _validate_str_choice
@@ -333,7 +337,7 @@ def _validate_str_choice(choices: set[str]) -> ParameterValidator:
         >>> validate_sort_order("sort_order", "asc")
         >>> validate_sort_order("sort_order", "ascending")  # doctest: +SKIP
     """
-    return _StrChoiceValidator(frozenset(choices))
+    return _str_choice_validator(frozenset(choices))
 
 def _validate_yyyy_mm_dd(
     parameter: str,
@@ -470,13 +474,14 @@ def _validate_comma_date_list_string(
 
     Raises:
         TypeValidationError: If ``value`` is not a string.
-        ValueValidationError: If ``value`` is empty, contains empty terms, or contains any term that is not a valid ``YYYY-MM-DD`` date.
+        ValueValidationError: If ``value`` is empty, contains empty terms, or contains any term that
+            is not a valid ``YYYY-MM-DD`` date.
 
     Examples:
         >>> from fedfred._core._validators import _validate_comma_date_list_string
         >>> _validate_comma_date_list_string("vintage_dates", "2020-01-01,2020-02-01,2020-03-01")
-        >>> _validate_comma_date_list_string("vintage_dates", "")                      # doctest: +SKIP
-        >>> _validate_comma_date_list_string("vintage_dates", "2020-01-01,,2020-03-01")  # doctest: +SKIP
+        >>> _validate_comma_date_list_string("vintage_dates", "")
+        >>> _validate_comma_date_list_string("vintage_dates", "2020-01-01,,2020-03-01")
     """
     _validate_str(parameter, value)
 

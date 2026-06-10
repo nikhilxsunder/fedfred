@@ -48,7 +48,7 @@ from ..exceptions import (
     TypeConversionError,
 )
 from ..settings import _resolve_geodataframe_backend
-from ._dependencies import _require_module
+from ._loaders import _require_module
 from ._mappings import _FRED_TO_PANDAS_FREQ
 
 if TYPE_CHECKING:

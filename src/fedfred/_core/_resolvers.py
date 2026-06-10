@@ -1,7 +1,62 @@
+# filepath: /src/fedfred/_core/_resolvers.py
+#
+# Copyright (c) 2026 Nikhil Sunder
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+"""Request-time resolution for the fedfred core package.
+
+The two lookups a client performs to turn a request into something executable:
+:func:`_resolve_endpoint` maps a ``(service, endpoint_name)`` pair to its pre-built
+:class:`EndpointSpec` — a pure registry lookup, no construction on the request path —
+and :func:`_resolve_preparation_function` dispatches a service to its
+parameter-preparation function and applies it, returning request-ready parameters.
+
+Both sit above the registries and preparers they consult — they resolve the *where*
+(endpoint) and the *what* (prepared params) — and form the request-side surface the
+client calls.
+
+Functions:
+    _resolve_endpoint: Resolve a (service, endpoint name) to its EndpointSpec.
+    _resolve_preparation_function: Dispatch a service to its preparer and apply it.
+
+See Also:
+    - :mod:`fedfred._core._registries`: Provides :data:`_ENDPOINT_REGISTRY`.
+    - :mod:`fedfred._core._preparers`: Provides the preparation functions dispatched here.
+
+References:
+    - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/
+"""
+
+from __future__ import annotations
+
+from collections.abc import Mapping
+from typing import Any
+
+from ..settings import Service
+from ._registries import _ENDPOINT_REGISTRY, FRED_PREPARATION_FUNCTIONS
+from ._specs import EndpointSpec
 
 
-# Endpoint Resolution
-def _resolve_endpoint(service: Service, endpoint_name: str) -> EndpointSpec:
+def _resolve_endpoint(
+    service: Service,
+    endpoint_name: str
+) -> EndpointSpec:
     """Resolve a ``(service, endpoint_name)`` pair to its pre-built specification.
 
     Two dict lookups, no allocation. The endpoint name is normalized by
@@ -10,15 +65,18 @@ def _resolve_endpoint(service: Service, endpoint_name: str) -> EndpointSpec:
     needing to defend the registry shape.
 
     Args:
-        service (Service): The calling client's service identity (``"fred"``, ``"alfred"``, ``"geofred"``, or ``"fraser"``).
-        endpoint_name (str): The endpoint name to resolve, e.g., ``"get_series_observations"``. Whitespace is trimmed and the name is lowercased before lookup.
+        service (Service): The calling client's service identity (``"fred"``, ``"alfred"``,
+            ``"geofred"``, or ``"fraser"``).
+        endpoint_name (str): The endpoint name to resolve, e.g., ``"get_series_observations"``.
+            `Whitespace is trimmed and the name is lowercased before lookup.
 
     Returns:
         EndpointSpec: The immutable, import-time-validated specification.
 
     Raises:
         EndpointServiceError: If ``service`` is not a key in :data:`_ENDPOINT_REGISTRY`.
-        EndpointUnsupportedError: If ``endpoint_name`` is not recognized within the resolved service's registry.
+        EndpointUnsupportedError: If ``endpoint_name`` is not recognized within the resolved
+            service's registry.
 
     Examples:
         >>> from ._endpoints import _resolve_endpoint
@@ -58,7 +116,8 @@ def _resolve_preparation_function(
 
     Args:
         parameters (Mapping[str, Any] | None): The raw parameters to prepare.
-        service (str): The service name (case-insensitive): ``"fred"``, ``"geofred"``, or ``"fraser"``.
+        service (str): The service name (case-insensitive): ``"fred"``, ``"geofred"``, or
+            ``"fraser"``.
 
     Returns:
         dict[str, Any]: The prepared parameters from the resolved service preparer.

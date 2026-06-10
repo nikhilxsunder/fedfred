@@ -1,4 +1,4 @@
-# filepath: /src/fedfred/_core/_dependencies.py
+# filepath: /src/fedfred/_core/_loaders.py
 #
 # Copyright (c) 2026 Nikhil Sunder
 #
