@@ -29,7 +29,7 @@ id-keyed dict instead of a list — before handing it to the model layer. The
 columnar helpers (:func:`_observation_columns`, :func:`_date_column`) bulk-parse a
 series-observations array into the numpy ``datetime64[D]`` / ``float64`` columns
 the observation model stores. :func:`_region_type_parser` reads the GeoFRED region
-type. All raise :class:`~fedfred.exceptions.parsing.ParsingError` on any unexpected
+type. All raise :class:`~fedfred.exceptions.parsing.MissingFieldError` on any unexpected
 structure, so malformed responses fail loudly at the boundary rather than deep in
 parsing.
 """
@@ -40,7 +40,7 @@ from typing import Any
 
 import numpy as np
 
-from ..exceptions.core.parsing import ParsingError
+from ..exceptions import MissingFieldError, ResponseShapeError
 from ._types import _ResponseShape
 
 
@@ -54,7 +54,7 @@ def _region_type_parser(response: dict[str, Any]) -> str:
         str: The region type (e.g. ``"state"``), read from ``response["meta"]["region"]``.
 
     Raises:
-        ParsingError: If the response has no ``meta`` section, or the ``meta`` section has no
+        MissingFieldError: If the response has no ``meta`` section, or the ``meta`` section has no
             ``region`` value.
 
     Examples:
@@ -70,12 +70,18 @@ def _region_type_parser(response: dict[str, Any]) -> str:
     meta_data = response.get("meta", {})
 
     if not meta_data:
-        raise ParsingError(message="No meta data found in the response")
+        raise MissingFieldError(
+            message="No meta section found in the GeoFRED response.",
+            field="meta",
+        )
 
     region_type = meta_data.get("region")
 
     if not region_type:
-        raise ParsingError(message="No region type found in the response meta data")
+        raise MissingFieldError(
+            message="No region type found in the GeoFRED response meta section.",
+            field="region",
+        )
 
     return region_type
 
@@ -106,8 +112,10 @@ def _require_first_list(response: dict[str, Any], keys: tuple[str, ...]) -> list
         either shape.
     """
     if not isinstance(response, dict):
-        raise ParsingError(
-            f"Invalid API response: expected a mapping, got {type(response).__name__}"
+        raise ResponseShapeError(
+            message="Invalid API response: expected a mapping.",
+            expected="mapping",
+            received=type(response).__name__,
         )
 
     for key in keys:
@@ -115,13 +123,19 @@ def _require_first_list(response: dict[str, Any], keys: tuple[str, ...]) -> list
             raw = response[key]
 
             if not isinstance(raw, list):
-                raise ParsingError(f"Invalid API response: {key!r} must be a list")
+                raise ResponseShapeError(
+                    message=f"Invalid API response: {key!r} must be a list.",
+                    field=key,
+                    expected="list",
+                    received=type(raw).__name__,
+                )
 
             return raw
 
-    pretty = " or ".join(repr(k) for k in keys)
-
-    raise ParsingError(f"Invalid API response: missing {pretty} field")
+    raise MissingFieldError(
+        message=f"Invalid API response: missing {' or '.join(repr(k) for k in keys)} field.",
+        candidates=keys,
+    )
 
 
 def _objects_iter_dict_or_list(response: dict[str, Any], key: str) -> list[dict[str, Any]]:
@@ -153,7 +167,10 @@ def _objects_iter_dict_or_list(response: dict[str, Any], key: str) -> list[dict[
         a list so the model layer sees one form.
     """
     if not isinstance(response, dict) or key not in response:
-        raise ParsingError(f"Invalid API response: missing {key!r} field")
+        raise MissingFieldError(
+            message=f"Invalid API response: missing {key!r} field.",
+            field=key,
+        )
 
     raw = response[key]
 
@@ -163,7 +180,12 @@ def _objects_iter_dict_or_list(response: dict[str, Any], key: str) -> list[dict[
     if isinstance(raw, list):
         return raw
 
-    raise ParsingError(f"Invalid API response: {key!r} must be a dict or list")
+    raise ResponseShapeError(
+        message=f"Invalid API response: {key!r} must be a dict or list.",
+        field=key,
+        expected="dict or list",
+        received=type(raw).__name__,
+    )
 
 
 def _extract_objects(
@@ -205,7 +227,7 @@ def _date_column(rows: list[dict], key: str) -> np.ndarray:
         numpy.ndarray: A 1-D ``datetime64[D]`` array of the parsed dates, one per row.
 
     Raises:
-        ParsingError: If any row is missing ``key``.
+        MissingFieldError: If any row is missing ``key``.
 
     Examples:
         >>> from fedfred._core._parsers import _date_column
@@ -221,8 +243,12 @@ def _date_column(rows: list[dict], key: str) -> np.ndarray:
     try:
         return np.array([r[key] for r in rows], dtype="datetime64[D]")
 
-    except KeyError as e:
-        raise ParsingError(f"observation missing required key {e}.") from e
+    except KeyError as exc:
+        raise MissingFieldError(
+            message=f"Observation missing required key {exc}.",
+            field=str(exc.args[0]),
+            original_exception=exc,
+        ) from exc
 
 
 def _observation_columns(observations: list[dict]) -> tuple[np.ndarray, np.ndarray]:
@@ -244,7 +270,7 @@ def _observation_columns(observations: list[dict]) -> tuple[np.ndarray, np.ndarr
         length, aligned row-for-row.
 
     Raises:
-        ParsingError: If any observation is missing ``"date"`` or ``"value"``.
+        MissingFieldError: If any observation is missing ``"date"`` or ``"value"``.
 
     Examples:
         >>> from fedfred._core._parsers import _observation_columns
@@ -269,7 +295,11 @@ def _observation_columns(observations: list[dict]) -> tuple[np.ndarray, np.ndarr
             dtype="float64",
         )
 
-    except KeyError as e:
-        raise ParsingError(f"observation missing required key {e}.") from e
+    except KeyError as exc:
+        raise MissingFieldError(
+            message=f"Observation missing required key {exc}.",
+            field=str(exc.args[0]),
+            original_exception=exc,
+        ) from exc
 
     return dates, values

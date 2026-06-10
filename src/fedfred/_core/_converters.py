@@ -34,29 +34,24 @@ request functions can key on it. Optional backends are imported lazily and raise
 
 from __future__ import annotations
 
-from collections.abc import Callable
 from datetime import date, datetime, time
 from typing import TYPE_CHECKING
 
-import geopandas as gpd
 import numpy as np
 import pandas as pd
 
 from ..exceptions import (
-    GeoDataFrameConversionError,
-    OptionalDependencyError,
+    ConversionError,
     TypeConversionError,
 )
-from ..settings import _resolve_geodataframe_backend
 from ._loaders import _require_module
 from ._mappings import _FRED_TO_PANDAS_FREQ
+from ._types import CacheKey, CacheParameters
 
 if TYPE_CHECKING:
     import cudf  # pragma: no cover
     import dask.dataframe as dd  # pragma: no cover
-    import dask_geopandas as dd_gpd  # pragma: no cover
     import polars as pl  # pragma: no cover
-    import polars_st as st  # pragma: no cover
     import pyarrow as pa  # pragma: no cover
 
 
@@ -106,7 +101,7 @@ def _freq_aware_index(dates: np.ndarray, frequency: str | None) -> pd.DatetimeIn
 
 
 def _columns_to_pandas(
-    columns: dict[str, np.ndarray], *, index: str | None = None, frequency: str | None = None
+    columns: dict[str, np.ndarray], index: str | None = None, frequency: str | None = None
 ) -> pd.DataFrame:
     """Build a pandas DataFrame from observation columns.
 
@@ -293,171 +288,6 @@ def _vintage_matrix(
     )
     wide.index = _freq_aware_index(wide.index.values, frequency)
     return wide
-
-
-# -------------------This-Section--Will-Be-Refactored-By-GeoFred-Objects-Design-Implementation-------------------#
-def _geopandas_geodataframe_converter(
-    shapefile: gpd.GeoDataFrame, meta_data: dict
-) -> gpd.GeoDataFrame:
-    """Attach GeoFRED observation values to a shapefile GeoDataFrame.
-
-    Args:
-        shapefile (geopandas.GeoDataFrame): The region geometries, with a ``name`` column.
-        meta_data (dict): The GeoFRED response metadata containing a ``data`` section.
-
-    Returns:
-        geopandas.GeoDataFrame: ``shapefile`` indexed by ``name`` with ``value`` and ``series_id``
-            columns populated from the metadata.
-
-    Raises:
-        GeoDataFrameConversionError: If ``meta_data`` has no ``data`` section.
-
-    Examples:
-        >>> from fedfred._core._converters import _geopandas_geodataframe_converter  # doctest: +SKIP
-        >>> _geopandas_geodataframe_converter(shapefile, meta_data)  # doctest: +SKIP
-
-    Notes:
-        Matches observation rows to geometries by region name; geometries with no
-        matching observation keep ``None`` for ``value`` and ``series_id``.
-    """
-    shapefile.set_index("name", inplace=True)
-
-    shapefile["value"] = None
-
-    shapefile["series_id"] = None
-
-    data_section = meta_data.get("data", {})
-
-    if not data_section:
-        raise GeoDataFrameConversionError(
-            message="GeoDataFrame conversion failed: No data section found in metadata",
-            backend="geopandas",
-            missing_fields=("data",),
-            details="Metadata must contain 'data' section with observations",
-        )
-
-    data_key = next(iter(data_section))
-
-    items = data_section[data_key]
-
-    for item in items:
-        if item["region"] in shapefile.index:
-            shapefile.loc[item["region"], "value"] = item["value"]
-
-            shapefile.loc[item["region"], "series_id"] = item["series_id"]
-
-    return shapefile
-
-
-def _dask_geopandas_geodataframe_converter(
-    shapefile: gpd.GeoDataFrame, meta_data: dict
-) -> dd_gpd.GeoDataFrame:
-    """Attach GeoFRED observation values to a shapefile as a Dask GeoPandas GeoDataFrame.
-
-    Args:
-        shapefile (geopandas.GeoDataFrame): The region geometries, with a ``name`` column.
-        meta_data (dict): The GeoFRED response metadata containing a ``data`` section.
-
-    Returns:
-        dask_geopandas.GeoDataFrame: The populated GeoDataFrame as a single-partition Dask GeoPandas frame.
-
-    Raises:
-        OptionalDependencyError: If dask-geopandas is not installed.
-        GeoDataFrameConversionError: If ``meta_data`` has no ``data`` section.
-
-    Examples:
-        >>> from fedfred._core._converters import _dask_geopandas_geodataframe_converter  # doctest: +SKIP
-        >>> _dask_geopandas_geodataframe_converter(shapefile, meta_data)  # doctest: +SKIP
-
-    Notes:
-        Built by populating a geopandas GeoDataFrame first
-        (:func:`_geopandas_geodataframe_converter`), then wrapping it in a
-        single-partition Dask GeoPandas frame.
-    """
-    try:
-        import dask_geopandas as dd_gpd
-
-    except ImportError as e:
-        raise OptionalDependencyError(
-            message=f"{e}: Dask GeoPandas is not installed. Install it with `pip install dask-geopandas` to use this method.",
-            package="dask-geopandas",
-            feature="Helpers.to_dd_gpd_gdf",
-            install_hint="pip install dask-geopandas",
-        ) from e
-
-    gdf = _geopandas_geodataframe_converter(shapefile, meta_data)
-
-    return dd_gpd.from_geopandas(gdf, npartitions=1)
-
-
-def _polars_geodataframe_converter(shapefile: gpd.GeoDataFrame, meta_data: dict) -> st.GeoDataFrame:
-    """Attach GeoFRED observation values to a shapefile as a Polars-ST GeoDataFrame.
-
-    Args:
-        shapefile (geopandas.GeoDataFrame): The region geometries, with a ``name`` column.
-        meta_data (dict): The GeoFRED response metadata containing a ``data`` section.
-
-    Returns:
-        polars_st.GeoDataFrame: The populated GeoDataFrame converted to Polars-ST.
-
-    Raises:
-        OptionalDependencyError: If polars-st is not installed.
-        GeoDataFrameConversionError: If ``meta_data`` has no ``data`` section.
-
-    Examples:
-        >>> from fedfred._core._converters import _polars_geodataframe_converter  # doctest: +SKIP
-        >>> _polars_geodataframe_converter(shapefile, meta_data)  # doctest: +SKIP
-
-    Notes:
-        Built by populating a geopandas GeoDataFrame first
-        (:func:`_geopandas_geodataframe_converter`), then converting it to
-        Polars-ST.
-    """
-    try:
-        import polars_st as st
-
-    except ImportError as e:
-        raise OptionalDependencyError(
-            message=f"{e}: Polars with geospatial support is not installed. Install it with `pip install polars-st` to use this method.",
-            package="polars-st",
-            feature="Helpers.to_pl_st_gdf",
-            install_hint="pip install polars-st",
-        ) from e
-
-    gdf = _geopandas_geodataframe_converter(shapefile, meta_data)
-
-    return st.from_geopandas(gdf)
-
-
-GEODATAFRAME_CONVERTER_MAP: dict[str, Callable] = {
-    "geopandas": _geopandas_geodataframe_converter,
-    "dask": _dask_geopandas_geodataframe_converter,
-    "polars": _polars_geodataframe_converter,
-}
-"""Mapping of geodataframe backend name to its observation converter."""
-
-
-def _resolve_geodataframe_converter(backend: str | None = None) -> Callable:
-    """Return the geodataframe converter for a backend.
-
-    Args:
-        backend (str | None): The backend name (``"geopandas"``, ``"dask"``, or ``"polars"``). If ``None``, the configured default backend is used.
-
-    Returns:
-        Callable: The observation converter for the resolved backend.
-
-    Examples:
-        >>> from fedfred._core._converters import _resolve_geodataframe_converter
-        >>> _resolve_geodataframe_converter("geopandas").__name__
-        '_geopandas_geodataframe_converter'
-    """
-    if backend is None:
-        backend = _resolve_geodataframe_backend()
-
-    return GEODATAFRAME_CONVERTER_MAP[backend]
-
-
-# ---------------------------------------------------------------------------------------------------------------#
 
 
 def _pandas_frequency_converter(frequency: str | None) -> str | None:
@@ -682,20 +512,14 @@ def _comma_date_list_converter(parameter: str, value: object) -> str:
     )
 
 
-# Cache Key Converters
-def _hashable_type_converter(
-    data: dict[str, str | int | None] | None,
-) -> (
-    tuple[tuple[str, str | int | None], ...] | None
-):  # TODO: Create a typing for this specific dict and tuple shape.
+def _hashable_type_converter(data: CacheParameters | None) -> CacheKey | None:
     """Convert a parameter dict to a hashable, sorted tuple of items for use as a cache key.
 
     Args:
-        data (dict[str, str | int | None] | None): The request parameters, or ``None``.
+        data (CacheParameters | None): The request parameters, or ``None``.
 
     Returns:
-        tuple[tuple[str, str | int | None], ...] | None: The items as a key-sorted tuple, or
-            ``None`` if ``data`` is ``None``.
+        CacheKey | None: The items as a key-sorted tuple, or ``None`` if ``data`` is ``None``.
 
     Examples:
         >>> from fedfred._core._converters import _hashable_type_converter
@@ -718,20 +542,15 @@ def _hashable_type_converter(
     return tuple(sorted(data.items()))
 
 
-def _dict_type_converter(
-    hashable_data: tuple[tuple[str, str | int | None], ...] | None,
-) -> (
-    dict[str, str | int | None] | None
-):  # TODO: Create a typing for this specific dict and tuple shape.
+def _dict_type_converter(hashable_data: CacheKey | None) -> CacheParameters | None:
     """Convert a hashable cache-key tuple back into a parameter dict.
 
     Args:
-        hashable_data (tuple[tuple[str, str | int | None], ...] | None): The key-sorted item tuple,
-            or ``None``.
+        hashable_data (CacheKey | None): The key-sorted item tuple, or ``None``.
 
     Returns:
-        dict[str, str | int | None] | None: The reconstructed dict, or ``None`` if ``hashable_data``
-            is ``None``.
+        CacheParameters | None: The reconstructed dict, or ``None`` if ``hashable_data`` is
+            ``None``.
 
     Examples:
         >>> from fedfred._core._converters import _dict_type_converter
@@ -771,7 +590,7 @@ def _coerce_lower(value: str | None) -> str | None:
         return None
 
     if not isinstance(value, str):
-        raise ConverterError(
+        raise ConversionError(
             message="Expected string or None for short-code field.",
             parameter=value,
             expected="str | None",

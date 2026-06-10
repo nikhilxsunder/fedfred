@@ -48,6 +48,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any
 
+from ..exceptions import UnknownServiceError, UnsupportedEndpointError
 from ..settings import Service
 from ._registries import _ENDPOINT_REGISTRY, FRED_PREPARATION_FUNCTIONS
 from ._specs import EndpointSpec
@@ -71,9 +72,9 @@ def _resolve_endpoint(service: Service, endpoint_name: str) -> EndpointSpec:
         EndpointSpec: The immutable, import-time-validated specification.
 
     Raises:
-        EndpointServiceError: If ``service`` is not a key in :data:`_ENDPOINT_REGISTRY`.
-        EndpointUnsupportedError: If ``endpoint_name`` is not recognized within the resolved
-            service's registry.
+        UnknownServiceError: If ``service`` is not a recognized service.
+        UnsupportedEndpointError: If ``endpoint_name`` is not in the resolved service's
+            registry.
 
     Examples:
         >>> from ._endpoints import _resolve_endpoint
@@ -94,15 +95,21 @@ def _resolve_endpoint(service: Service, endpoint_name: str) -> EndpointSpec:
     try:
         service_registry = _ENDPOINT_REGISTRY[service]
     except KeyError as exc:
-        raise EndpointServiceError(
-            f"Unknown service: {service!r}. Expected one of {sorted(_ENDPOINT_REGISTRY)}."
+        raise UnknownServiceError(
+            message=f"Unknown service {service!r}.",
+            service=service,
+            known_services=tuple(sorted(_ENDPOINT_REGISTRY)),
+            original_exception=exc,
         ) from exc
 
     try:
         return service_registry[endpoint_name.strip().lower()]
     except KeyError as exc:
-        raise EndpointUnsupportedError(
-            f"Unsupported endpoint {endpoint_name!r} for service {service!r}."
+        raise UnsupportedEndpointError(
+            message=f"Unsupported endpoint {endpoint_name!r} for service {service!r}.",
+            service=service,
+            endpoint_name=endpoint_name,
+            original_exception=exc,
         ) from exc
 
 
@@ -120,7 +127,7 @@ def _resolve_preparation_function(
         dict[str, Any]: The prepared parameters from the resolved service preparer.
 
     Raises:
-        ParameterServiceError: If ``service`` is not a recognized service.
+        UnknownServiceError: If ``service`` is not a recognized service.
         TypeConversionError: If a converter fails to normalize a value.
         TypeValidationError: If a validator rejects a value's type.
         ValueValidationError: If a value is invalid or a required parameter is missing.
@@ -136,9 +143,9 @@ def _resolve_preparation_function(
         return FRED_PREPARATION_FUNCTIONS[service](parameters)
 
     except KeyError as exc:
-        raise ParameterServiceError(
+        raise UnknownServiceError(
             message=f"Unknown service {service!r} for parameter preparation.",
             service=service,
-            reason="Unrecognized service name.",
-            details={"service": service, "expected_services": tuple(FRED_PREPARATION_FUNCTIONS)},
+            known_services=tuple(sorted(FRED_PREPARATION_FUNCTIONS)),
+            original_exception=exc,
         ) from exc

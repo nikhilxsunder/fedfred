@@ -41,7 +41,10 @@ from typing import cast
 
 import numpy as np
 
-from ..exceptions import TypeValidationError, ValueValidationError
+from ..exceptions import (
+    TypeValidationError,
+    ValueValidationError,
+)
 from ._schemas import _EXPECTED_KIND
 from ._types import ParameterValidator
 
@@ -97,7 +100,7 @@ class _choice_validator:
                 message=f"Invalid value for parameter {parameter!r}.",
                 parameter=parameter,
                 reason="Value is not one of the allowed choices.",
-                details={
+                context={
                     "value": value,
                     "choices": tuple(sorted(self.choices, key=str)),
                 },
@@ -136,7 +139,7 @@ class _str_choice_validator:
                 message=f"Invalid value for parameter {parameter!r}.",
                 parameter=parameter,
                 reason="Value is not one of the allowed choices.",
-                details={
+                context={
                     "value": value,
                     "choices": tuple(sorted(self.choices)),
                 },
@@ -215,7 +218,7 @@ def _validate_nonnegative_int(parameter: str, value: object) -> None:
             message=f"Invalid value for parameter {parameter!r}.",
             parameter=parameter,
             reason="Expected non-negative integer.",
-            details={"value": value_int},
+            context={"value": value_int},
         )
 
 
@@ -281,7 +284,7 @@ def _validate_nonempty_str(parameter: str, value: object) -> None:
             message=f"Invalid value for parameter {parameter!r}.",
             parameter=parameter,
             reason="Expected non-empty string.",
-            details={"value": value},
+            context={"value": value},
         )
 
 
@@ -352,7 +355,7 @@ def _validate_yyyy_mm_dd(parameter: str, value: object) -> None:
             message=f"Invalid date string for parameter {parameter!r}.",
             parameter=parameter,
             reason="Expected YYYY-MM-DD date string.",
-            details={
+            context={
                 "value": value_str,
                 "expected_format": "YYYY-MM-DD",
             },
@@ -391,7 +394,7 @@ def _validate_hh_mm(parameter: str, value: object) -> None:
             message=f"Invalid time string for parameter {parameter!r}.",
             parameter=parameter,
             reason="Expected HH:MM time string.",
-            details={
+            context={
                 "value": value_str,
                 "expected_format": "HH:MM",
             },
@@ -425,7 +428,7 @@ def _validate_semicolon_list_string(parameter: str, value: object) -> None:
             message=f"Invalid list-string for parameter {parameter!r}.",
             parameter=parameter,
             reason="Value cannot be empty.",
-            details={"value": value_str},
+            context={"value": value_str},
         )
 
     terms = value_str.split(";")
@@ -435,7 +438,7 @@ def _validate_semicolon_list_string(parameter: str, value: object) -> None:
             message=f"Invalid list-string for parameter {parameter!r}.",
             parameter=parameter,
             reason="Empty terms are not permitted.",
-            details={"value": value_str, "separator": ";"},
+            context={"value": value_str, "separator": ";"},
         )
 
 
@@ -466,7 +469,7 @@ def _validate_comma_date_list_string(parameter: str, value: object) -> None:
             message=f"Invalid vintage_dates for parameter {parameter!r}.",
             parameter=parameter,
             reason="Value cannot be empty.",
-            details={"value": value_str},
+            context={"value": value_str},
         )
 
     terms = value_str.split(",")
@@ -476,7 +479,7 @@ def _validate_comma_date_list_string(parameter: str, value: object) -> None:
             message=f"Invalid vintage_dates for parameter {parameter!r}.",
             parameter=parameter,
             reason="Empty date terms are not permitted.",
-            details={"value": value_str, "separator": ","},
+            context={"value": value_str, "separator": ","},
         )
 
     invalid_terms: list[str] = []
@@ -492,7 +495,7 @@ def _validate_comma_date_list_string(parameter: str, value: object) -> None:
             message=f"Invalid vintage_dates for parameter {parameter!r}.",
             parameter=parameter,
             reason="One or more date terms are invalid.",
-            details={
+            context={
                 "value": value_str,
                 "invalid_terms": tuple(invalid_terms),
                 "expected_format": "YYYY-MM-DD",
@@ -528,5 +531,5 @@ def _validate_series_id(parameter: str, value: object) -> None:
             message=f"Invalid series_id for parameter {parameter!r}.",
             parameter=parameter,
             reason="Series ID cannot contain whitespace.",
-            details={"value": value_str},
+            context={"value": value_str},
         )

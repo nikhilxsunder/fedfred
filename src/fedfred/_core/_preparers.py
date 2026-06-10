@@ -55,6 +55,12 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any
 
+from ..exceptions import MissingParameterError, UnknownParameterError
+from ._registries import (
+    FRASER_PARAMETER_SPECS,
+    FRED_PARAMETER_SPECS,
+    GEOFRED_PARAMETER_SPECS,
+)
 from ._specs import ParameterSpec
 
 
@@ -83,8 +89,10 @@ def _prepare_parameters(
     Raises:
         TypeConversionError: If a converter fails to normalize a value.
         TypeValidationError: If a validator rejects a value's type.
-        ValueValidationError: If a value is invalid, an unknown parameter is encountered with
-            ``allow_unknown=False``, or a required parameter is missing.
+        ValueValidationError: If a validator rejects a value.
+        UnknownParameterError: If an unrecognized parameter is seen with
+            ``allow_unknown=False``.
+        MissingParameterError: If a required parameter is missing after processing.
 
     Examples:
         >>> from fedfred._core._parameters import _prepare_parameters, ParameterSpec
@@ -109,15 +117,11 @@ def _prepare_parameters(
                 prepared[name] = value
                 continue
 
-            raise ValueValidationError(
+            raise UnknownParameterError(
                 message=f"Unknown parameter {name!r} for {service}.",
                 parameter=name,
-                reason="Unknown parameter.",
-                details={
-                    "parameter": name,
-                    "service": service,
-                    "known_parameters": tuple(sorted(specs)),
-                },
+                service=service,
+                known_parameters=tuple(sorted(specs)),
             )
 
         if spec.converter is not None:
@@ -130,11 +134,10 @@ def _prepare_parameters(
 
     for name, spec in specs.items():
         if spec.required and name not in prepared:
-            raise ValueValidationError(
+            raise MissingParameterError(
                 message=f"Missing required parameter {name!r} for {service}.",
                 parameter=name,
-                reason="Required parameter missing.",
-                details={"service": service},
+                service=service,
             )
 
     return prepared

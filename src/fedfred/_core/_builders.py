@@ -48,6 +48,7 @@ References:
 
 from __future__ import annotations
 
+from ..exceptions import EndpointSpecBuildError
 from ..settings import Service
 from ._defaults import _FRED_BASE_PARAMETERS, _FRED_VERSION_TWO_BASE_PARAMETERS
 from ._mappings import _FRED_ENDPOINT_MAP
@@ -77,6 +78,11 @@ def _build_fred_style_specs(service: Service) -> dict[str, EndpointSpec]:
         constructed, validated :class:`EndpointSpec` instances ready for
         registration into :data:`_ENDPOINT_REGISTRY`.
 
+    Raises:
+        EndpointSpecBuildError: If any endpoint's :class:`EndpointSpec` fails to
+            construct or validate; the offending ``service`` and ``endpoint_name``
+            are attached, and the underlying error is chained.
+
     Notes:
         Called once per FRED-style service at module import time. Not
         intended to be invoked at request time.
@@ -84,19 +90,33 @@ def _build_fred_style_specs(service: Service) -> dict[str, EndpointSpec]:
     specs: dict[str, EndpointSpec] = {}
 
     for name, path in _FRED_ENDPOINT_MAP.items():
-        if path.startswith("/v2/"):
-            specs[name] = EndpointSpec(
+        url = f"{_ST_LOUIS_FED_BASE_URL}{_FRED_PATH}{path}"
+
+        try:
+            if path.startswith("/v2/"):
+                specs[name] = EndpointSpec(
+                    service=service,
+                    url=url,
+                    auth="bearer_header",
+                    params=_FRED_VERSION_TWO_BASE_PARAMETERS,
+                )
+
+            else:
+                specs[name] = EndpointSpec(
+                    service=service,
+                    url=url,
+                    auth="api_key_param",
+                    params=_FRED_BASE_PARAMETERS,
+                )
+
+        except Exception as exc:
+            raise EndpointSpecBuildError(
+                message=(
+                    f"Failed to build EndpointSpec for endpoint {name!r} in service {service!r}."
+                ),
                 service=service,
-                url=f"{_ST_LOUIS_FED_BASE_URL}{_FRED_PATH}{path}",
-                auth="bearer_header",
-                params=_FRED_VERSION_TWO_BASE_PARAMETERS,
-            )
-        else:
-            specs[name] = EndpointSpec(
-                service=service,
-                url=f"{_ST_LOUIS_FED_BASE_URL}{_FRED_PATH}{path}",
-                auth="api_key_param",
-                params=_FRED_BASE_PARAMETERS,
-            )
+                endpoint_name=name,
+                original_exception=exc,
+            ) from exc
 
     return specs

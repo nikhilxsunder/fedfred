@@ -52,9 +52,8 @@ from dataclasses import dataclass
 from typing import Any
 
 from ..exceptions import (
-    EndpointHeadersError,
-    EndpointParametersError,
-    EndpointPayloadError,
+    EndpointAuthError,
+    EndpointFieldTypeError,
     EndpointServiceError,
     EndpointURLError,
 )
@@ -163,29 +162,45 @@ class EndpointSpec:
         """
         if self.service not in _VALID_SERVICES:
             raise EndpointServiceError(
-                f"EndpointSpec.service must be one of {sorted(_VALID_SERVICES)}, "
-                f"got {self.service!r}."
+                message=f"EndpointSpec.service must be one of {sorted(_VALID_SERVICES)}, "
+                f"got {self.service!r}.",
+                field="service",
+                received=str(self.service),
+                valid=tuple(sorted(_VALID_SERVICES)),
             )
 
         if not isinstance(self.url, str) or not self.url.strip():
-            raise EndpointURLError("EndpointSpec.url must be a non-empty string.")
+            raise EndpointURLError(
+                message="EndpointSpec.url must be a non-empty string.",
+                field="url",
+            )
 
         if not self.url.startswith("https://"):
-            raise EndpointURLError("EndpointSpec.url must start with 'https://'.")
+            raise EndpointURLError(
+                message="EndpointSpec.url must start with 'https://'.",
+                field="url",
+            )
 
         if self.auth not in _VALID_AUTH_STYLES:
             raise EndpointAuthError(
-                f"EndpointSpec.auth must be one of {sorted(_VALID_AUTH_STYLES)}, got {self.auth!r}."
+                message=f"EndpointSpec.auth must be one of {sorted(_VALID_AUTH_STYLES)}, "
+                f"got {self.auth!r}.",
+                field="auth",
+                received=str(self.auth),
+                valid=tuple(sorted(_VALID_AUTH_STYLES)),
             )
 
-        if self.params is not None and not isinstance(self.params, dict):
-            raise EndpointParametersError("EndpointSpec.params must be a dictionary or None.")
-
-        if self.payload is not None and not isinstance(self.payload, dict):
-            raise EndpointPayloadError("EndpointSpec.payload must be a dictionary or None.")
-
-        if self.headers is not None and not isinstance(self.headers, dict):
-            raise EndpointHeadersError("EndpointSpec.headers must be a dictionary or None.")
+        for field_name, value in (
+            ("params", self.params),
+            ("payload", self.payload),
+            ("headers", self.headers),
+        ):
+            if value is not None and not isinstance(value, dict):
+                raise EndpointFieldTypeError(
+                    message=f"EndpointSpec.{field_name} must be a dictionary or None.",
+                    field=field_name,
+                    received=type(value).__name__,
+                )
 
 
 @dataclass(frozen=True, slots=True)

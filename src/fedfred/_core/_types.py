@@ -85,7 +85,6 @@ ParameterConverter = Callable[[str, object], object]
 """Type alias for a scalar parameter converter: takes a parameter name and a raw value, returns the
 API-ready value."""
 
-_ResponseShape = Literal["list", "dict_or_list"]
 _ResponseShape = Literal[
     "list",
     "dict_or_list",
@@ -106,3 +105,12 @@ Declared on each model class as ``_response_shape`` and consumed by
 ParameterValidator = Callable[[str, object], None]
 """Type alias for a parameter validator: takes a parameter name and a value, returns ``None``, and
 raises on invalid input."""
+
+CacheValue = str | int | None
+"""A single cache-keyable prepared parameter value: a string, an int, or ``None``."""
+
+CacheParameters = dict[str, CacheValue]
+"""A prepared request-parameter mapping (parameter name -> value) to be cache-keyed."""
+
+CacheKey = tuple[tuple[str, CacheValue], ...]
+"""The hashable, key-sorted form of :data:`CacheParameters`, used as a cache key."""

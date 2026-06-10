@@ -45,14 +45,14 @@ from __future__ import annotations
 import importlib
 from types import ModuleType
 
-from ..exceptions.core.loading import OptionalDependencyError
+from ..exceptions import DependencyLoadingError
 
 
 def _require_module(module: str, feature: str, extra: str | None = None) -> ModuleType:
     """Import an optional dependency, or raise a typed error if it is absent.
 
     Resolves ``module`` via :func:`importlib.import_module` and returns it. On
-    :class:`ImportError`, raises :class:`OptionalDependencyError` with the
+    :class:`ImportError`, raises :class:`DependencyLoadingError` with the
     top-level package name and a ``pip install fedfred[...]`` hint, so the caller
     and the user get a consistent, actionable message rather than a bare
     ``ImportError`` from deep in a conversion method.
@@ -73,22 +73,23 @@ def _require_module(module: str, feature: str, extra: str | None = None) -> Modu
         ModuleType: The imported module.
 
     Raises:
-        OptionalDependencyError: If ``module`` is not installed.
+        DependencyLoadingError: If ``module`` is not installed.
 
     Examples:
-        >>> from fedfred._core._dependencies import _require_module
+        >>> from fedfred._core._loaders import _require_module
         >>> _require_module("json", "example").__name__
         'json'
     """
     try:
         return importlib.import_module(module)
 
-    except ImportError as e:
+    except ImportError as exc:
         pkg = module.split(".")[0]
 
-        raise OptionalDependencyError(
-            message=f"{pkg} is required for {feature}.",
+        raise DependencyLoadingError(
+            message=f"Optional dependency '{pkg}' is not installed.",
             package=pkg,
             feature=feature,
             install_hint=f"pip install fedfred[{extra or pkg}]",
-        ) from e
+            original_exception=exc,
+        ) from exc

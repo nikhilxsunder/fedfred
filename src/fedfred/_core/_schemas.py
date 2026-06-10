@@ -49,3 +49,11 @@ _EXPECTED_KIND: dict[str, str] = {
     "realtime_end": "M",
     "value": "f",
 }
+"""Expected ``numpy.dtype.kind`` for each observation column.
+
+Maps an observation column name to the dtype kind it must have: ``"M"`` (datetime64)
+for ``date`` and the ALFRED realtime brackets, ``"f"`` (float64) for ``value``.
+Consulted by :func:`_validate_observation_columns` to reject mistyped columns at
+construction, and the authority the columnar comparators and accessors follow when
+they branch on ``arr.dtype.kind``.
+"""
