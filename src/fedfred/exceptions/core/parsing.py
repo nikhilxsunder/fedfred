@@ -46,7 +46,7 @@ from dataclasses import dataclass
 
 from .base import CoreError
 
-__all__ = ["MissingFieldError", "ParsingError", "ResponseShapeError"]
+__all__ = ["EmptyResponseError", "MissingFieldError", "ParsingError", "ResponseShapeError"]
 
 
 @dataclass(frozen=True, slots=True)
@@ -141,3 +141,13 @@ class ResponseShapeError(ParsingError):
                 f"expected={self.expected!r}, received={self.received!r})"
             )
         return self.message
+
+
+@dataclass(frozen=True, slots=True)
+class EmptyResponseError(ParsingError):
+    """Raised when a response carries the expected key but an empty object list.
+
+    Distinct from :class:`MissingFieldError` (key absent): here the key is present but
+    yields no objects, so a singular ``_from_response`` has nothing to return. Sequence
+    builders treat an empty list as a valid empty sequence and never raise this.
+    """

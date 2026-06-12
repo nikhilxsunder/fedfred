@@ -56,6 +56,8 @@ Notes:
     ``AsyncFred``, ``AsyncAlfred``, ``AsyncFraser``).
 """
 
+from __future__ import annotations
+
 from collections.abc import KeysView
 from types import NotImplementedType, TracebackType
 from typing import Any, cast
@@ -97,7 +99,8 @@ class _ClientModel:
     :class:`fedfred.Fraser`, or one of their async counterparts.
 
     Attributes:
-        _service_key (str): Lowercase service identifier used for API-key resolution and rate-limit bucket selection.
+        _service_key (str): Lowercase service identifier used for API-key resolution and rate-limit
+            bucket selection.
         _base_url (str): Base URL of the upstream FRED-family service.
         _service_path (str): Service-specific URL prefix appended to ``_base_url``.
         _max_requests_per_minute (int): The per-service rate limit applied by the transport layer.
@@ -105,11 +108,13 @@ class _ClientModel:
         cache_size (int): The maximum number of cache entries when caching is enabled.
 
     Notes:
-        :class:`_ClientModel` is also the structural type that response model objects type their ``client`` attribute against, since either flavour of concrete client may be attached.
+        :class:`_ClientModel` is also the structural type that response model objects type their
+        ``client`` attribute against, since either flavour of concrete client may be attached.
     """
 
     _service_key: Service
-    """Lowercase service identifier (e.g., ``"fred"``, ``"alfred"``, ``"fraser"``). Derived from the concrete class name at construction time."""
+    """Lowercase service identifier (e.g., ``"fred"``, ``"alfred"``, ``"fraser"``). Derived from the
+    concrete class name at construction time."""
 
     _base_url: str
     """Base URL of the upstream FRED-family service. Declared by concrete subclasses."""
@@ -134,9 +139,12 @@ class _ClientModel:
         ``caching_enabled`` is ``True``.
 
         Args:
-            api_key (str, optional): Your FRED-family API key. If omitted, the API key is resolved from the global setting or the service's environment variable at request time.
-            caching_enabled (bool, optional): Whether to enable the module-global cache for this client's requests. Defaults to ``True``.
-            cache_size (int, optional): The maximum number of cache entries when caching is enabled. Defaults to 256.
+            api_key (str, optional): Your FRED-family API key. If omitted, the API key is resolved
+                from the global setting or the service's environment variable at request time.
+            caching_enabled (bool, optional): Whether to enable the module-global cache for this
+                client's requests. Defaults to ``True``.
+            cache_size (int, optional): The maximum number of cache entries when caching is enabled.
+                Defaults to 256.
 
         Raises:
             RuntimeError: If ``api_key`` is supplied but cannot be
@@ -192,7 +200,7 @@ class _ClientModel:
             )  # TODO: Typing alias logic rewrite origination point.
 
         except (
-            ClientError
+            ErrorPlaceholder
         ):  # TODO: Add custom exception for missing API key and catch that instead.
             has_key = False
 
@@ -231,8 +239,9 @@ class _ClientModel:
         """
         try:
             has_key = bool(_resolve_api_key(service=self._service_key))
+
         except (
-            SettingsError
+            ErrorPlaceholder
         ):  # TODO: Add custom exception for missing API key and catch that instead.
             has_key = False
 
@@ -279,6 +288,7 @@ class _ClientModel:
         """
         try:
             assert isinstance(other, type(self))
+
         except AssertionError:
             return NotImplemented
 
@@ -377,7 +387,8 @@ class _ClientModel:
         """The view of cache keys, or ``None`` when caching is disabled.
 
         Returns:
-            KeysView[tuple[Any, ...]] | None: A live view of the module-global cache keys, or ``None`` if this client has caching disabled.
+            KeysView[tuple[Any, ...]] | None: A live view of the module-global cache keys, or
+                ``None`` if this client has caching disabled.
 
         Examples:
             >>> import fedfred as fd
@@ -408,7 +419,7 @@ class _BaseClient(_ClientModel):
     """
 
     # Dunder Methods
-    def __enter__(self) -> "_BaseClient":
+    def __enter__(self) -> _BaseClient:
         """Enter the synchronous runtime context.
 
         Returns:
@@ -442,7 +453,8 @@ class _BaseClient(_ClientModel):
         here would corrupt other clients.
 
         Args:
-            exc_type (type[BaseException] | None): Exception type if one was raised inside the ``with`` block, otherwise ``None``.
+            exc_type (type[BaseException] | None): Exception type if one was raised inside the
+                ``with`` block, otherwise ``None``.
             exc (BaseException | None): Exception instance, if any.
             tb (TracebackType | None): Traceback, if any.
 
@@ -469,9 +481,12 @@ class _BaseClient(_ClientModel):
         is disabled.
 
         Args:
-            endpoint_name (str): The FRED API endpoint name to query. Resolved against the endpoint specifications in :mod:`fedfred._core._endpoints`.
-            data (dict[str, Any] | None, optional): The query parameters to send with the request. ``None`` values are dropped by the transport layer. Defaults to ``None``.
-            path_injection (str | None, optional): An optional string to inject into the endpoint path, for endpoints that require it. Defaults to ``None``.
+            endpoint_name (str): The FRED API endpoint name to query. Resolved against the endpoint
+                specifications in :mod:`fedfred._core._endpoints`.
+            data (dict[str, Any] | None, optional): The query parameters to send with the request.
+                ``None`` values are dropped by the transport layer. Defaults to ``None``.
+            path_injection (str | None, optional): An optional string to inject into the endpoint
+                path, for endpoints that require it. Defaults to ``None``.
 
         Returns:
             dict[str, Any]: The parsed JSON response from the API.
@@ -481,9 +496,9 @@ class _BaseClient(_ClientModel):
             FedFredAPIError: If the upstream service returns an error payload.
 
         Warning:
-            Caching applies only when ``caching_enabled`` is ``True``. The ``data`` parameter must be hashable through
-            :func:`fedfred._core._hashable_type_converter` for caching to function correctly; list-valued parameters are flattened
-            into tuples by that helper.
+            Caching applies only when ``caching_enabled`` is ``True``. The ``data`` parameter must
+            be hashable through :func:`fedfred._core._hashable_type_converter` for caching to
+            function correctly; list-valued parameters are flattened into tuples by that helper.
         """
         if self.caching_enabled:
             return _cached_get_request(
@@ -525,11 +540,12 @@ class _AsyncBaseClient(_ClientModel):
     """
 
     # Dunder Methods
-    async def __aenter__(self) -> "_AsyncBaseClient":
+    async def __aenter__(self) -> _AsyncBaseClient:
         """Enter the asynchronous runtime context.
 
         Returns:
-            _AsyncBaseClient: This instance, for use as the ``as`` target in an ``async with`` statement.
+            _AsyncBaseClient: This instance, for use as the ``as`` target in an ``async with``
+                statement.
 
         Notes:
             The async client does not currently own per-instance resources
@@ -563,7 +579,8 @@ class _AsyncBaseClient(_ClientModel):
         here would corrupt other clients.
 
         Args:
-            exc_type (type[BaseException] | None): Exception type if one was raised inside the ``async with`` block, otherwise ``None``.
+            exc_type (type[BaseException] | None): Exception type if one was raised inside the
+                ``async with`` block, otherwise ``None``.
             exc (BaseException | None): Exception instance, if any.
             tb (TracebackType | None): Traceback, if any.
 
@@ -592,8 +609,11 @@ class _AsyncBaseClient(_ClientModel):
 
         Args:
             endpoint_name (str): The FRED API endpoint name or path to query.
-            data (dict[str, str | int | None] | None, optional): The query parameters to send with the request. ``None`` values are dropped by the transport layer. Defaults to ``None``.
-            path_injection (str | None, optional): An optional string to inject into the endpoint path, for endpoints that require it. Defaults to ``None``.
+            data (dict[str, str | int | None] | None, optional): The query parameters to send with
+                the request. ``None`` values are dropped by the transport layer. Defaults to
+                ``None``.
+            path_injection (str | None, optional): An optional string to inject into the endpoint
+                path, for endpoints that require it. Defaults to ``None``.
 
         Returns:
             dict[str, Any]: The parsed JSON response from the API.

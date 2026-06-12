@@ -79,7 +79,7 @@ from .conversion import (
     TypeConversionError,
 )
 from .loading import DependencyLoadingError
-from .parsing import MissingFieldError, ParsingError, ResponseShapeError
+from .parsing import EmptyResponseError, MissingFieldError, ParsingError, ResponseShapeError
 from .preparation import MissingParameterError, PreparationError, UnknownParameterError
 from .resolution import ResolutionError, UnknownServiceError, UnsupportedEndpointError
 from .specification import (
@@ -103,6 +103,7 @@ __all__ = [
     "DataFrameConversionError",
     "DateConversionError",
     "DependencyLoadingError",
+    "EmptyResponseError",
     "EndpointAuthError",
     "EndpointFieldTypeError",
     "EndpointServiceError",

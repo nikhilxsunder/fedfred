@@ -101,6 +101,13 @@ from .._core import (
     _row_match_mask,
     _validate_observation_columns,
 )
+from ..exceptions import (
+    ClientNotAttachedError,
+    InvalidDateKeyError,
+    KeyNotFoundError,
+    MissingFieldError,
+    StringLookupUnsupportedError,
+)
 from ..settings import _resolve_dataframe_backend
 from ._clients import _ClientModel
 
@@ -162,6 +169,7 @@ class _ModelBase:
 
     # Class Methods
     @classmethod
+    @abstractmethod
     def _from_dict(cls, data: dict[str, Any], client: _ClientModel | None = None) -> Self:
         """Build a single instance from one raw FRED payload mapping.
 
@@ -176,12 +184,7 @@ class _ModelBase:
 
         Returns:
             Self: A fully populated subclass instance.
-
-        Raises:
-            NotImplementedError: If invoked on :class:`_ModelBase` directly rather than an
-                implementing subclass.
         """
-        raise NotImplementedError
 
     @classmethod
     def _from_response(cls, response: dict[str, Any], client: _ClientModel | None = None) -> Self:
@@ -205,11 +208,6 @@ class _ModelBase:
         """
         raw = _extract_objects(response, cls._response_keys, cls._response_shape)
 
-        if not raw:
-            raise ErrorPlaceholder(
-                f"No {cls._response_keys[0]} found in the response"
-            )  # TODO: ErrorPlaceholder
-
         return cls._from_dict(raw[0], client=client)
 
     # Protected Methods
@@ -228,8 +226,10 @@ class _ModelBase:
             ErrorPlaceholder: If no client is attached to this instance.
         """
         if self.client is None:
-            raise ErrorPlaceholder("Client not set for this instance.")  # TODO: ErrorPlaceholder
-
+            raise ClientNotAttachedError(
+                f"{type(self).__name__} has no client attached; construct it via a Fred "
+                "client method to enable relation traversal."
+            )
         return self.client
 
 
@@ -281,6 +281,7 @@ class _DateBase(date):
 
     # Class Methods
     @classmethod
+    @abstractmethod
     def _parse_value(cls, raw: JSON) -> Self:
         """Build one element from its raw payload.
 
@@ -292,12 +293,7 @@ class _DateBase(date):
 
         Returns:
             Self: A fully populated subclass instance.
-
-        Raises:
-            NotImplementedError: If invoked on :class:`_DateBase` directly
-                rather than an implementing subclass.
         """
-        raise NotImplementedError
 
     @classmethod
     def _from_response(cls, response: dict[str, Any]) -> Self:
@@ -318,9 +314,6 @@ class _DateBase(date):
             ParsingError: If the response lacks the expected key or shape.
         """
         raw = _extract_objects(response, cls._response_keys, cls._response_shape)
-
-        if not raw:
-            raise ErrorPlaceholder(f"No {cls._response_keys[0]!r} found in the response")
 
         return cls._parse_value(raw[0])
 
@@ -801,16 +794,16 @@ class _Sequence(Sequence[T]):
                 :meth:`_supports_lookup`), or if no item matches the given key.
         """
         if not type(self)._supports_lookup():
-            raise ErrorPlaceholder(
+            raise StringLookupUnsupportedError(
                 f"{type(self).__name__} does not support string indexing; "
-                f"use positional indexing or iterate"
+                "use positional indexing or iterate."
             )
 
         for item in self._items:
             if self._lookup_value(item) == key:
                 return item
 
-        raise ErrorPlaceholder(key)
+        raise KeyNotFoundError(f"No item with key {key!r} in {type(self).__name__}.")
 
 
 class _ModelSequence(_Sequence[MT]):
@@ -1170,7 +1163,7 @@ class _ObservationSequence[OT: _ObservationBase](Sequence[OT]):
         to ``_assemble`` so this method never branches on the concrete type.
         """
         if "observations" not in response:
-            raise ErrorPlaceholder("response has no 'observations' array.")
+            raise MissingFieldError("Response has no 'observations' array.")
 
         dates, values = _observation_columns(response["observations"])  # the one shared parse
 
@@ -1190,7 +1183,6 @@ class _ObservationSequence[OT: _ObservationBase](Sequence[OT]):
         response: dict,
         dates: np.ndarray,
         values: np.ndarray,
-        *,
         series_id: str,
         units: str | None,
         frequency: str | None,
@@ -1202,7 +1194,6 @@ class _ObservationSequence[OT: _ObservationBase](Sequence[OT]):
         self,
         dates: np.ndarray,
         values: np.ndarray,
-        *,
         series_id: str,
         units: str | None = None,
         frequency: str | None = None,
@@ -1332,12 +1323,15 @@ class _ObservationSequence[OT: _ObservationBase](Sequence[OT]):
     def _lookup_iso(self, key: str) -> OT:
         try:
             i = _first_date_index(self._dates, key)
-
-        except ValueError as e:
-            raise ErrorPlaceholder(f"invalid ISO date key {key!r}.") from e
+        except ValueError as exc:
+            raise InvalidDateKeyError(
+                f"Invalid ISO date key {key!r}.", original_exception=exc
+            ) from exc
 
         if i is None:
-            raise ErrorPlaceholder(f"no observation with date {key!r} in {self.series_id!r}.")
+            raise KeyNotFoundError(
+                f"No observation with date {key!r} in series {self.series_id!r}."
+            )
 
         return self._make(i)
 

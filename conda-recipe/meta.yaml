@@ -1,47 +1,107 @@
+{% set name = "fedfred" %}
+{% set version = "4.0.0" %}
+{% set python_min = "3.10" %}
+
 package:
-  name: fedfred
-  version: 4.0.0
+  name: {{ name }}-split
+  version: {{ version }}
 
 source:
-  url: "https://pypi.io/packages/source/f/fedfred/fedfred-3.0.0.tar.gz"
-  sha256: "df2156a15971186d01ade494919eaa4e898a55a865ecd34bdac3e6adedc24578"
+  url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
+  sha256: <REGENERATE for 4.0.0 — current value is the 3.0.0 hash>
 
 build:
-  noarch: python
   number: 0
-  script: |
-    python -m pip install . -vv
 
-requirements:
-  host:
-    - python >=3.9,<4.0
-    - pip
-    - poetry-core >=1.0.0
-  run:
-    - python >=3.9,<4.0
-    - httpx
-    - tenacity
-    - pandas
-    - geopandas
-    - conda-forge::polars
-    - conda-forge::cachetools
-    - conda-forge::asyncache
-    - conda-forge::dask
-    - conda-forge::dask-geopandas
-    - conda-forge::orjson
+outputs:
+  - name: fedfred
+    build:
+      noarch: python
+      script: {{ PYTHON }} -m pip install . -vv --no-deps --no-build-isolation
+    requirements:
+      host:
+        - python >={{ python_min }}
+        - pip
+        - poetry-core >=1.0.0
+      run:
+        - python >={{ python_min }}
+        - numpy
+        - httpx
+        - tenacity
+        - cachetools
+        - asyncache
+        - orjson
+        - pandas
+        - geopandas
+      run_constrained:
+        - polars
+        - polars-st
+        - dask
+        - dask-geopandas
+        - pyarrow
+    test:
+      imports:
+        - fedfred
+      requires:
+        - pip
+      commands:
+        - pip check
 
-test:
-  imports:
-    - fedfred
-  requires:
-    - pip
-  commands:
-    - pip check
+  - name: fedfred-polars
+    build:
+      noarch: generic
+    requirements:
+      run:
+        - {{ pin_subpackage('fedfred', exact=True) }}
+        - polars
+        - conda-forge::polars-st
+
+    test:
+      imports:
+        - fedfred
+
+  - name: fedfred-dask
+    build:
+      noarch: generic
+    requirements:
+      run:
+        - {{ pin_subpackage('fedfred', exact=True) }}
+        - dask
+        - conda-forge::dask-geopandas
+    test:
+      imports:
+        - fedfred
+
+  - name: fedfred-pyarrow
+    build:
+      noarch: generic
+    requirements:
+      run:
+        - {{ pin_subpackage('fedfred', exact=True) }}
+        - pyarrow
+    test:
+      imports:
+        - fedfred
+
+  - name: fedfred-all
+    build:
+      noarch: generic
+    requirements:
+      run:
+        - {{ pin_subpackage('fedfred', exact=True) }}
+        - pyarrow
+        - polars
+        - conda-forge::polars-st
+        - dask
+        - conda-forge::dask-geopandas
+    test:
+      imports:
+        - fedfred
 
 about:
-  home: "https://github.com/nikhilxsunder/fedfred"
-  doc_url: "https://nikhilxsunder.github.io/fedfred"
-  dev_url: "https://github.com/nikhilxsunder/fedfred"
+  home: https://github.com/nikhilxsunder/fedfred
+  doc_url: https://nikhilxsunder.github.io/fedfred
+  dev_url: https://github.com/nikhilxsunder/fedfred
   license: MIT
   license_family: MIT
   license_file: LICENSE
@@ -49,12 +109,13 @@ about:
   description: |
     FedFred is a Python package for interacting with the Federal Reserve Bank of St. Louis Economic Database (FRED API).
     It provides a feature-rich interface with:
-    - Pandas/Polars DataFrame outputs
+    - Pandas/Polars/Dask/GeoPandas DataFrame outputs
     - Native support for asynchronous requests
     - Local caching for faster execution
     - GeoPandas outputs for geographical data (FRED-Maps/GeoFRED)
     - MyPy compatible type stubs
 
 extra:
+  feedstock-name: fedfred
   recipe-maintainers:
     - nikhilxsunder

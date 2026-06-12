@@ -30,6 +30,7 @@ from ._converters import (
     _columns_to_pandas,
     _columns_to_polars,
     _dict_type_converter,
+    _hashable_type_converter,
 )
 from ._defaults import _CONCURRENCY_DIVISOR, _WINDOW_SECONDS
 from ._mappings import RATE_LIMIT_BUCKET, RATE_LIMIT_RPM
@@ -73,6 +74,7 @@ __all__ = [
     "_dict_type_converter",
     "_extract_objects",
     "_first_date_index",
+    "_hashable_type_converter",
     "_observation_columns",
     "_resolve_endpoint",
     "_resolve_preparation_function",

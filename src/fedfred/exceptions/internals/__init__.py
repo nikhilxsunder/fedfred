@@ -33,6 +33,14 @@ from .caching import (
     CacheSetError,
     CachingError,
 )
+from .models import (
+    ClientNotAttachedError,
+    InvalidDateKeyError,
+    KeyLookupError,
+    KeyNotFoundError,
+    ModelError,
+    StringLookupUnsupportedError,
+)
 from .rate_limit import (
     LimiterLimitError,
     LimiterLoopError,
@@ -99,6 +107,7 @@ __all__ = [
     "CacheResizeError",
     "CacheSetError",
     "CachingError",
+    "ClientNotAttachedError",
     "ConflictError",
     "ConnectTimeoutError",
     "GatewayTimeoutError",
@@ -107,6 +116,9 @@ __all__ = [
     "HTTPResponseError",
     "HTTPServerError",
     "InternalServerError",
+    "InvalidDateKeyError",
+    "KeyLookupError",
+    "KeyNotFoundError",
     "LimiterLimitError",
     "LimiterLoopError",
     "LimiterQueueStateError",
@@ -115,6 +127,7 @@ __all__ = [
     "LimiterSpecError",
     "LimiterWakeError",
     "MethodNotAllowedError",
+    "ModelError",
     "NotFoundError",
     "PoolTimeoutError",
     "ProxyTransportError",
@@ -128,6 +141,7 @@ __all__ = [
     "RequestPreparationError",
     "ResponseDecodingError",
     "ServiceUnavailableError",
+    "StringLookupUnsupportedError",
     "TooManyRedirectsError",
     "TransportConnectionError",
     "TransportError",
