@@ -50,6 +50,9 @@ References:
 
 from __future__ import annotations
 
+from ..settings import Service
+from ._defaults import _FRASER_MAX_REQUESTS_PER_MINUTE, _FRED_MAX_REQUESTS_PER_MINUTE
+from ._types import RateLimitBucket
 from ._urls import (
     _AUTHOR_PATH,
     _CATEGORY_PATH,
@@ -205,3 +208,20 @@ weekly aliases (``wef`` -> ``W-FRI``); daily maps to ``D`` (business-daily serie
 are resolved by inference downstream). Unrecognized or ``None`` codes yield no
 alias.
 """
+
+RATE_LIMIT_BUCKET: dict[Service, RateLimitBucket] = {
+    "fred": "fred",
+    "geofred": "fred",
+    "alfred": "fred",
+    "fraser": "fraser",
+}
+"""Mapping of service name to its rate-limit bucket, used to look up the applicable RPM in
+:data:`RATE_LIMIT_RPM` and thus to select the appropriate limiter instance for a request."""
+
+RATE_LIMIT_RPM: dict[RateLimitBucket, int] = {
+    "fred": _FRED_MAX_REQUESTS_PER_MINUTE,
+    "fraser": _FRASER_MAX_REQUESTS_PER_MINUTE,
+}
+"""Mapping of rate-limit bucket to its RPM, used to set the default rate for each limiter instance.
+The buckets are defined in :data:`RATE_LIMIT_BUCKET` and the limiter instances are in
+:mod:`fedfred._internals._rate_limit`."""

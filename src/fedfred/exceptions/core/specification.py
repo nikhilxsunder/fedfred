@@ -53,7 +53,7 @@ __all__ = [
     "EndpointAuthError",
     "EndpointFieldTypeError",
     "EndpointServiceError",
-    "EndpointSpecError"
+    "EndpointSpecError",
 ]
 
 

@@ -19,48 +19,44 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""Thread-safe, runtime-adjustable caching for the fedfred core package.
+"""Thread-safe, runtime-adjustable caching for the fedfred internals package.
 
 This module provides :class:`AdjustableFIFOCache`, a ``MutableMapping`` wrapper
-around :class:`cachetools.FIFOCache` whose capacity can be resized at runtime
-under an internal re-entrant lock, and the module-global ``_CACHE`` instance
-that backs transport-layer request caching. The :func:`set_cache_maxsize` and
-:func:`get_cache_maxsize` helpers expose the global cache's capacity as the
-public, ergonomic surface; :func:`_retrieve_cache_instance` returns the
-instance itself for internal use.
+around :class:`cachetools.FIFOCache` whose capacity can be resized at runtime under
+an internal re-entrant lock, and the module-global ``_CACHE`` instance that backs
+transport-layer request caching. The :func:`set_cache_maxsize` and
+:func:`get_cache_maxsize` helpers expose the global cache's capacity as the public,
+ergonomic surface; :func:`_retrieve_cache_instance` returns the instance itself for
+internal use.
 """
 
 from __future__ import annotations
 
 from collections.abc import ItemsView, Iterator, KeysView, MutableMapping, ValuesView
+from contextlib import contextmanager
 from dataclasses import dataclass, field
 from threading import RLock
-from typing import TypeVar, overload
+from typing import overload
 
 from cachetools import FIFOCache
 
+from .._core import (
+    MISSING,
+    CacheKey,
+    T,
+    _Sentinel,
+)
 from ..exceptions import (
     CacheBackendError,
     CacheDeleteError,
     CacheInitializationError,
     CacheKeyError,
+    CacheOperationError,
+    CachePopError,
     CacheResizeError,
     CacheSetError,
+    CachingError,
 )
-
-__all__ = [
-    "AdjustableFIFOCache",
-    "_retrieve_cache_instance",
-    "get_cache_maxsize",
-    "set_cache_maxsize",
-]
-
-# Typing aliases
-T = TypeVar("T")
-"""Generic type variable for caller-supplied default values."""
-
-_MISSING = object()
-"""Sentinel distinguishing "no default supplied" from an explicit ``None`` default."""
 
 
 # Cache Abstractions
@@ -98,6 +94,7 @@ class AdjustableFIFOCache[K, V](MutableMapping[K, V]):
     _lock: RLock = field(init=False, repr=False)
     """Re-entrant lock protecting all cache operations."""
 
+    # Dunder Methods
     def __post_init__(self) -> None:
         """Validate ``maxsize`` and initialize the backing cache and lock.
 
@@ -177,18 +174,13 @@ class AdjustableFIFOCache[K, V](MutableMapping[K, V]):
             >>> cache[1]
             'a'
         """
-        with self._lock:
-            try:
-                return self._cache[key]
-            except KeyError as exc:
-                raise CacheKeyError(
-                    message="Cache key was not found.",
-                    key=key,
-                ) from exc
-            except Exception as exc:
-                raise CacheBackendError(
-                    message="Unexpected backend error occurred during cache retrieval.",
-                ) from exc
+        with self._guard(
+            CacheBackendError,
+            error_message="Unexpected backend error occurred during cache retrieval.",
+            key=key,
+            not_found_message="Cache key was not found.",
+        ):
+            return self._cache[key]
 
     def __setitem__(self, key: K, value: V) -> None:
         """Store a key-value pair, evicting the oldest entry if at capacity.
@@ -206,14 +198,12 @@ class AdjustableFIFOCache[K, V](MutableMapping[K, V]):
             >>> cache[1]
             'a'
         """
-        with self._lock:
-            try:
-                self._cache[key] = value
-            except Exception as exc:
-                raise CacheSetError(
-                    message="Failed to store item in cache.",
-                    key=key,
-                ) from exc
+        with self._guard(
+            CacheSetError,
+            error_message="Failed to store item in cache.",
+            key=key,
+        ):
+            self._cache[key] = value
 
     def __delitem__(self, key: K) -> None:
         """Delete a key from the cache.
@@ -232,19 +222,13 @@ class AdjustableFIFOCache[K, V](MutableMapping[K, V]):
             >>> 1 in cache
             False
         """
-        with self._lock:
-            try:
-                del self._cache[key]
-            except KeyError as exc:
-                raise CacheKeyError(
-                    message="Cache key was not found for deletion.",
-                    key=key,
-                ) from exc
-            except Exception as exc:
-                raise CacheDeleteError(
-                    message="Failed to delete item from cache.",
-                    key=key,
-                ) from exc
+        with self._guard(
+            CacheDeleteError,
+            error_message="Failed to delete item from cache.",
+            key=key,
+            not_found_message="Cache key was not found for deletion.",
+        ):
+            del self._cache[key]
 
     def __len__(self) -> int:
         """Return the number of cached entries.
@@ -261,6 +245,7 @@ class AdjustableFIFOCache[K, V](MutableMapping[K, V]):
         with self._lock:
             return len(self._cache)
 
+    # Properties
     @property
     def cache(self) -> FIFOCache:
         """The underlying FIFO cache instance.
@@ -283,6 +268,48 @@ class AdjustableFIFOCache[K, V](MutableMapping[K, V]):
         with self._lock:
             return self._cache.currsize
 
+    # Protected Methods
+    @contextmanager
+    def _guard(
+        self,
+        error_cls: type[CacheOperationError],
+        error_message: str,
+        key: object = None,
+        not_found_message: str | None = None,
+    ) -> Iterator[None]:
+        """Run a cache operation under the lock, translating backend exceptions.
+
+        A raw ``KeyError`` from the backend becomes :class:`CacheKeyError` when
+        ``not_found_message`` is supplied (the read/delete case); any other exception
+        becomes ``error_cls(message=error_message, key=key)``. An exception that is
+        already a :class:`CachingError` propagates unchanged.
+
+        Args:
+            error_cls (type[CacheOperationError]): Error raised for a non-``KeyError``
+                backend failure (e.g. :class:`CacheBackendError`, :class:`CacheSetError`,
+                :class:`CacheDeleteError`).
+            error_message (str): Message for the ``error_cls`` failure.
+            key (object): The cache key, attached to the raised error for context.
+            not_found_message (str | None): If set, a raw ``KeyError`` is translated to
+                :class:`CacheKeyError` with this message; if ``None``, a ``KeyError`` is
+                treated as a generic backend failure.
+
+        Yields:
+            None: Control to the guarded cache operation.
+        """
+        with self._lock:
+            try:
+                yield
+            except CachingError:
+                raise
+            except KeyError as exc:
+                if not_found_message is not None:
+                    raise CacheKeyError(message=not_found_message, key=key) from exc
+                raise error_cls(message=error_message, key=key) from exc
+            except Exception as exc:
+                raise error_cls(message=error_message, key=key) from exc
+
+    # Public Methods
     @overload
     def get(self, key: K, /) -> V | None: ...
 
@@ -294,7 +321,8 @@ class AdjustableFIFOCache[K, V](MutableMapping[K, V]):
 
         Args:
             key (K): Cache key.
-            default (V | T | None, optional): Value to return if the key is absent. Defaults to ``None``.
+            default (V | T | None, optional): Value to return if the key is absent. Defaults to
+                ``None``.
 
         Returns:
             V | T | None: The cached value, or ``default`` if the key is absent.
@@ -319,19 +347,20 @@ class AdjustableFIFOCache[K, V](MutableMapping[K, V]):
     @overload
     def pop(self, key: K, /, default: T) -> V | T: ...
 
-    def pop(self, key: K, /, default: object = _MISSING) -> V | object:
+    def pop(self, key: K, /, default: V | T | _Sentinel = MISSING) -> V | T:
         """Remove a key and return its value, or a default if absent.
 
         Args:
             key (K): Cache key.
             default (V | T, optional): Value to return if the key is absent. If
-                omitted, a missing key raises :class:`KeyError`.
+                omitted, a missing key raises :class:`CacheKeyError`.
 
         Returns:
             V | T: The removed value, or ``default`` if the key was absent.
 
         Raises:
-            KeyError: If the key is absent and no ``default`` is supplied.
+            CacheKeyError: If the key is absent and no ``default`` is supplied.
+            CachePopError: If the underlying pop operation fails unexpectedly.
 
         Examples:
             >>> cache = AdjustableFIFOCache(maxsize=10)
@@ -341,10 +370,20 @@ class AdjustableFIFOCache[K, V](MutableMapping[K, V]):
             >>> cache.pop(2, default="b")
             'b'
         """
-        with self._lock:
-            if default is _MISSING:
+        if default is MISSING:
+            with self._guard(
+                CachePopError,
+                error_message="Failed to pop item from cache.",
+                key=key,
+                not_found_message="Cache key was not found.",
+            ):
                 return self._cache.pop(key)
 
+        with self._guard(
+            CachePopError,
+            error_message="Failed to pop item from cache.",
+            key=key,
+        ):
             return self._cache.pop(key, default)
 
     def clear(self) -> None:
@@ -468,10 +507,11 @@ class AdjustableFIFOCache[K, V](MutableMapping[K, V]):
             return dict(self._cache.items())
 
 
-_CACHE: AdjustableFIFOCache[tuple, object] = AdjustableFIFOCache(maxsize=128)
+_CACHE: AdjustableFIFOCache[CacheKey, object] = AdjustableFIFOCache(maxsize=128)
 """Module-global cache backing transport-layer request caching, defaulting to 128 entries."""
 
 
+# --------------------TODO: Consider refactoring to settings.-----------------------------
 def set_cache_maxsize(maxsize: int) -> None:
     """Set the global transport cache's maximum size.
 
@@ -503,10 +543,14 @@ def get_cache_maxsize() -> int:
     return _CACHE.maxsize
 
 
-def _retrieve_cache_instance() -> AdjustableFIFOCache[tuple, object]:
+def _retrieve_cache_instance() -> AdjustableFIFOCache[CacheKey, object]:
     """Return the module-global cache instance.
 
     Returns:
-        AdjustableFIFOCache[tuple, object]: The global cache backing transport caching.
+        AdjustableFIFOCache[CacheKey, object]: The global cache backing transport
+        caching.
     """
     return _CACHE
+
+
+# ----------------------------------------------------------------------------------------

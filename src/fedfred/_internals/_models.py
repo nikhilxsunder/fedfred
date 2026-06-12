@@ -69,7 +69,7 @@ References:
 from __future__ import annotations
 
 from abc import abstractmethod
-from collections.abc import Iterable, Iterator, Mapping, Sequence
+from collections.abc import Iterable, Iterator, Sequence
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta
 from typing import (
@@ -87,6 +87,7 @@ from typing import (
 import numpy as np
 
 from .._core import (
+    JSON,
     _columns_equal,
     _columns_to_arrow,
     _columns_to_cudf,
@@ -100,15 +101,13 @@ from .._core import (
     _row_match_mask,
     _validate_observation_columns,
 )
-from ..exceptions.core.parsing import ParsingError
-from ..exceptions.internals.models import ModelError
 from ..settings import _resolve_dataframe_backend
 from ._clients import _ClientModel
 
 if TYPE_CHECKING:
     import cudf
     import dask.dataframe as dd
-    import pandas as pd  # now TYPE_CHECKING-only — no runtime pd use remains
+    import pandas as pd
     import polars as pl
     import pyarrow as pa
 
@@ -120,18 +119,6 @@ __all__ = [
     "_ModelBase",
     "_ModelSequence",
 ]
-
-type JSON = (
-    str
-    | int
-    | float
-    | bool
-    | None
-    | Mapping[str, JSON]
-    | Sequence[
-        JSON
-    ]  # TODO: Consider refactoring to core types module and reusing across the package.
-)
 
 
 @dataclass(slots=True, kw_only=True)
@@ -155,7 +142,7 @@ class _ModelBase:
     Notes:
         Direct construction is supported for tests and manual round-trips;
         property accessors that depend on a client will raise
-        :class:`ModelError` if invoked without one attached.
+        :class:`ErrorPlaceholder` if invoked without one attached.
 
     See Also:
         - :class:`_ModelSequence`: The plural-container counterpart.
@@ -163,13 +150,15 @@ class _ModelBase:
     """
 
     client: _ClientModel | None = field(default=None, repr=False, compare=False)
-    """The FRED client instance attached to this object, or ``None`` if unattached. Excluded from ``repr`` and dataclass equality."""
+    """The FRED client instance attached to this object, or ``None`` if unattached. Excluded from
+    ``repr`` and dataclass equality."""
 
     _response_keys: ClassVar[tuple[str, ...]]
     """Payload key(s) under which FRED returns the list of objects of this type; tried in order."""
 
     _response_shape: ClassVar[_ResponseShape] = "list"
-    """Response container shape: ``"list"`` for a plain list, ``"dict_or_list"`` for id-keyed-dict element payloads."""
+    """Response container shape: ``"list"`` for a plain list, ``"dict_or_list"`` for id-keyed-dict
+    element payloads."""
 
     # Class Methods
     @classmethod
@@ -182,13 +171,15 @@ class _ModelBase:
 
         Args:
             data (dict[str, Any]): The raw object payload from the FRED API.
-            client (_ClientModel, optional): The FRED client to attach to the resulting instance for lazy relation traversal. Defaults to ``None``.
+            client (_ClientModel, optional): The FRED client to attach to the resulting instance for
+                lazy relation traversal. Defaults to ``None``.
 
         Returns:
             Self: A fully populated subclass instance.
 
         Raises:
-            NotImplementedError: If invoked on :class:`_ModelBase` directly rather than an implementing subclass.
+            NotImplementedError: If invoked on :class:`_ModelBase` directly rather than an
+                implementing subclass.
         """
         raise NotImplementedError
 
@@ -202,21 +193,22 @@ class _ModelBase:
 
         Args:
             response (dict[str, Any]): The raw FRED API response payload.
-            client (_ClientModel, optional): The FRED client to attach to the resulting instance. Defaults to ``None``.
+            client (_ClientModel, optional): The FRED client to attach to the resulting instance.
+                Defaults to ``None``.
 
         Returns:
             Self: A single subclass instance built from the first payload entry.
 
         Raises:
-            ModelError: If the resolved list is empty.
+            ErrorPlaceholder: If the resolved list is empty.
             ParsingError: If the response lacks the expected key or shape.
         """
         raw = _extract_objects(response, cls._response_keys, cls._response_shape)
 
         if not raw:
-            raise ModelError(
+            raise ErrorPlaceholder(
                 f"No {cls._response_keys[0]} found in the response"
-            )  # TODO: ModelError
+            )  # TODO: ErrorPlaceholder
 
         return cls._from_dict(raw[0], client=client)
 
@@ -233,10 +225,10 @@ class _ModelBase:
             _ClientModel: The attached FRED client instance.
 
         Raises:
-            ModelError: If no client is attached to this instance.
+            ErrorPlaceholder: If no client is attached to this instance.
         """
         if self.client is None:
-            raise ModelError("Client not set for this instance.")  # TODO: ModelError
+            raise ErrorPlaceholder("Client not set for this instance.")  # TODO: ErrorPlaceholder
 
         return self.client
 
@@ -269,7 +261,8 @@ class _DateBase(date):
     :class:`datetime.date` contract.
 
     Attributes:
-        _response_key (ClassVar[str]): Subclass-declared key under which FRED returns the list of objects of this type.
+        _response_key (ClassVar[str]): Subclass-declared key under which FRED returns the list of
+            objects of this type.
 
     See Also:
         - :class:`_DateSequence`: The plural-container counterpart.
@@ -283,7 +276,8 @@ class _DateBase(date):
     """Payload key(s) under which FRED returns the list of objects of this type; tried in order."""
 
     _response_shape: ClassVar[_ResponseShape] = "list"
-    """Response container shape: ``"list"`` for a plain list, ``"dict_or_list"`` for id-keyed-dict element payloads."""
+    """Response container shape: ``"list"`` for a plain list, ``"dict_or_list"`` for id-keyed-dict
+        element payloads."""
 
     # Class Methods
     @classmethod
@@ -320,13 +314,13 @@ class _DateBase(date):
             Self: A single subclass instance built from the first payload entry.
 
         Raises:
-            ModelError: If the resolved list is empty.
+            ErrorPlaceholder: If the resolved list is empty.
             ParsingError: If the response lacks the expected key or shape.
         """
         raw = _extract_objects(response, cls._response_keys, cls._response_shape)
 
         if not raw:
-            raise ModelError(f"No {cls._response_keys[0]!r} found in the response")
+            raise ErrorPlaceholder(f"No {cls._response_keys[0]!r} found in the response")
 
         return cls._parse_value(raw[0])
 
@@ -441,10 +435,12 @@ T = TypeVar("T")
 """Unbounded element type variable for the generic :class:`_Sequence` base."""
 
 MT = TypeVar("MT", bound="_ModelBase")
-"""Element type variable for :class:`_ModelSequence`, constrained to :class:`_ModelBase` subclasses."""
+"""Element type variable for :class:`_ModelSequence`, constrained to :class:`_ModelBase`
+subclasses."""
 
 DT = TypeVar("DT", bound="_DateBase")
-"""Element type variable for :class:`_DateSequence`, constrained to :class:`_DateBase` subclasses."""
+"""Element type variable for :class:`_DateSequence`, constrained to :class:`_DateBase`
+subclasses."""
 
 
 class _Sequence(Sequence[T]):
@@ -470,9 +466,13 @@ class _Sequence(Sequence[T]):
 
     Attributes:
         _items (Tuple[T, ...]): The underlying immutable tuple of elements.
-        _response_key (ClassVar[str]): Auto-wired from the generic parameter on subclass definition; matches the FRED payload key for the element type.
-        _element_cls (ClassVar[type]): Auto-wired element class, used by subclass ``_parse_*`` methods to delegate construction.
-        _lookup_key (ClassVar[Optional[str]]): Attribute name on items used by the default :meth:`_lookup_value` implementation. Subclasses with computed keys (such as ISO-date strings) override :meth:`_lookup_value` instead.
+        _response_key (ClassVar[str]): Auto-wired from the generic parameter on subclass definition;
+            matches the FRED payload key for the element type.
+        _element_cls (ClassVar[type]): Auto-wired element class, used by subclass ``_parse_*``
+            methods to delegate construction.
+        _lookup_key (ClassVar[Optional[str]]): Attribute name on items used by the default
+            :meth:`_lookup_value` implementation. Subclasses with computed keys (such as ISO-date
+                strings) override :meth:`_lookup_value` instead.
 
     Notes:
         This class is private internals. Concrete sequences subclass either
@@ -490,7 +490,8 @@ class _Sequence(Sequence[T]):
     __slots__ = ("_items",)
 
     _response_keys: ClassVar[tuple[str, ...]] = ()
-    """Auto-wired from the element class on subclass definition. Payload key(s) under which the element list is returned."""
+    """Auto-wired from the element class on subclass definition. Payload key(s) under which the
+    element list is returned."""
 
     _response_shape: ClassVar[_ResponseShape] = "list"
     """Auto-wired from the element class. Response container shape for the element type."""
@@ -499,7 +500,8 @@ class _Sequence(Sequence[T]):
     """Auto-wired element class used by subclass ``_parse_*`` methods to delegate construction."""
 
     _lookup_key: ClassVar[str | None] = None
-    """Attribute on items used by the default :meth:`_lookup_value` implementation. Subclasses with computed keys should override :meth:`_lookup_value` instead."""
+    """Attribute on items used by the default :meth:`_lookup_value` implementation. Subclasses with
+    computed keys should override :meth:`_lookup_value` instead."""
 
     # Class Methods
     @classmethod
@@ -590,7 +592,8 @@ class _Sequence(Sequence[T]):
         """Materialize ``items`` into the immutable backing tuple.
 
         Args:
-            items (Iterable[T]): The elements to store. Consumed eagerly and frozen into a ``tuple`` so the sequence is immutable and hashable when the elements themselves are hashable.
+            items (Iterable[T]): The elements to store. Consumed eagerly and frozen into a ``tuple``
+                so the sequence is immutable and hashable when the elements themselves are hashable.
         """
         self._items: tuple[T, ...] = tuple(items)
 
@@ -606,20 +609,23 @@ class _Sequence(Sequence[T]):
         - :class:`slice` → return a new sequence of the same concrete type
           via :meth:`_clone`, preserving sidecar state.
         - :class:`str` → delegate to :meth:`_lookup_by_key` for attribute-
-          or computed-key lookup. Raises :class:`ModelError` if string
+          or computed-key lookup. Raises :class:`ErrorPlaceholder` if string
           lookup is not enabled on this subclass.
         - :class:`int` → standard positional indexing on the underlying
           tuple.
 
         Args:
-            index (int | str | slice): The index. Integer for positional access, string for key-based lookup (when enabled), or slice for sub-sequence extraction.
+            index (int | str | slice): The index. Integer for positional access, string for
+                key-based lookup (when enabled), or slice for sub-sequence extraction.
 
         Returns:
-            T | Self: A single element for integer or string indexing; a new sequence for slice indexing.
+            T | Self: A single element for integer or string indexing; a new sequence for slice
+                indexing.
 
         Raises:
             IndexError: If ``index`` is an out-of-range integer.
-            ModelError: If ``index`` is a string and the subclass does not enable string lookup, or if the key is not found.
+            ErrorPlaceholder: If ``index`` is a string and the subclass does not enable string
+                lookup, or if the key is not found.
         """
         if isinstance(index, slice):
             return self._clone(self._items[index])
@@ -678,7 +684,8 @@ class _Sequence(Sequence[T]):
             other (object): The value to compare against.
 
         Returns:
-            bool: ``True`` if ``other`` is the same concrete type and holds equal items; ``False`` if the items differ; :data:`NotImplemented` if ``other`` is a different type.
+            bool: ``True`` if ``other`` is the same concrete type and holds equal items; ``False``
+                if the items differ; :data:`NotImplemented` if ``other`` is a different type.
         """
         if isinstance(other, type(self)):
             return self._items == other._items
@@ -689,7 +696,8 @@ class _Sequence(Sequence[T]):
         """Return a compact developer representation.
 
         Returns:
-            str: A string of the form ``"<ClassName>(n=<count>)"``. Subclasses with richer element semantics (such as :class:`_DateSequence`) override for additional context.
+            str: A string of the form ``"<ClassName>(n=<count>)"``. Subclasses with richer element
+                semantics (such as :class:`_DateSequence`) override for additional context.
         """
         return f"{type(self).__name__}(n={len(self._items)})"
 
@@ -789,10 +797,11 @@ class _Sequence(Sequence[T]):
             T: The first element whose :meth:`_lookup_value` equals ``key``.
 
         Raises:
-            ModelError: If the subclass does not enable string lookup (per :meth:`_supports_lookup`), or if no item matches the given key.
+            ErrorPlaceholder: If the subclass does not enable string lookup (per
+                :meth:`_supports_lookup`), or if no item matches the given key.
         """
         if not type(self)._supports_lookup():
-            raise ModelError(
+            raise ErrorPlaceholder(
                 f"{type(self).__name__} does not support string indexing; "
                 f"use positional indexing or iterate"
             )
@@ -801,7 +810,7 @@ class _Sequence(Sequence[T]):
             if self._lookup_value(item) == key:
                 return item
 
-        raise ModelError(key)
+        raise ErrorPlaceholder(key)
 
 
 class _ModelSequence(_Sequence[MT]):
@@ -845,7 +854,8 @@ class _ModelSequence(_Sequence[MT]):
 
         Args:
             data (dict[str, Any]): The raw element payload from the FRED API.
-            client (_ClientModel, optional): The FRED client to attach to the resulting element. Defaults to ``None``.
+            client (_ClientModel, optional): The FRED client to attach to the resulting element.
+                Defaults to ``None``.
 
         Returns:
             MT: A single element instance built by the element class's ``_from_dict``.
@@ -862,7 +872,8 @@ class _ModelSequence(_Sequence[MT]):
 
         Args:
             response (dict[str, Any]): The raw FRED API response payload.
-            client (_ClientModel, optional): The FRED client to propagate to elements and to the resulting sequence. Defaults to ``None``.
+            client (_ClientModel, optional): The FRED client to propagate to elements and to the
+                resulting sequence. Defaults to ``None``.
 
         Returns:
             Self: A sequence of elements.
@@ -883,7 +894,8 @@ class _ModelSequence(_Sequence[MT]):
 
         Args:
             items (Iterable[MT]): The elements to store.
-            client (_ClientModel, optional): The FRED client to attach to this sequence. Forwarded to sliced copies by :meth:`_clone`. Defaults to ``None``.
+            client (_ClientModel, optional): The FRED client to attach to this sequence. Forwarded
+                to sliced copies by :meth:`_clone`. Defaults to ``None``.
         """
         super().__init__(items)
         self.client: _ClientModel | None = client
@@ -1141,8 +1153,6 @@ class _ObservationSequence[OT: _ObservationBase](Sequence[OT]):
 
     __slots__ = ("_dates", "_values", "frequency", "series_id", "units")
 
-    __hash__ = None  # immutable by convention, but unhashable like other sequences
-
     _element_type: ClassVar[type[_ObservationBase]]
 
     # Class Methods
@@ -1160,7 +1170,7 @@ class _ObservationSequence[OT: _ObservationBase](Sequence[OT]):
         to ``_assemble`` so this method never branches on the concrete type.
         """
         if "observations" not in response:
-            raise ParsingError("response has no 'observations' array.")
+            raise ErrorPlaceholder("response has no 'observations' array.")
 
         dates, values = _observation_columns(response["observations"])  # the one shared parse
 
@@ -1231,11 +1241,16 @@ class _ObservationSequence[OT: _ObservationBase](Sequence[OT]):
         """ """
         return int(self._dates.shape[0])
 
-    def __getitem__(self, index: int | str | slice) -> OT | Self:  # type: ignore[override]
+    @overload
+    def __getitem__(self, index: int) -> OT: ...
+    @overload
+    def __getitem__(self, index: str) -> OT: ...
+    @overload
+    def __getitem__(self, index: slice) -> Self: ...
+    def __getitem__(self, index: int | str | slice) -> OT | Self:
         """Positional element, ISO-date lookup, or sliced sub-sequence."""
         if isinstance(index, slice):
             sliced = {k: v[index] for k, v in self._columns().items()}
-
             return self._rebuild(sliced, self._metadata())
 
         if isinstance(index, str):
@@ -1256,7 +1271,7 @@ class _ObservationSequence[OT: _ObservationBase](Sequence[OT]):
         return bool(_row_match_mask(self._columns(), targets).any())
 
     def __eq__(self, other: object) -> bool:
-        if type(self) is not type(other):
+        if not isinstance(other, _ObservationSequence) or type(self) is not type(other):
             return NotImplemented
 
         if self._metadata() != other._metadata():
@@ -1289,7 +1304,10 @@ class _ObservationSequence[OT: _ObservationBase](Sequence[OT]):
             else ""
         )
 
-        return f"<b>{type(self).__name__}</b> ({self.series_id})<table><tr>{head}</tr>{''.join(rows)}{more}</table>"
+        return (
+            f"<b>{type(self).__name__}</b> ({self.series_id})"
+            f"<table><tr>{head}</tr>{''.join(rows)}{more}</table>"
+        )
 
     def _ipython_key_completions_(self) -> list[str]:
         return [np.datetime_as_string(d, unit="D").item() for d in np.unique(self._dates)]
@@ -1316,10 +1334,10 @@ class _ObservationSequence[OT: _ObservationBase](Sequence[OT]):
             i = _first_date_index(self._dates, key)
 
         except ValueError as e:
-            raise ModelError(f"invalid ISO date key {key!r}.") from e
+            raise ErrorPlaceholder(f"invalid ISO date key {key!r}.") from e
 
         if i is None:
-            raise ModelError(f"no observation with date {key!r} in {self.series_id!r}.")
+            raise ErrorPlaceholder(f"no observation with date {key!r} in {self.series_id!r}.")
 
         return self._make(i)
 
@@ -1344,12 +1362,17 @@ class _ObservationSequence[OT: _ObservationBase](Sequence[OT]):
     def to_arrow(self) -> pa.Table:
         return _columns_to_arrow(self._columns())
 
-    def to_dataframe(self, backend: str | None = None, **kwargs: Any) -> Any:
+    def to_dataframe(
+        self,
+        backend: str | None = None,
+        index: str | None = None,
+        npartitions: int = 1,
+    ) -> pl.DataFrame | pd.DataFrame | dd.DataFrame | cudf.DataFrame | pa.Table | Self:
         """Convert using the resolved backend (explicit > global setting > default)."""
         return {
-            "pandas": lambda: self.to_pandas(**kwargs),
+            "pandas": lambda: self.to_pandas(index=index),
             "polars": lambda: self.to_polars(),
-            "dask": lambda: self.to_dask(**kwargs),
-            "cudf": lambda: self.to_cudf(**kwargs),
+            "dask": lambda: self.to_dask(npartitions=npartitions, index=index),
+            "cudf": lambda: self.to_cudf(index=index),
             "fedfred": lambda: self._to_self(),
         }[_resolve_dataframe_backend(backend)]()

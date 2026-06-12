@@ -39,44 +39,8 @@ See Also:
     - :mod:`fedfred._internals._models`: Response-model and sequence bases.
 """
 
-from .._core import (
-    _coerce_lower,
-    _ResponseShape,
-)
-from ._caching import (
-    AdjustableFIFOCache,
-    _retrieve_cache_instance,
-    get_cache_maxsize,
-    set_cache_maxsize,
-)
-from ._clients import (
-    _AsyncBaseClient,
-    _BaseClient,
-    _ClientModel,
-)
-from ._models import (
-    _DateBase,
-    _DateSequence,
-    _ModelBase,
-    _ModelSequence,
-    _ObservationBase,
-    _ObservationSequence,
-)
+import atexit
 
-__all__ = [
-    "AdjustableFIFOCache",
-    "_AsyncBaseClient",
-    "_BaseClient",
-    "_ClientModel",
-    "_DateBase",
-    "_DateSequence",
-    "_ModelBase",
-    "_ModelSequence",
-    "_ObservationBase",
-    "_ObservationSequence",
-    "_ResponseShape",
-    "_coerce_lower",
-    "_retrieve_cache_instance",
-    "get_cache_maxsize",
-    "set_cache_maxsize",
-]
+from ._transport import _HTTP_CLIENT
+
+atexit.register(_HTTP_CLIENT.close)

@@ -43,9 +43,7 @@ from dataclasses import dataclass
 
 from .base import CoreError
 
-__all__ = [
-    "DependencyLoadingError"
-]
+__all__ = ["DependencyLoadingError"]
 
 
 @dataclass(frozen=True, slots=True)

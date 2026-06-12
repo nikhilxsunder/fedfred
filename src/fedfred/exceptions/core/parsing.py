@@ -46,11 +46,7 @@ from dataclasses import dataclass
 
 from .base import CoreError
 
-__all__ = [
-    "MissingFieldError",
-    "ParsingError",
-    "ResponseShapeError"
-]
+__all__ = ["MissingFieldError", "ParsingError", "ResponseShapeError"]
 
 
 @dataclass(frozen=True, slots=True)

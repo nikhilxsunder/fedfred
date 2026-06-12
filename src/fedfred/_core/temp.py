@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 from collections.abc import Callable
@@ -11,6 +10,7 @@ from ..settings import _resolve_geodataframe_backend
 if TYPE_CHECKING:
     import dask_geopandas as dd_gpd  # pragma: no cover
     import polars_st as st  # pragma: no cover
+
 
 # -------------------This-Section--Will-Be-Refactored-By-GeoFred-Objects-Design-Implementation-------------------#
 def _geopandas_geodataframe_converter(
@@ -172,4 +172,6 @@ def _resolve_geodataframe_converter(backend: str | None = None) -> Callable:
         backend = _resolve_geodataframe_backend()
 
     return GEODATAFRAME_CONVERTER_MAP[backend]
+
+
 # ---------------------------------------------------------------------------------------------------------------#

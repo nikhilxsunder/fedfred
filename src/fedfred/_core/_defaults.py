@@ -106,3 +106,15 @@ Used as query parameters for GET endpoints and as the POST body for the
 :data:`_FRED_VERSION_TWO_BASE_PARAMETERS` by design — shared dicts across
 services invite cross-service corruption.
 """
+
+_FRED_MAX_REQUESTS_PER_MINUTE: int = 120
+"""Maximum requests per minute for the FRED API, shared by GeoFRED and ALFRED."""
+
+_FRASER_MAX_REQUESTS_PER_MINUTE: int = 30
+"""Maximum requests per minute for the FRASER API."""
+
+_WINDOW_SECONDS: float = 60.0
+"""Length of the rolling rate-limit window, in seconds."""
+
+_CONCURRENCY_DIVISOR: int = 10
+"""Divisor mapping a bucket's per-minute ceiling to its baseline concurrency cap."""

@@ -38,6 +38,10 @@ Aliases:
     ParameterConverter: ``(name, value) -> value`` scalar parameter converter.
     ParameterValidator: ``(name, value) -> None`` parameter validator (raises on invalid).
     _ResponseShape: Container shape of a FRED response payload.
+    CacheValue: A single cache-keyable prepared parameter value (str, int, or None).
+    CacheParameters: A prepared request-parameter mapping (name -> value) to be cache-keyed.
+    CacheKey: The hashable, key-sorted form of CacheParameters, used as a cache key.
+    T: Generic type variable for caller-supplied default values.
 
 Constants:
     _VALID_AUTH_STYLES: Runtime form of :data:`AuthStyle`.
@@ -53,8 +57,8 @@ References:
 
 from __future__ import annotations
 
-from collections.abc import Callable
-from typing import Literal, get_args
+from collections.abc import Callable, Mapping, Sequence
+from typing import Literal, TypeAlias, TypeVar, get_args
 
 from ..settings import Service
 
@@ -114,3 +118,11 @@ CacheParameters = dict[str, CacheValue]
 
 CacheKey = tuple[tuple[str, CacheValue], ...]
 """The hashable, key-sorted form of :data:`CacheParameters`, used as a cache key."""
+
+T = TypeVar("T")
+"""Generic type variable for caller-supplied default values."""
+
+RateLimitBucket = Literal["fred", "fraser"]
+"""The rate-limit bucket an endpoint belongs to, used to select the applicable limiter."""
+
+JSON: TypeAlias = str | int | float | bool | None | Mapping[str, "JSON"] | Sequence["JSON"]

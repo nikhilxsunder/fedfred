@@ -19,22 +19,63 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""Internal core subpackage of fedfred.
+""""""
 
-Aggregates the request- and response-processing helpers used across the package
-and re-exports them under one namespace for internal use: cache-key conversion
-from :mod:`._converters`, endpoint resolution from :mod:`._endpoints`,
-per-service parameter preparation from :mod:`._parameters`, and response-shape
-parsing from :mod:`._parsers`.
+from ._accessors import _first_date_index
+from ._comparators import _columns_equal, _row_match_mask
+from ._converters import (
+    _columns_to_arrow,
+    _columns_to_cudf,
+    _columns_to_dask,
+    _columns_to_pandas,
+    _columns_to_polars,
+    _dict_type_converter,
+)
+from ._defaults import _CONCURRENCY_DIVISOR, _WINDOW_SECONDS
+from ._mappings import RATE_LIMIT_BUCKET, RATE_LIMIT_RPM
+from ._parsers import (
+    _extract_objects,
+    _observation_columns,
+)
+from ._resolvers import _resolve_endpoint, _resolve_preparation_function
+from ._sentinels import MISSING, _Sentinel
+from ._specs import EndpointSpec
+from ._types import (
+    JSON,
+    CacheKey,
+    CacheParameters,
+    RateLimitBucket,
+    T,
+    _ResponseShape,
+)
+from ._validators import _validate_observation_columns
 
-These names are private implementation details, exported only so that sibling
-internal modules can import them from a single place; downstream users should
-depend on the public ``fedfred`` surface rather than on anything here.
-
-See Also:
-    - :mod:`fedfred._core._converters`: Value, DataFrame, and cache-key converters.
-    - :mod:`fedfred._core._endpoints`: Endpoint specification resolution.
-    - :mod:`fedfred._core._parameters`: Per-service parameter preparation.
-    - :mod:`fedfred._core._parsers`: Response-shape parsers.
-    - :mod:`fedfred._core._validators`: Parameter validators (used internally; not re-exported here).
-"""
+__all__ = [
+    "JSON",
+    "MISSING",
+    "RATE_LIMIT_BUCKET",
+    "RATE_LIMIT_RPM",
+    "_CONCURRENCY_DIVISOR",
+    "_WINDOW_SECONDS",
+    "CacheKey",
+    "CacheParameters",
+    "EndpointSpec",
+    "RateLimitBucket",
+    "T",
+    "_ResponseShape",
+    "_Sentinel",
+    "_columns_equal",
+    "_columns_to_arrow",
+    "_columns_to_cudf",
+    "_columns_to_dask",
+    "_columns_to_pandas",
+    "_columns_to_polars",
+    "_dict_type_converter",
+    "_extract_objects",
+    "_first_date_index",
+    "_observation_columns",
+    "_resolve_endpoint",
+    "_resolve_preparation_function",
+    "_row_match_mask",
+    "_validate_observation_columns",
+]
