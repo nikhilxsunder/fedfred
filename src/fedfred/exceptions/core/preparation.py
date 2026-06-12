@@ -45,6 +45,12 @@ from dataclasses import dataclass
 
 from .base import CoreError
 
+__all__ = [
+    "MissingParameterError",
+    "PreparationError",
+    "UnknownParameterError",
+]
+
 
 @dataclass(frozen=True, slots=True)
 class PreparationError(CoreError):

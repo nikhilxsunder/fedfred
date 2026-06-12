@@ -49,6 +49,13 @@ from dataclasses import dataclass
 
 from .base import CoreError
 
+__all__ = [
+    "EndpointAuthError",
+    "EndpointFieldTypeError",
+    "EndpointServiceError",
+    "EndpointSpecError"
+]
+
 
 @dataclass(frozen=True, slots=True)
 class EndpointSpecError(CoreError):

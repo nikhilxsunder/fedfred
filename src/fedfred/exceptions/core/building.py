@@ -45,6 +45,11 @@ from dataclasses import dataclass
 
 from .base import CoreError
 
+__all__ = [
+    "BuildError",
+    "EndpointSpecBuildError"
+]
+
 
 @dataclass(frozen=True, slots=True)
 class BuildError(CoreError):

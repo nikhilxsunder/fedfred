@@ -49,6 +49,15 @@ from dataclasses import dataclass
 
 from .base import CoreError
 
+__all__ = [
+    "ConversionError",
+    "DataFrameConversionError",
+    "DateConversionError",
+    "GeoDataFrameConversionError",
+    "ParameterConversionError",
+    "TypeConversionError",
+]
+
 
 @dataclass(frozen=True, slots=True)
 class ConversionError(CoreError):

@@ -46,6 +46,12 @@ from dataclasses import dataclass
 
 from .base import CoreError
 
+__all__ = [
+    "ResolutionError",
+    "UnknownServiceError",
+    "UnsupportedEndpointError"
+]
+
 
 @dataclass(frozen=True, slots=True)
 class ResolutionError(CoreError):

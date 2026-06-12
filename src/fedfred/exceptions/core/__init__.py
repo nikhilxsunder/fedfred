@@ -19,9 +19,57 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+"""Public exception surface for the fedfred core layer.
+
+Re-exports every exception raised by the ``fedfred._core`` modules, all rooted at
+:class:`CoreError` (which is independent of, not a subclass of,
+:class:`~fedfred.exceptions.base.FedFredError`). Import error types from here rather
+than the individual ``fedfred.exceptions.core.*`` modules.
+
+Three catch breadths:
+
+- ``except CoreError`` — any core-layer failure.
+- ``except <ModuleError>`` (:class:`ConversionError`, :class:`ParsingError`,
+  :class:`ValidationError`, …) — any failure from one module's hierarchy.
+- ``except <SpecificError>`` — one precise failure.
+
+Hierarchy::
+
+    CoreError
+    ├── BuildError                     # building
+    │   └── EndpointSpecBuildError
+    ├── ConversionError                # conversion
+    │   ├── ParameterConversionError
+    │   │   ├── TypeConversionError
+    │   │   └── DateConversionError
+    │   └── DataFrameConversionError
+    │       └── GeoDataFrameConversionError
+    ├── DependencyLoadingError         # loading
+    ├── ParsingError                   # parsing
+    │   ├── MissingFieldError
+    │   └── ResponseShapeError
+    ├── PreparationError               # preparation
+    │   ├── UnknownParameterError
+    │   └── MissingParameterError
+    ├── ResolutionError                # resolution
+    │   ├── UnknownServiceError
+    │   └── UnsupportedEndpointError
+    ├── EndpointSpecError              # specification
+    │   ├── EndpointServiceError
+    │   ├── EndpointURLError
+    │   ├── EndpointAuthError
+    │   └── EndpointFieldTypeError
+    └── ValidationError                # validation
+        └── ParameterValidationError
+            ├── TypeValidationError
+            └── ValueValidationError
+
+References:
+    - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/
+"""
 
 from .base import CoreError
-from .building import EndpointSpecBuildError
+from .building import BuildError, EndpointSpecBuildError
 from .conversion import (
     ConversionError,
     DataFrameConversionError,
@@ -49,6 +97,7 @@ from .validation import (
 )
 
 __all__ = [
+    "BuildError",
     "ConversionError",
     "CoreError",
     "DataFrameConversionError",
