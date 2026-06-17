@@ -1,4 +1,3 @@
-
 # filepath: /src/fedfred/models/alfred.py
 #
 # Copyright (c) 2026 Nikhil Sunder
@@ -20,8 +19,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""
-"""
+""" """
 
 from __future__ import annotations
 
@@ -30,13 +28,13 @@ from dataclasses import dataclass
 from datetime import date
 from typing import TYPE_CHECKING, Any, ClassVar, Self
 
-import numpy as np
 import pandas as pd
 
 from .._internals import _DateBase, _DateSequence, _ObservationBase, _ObservationSequence
 
 if TYPE_CHECKING:
     from .fred import PointSeries
+
 
 class VintageDate(_DateBase):
     """A FRED/ALFRED vintage date that *is* a ``datetime.date`` subclass.
@@ -68,10 +66,7 @@ class VintageDate(_DateBase):
     """Payload key(s) under which FRED returns the vintage-date list."""
 
     @classmethod
-    def _parse_value(
-        cls,
-        raw: object
-    ) -> VintageDate:
+    def _parse_value(cls, raw: object) -> VintageDate:
         """Build a single :class:`VintageDate` from one raw ISO-string payload.
 
         Args:
@@ -84,7 +79,9 @@ class VintageDate(_DateBase):
             ModelError: If ``raw`` is not a string.
         """
         if not isinstance(raw, str):
-            raise ModelError("Invalid vintage_date payload: expected an ISO string")  # TODO: ModelError
+            raise ModelError(
+                "Invalid vintage_date payload: expected an ISO string"
+            )  # TODO: ModelError
 
         d = date.fromisoformat(raw)
 
@@ -130,11 +127,7 @@ class VintageDates(_DateSequence[VintageDate]):
     series_id: str | None
     """The series these vintage dates belong to, or ``None`` if unattached."""
 
-    def __init__(
-        self,
-        items: Iterable[VintageDate],
-        series_id: str | None = None
-    ) -> None:
+    def __init__(self, items: Iterable[VintageDate], series_id: str | None = None) -> None:
         """Materialize ``items`` and attach an optional ``series_id``.
 
         Args:
@@ -144,10 +137,7 @@ class VintageDates(_DateSequence[VintageDate]):
         super().__init__(items)
         self.series_id = series_id
 
-    def _clone(
-        self,
-        items: Iterable[VintageDate]
-    ) -> Self:
+    def _clone(self, items: Iterable[VintageDate]) -> Self:
         """Construct a new :class:`VintageDates` forwarding the ``series_id``.
 
         Args:
@@ -159,11 +149,7 @@ class VintageDates(_DateSequence[VintageDate]):
         return type(self)(items, series_id=self.series_id)
 
     @classmethod
-    def _from_response(
-        cls,
-        response: dict[str, Any],
-        series_id: str | None = None
-    ) -> VintageDates:
+    def _from_response(cls, response: dict[str, Any], series_id: str | None = None) -> VintageDates:
         """Build a :class:`VintageDates` from a FRED/ALFRED response payload.
 
         Args:
@@ -279,10 +265,7 @@ class VintageObservation(_ObservationBase):
             realtime_end=realtime_end,
         )
 
-    def covers(
-        self,
-        realtime: date
-    ) -> bool:
+    def covers(self, realtime: date) -> bool:
         """Whether this value was the current vintage as of ``realtime``.
 
         The ALFRED realtime bracket is inclusive on both ends; this is the
@@ -310,57 +293,43 @@ class VintageObservation(_ObservationBase):
 
 
 class VintageSeries(_ObservationSequence[VintageObservation]):
-    """
-    """
-    __slots__ = ("_realtime_start", "_realtime_end")
+    """ """
+
+    __slots__ = ("_realtime_end", "_realtime_start")
     _element_type = VintageObservation
 
     @classmethod
-    def _assemble(
-        cls,
-        response,
-        dates,
-        values,
-        series_id,
-        units,
-        frequency
-    ) -> VintageSeries:
+    def _assemble(cls, response, dates, values, series_id, units, frequency) -> VintageSeries:
         obs = response["observations"]
-        return cls(dates, values,
-                   realtime_start=_date_column(obs, "realtime_start"),
-                   realtime_end=_date_column(obs, "realtime_end"),
-                   series_id=series_id, units=units, frequency=frequency)
+        return cls(
+            dates,
+            values,
+            realtime_start=_date_column(obs, "realtime_start"),
+            realtime_end=_date_column(obs, "realtime_end"),
+            series_id=series_id,
+            units=units,
+            frequency=frequency,
+        )
 
     def __init__(
-        self,
-        dates,
-        values,
-        realtime_start,
-        realtime_end,
-        series_id,
-        units=None,
-        frequency=None
+        self, dates, values, realtime_start, realtime_end, series_id, units=None, frequency=None
     ) -> None:
-        """
-        """
+        """ """
         super().__init__(dates, values, series_id=series_id, units=units, frequency=frequency)
 
         self._validate_column("realtime_start", realtime_start, "M")
 
         self._validate_column("realtime_end", realtime_end, "M")
 
-        self._realtime_start = realtime_start    # per-row columns
+        self._realtime_start = realtime_start  # per-row columns
 
         self._realtime_end = realtime_end
 
-    def _make(
-        self,
-        i
-    ):
-        """
-        """
+    def _make(self, i):
+        """ """
         return VintageObservation(
-            _cell_date(self._dates, i), _cell_value(self._values, i),
+            _cell_date(self._dates, i),
+            _cell_value(self._values, i),
             realtime_start=_cell_date(self._realtime_start, i),
             realtime_end=_cell_date(self._realtime_end, i),
         )
@@ -369,20 +338,19 @@ class VintageSeries(_ObservationSequence[VintageObservation]):
         return {
             **super()._columns(),
             "realtime_start": self._realtime_start,
-            "realtime_end": self._realtime_end
+            "realtime_end": self._realtime_end,
         }
 
-    def _rebuild(
-        self,
-        columns,
-        metadata
-    ):
+    def _rebuild(self, columns, metadata):
         return VintageSeries(
-            columns["date"], columns["value"],
-            realtime_start=columns["realtime_start"], realtime_end=columns["realtime_end"],
-            **metadata)
+            columns["date"],
+            columns["value"],
+            realtime_start=columns["realtime_start"],
+            realtime_end=columns["realtime_end"],
+            **metadata,
+        )
 
-    def as_of(self, realtime: date) -> PointSeries: ...   # vectorized mask + collapse
+    def as_of(self, realtime: date) -> PointSeries: ...  # vectorized mask + collapse
 
     def latest(self) -> PointSeries: ...
 

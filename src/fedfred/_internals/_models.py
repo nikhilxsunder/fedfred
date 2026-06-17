@@ -1229,7 +1229,8 @@ class _ObservationSequence[OT: _ObservationBase](Sequence[OT]):
         self.frequency = frequency
 
     def __len__(self) -> int:
-        """ """
+        """
+        """
         return int(self._dates.shape[0])
 
     @overload

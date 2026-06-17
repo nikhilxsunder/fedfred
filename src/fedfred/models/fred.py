@@ -97,7 +97,7 @@ import pandas as pd
 
 from .._internals import (
     _ClientModel,
-    _coerce_lower, # TODO: this is a re-export from core needs a refactor fix.
+    _coerce_lower,  # TODO: this is a re-export from core needs a refactor fix.
     _DateBase,
     _DateSequence,
     _ModelBase,
@@ -116,24 +116,6 @@ if TYPE_CHECKING:
     from ..clients import Fred
 
 # TODO: Fix all docstrings post error design.
-
-__all__ = [
-    "BulkRelease",
-    "Categories",
-    "Category",
-    "Element",
-    "Elements",
-    "Release",
-    "ReleaseDate",
-    "ReleaseDates",
-    "Releases",
-    "Series",
-    "Seriess",
-    "Source",
-    "Sources",
-    "Tag",
-    "Tags",
-]
 
 
 @dataclass(slots=True)
@@ -203,11 +185,7 @@ class Category(_ModelBase):
 
     # Class Methods
     @classmethod
-    def _from_dict(
-        cls,
-        data: dict[str, Any],
-        client: _ClientModel | None = None
-    ) -> Category:
+    def _from_dict(cls, data: dict[str, Any], client: _ClientModel | None = None) -> Category:
         """Build a single :class:`Category` from one raw FRED payload mapping.
 
         Internal parser used by :meth:`_from_response` and by sequence containers
@@ -238,10 +216,14 @@ class Category(_ModelBase):
             - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.Category.html
         """
         if not isinstance(data, dict):
-            raise ModelError("Invalid category payload: expected a mapping")  # TODO: Define ModelError
+            raise ModelError(
+                "Invalid category payload: expected a mapping"
+            )  # TODO: Define ModelError
 
         if "id" not in data or "name" not in data:
-            raise ModelError("Invalid category payload: missing 'id' or 'name'")  # TODO: Define ModelError
+            raise ModelError(
+                "Invalid category payload: missing 'id' or 'name'"
+            )  # TODO: Define ModelError
 
         return cls(id=data["id"], name=data["name"], parent_id=data.get("parent_id"), client=client)
 
@@ -378,11 +360,16 @@ class Categories(_ModelSequence[Category]):
             for c in head
         )
 
-        caption = "" if len(self._items) <= 10 else f"<caption>showing 10 of {len(self._items)}</caption>"
+        caption = (
+            "" if len(self._items) <= 10 else f"<caption>showing 10 of {len(self._items)}</caption>"
+        )
 
-        return ("<table>" + caption +
-                "<thead><tr><th>id</th><th>name</th><th>parent_id</th></tr></thead>"
-                f"<tbody>{rows}</tbody></table>")
+        return (
+            "<table>"
+            + caption
+            + "<thead><tr><th>id</th><th>name</th><th>parent_id</th></tr></thead>"
+            f"<tbody>{rows}</tbody></table>"
+        )
 
 
 @dataclass(slots=True)
@@ -506,11 +493,7 @@ class Series(_ModelBase):
 
     # Class Methods
     @classmethod
-    def _from_dict(
-        cls,
-        data: dict[str, Any],
-        client: _ClientModel | None = None
-    ) -> Series:
+    def _from_dict(cls, data: dict[str, Any], client: _ClientModel | None = None) -> Series:
         """Build a single :class:`Series` from one raw FRED payload mapping.
 
         Internal parser used by :meth:`_from_response` and by sequence containers
@@ -700,11 +683,16 @@ class Seriess(_ModelSequence[Series]):
             for s in head
         )
 
-        caption = "" if len(self._items) <= 10 else f"<caption>showing 10 of {len(self._items)}</caption>"
+        caption = (
+            "" if len(self._items) <= 10 else f"<caption>showing 10 of {len(self._items)}</caption>"
+        )
 
-        return ("<table>" + caption +
-                "<thead><tr><th>id</th><th>title</th><th>frequency</th><th>units</th></tr></thead>"
-                f"<tbody>{rows}</tbody></table>")
+        return (
+            "<table>"
+            + caption
+            + "<thead><tr><th>id</th><th>title</th><th>frequency</th><th>units</th></tr></thead>"
+            f"<tbody>{rows}</tbody></table>"
+        )
 
 
 @dataclass(slots=True)
@@ -775,11 +763,7 @@ class Tag(_ModelBase):
 
     # Class Methods
     @classmethod
-    def _from_dict(
-        cls,
-        data: dict[str, Any],
-        client: _ClientModel | None = None
-    ) -> Tag:
+    def _from_dict(cls, data: dict[str, Any], client: _ClientModel | None = None) -> Tag:
         """Build a single :class:`Tag` from one raw FRED payload mapping.
 
         Internal parser used by :meth:`_from_response` and by sequence containers.
@@ -899,11 +883,16 @@ class Tags(_ModelSequence[Tag]):
             for t in head
         )
 
-        caption = "" if len(self._items) <= 10 else f"<caption>showing 10 of {len(self._items)}</caption>"
+        caption = (
+            "" if len(self._items) <= 10 else f"<caption>showing 10 of {len(self._items)}</caption>"
+        )
 
-        return ("<table>" + caption +
-                "<thead><tr><th>name</th><th>group_id</th><th>popularity</th><th>series_count</th></tr></thead>"
-                f"<tbody>{rows}</tbody></table>")
+        return (
+            "<table>"
+            + caption
+            + "<thead><tr><th>name</th><th>group_id</th><th>popularity</th><th>series_count</th></tr></thead>"
+            f"<tbody>{rows}</tbody></table>"
+        )
 
 
 @dataclass(slots=True)
@@ -984,11 +973,7 @@ class Release(_ModelBase):
 
     # Class Methods
     @classmethod
-    def _from_dict(
-        cls,
-        data: dict[str, Any],
-        client: _ClientModel | None = None
-    ) -> Release:
+    def _from_dict(cls, data: dict[str, Any], client: _ClientModel | None = None) -> Release:
         """Build a single :class:`Release` from one raw FRED payload mapping.
 
         Internal parser used by :meth:`_from_response` and by sequence containers.
@@ -1172,11 +1157,16 @@ class Releases(_ModelSequence[Release]):
             for r in head
         )
 
-        caption = "" if len(self._items) <= 10 else f"<caption>showing 10 of {len(self._items)}</caption>"
+        caption = (
+            "" if len(self._items) <= 10 else f"<caption>showing 10 of {len(self._items)}</caption>"
+        )
 
-        return ("<table>" + caption +
-                "<thead><tr><th>id</th><th>name</th><th>press_release</th></tr></thead>"
-                f"<tbody>{rows}</tbody></table>")
+        return (
+            "<table>"
+            + caption
+            + "<thead><tr><th>id</th><th>name</th><th>press_release</th></tr></thead>"
+            f"<tbody>{rows}</tbody></table>"
+        )
 
 
 class ReleaseDate(_DateBase):
@@ -1303,16 +1293,15 @@ class ReleaseDate(_DateBase):
             ReleaseDate: A reconstructed :class:`ReleaseDate` instance.
         """
         return cls.create(
-            year, month, day,
+            year,
+            month,
+            day,
             release_id=release_id,
             release_name=release_name,
         )
 
     @classmethod
-    def _parse_value(
-        cls,
-        raw: object
-    ) -> ReleaseDate:
+    def _parse_value(cls, raw: object) -> ReleaseDate:
         """Build a single :class:`ReleaseDate` from one raw FRED payload mapping.
 
         Internal parser used by :class:`ReleaseDates`. Accepts an ISO date
@@ -1338,7 +1327,9 @@ class ReleaseDate(_DateBase):
         d = date.fromisoformat(d_raw) if isinstance(d_raw, str) else d_raw
 
         return cls.create(
-            d.year, d.month, d.day,
+            d.year,
+            d.month,
+            d.day,
             release_id=raw["release_id"],
             release_name=raw.get("release_name"),
         )
@@ -1367,12 +1358,7 @@ class ReleaseDate(_DateBase):
         )
 
     # Protected Methods
-    def _with_date(
-        self,
-        year: int,
-        month: int,
-        day: int
-    ) -> Self:
+    def _with_date(self, year: int, month: int, day: int) -> Self:
         """Rebuild this instance at a new (year, month, day), preserving metadata.
 
         Override of :meth:`fedfred._internals._models._DateBase._with_date`
@@ -1390,7 +1376,9 @@ class ReleaseDate(_DateBase):
             the same release metadata.
         """
         return type(self).create(
-            year, month, day,
+            year,
+            month,
+            day,
             release_id=self.release_id,
             release_name=self.release_name,
         )
@@ -1427,10 +1415,7 @@ class ReleaseDates(_DateSequence[ReleaseDate]):
     __slots__ = ()
 
     # Protected Methods
-    def _lookup_value(
-        self,
-        item: ReleaseDate
-    ) -> str:
+    def _lookup_value(self, item: ReleaseDate) -> str:
         """Compute the lookup key for an item as its ISO date string.
 
         Override of :meth:`fedfred._internals._models._DateSequence._lookup_value`
@@ -1511,11 +1496,7 @@ class Source(_ModelBase):
 
     # Class Methods
     @classmethod
-    def _from_dict(
-        cls,
-        data: dict[str, Any],
-        client: _ClientModel | None = None
-    ) -> Source:
+    def _from_dict(cls, data: dict[str, Any], client: _ClientModel | None = None) -> Source:
         """Build a single :class:`Source` from one raw FRED payload mapping.
 
         Internal parser used by :meth:`_from_response` and by sequence containers.
@@ -1614,11 +1595,14 @@ class Sources(_ModelSequence[Source]):
             for s in head
         )
 
-        caption = "" if len(self._items) <= 10 else f"<caption>showing 10 of {len(self._items)}</caption>"
+        caption = (
+            "" if len(self._items) <= 10 else f"<caption>showing 10 of {len(self._items)}</caption>"
+        )
 
-        return ("<table>" + caption +
-                "<thead><tr><th>id</th><th>name</th><th>link</th></tr></thead>"
-                f"<tbody>{rows}</tbody></table>")
+        return (
+            "<table>" + caption + "<thead><tr><th>id</th><th>name</th><th>link</th></tr></thead>"
+            f"<tbody>{rows}</tbody></table>"
+        )
 
 
 @dataclass(slots=True)
@@ -1700,11 +1684,7 @@ class Element(_ModelBase):
 
     # Class Methods
     @classmethod
-    def _from_dict(
-        cls,
-        data: dict[str, Any],
-        client: _ClientModel | None = None
-    ) -> Element:
+    def _from_dict(cls, data: dict[str, Any], client: _ClientModel | None = None) -> Element:
         """Build a single :class:`Element` from one raw FRED payload mapping.
 
         Internal parser used by :meth:`_from_response` and by sequence containers.
@@ -1727,16 +1707,29 @@ class Element(_ModelBase):
         if not isinstance(data, dict):
             raise ModelError("Invalid element payload: expected a mapping")
 
-        for required in ("element_id", "release_id", "series_id", "parent_id", "line", "type", "name", "level"):
+        for required in (
+            "element_id",
+            "release_id",
+            "series_id",
+            "parent_id",
+            "line",
+            "type",
+            "name",
+            "level",
+        ):
             if required not in data:
                 raise ModelError(f"Invalid element payload: missing {required!r}")
 
         raw_children = data.get("children") or []
 
-        children = Elements(
-            (cls._from_dict(c, client=client) for c in raw_children),
-            client=client,
-        ) if raw_children else None
+        children = (
+            Elements(
+                (cls._from_dict(c, client=client) for c in raw_children),
+                client=client,
+            )
+            if raw_children
+            else None
+        )
 
         return cls(
             element_id=data["element_id"],
@@ -1834,11 +1827,16 @@ class Elements(_ModelSequence[Element]):
             for e in head
         )
 
-        caption = "" if len(self._items) <= 10 else f"<caption>showing 10 of {len(self._items)}</caption>"
+        caption = (
+            "" if len(self._items) <= 10 else f"<caption>showing 10 of {len(self._items)}</caption>"
+        )
 
-        return ("<table>" + caption +
-                "<thead><tr><th>element_id</th><th>name</th><th>type</th><th>level</th></tr></thead>"
-                f"<tbody>{rows}</tbody></table>")
+        return (
+            "<table>"
+            + caption
+            + "<thead><tr><th>element_id</th><th>name</th><th>type</th><th>level</th></tr></thead>"
+            f"<tbody>{rows}</tbody></table>"
+        )
 
 
 @dataclass(slots=True)
@@ -1899,8 +1897,11 @@ class PointObservation(_ObservationBase):
 
 
 class PointSeries(_ObservationSequence[PointObservation]):
-    __slots__ = ("realtime_start", "realtime_end")
+    """
+    """
+    # TODO: Empty Docstring
 
+    __slots__ = ("realtime_end", "realtime_start")
 
     _element_type = PointObservation
 
@@ -1908,12 +1909,12 @@ class PointSeries(_ObservationSequence[PointObservation]):
     @classmethod
     def _assemble(
         cls,
-        response,
-        dates,
-        values,
-        series_id,
-        units,
-        frequency
+        response: dict,
+        dates: np.ndarray,
+        values: np.ndarray,
+        series_id: str,
+        units: str | None,
+        frequency: str | None
     ) -> PointSeries:
         return cls(
             dates,
@@ -1922,44 +1923,38 @@ class PointSeries(_ObservationSequence[PointObservation]):
             units=units,
             frequency=frequency,
             realtime_start=date.fromisoformat(response["realtime_start"]),
-            realtime_end=date.fromisoformat(response["realtime_end"])
+            realtime_end=date.fromisoformat(response["realtime_end"]),
         )
 
     # Dunder Methods
     def __init__(
         self,
-        dates,
-        values,
-        series_id,
-        realtime_start,
-        realtime_end,
-        units=None,
-        frequency=None
+        dates: np.ndarray,
+        values: np.ndarray,
+        series_id: str,
+        realtime_start: date,
+        realtime_end: date,
+        units: str | None = None,
+        frequency: str | None = None
     ) -> None:
+        """
+        """
         super().__init__(dates, values, series_id=series_id, units=units, frequency=frequency)
         self.realtime_start = realtime_start
         self.realtime_end = realtime_end
 
     # Protected Methods
-    def _make(
-        self,
-        i
-    ) -> PointObservation:
+    def _make(self, i) -> PointObservation:
         return PointObservation(_cell_date(self._dates, i), _cell_value(self._values, i))
-
 
     def _metadata(self):
         return {
             **super()._metadata(),
             "realtime_start": self.realtime_start,
-            "realtime_end": self.realtime_end
+            "realtime_end": self.realtime_end,
         }
 
-    def _rebuild(
-        self,
-        columns,
-        metadata
-    ) -> PointSeries:
+    def _rebuild(self, columns, metadata) -> PointSeries:
         return PointSeries(columns["date"], columns["value"], **metadata)
 
     # Public Methods
@@ -1979,7 +1974,7 @@ class PointSeries(_ObservationSequence[PointObservation]):
         """The observations as one freq-aware pandas Series, named by series id."""
         return _columns_to_series(self._values, self._dates, self.frequency, self.series_id)
 
-    def to_torch(self, *, dtype: torch.dtype | None = None, device: Any = "cpu") -> torch.Tensor:
+    def to_torch(self, dtype: torch.dtype | None = None, device: str = "cpu") -> torch.Tensor:
         """The values as a 1-D float tensor, shape ``(T,)``.
 
         Dates are intentionally excluded — a tensor is numeric, and the date axis is

@@ -1,8 +1,5 @@
-
-
 import asyncio
 from dataclasses import dataclass
-from typing import Dict, List
 
 
 @dataclass(slots=True)
@@ -39,6 +36,7 @@ class SeriesGroup:
         - :class:`fedfred.Series`: For the object representation of a FRED series.
         - :meth:`fedfred.Fred.get_series_group`: For retrieving series group information from the FRED API.
     """
+
     title: str
     """The title of the series group."""
 
@@ -64,7 +62,7 @@ class SeriesGroup:
     """The maximum date of the series group."""
 
     @classmethod
-    def to_object(cls, response: Dict) -> List["SeriesGroup"]:
+    def to_object(cls, response: dict) -> list["SeriesGroup"]:
         """Parses the FRED API response and returns a list of SeriesGroup objects.
 
         Args:
@@ -103,7 +101,6 @@ class SeriesGroup:
         References:
             - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.objects.SeriesGroup.to_object.html
         """
-
         if "series_group" not in response:
             raise ValueError("Invalid API response: Missing 'series_group' field")
         series_group_data = response["series_group"]
@@ -118,7 +115,7 @@ class SeriesGroup:
                 units=series_group["units"],
                 frequency=series_group["frequency"],
                 min_date=series_group["min_date"],
-                max_date=series_group["max_date"]
+                max_date=series_group["max_date"],
             )
             for series_group in series_group_data
         ]
@@ -127,7 +124,7 @@ class SeriesGroup:
         return series_groups
 
     @classmethod
-    async def to_object_async(cls, response: Dict) -> List["SeriesGroup"]:
+    async def to_object_async(cls, response: dict) -> list["SeriesGroup"]:
         """Asynchronously parses the FRED API response and returns a list of SeriesGroup objects.
 
         Args:
@@ -169,5 +166,4 @@ class SeriesGroup:
         References:
             - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.objects.SeriesGroup.to_object_async.html
         """
-
         return await asyncio.to_thread(cls.to_object, response)

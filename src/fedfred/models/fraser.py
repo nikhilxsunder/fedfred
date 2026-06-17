@@ -21,66 +21,77 @@
 # SOFTWARE.
 
 from dataclasses import dataclass
-from typing import List, Optional, Union
+from typing import Optional
 
 
 @dataclass
 class PhysicalDescription:
-    form: Optional[str]
-    digital_origin: Optional[str]
+    form: str | None
+    digital_origin: str | None
+
 
 @dataclass
 class Location:
     api_url: str
     url: str
 
+
 @dataclass
 class OriginInfo:
-    date_issued: Optional[List[str]]
-    issuance: Optional[str]
-    frequency: Optional[str]
+    date_issued: list[str] | None
+    issuance: str | None
+    frequency: str | None
+
 
 @dataclass
 class NameInfo:
-    role: Optional[str]
-    record_info: Optional['RecordInfo']
+    role: str | None
+    record_info: Optional["RecordInfo"]
     name_part: str
+
 
 @dataclass
 class Classification:
     authority: str
 
+
 @dataclass
 class TitleInfo:
     title: str
 
+
 @dataclass
 class RecordInfo:
-    record_identifier: Optional[Union[List[str], int]]
-    record_type: Optional[str]
-    record_updated_date: Optional[str]
-    record_creation_date: Optional[str]
+    record_identifier: list[str] | int | None
+    record_type: str | None
+    record_updated_date: str | None
+    record_creation_date: str | None
+
 
 @dataclass
 class Theme:
     theme: str
     record_info: RecordInfo
 
+
 @dataclass
 class Topic:
     topic: str
     record_info: RecordInfo
+
 
 @dataclass
 class Geographic:
     geographic: str
     record_info: RecordInfo
 
+
 @dataclass
 class Subject:
-    geographic: Optional[List[Geographic]]
-    topic: Optional[List[Topic]]
-    theme: Optional[List[Theme]]
+    geographic: list[Geographic] | None
+    topic: list[Topic] | None
+    theme: list[Theme] | None
+
 
 @dataclass
 class Record:
@@ -90,24 +101,25 @@ class Record:
     start: int
     page: int
     fields: str
-    subject: Optional[Subject]
-    title_info: Optional[List[TitleInfo]]
+    subject: Subject | None
+    title_info: list[TitleInfo] | None
     access_condition: str
-    language: List[str]
-    abstract: List[str]
+    language: list[str]
+    abstract: list[str]
     type_of_resource: str
-    related_item: Optional[List[RecordInfo]]
-    classification: Optional[List[Classification]]
-    record_info: Optional[RecordInfo]
-    name: Optional[List[NameInfo]]
-    genre: List[str]
-    origin_info: Optional[OriginInfo]
-    location: Optional[Location]
-    physical_description: Optional[PhysicalDescription]
+    related_item: list[RecordInfo] | None
+    classification: list[Classification] | None
+    record_info: RecordInfo | None
+    name: list[NameInfo] | None
+    genre: list[str]
+    origin_info: OriginInfo | None
+    location: Location | None
+    physical_description: PhysicalDescription | None
+
 
 @dataclass
 class Title:
-    records: List[Record]
+    records: list[Record]
     limit: int
     start: int
     page: int
