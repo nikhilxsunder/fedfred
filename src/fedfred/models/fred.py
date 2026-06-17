@@ -96,8 +96,10 @@ import numpy as np
 import pandas as pd
 
 from .._internals import (
+    _cell_date,  # TODO: this is a re-export from _core._accessors, needs a refactor fix.
+    _cell_value,  # TODO: this is a re-export from _core._accessors, needs a refactor fix.
     _ClientModel,
-    _coerce_lower,  # TODO: this is a re-export from core needs a refactor fix.
+    _coerce_lower,  # TODO: this is a re-export from _core._converters needs a refactor fix.
     _DateBase,
     _DateSequence,
     _ModelBase,
@@ -1897,8 +1899,8 @@ class PointObservation(_ObservationBase):
 
 
 class PointSeries(_ObservationSequence[PointObservation]):
-    """
-    """
+    """ """
+
     # TODO: Empty Docstring
 
     __slots__ = ("realtime_end", "realtime_start")
@@ -1914,7 +1916,7 @@ class PointSeries(_ObservationSequence[PointObservation]):
         values: np.ndarray,
         series_id: str,
         units: str | None,
-        frequency: str | None
+        frequency: str | None,
     ) -> PointSeries:
         return cls(
             dates,
@@ -1935,10 +1937,9 @@ class PointSeries(_ObservationSequence[PointObservation]):
         realtime_start: date,
         realtime_end: date,
         units: str | None = None,
-        frequency: str | None = None
+        frequency: str | None = None,
     ) -> None:
-        """
-        """
+        """ """
         super().__init__(dates, values, series_id=series_id, units=units, frequency=frequency)
         self.realtime_start = realtime_start
         self.realtime_end = realtime_end
