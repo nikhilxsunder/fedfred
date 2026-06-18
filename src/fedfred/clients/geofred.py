@@ -19,25 +19,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""fedfred.clients.geofred
-
-This module defines the GeoFred client for interacting with the Federal Reserve FRED Maps API.
-
-
-It provides synchronous and asynchronous methods to access various endpoints of the FRED Maps API, including
-series groups. The client includes features such as automatic parameter conversion, unified response objects,
-rate limiting, retries, and typed results.
-
-Classes:
-    GeoFred: Client for the Federal Reserve FRED Maps API.
-    AsyncGeoFred: Asychronous client for Federal Reserve FRED Maps API.
-
-Examples:
-    >>> import fedfred as fd
-    >>> geofred = fd.GeoFred('your_api_key')
-    >>> series_group = geofred.get_series_group('SMU56000000500000001')
-    >>> print(series_group[0].title)
-    'State Personal Income'
+"""
 """
 
 from __future__ import annotations
@@ -50,29 +32,6 @@ from typing import TYPE_CHECKING, Any
 
 import geopandas as gpd
 
-from ..._core import (
-    _CACHE,
-    # Rate Limit
-    _FRED_MAX_REQUESTS_PER_MINUTE,
-    _GEOFRED_PATH,
-    # Endpoints
-    _ST_LOUIS_FED_BASE_URL,
-    ASYNC_GEODATAFRAME_CONVERTER_MAP,
-    GEODATAFRAME_CONVERTER_MAP,
-    _cached_get_request_async,
-    # Transport
-    _get_request_async,
-    # Converters
-    _hashable_type_converter_async,
-    # Parsers
-    _region_type_parser,
-    _region_type_parser_async,
-    get_cache_maxsize,
-    # Caching
-    set_cache_maxsize,
-)
-from ...models import SeriesGroup
-from ...settings import _resolve_api_key, set_api_key
 from .._internals import _AsyncBaseClient, _BaseClient
 
 if TYPE_CHECKING:
@@ -165,7 +124,7 @@ class GeoFred(_BaseClient):
 
         data: dict[str, Any] = {"shape": shape}
 
-        response = self.__geofred_get_request(endpoint_name, data)
+        response = self._client_get_request(endpoint_name, data)
 
         # ----------------------------Needs-Abstraction-----------------------------------------------------------------
         if geodataframe_method == "geopandas":
@@ -196,7 +155,7 @@ class GeoFred(_BaseClient):
             )  # TODO: Custom Error class
         # ------------------------------------------------------------------------------------------------------------
 
-    def get_series_group(self, series_id: str) -> list[SeriesGroup]:
+    def get_series_group(self, series_id: str) -> SeriesGroup:
         """Get a GeoFRED series group
 
         This request returns the meta information needed to make requests for FRED data. Minimum
@@ -229,7 +188,7 @@ class GeoFred(_BaseClient):
 
         data: dict[str, Any] = {"series_id": series_id, "file_type": "json"}
 
-        response = self.__geofred_get_request(endpoint_name, data)
+        response = self._client_get_request(endpoint_name, data)
 
         return SeriesGroup.to_object(response)
 
@@ -286,9 +245,9 @@ class GeoFred(_BaseClient):
         }
 
         # ----------------------------Needs-Abstraction-----------------------------------------------------------------
-        response = self.__geofred_get_request(endpoint_name, data)
+        response = self._client_get_request(endpoint_name, data)
         meta_data = response.get("meta", {})
-        region_type = _region_type_parser(response)
+        region_type = _region_type_parser(response) # TODO: This calls func from _core._parsers, needs a refactor fix.
         shapefile = self.get_shape_files(region_type)
         # --------------------------------------------------------------------------------------------------------------
 
@@ -379,9 +338,9 @@ class GeoFred(_BaseClient):
         }
 
         # ----------------------------Needs-Abstraction-----------------------------------------------------------------
-        response = self.__geofred_get_request(endpoint_name, data)
+        response = self._client_get_request(endpoint_name, data)
         meta_data = response.get("meta", {})
-        region_type = _region_type_parser(response)
+        region_type = _region_type_parser(response) # TODO: This calls func from _core._parsers, needs a refactor fix.
         shapefile = self.get_shape_files(region_type)
         # --------------------------------------------------------------------------------------------------------------
 
@@ -440,320 +399,6 @@ class AsyncGeoFred(_AsyncBaseClient):
         - :class:`fedfred.Fred`: The synchronous FRED API client
     """
 
-    # Dunder Methods
-    def __init__(
-        self, api_key: str | None = None, caching_enabled: bool = True, cache_size: int = 256
-    ) -> None:
-        """Initialize with a reference to the parent AsyncFred instance and the grandparent Fred instance.
-
-        Args:
-            parent (AsyncFred): The parent AsyncFred instance.
-
-        Raises:
-            ValueError: If the parent is not a valid AsyncFred instance.
-
-        Examples:
-            >>> import fedfred as fd
-            >>> import asyncio
-            >>> async def main():
-            >>>     fred = fd.Fred('your_api_key').AsyncFred
-            >>>     maps_api = fred.AsyncGeoFred
-            >>>     # Also acceptable to initialize directly with a Fred instance
-            >>>     maps_api = fd.AsyncGeoFred(fred)
-            >>> asyncio.run(main())
-
-        Notes:
-            The AsyncGeoFred class is intended to be used as a sub-client of the AsyncFred class. It should
-            not be instantiated directly. Instead, access it via the AsyncGeoFred property of the AsyncFred
-            instance.
-
-        See Also:
-            - :class:`fedfred.AsyncFred`: The parent asynchronous FRED API client.
-            - :class:`fedfred.Fred`: The synchronous FRED API client
-            - :func:`fedfred.set_api_key`: Function to set the API key for FRED API access.
-        """
-        if api_key:
-            set_api_key(api_key, service="fred")
-
-        if caching_enabled:
-            set_cache_maxsize(cache_size)
-
-        self.caching_enabled: bool = caching_enabled
-        self.cache_size: int = get_cache_maxsize() if caching_enabled else cache_size
-
-    def __repr__(self) -> str:
-        """String representation of the AsyncGeoFred class.
-
-        Returns:
-            str: String representation of the AsyncGeoFred instance.
-
-        Notes:
-            The string representation includes the parent AsyncFred instance's string representation, the grandparent
-            Fred instance's string representation, and the AsyncGeoFred instance's string representation.
-
-        Examples:
-            >>> import fedfred as fd
-            >>> fred = fd.Fred('your_api_key', cache_mode=True, cache_size=256).AsyncFred
-            >>> maps_api = fred.AsyncGeoFred
-            >>> print(repr(maps_api))
-            'Fred(api_key='your_api_key', cache_mode=True, cache_size=256).AsyncFred(base_url=https://api.stlouisfed.org/fred/).AsyncGeoFred(base_url=https://api.stlouisfed.org/fred/maps/)'
-        """
-        try:
-            has_key = bool(_resolve_api_key(service="geofred"))
-        except (
-            RuntimeError
-        ):  # TODO: Add custom exception for missing API key and catch that instead.
-            has_key = False
-
-        auth = "<set>" if has_key else "None"
-
-        # TODO: include size of instance object in the repr string for debugging purposes (can use sys.getsizeof() for that).
-
-        return (
-            f"{type(self).__name__}("
-            f"api_key={auth}, "
-            f"caching_enabled={self.caching_enabled}, "
-            f"cache_size={self.cache_size}"
-            f")"
-        )
-
-    def __str__(self) -> str:
-        """String representation of the AsyncGeoFred class.
-
-        Returns:
-            str: String representation of the AsyncGeoFred instance.
-
-        Notes:
-            The string representation includes the parent AsyncFred instance's string representation, the grandparent
-            Fred instance's string representation, and the AsyncGeoFred instance's string representation.
-
-        Examples:
-            >>> import fedfred as fd
-            >>> fred = fd.Fred('your_api_key').AsyncFred
-            >>> maps_api = fred.AsyncGeoFred
-            >>> print(str(maps_api))
-            'Fred Instance:'
-            '  Base URL: https://api.stlouisfed.org/fred'
-            '  API Key: ****your_api_key'
-            '  Cache Mode: Enabled'
-            '  Cache Size: 256 items'
-            '  Max Requests per Minute: 120'
-            '  AsyncFred Instance:'
-            '    Base URL: https://api.stlouisfed.org/fred'
-            '    AsyncGeoFred Instance:'
-            '      Base URL: https://api.stlouisfed.org/fred/maps/'
-        """
-        try:
-            has_key = bool(_resolve_api_key(service="geofred"))
-        except (
-            RuntimeError
-        ):  # TODO: Add custom exception for missing API key and catch that instead.
-            has_key = False
-
-        auth_line = "configured" if has_key else "not configured"
-
-        cache_line = (
-            f"enabled (FIFO, maxsize={self.cache_size})" if self.caching_enabled else "disabled"
-        )
-
-        return (
-            f"{type(self).__name__} Instance:\n"
-            f"  Service: GeoFRED ({_ST_LOUIS_FED_BASE_URL}{_GEOFRED_PATH})\n"
-            f"  API Key: {auth_line}\n"
-            f"  Cache: {cache_line}\n"
-            f"  Rate Limit: {_FRED_MAX_REQUESTS_PER_MINUTE} req/min\n"
-        )
-
-    def __eq__(self, other: object) -> bool:
-        """Equality comparison for the AsyncGeoFred class.
-
-        Args:
-            other (object): The object to compare with.
-
-        Returns:
-            bool: True if the objects are equal, False otherwise.
-
-        Notes:
-            This method compares two AsyncGeoFred instances based on their attributes. If the other object is not a GeoFred
-            instance, it returns NotImplemented.
-
-        Examples:
-            >>> import fedfred as fd
-            >>> fred = fd.Fred('your_api_key').AsyncFred
-            >>> maps_api1 = fred.AsyncGeoFred
-            >>> maps_api2 = fred.AsyncGeoFred
-            >>> print(maps_api1 == maps_api2)
-            True
-        """
-        try:
-            assert isinstance(other, type(self))
-        except AssertionError:
-            return NotImplemented
-
-        return self.caching_enabled == other.caching_enabled and self.cache_size == other.cache_size
-
-    def __hash__(self) -> int:
-        """Hash function for AsyncGeoFred instances.
-
-        Returns:
-            int: The hash value of the AsyncGeoFred instance.
-
-        Notes:
-            The hash value is computed based on the API key of the grandparent Fred instance, the cache mode of the parent
-            AsyncFred instance, and the cache size of the grandparent Fred instance.
-
-        Examples:
-            >>> import fedfred as fd
-            >>> fred = fd.Fred('your_api_key').AsyncFred
-            >>> maps_api = fred.AsyncGeoFred
-            >>> print(hash(maps_api))
-        """
-        return hash((type(self).__name__, self.caching_enabled, self.cache_size))
-
-    def __len__(self) -> int:
-        """Get the number of cached items in the AsyncGeoFred instance.
-
-        Returns:
-            int: The number of items in the cache.
-
-        Notes:
-            This method returns the number of items currently stored in the cache.
-
-        Examples:
-            >>> import fedfred as fd
-            >>> fred = fd.Fred('your_api_key').AsyncFred
-            >>> maps_api = fred.AsyncGeoFred
-            >>> print(len(maps_api))
-        """
-        return len(_CACHE) if self.caching_enabled else 0
-
-    def __contains__(self, key: str) -> bool:
-        """Check if a specific item exists in the cache.
-
-        Args:
-            key (str): The name of the attribute to check.
-
-        Returns:
-            bool: True if the key exists, False otherwise.
-
-        Notes:
-            This method checks if a specific key is present in the cache.
-
-        Examples:
-            >>> import fedfred as fd
-            >>> fred = fd.Fred('your_api_key').AsyncFred
-            >>> maps_api = fred.AsyncGeoFred
-            >>> print('some_key' in maps_api)
-            True
-        """
-        return self.caching_enabled and key in _CACHE
-
-    def __getitem__(self, key: str) -> Any:
-        """Get a specific item from the cache.
-
-        Args:
-            key (str): The name of the attribute to get.
-
-        Returns:
-            Any: The value of the attribute.
-
-        Raises:
-            AttributeError: If the key does not exist.
-
-        Notes:
-            This method allows access to cached items using the indexing syntax.
-
-        Examples:
-            >>> import fedfred as fd
-            >>> fred = fd.Fred('your_api_key').AsyncFred
-            >>> maps_api = fred.AsyncGeoFred
-            >>> value = maps_api['some_key']
-            >>> print(value)
-            'some_value'
-        """
-        if not self.caching_enabled:
-            raise KeyError(
-                key
-            )  # TODO: Add custom exception for cache disabled and catch that instead.
-
-        return _CACHE.cache[key]
-
-    async def __aenter__(self) -> AsyncGeoFred:
-        """Enter the asynchronous runtime context.
-
-        Returns:
-            AsyncFred: The AsyncFred instance itself.
-
-        Notes:
-            AsyncFred does not currently own per-instance resources requiring explicit cleanup — transport opens and closes httpx.AsyncClient per
-            request, and the cache and rate-limit buckets are module-global. The context manager exists for ergonomic parity with httpx and as a
-            forward-compatible seam for future per-instance connection pooling.
-
-        Examples:
-            >>> import fedfred as fd
-            >>> import asyncio
-            >>> async def main():
-            ...     async with fd.AsyncFred("your_api_key") as fred:
-            ...         categories = await fred.get_category(125)
-            >>> asyncio.run(main())
-        """
-        return self
-
-    async def __aexit__(
-        self,
-        exc_type: type[BaseException] | None,
-        exc: BaseException | None,
-        tb: TracebackType | None,
-    ) -> None:
-        """Exit the asynchronous runtime context. No-op.
-
-        Args:
-            exc_type: Exception type if one was raised in the async-with-block.
-            exc: Exception instance, if any.
-            tb: Traceback, if any.
-
-        Notes:
-            Does not clear the cache or rate-limit buckets — those are shared
-            across all live Fred and AsyncFred instances.
-        """
-        return None
-
-    @property
-    def keys(self) -> KeysView[tuple[Any, ...]] | None:
-        """List of keys in the cache."""
-        return _CACHE.keys() if self.caching_enabled else None
-
-    # Private Methods
-    async def __geofred_get_request(
-        self, url_endpoint: str, data: dict[str, Any] | None = None
-    ) -> dict[str, Any]:
-        """Helper method to perform an asynchronous GET request to the FRED Maps API.
-
-        Args:
-            url_endpoint (str): The endpoint URL to send the GET request to.
-            data (Dict[str, Optional[Union[str, int]]], optional): The query parameters for the GET request.
-
-        Returns:
-            Dict[str, Any]: The JSON response from the FRED Maps API.
-
-        Raises:
-            ValueError: If the response from the FRED Maps API indicates an error.
-
-        Notes:
-            This method handles rate limiting and caching for asynchronous GET requests to the FRED Maps API.
-
-        Warnings:
-            Caching is only applied if `cache_mode` is enabled in the parent Fred instance. Ensure that the `data` parameter is hashable for
-            caching to work correctly.
-        """
-        if self.caching_enabled:
-            return await _cached_get_request_async(
-                url_endpoint, await _hashable_type_converter_async(data)
-            )
-
-        else:
-            return await _get_request_async(url_endpoint, data)
-
     # Public Methods
     async def get_shape_files(
         self, shape: str, geodataframe_method: str = "geopandas"
@@ -799,7 +444,7 @@ class AsyncGeoFred(_AsyncBaseClient):
 
         data: dict[str, Any] = {"shape": shape}
 
-        response = await self.__geofred_get_request(endpoint_name, data)
+        response = await self._client_get_request(endpoint_name, data)
 
         # ----------------------------Needs-Abstraction-----------------------------------------------------------------
         if geodataframe_method == "geopandas":
@@ -830,7 +475,7 @@ class AsyncGeoFred(_AsyncBaseClient):
             )  # TODO: Custom error class
         # ---------------------------------------------------------------------------------------------------------------
 
-    async def get_series_group(self, series_id: str) -> list[SeriesGroup]:
+    async def get_series_group(self, series_id: str) -> SeriesGroup:
         """Get a GeoFRED series group
 
         This request returns the meta information needed to make requests for FRED data. Minimum
@@ -866,7 +511,7 @@ class AsyncGeoFred(_AsyncBaseClient):
 
         data: dict[str, Any] = {"series_id": series_id, "file_type": "json"}
 
-        response = await self.__geofred_get_request(endpoint_name, data)
+        response = await self._client_get_request(endpoint_name, data)
 
         return await SeriesGroup.to_object_async(response)
 
@@ -925,9 +570,9 @@ class AsyncGeoFred(_AsyncBaseClient):
         }
 
         # ----------------------------Needs-Abstraction-----------------------------------------------------------------
-        response = await self.__geofred_get_request(endpoint_name, data)
+        response = await self._client_get_request(endpoint_name, data)
         meta_data = response.get("meta", {})
-        region_type = await _region_type_parser_async(response)
+        region_type = await _region_type_parser_async(response) # TODO: This calls func from _core._parsers, needs a refactor fix.
         shapefile = await self.get_shape_files(region_type)
         # --------------------------------------------------------------------------------------------------------------
 
@@ -1021,9 +666,9 @@ class AsyncGeoFred(_AsyncBaseClient):
         }
 
         # ----------------------------Needs-Abstraction-----------------------------------------------------------------
-        response = await self.__geofred_get_request(url_endpoint, data)
+        response = await self._client_get_request(url_endpoint, data)
         meta_data = response.get("meta", {})
-        region_type = await _region_type_parser_async(response)
+        region_type = await _region_type_parser_async(response) # TODO: This calls func from _core._parsers, needs a refactor fix.
         shapefile = await self.get_shape_files(region_type)
         # --------------------------------------------------------------------------------------------------------------
 

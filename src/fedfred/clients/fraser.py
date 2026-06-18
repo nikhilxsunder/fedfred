@@ -67,13 +67,14 @@ class Fraser(_BaseClient):
     # Public Methods
     ## API-Key
     def post_key_request(self, email: str, description: str) -> None:
-
+        """
+        """
         url_endpoint = "/api-key"
         data = {
             "email": email,
             "description": description,
         }
-        self.__fraser_post_request(url_endpoint, data)
+        self._client_post_request(url_endpoint, data)
         return None
 
     ## Titles

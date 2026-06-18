@@ -1918,6 +1918,8 @@ class PointSeries(_ObservationSequence[PointObservation]):
         units: str | None,
         frequency: str | None,
     ) -> PointSeries:
+        """ """
+        # TODO: Empty Docstring
         return cls(
             dates,
             values,
@@ -1940,26 +1942,35 @@ class PointSeries(_ObservationSequence[PointObservation]):
         frequency: str | None = None,
     ) -> None:
         """ """
+        # TODO: Empty docstring
         super().__init__(dates, values, series_id=series_id, units=units, frequency=frequency)
         self.realtime_start = realtime_start
         self.realtime_end = realtime_end
 
     # Protected Methods
-    def _make(self, i) -> PointObservation:
+    def _make(self, i: int) -> PointObservation:
+        """ """
+        # TODO: Empty docstring
         return PointObservation(_cell_date(self._dates, i), _cell_value(self._values, i))
 
-    def _metadata(self):
+    def _metadata(self) -> dict[str, Any]:
+        """ """
+        # TODO: Empty docstring
         return {
             **super()._metadata(),
             "realtime_start": self.realtime_start,
             "realtime_end": self.realtime_end,
         }
 
-    def _rebuild(self, columns, metadata) -> PointSeries:
+    def _rebuild(self, columns: dict[str, np.ndarray], metadata: dict[str, Any]) -> PointSeries:
+        """ """
+        # TODO: Empty Docstring
         return PointSeries(columns["date"], columns["value"], **metadata)
 
     # Public Methods
     def as_vintage(self) -> VintageSeries:
+        """ """
+        # TODO: Empty docstring
         n = len(self)
         return VintageSeries(
             self._dates,
