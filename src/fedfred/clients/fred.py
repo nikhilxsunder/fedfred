@@ -1061,7 +1061,7 @@ class Fred(_BaseClient):
 
     def get_release_observations(
         self, release_id: int, limit: int | None = None
-    ) -> list[BulkRelease]:  # TODO: needs complete implementation/redesign
+    ):  # TODO: needs complete implementation/redesign
         """Get FRED release observations in bulk.
 
         Fetches release observations in bulk from the FRED API.

@@ -1841,33 +1841,6 @@ class Elements(_ModelSequence[Element]):
         )
 
 
-@dataclass(slots=True)
-class BulkRelease:  # TODO: This thing is honest to god completely fucked just rewrite this with the v2 method.
-    """Placeholder for the bulk-release observation aggregation (v4 rewrite pending).
-
-    The v3 implementation of bulk-release retrieval is being replaced by a
-    cursor-based streaming aggregation in v4. This class is retained as a
-    type marker so that :meth:`fedfred.Fred.get_release_observations` keeps
-    a stable signature during the transition; the implementation will be
-    filled in once the v4 endpoint and observation-model designs are settled.
-
-    Warning:
-        This class is intentionally not yet implemented. Do not depend on
-        any attribute or method here. The full design will land alongside
-        the v4 observation model.
-
-    See Also:
-        - :class:`fedfred.Release`: For the underlying release object.
-        - :class:`fedfred.Series`: For the underlying series objects bundled in a bulk release.
-
-    References:
-        - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.BulkRelease.html
-        - Federal Reserve Bank of St. Louis, FRED API documentation. https://fred.stlouisfed.org/docs/api/fred/release_observations.html
-    """
-
-    pass
-
-
 @dataclass(frozen=True, slots=True)
 class PointObservation(_ObservationBase):
     """A FRED observation: a unique observation date mapped to a value.
@@ -2001,3 +1974,33 @@ class PointSeries(_ObservationSequence[PointObservation]):
         """
         torch = self._require("torch", "to_torch")
         return torch.tensor(self._values, dtype=dtype or torch.float32, device=device)
+
+
+@dataclass(slots=True)
+class ObservablesRelease:  # TODO: This thing is honest to god completely fucked just rewrite this with the v2 method.
+    """Placeholder for the bulk-release observation aggregation (v4 rewrite pending).
+
+    The v3 implementation of bulk-release retrieval is being replaced by a
+    cursor-based streaming aggregation in v4. This class is retained as a
+    type marker so that :meth:`fedfred.Fred.get_release_observations` keeps
+    a stable signature during the transition; the implementation will be
+    filled in once the v4 endpoint and observation-model designs are settled.
+
+    Warning:
+        This class is intentionally not yet implemented. Do not depend on
+        any attribute or method here. The full design will land alongside
+        the v4 observation model.
+
+    See Also:
+        - :class:`fedfred.Release`: For the underlying release object.
+        - :class:`fedfred.Series`: For the underlying series objects bundled in a bulk release.
+
+    References:
+        - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.BulkRelease.html
+        - Federal Reserve Bank of St. Louis, FRED API documentation. https://fred.stlouisfed.org/docs/api/fred/release_observations.html
+    """
+
+    release: Release
+
+    seriess: Seriess
+
