@@ -29,9 +29,7 @@ from fedfred._core._accessors import _cell_date, _cell_value, _first_date_index
 
 
 def test_cell_date():
-    dates = np.array(
-        ["2020-01-01", "2020-06-15", "2020-12-31"], dtype="datetime64[D]"
-    )
+    dates = np.array(["2020-01-01", "2020-06-15", "2020-12-31"], dtype="datetime64[D]")
 
     # --- value + type contract at row 0 -------------------------------------
     result = _cell_date(dates, 0)
@@ -50,9 +48,7 @@ def test_cell_date():
     assert _cell_date(dates, -1) == date(2020, 12, 31)
 
     # --- single-element column (mirrors the docstring doctest) --------------
-    assert _cell_date(np.array(["2020-01-01"], dtype="datetime64[D]"), 0) == date(
-        2020, 1, 1
-    )
+    assert _cell_date(np.array(["2020-01-01"], dtype="datetime64[D]"), 0) == date(2020, 1, 1)
 
     # --- edge dates round-trip exactly, all as pure dates -------------------
     # leap day, unix epoch, pre-epoch (negative day offset), max representable.

@@ -1,4 +1,4 @@
-# filepath: /src/fedfred/_core/_mappings.py
+# filepath: /src/fedfred/_core/_preparers.py
 #
 # Copyright (c) 2026 Nikhil Sunder
 #

@@ -117,6 +117,7 @@ def _resolve_endpoint(service: Service, endpoint_name: str) -> EndpointSpec:
             original_exception=exc,
         ) from exc
 
+
 _PREPARATION_FUNCTIONS: dict[str, Any] = {
     "fred": _prepare_fred_parameters,
     "geofred": _prepare_geofred_parameters,
@@ -124,6 +125,7 @@ _PREPARATION_FUNCTIONS: dict[str, Any] = {
 }
 """Service -> parameter-preparation function dispatch, backing
 :func:`_resolve_preparation_function`."""
+
 
 def _resolve_preparation_function(
     parameters: Mapping[str, Any] | None, service: str

@@ -19,8 +19,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""
-"""
+""" """
 
 from __future__ import annotations
 
@@ -245,7 +244,9 @@ class GeoFred(_BaseClient):
         # ----------------------------Needs-Abstraction-----------------------------------------------------------------
         response = self._client_get_request(endpoint_name, data)
         meta_data = response.get("meta", {})
-        region_type = _region_type_parser(response) # TODO: This calls func from _core._parsers, needs a refactor fix.
+        region_type = _region_type_parser(
+            response
+        )  # TODO: This calls func from _core._parsers, needs a refactor fix.
         shapefile = self.get_shape_files(region_type)
         # --------------------------------------------------------------------------------------------------------------
 
@@ -338,7 +339,9 @@ class GeoFred(_BaseClient):
         # ----------------------------Needs-Abstraction-----------------------------------------------------------------
         response = self._client_get_request(endpoint_name, data)
         meta_data = response.get("meta", {})
-        region_type = _region_type_parser(response) # TODO: This calls func from _core._parsers, needs a refactor fix.
+        region_type = _region_type_parser(
+            response
+        )  # TODO: This calls func from _core._parsers, needs a refactor fix.
         shapefile = self.get_shape_files(region_type)
         # --------------------------------------------------------------------------------------------------------------
 
@@ -570,7 +573,9 @@ class AsyncGeoFred(_AsyncBaseClient):
         # ----------------------------Needs-Abstraction-----------------------------------------------------------------
         response = await self._client_get_request(endpoint_name, data)
         meta_data = response.get("meta", {})
-        region_type = await _region_type_parser_async(response) # TODO: This calls func from _core._parsers, needs a refactor fix.
+        region_type = await _region_type_parser_async(
+            response
+        )  # TODO: This calls func from _core._parsers, needs a refactor fix.
         shapefile = await self.get_shape_files(region_type)
         # --------------------------------------------------------------------------------------------------------------
 
@@ -666,7 +671,9 @@ class AsyncGeoFred(_AsyncBaseClient):
         # ----------------------------Needs-Abstraction-----------------------------------------------------------------
         response = await self._client_get_request(url_endpoint, data)
         meta_data = response.get("meta", {})
-        region_type = await _region_type_parser_async(response) # TODO: This calls func from _core._parsers, needs a refactor fix.
+        region_type = await _region_type_parser_async(
+            response
+        )  # TODO: This calls func from _core._parsers, needs a refactor fix.
         shapefile = await self.get_shape_files(region_type)
         # --------------------------------------------------------------------------------------------------------------
 

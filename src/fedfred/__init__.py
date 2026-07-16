@@ -1,6 +1,6 @@
 # filepath: /src/fedfred/__init__.py
 #
-# Copyright (c) 2025–2026 Nikhil Sunder
+# Copyright (c) 2026 Nikhil Sunder
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -19,9 +19,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""fedfred.__init__
-
-This module initializes the fedfred package.
+"""This module initializes the fedfred package.
 
 Imports:
     Fred: A class that provides methods to interact with the Fred API.
@@ -45,95 +43,5 @@ Imports:
     BulkRelease: A class representing a bulk release in the Fred database.
 """
 
-# About
-from .__about__ import (
-    __author__,
-    __copyright__,
-    __description__,
-    __docs__,
-    __email__,
-    __license__,
-    __repository__,
-    __title__,
-    __version__,
-)
-
-# Deprecated
-#from ._core import FredAPI, FredHelpers
-
-# Clients
-from .clients import Alfred, AsyncAlfred, AsyncFred, AsyncGeoFred, Fraser, Fred, GeoFred
-
-
-# Models
-from .models import (
-    Category,
-    Element,
-    Release,
-    ReleaseDate,
-    Series,
-    Source,
-    Tag,
-    VintageDate,
-    VintageDates,
-)
-
-# Settings
-from .settings import clear_api_key, get_api_key, set_api_key
-
 # All
-__all__ = [
-    # About
-    "__title__",
-    "__description__",
-    "__version__",
-    "__copyright__",
-    "__author__",
-    "__email__",
-    "__license__",
-    "__repository__",
-    "__docs__",
-    # Settings
-    "set_api_key",
-    "get_api_key",
-    "clear_api_key",
-    # Clients
-    "Fred",
-    "AsyncFred",
-    "AsyncGeoFred",
-    "GeoFred",
-    "AsyncGeoFred",
-    "Fraser",
-    "Alfred",
-    "AsyncAlfred",
-    # Models
-    "Category",
-    "Series",
-    "Tag",
-    "Release",
-    "ReleaseDate",
-    "Source",
-    "Element",
-    "VintageDate",
-    "VintageDates",
-    "SeriesGroup",
-    "BulkRelease",
-    # Exceptions
-    "FedFredError",
-    "RequestContext",
-    "FedFredTransportError",
-    "FedFredParsingError",
-    "FedFredAPIError",
-    "FedFredRateLimitError",
-    "FedFredValidationError",
-    "FedFredHTTPError",
-    "FedFredAuthError",
-    "FedFredNotFoundError",
-    "FedFredServerError",
-    # Deprecated
-    "FredHelpers",
-    "FredAPI",
-    "AsyncAPI",
-    "AsyncMapsAPI",
-    "MapsAPI",
-]
+#__all__ = []

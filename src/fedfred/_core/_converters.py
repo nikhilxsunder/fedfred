@@ -590,7 +590,7 @@ def _coerce_lower(value: str | None) -> str | None:
         return None
 
     if not isinstance(value, str):
-        raise ConversionError(
+        raise TypeConversionError(
             message="Expected string or None for short-code field.",
             parameter=value,
             expected="str | None",
