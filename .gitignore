@@ -180,3 +180,5 @@ node_modules/
 .coverage
 conda-dist/
 .coverage*
+
+.ruff_cache/

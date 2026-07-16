@@ -59,35 +59,19 @@ from .__about__ import (
 )
 
 # Deprecated
-from ._core import FredAPI, FredHelpers
+#from ._core import FredAPI, FredHelpers
 
 # Clients
-from ._internals.clients import Alfred, AsyncAlfred, AsyncFred, AsyncGeoFred, Fraser, Fred, GeoFred
+from .clients import Alfred, AsyncAlfred, AsyncFred, AsyncGeoFred, Fraser, Fred, GeoFred
 
-# Exceptions
-from .exceptions import (
-    FedFredAPIError,
-    FedFredAuthError,
-    FedFredError,
-    FedFredHTTPError,
-    FedFredNotFoundError,
-    FedFredParsingError,
-    FedFredRateLimitError,
-    FedFredServerError,
-    FedFredTransportError,
-    FedFredValidationError,
-    RequestContext,
-)
 
 # Models
 from .models import (
-    BulkRelease,
     Category,
     Element,
     Release,
     ReleaseDate,
     Series,
-    SeriesGroup,
     Source,
     Tag,
     VintageDate,
@@ -96,10 +80,6 @@ from .models import (
 
 # Settings
 from .settings import clear_api_key, get_api_key, set_api_key
-
-AsyncAPI = FredAPI.AsyncAPI
-AsyncMapsAPI = FredAPI.AsyncAPI.AsyncMapsAPI
-MapsAPI = FredAPI.MapsAPI
 
 # All
 __all__ = [

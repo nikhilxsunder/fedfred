@@ -19,3 +19,56 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+
+from .fred import (
+    Category,
+    Categories,
+    Series,
+    Seriess,
+    Tag,
+    Tags,
+    Release,
+    Releases,
+    ReleaseDate,
+    ReleaseDates,
+    Source,
+    Sources,
+    Element,
+    Elements,
+    PointObservation,
+    PointSeries,
+    ObservablesRelease,
+    ObservablesReleases,
+)
+
+from .alfred import (
+    VintageDate,
+    VintageDates,
+    VintageObservation,
+    VintageSeries,
+)
+
+__all__ = [
+    "Category",
+    "Categories",
+    "Series",
+    "Seriess",
+    "Tag",
+    "Tags",
+    "Release",
+    "Releases",
+    "ReleaseDate",
+    "ReleaseDates",
+    "Source",
+    "Sources",
+    "Element",
+    "Elements",
+    "PointObservation",
+    "PointSeries",
+    "ObservablesRelease",
+    "ObservablesReleases",
+    "VintageDate",
+    "VintageDates",
+    "VintageObservation",
+    "VintageSeries"
+]

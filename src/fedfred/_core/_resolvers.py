@@ -50,7 +50,12 @@ from typing import Any
 
 from ..exceptions import UnknownServiceError, UnsupportedEndpointError
 from ..settings import Service
-from ._registries import _ENDPOINT_REGISTRY, FRED_PREPARATION_FUNCTIONS
+from ._preparers import (
+    _prepare_fraser_parameters,
+    _prepare_fred_parameters,
+    _prepare_geofred_parameters,
+)
+from ._registries import _ENDPOINT_REGISTRY
 from ._specs import EndpointSpec
 
 
@@ -112,6 +117,13 @@ def _resolve_endpoint(service: Service, endpoint_name: str) -> EndpointSpec:
             original_exception=exc,
         ) from exc
 
+_PREPARATION_FUNCTIONS: dict[str, Any] = {
+    "fred": _prepare_fred_parameters,
+    "geofred": _prepare_geofred_parameters,
+    "fraser": _prepare_fraser_parameters,
+}
+"""Service -> parameter-preparation function dispatch, backing
+:func:`_resolve_preparation_function`."""
 
 def _resolve_preparation_function(
     parameters: Mapping[str, Any] | None, service: str
@@ -140,12 +152,12 @@ def _resolve_preparation_function(
     service = service.lower()
 
     try:
-        return FRED_PREPARATION_FUNCTIONS[service](parameters)
+        return _PREPARATION_FUNCTIONS[service](parameters)
 
     except KeyError as exc:
         raise UnknownServiceError(
             message=f"Unknown service {service!r} for parameter preparation.",
             service=service,
-            known_services=tuple(sorted(FRED_PREPARATION_FUNCTIONS)),
+            known_services=tuple(sorted(_PREPARATION_FUNCTIONS)),
             original_exception=exc,
         ) from exc

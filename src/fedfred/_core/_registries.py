@@ -55,8 +55,6 @@ References:
 
 from __future__ import annotations
 
-from typing import Any
-
 from ..settings import Service
 from ._builders import _build_fred_style_specs
 from ._choices import (
@@ -76,11 +74,6 @@ from ._converters import (
 )
 from ._defaults import _FRASER_BASE_PARAMETERS, _GEOFRED_BASE_PARAMETERS
 from ._mappings import _FRASER_ENDPOINT_MAP, _GEOFRED_ENDPOINT_MAP
-from ._preparers import (
-    _prepare_fraser_parameters,
-    _prepare_fred_parameters,
-    _prepare_geofred_parameters,
-)
 from ._specs import EndpointSpec, ParameterSpec
 from ._urls import _FRASER_PATH, _GEOFRED_PATH, _ST_LOUIS_FED_BASE_URL
 from ._validators import (
@@ -240,10 +233,3 @@ FRASER_PARAMETER_SPECS: dict[str, ParameterSpec] = {
 }
 """Per-parameter specifications for FRASER API requests, mapping each known parameter name to its
 converter/validator handling."""
-
-FRED_PREPARATION_FUNCTIONS: dict[str, Any] = {  # TODO: refactor to avoid import cycle
-    "fred": _prepare_fred_parameters,
-    "geofred": _prepare_geofred_parameters,
-    "fraser": _prepare_fraser_parameters,
-}
-"""Mapping of lowercase service name to its parameter-preparation function."""

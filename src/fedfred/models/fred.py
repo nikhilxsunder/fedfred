@@ -551,6 +551,32 @@ class Series(_ModelBase):
             client=client,
         )
 
+    @classmethod
+    def _from_dict_with_observations(
+        cls, data: dict[str, Any], client: _ClientModel | None = None
+    ) -> Series:
+        """Build a :class:`Series` and attach its embedded observations as a PointSeries.
+
+        Used by the bulk ``release/observations`` path, where each series carries its own
+        ``observations`` array inline. Parses the standard metadata via :meth:`_from_dict`,
+        then builds a :class:`PointSeries` from the inline rows, reusing the columnar
+        observation parser (so FRED's ``"."`` missing marker maps to ``None``/``NaN``).
+
+        Args:
+            data (dict[str, Any]): A series payload including an ``observations`` array.
+            client (_ClientModel | None): The client to attach to the series.
+
+        Returns:
+            Series: The series with its ``observations`` populated.
+        """
+        series = cls._from_dict(data, client)
+        series._observations = PointSeries._from_response(
+            {"observations": data["observations"]},
+            series_id=data["series_id"],
+            frequency=data.get("frequency"),
+        )
+        return series
+
     # Properties
     @property
     def categories(self) -> Categories:
@@ -1872,7 +1898,7 @@ class PointObservation(_ObservationBase):
 
 
 class PointSeries(_ObservationSequence[PointObservation]):
-    """ """
+    """"""
 
     # TODO: Empty Docstring
 
@@ -1977,30 +2003,169 @@ class PointSeries(_ObservationSequence[PointObservation]):
 
 
 @dataclass(slots=True)
-class ObservablesRelease:  # TODO: This thing is honest to god completely fucked just rewrite this with the v2 method.
-    """Placeholder for the bulk-release observation aggregation (v4 rewrite pending).
+class ObservablesRelease(_ModelBase):
+    """A release together with its full observation dataset.
 
-    The v3 implementation of bulk-release retrieval is being replaced by a
-    cursor-based streaming aggregation in v4. This class is retained as a
-    type marker so that :meth:`fedfred.Fred.get_release_observations` keeps
-    a stable signature during the transition; the implementation will be
-    filled in once the v4 endpoint and observation-model designs are settled.
+    The unit returned by :meth:`fedfred.Fred.get_release_observations`: one
+    :class:`Release` plus the complete set of its :class:`Series`, each carrying its own
+    observations as a :class:`PointSeries`. Built from the FRED v2
+    ``release/observations`` endpoint, whose paginated pages are merged before
+    construction so every series here holds its *entire* observation history, not a
+    page-sized fragment.
 
-    Warning:
-        This class is intentionally not yet implemented. Do not depend on
-        any attribute or method here. The full design will land alongside
-        the v4 observation model.
+    Construction goes through :meth:`_from_dict` (one already-merged payload) or, from the
+    raw paginated pages, through :meth:`ObservablesReleases._from_list`. The generic list
+    extractors on :class:`_ModelBase` do not apply — this is a bespoke composite envelope,
+    not a keyed object list.
+
+    Attributes:
+        release (Release): The release metadata (name, url, sources).
+        seriess (Seriess): The release's series, each with its observations attached as a
+            :class:`PointSeries`.
+        client (_ClientModel | None): The attached FRED client (inherited), or ``None``.
 
     See Also:
-        - :class:`fedfred.Release`: For the underlying release object.
-        - :class:`fedfred.Series`: For the underlying series objects bundled in a bulk release.
+        - :class:`fedfred.Release`: The underlying release object.
+        - :class:`fedfred.Series`: The series objects bundled here, each with observations.
+        - :class:`fedfred.PointSeries`: The columnar observation container per series.
+        - :class:`ObservablesReleases`: The sequence wrapper and pagination merge entry point.
 
     References:
-        - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/api/_autosummary/fedfred.BulkRelease.html
-        - Federal Reserve Bank of St. Louis, FRED API documentation. https://fred.stlouisfed.org/docs/api/fred/release_observations.html
+        - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/
+        - Federal Reserve Bank of St. Louis, FRED API documentation.
+          https://fred.stlouisfed.org/docs/api/fred/release_observations.html
     """
 
     release: Release
 
+
     seriess: Seriess
+
+    _response_keys: ClassVar[tuple[str, ...]] = ()
+    """Unused — this composite is built via :meth:`_from_dict` / ``_from_list``, not the
+    generic keyed-list extractors. Defined so the sequence auto-wire has nothing to read."""
+
+    # Class Methods
+    @classmethod
+    def _from_dict(
+        cls, data: dict[str, Any], client: _ClientModel | None = None
+    ) -> ObservablesRelease:
+        """Build one instance from a single (already-merged) release-observations payload.
+
+        Parses the ``release`` object and each entry of the ``series`` list, attaching each
+        series' embedded observations as a :class:`PointSeries` via
+        :meth:`Series._from_dict_with_observations`.
+
+        Args:
+            data (dict[str, Any]): A release-observations payload — one page, or the merged
+                payload produced by :meth:`ObservablesReleases._from_list`.
+            client (_ClientModel | None): The client threaded into the constructed models.
+
+        Returns:
+            ObservablesRelease: The release plus its series and observations.
+
+        Raises:
+            ParsingError: If the payload lacks the expected ``release`` / ``series`` shape.
+        """
+        release = Release._from_dict(data["release"], client)
+
+        seriess = Seriess(
+            (
+                Series._from_dict_with_observations(raw_series, client=client)
+                for raw_series in data.get("series", ())
+            ),
+            client=client,
+        )
+
+        return cls(release=release, seriess=seriess, client=client)
+
+
+class ObservablesReleases(_ModelSequence[ObservablesRelease]):
+    """Sequence of :class:`ObservablesRelease`, and the pagination-merge entry point.
+
+    For a single ``release_id`` query this holds exactly one element (one release), so it
+    is effectively a one-element sequence — the wrapper exists for return-type symmetry
+    with the other plural endpoints. :meth:`_from_list` consumes the raw cursor-paginated
+    pages collected by :meth:`fedfred.Fred.get_release_observations`, merges them, and
+    builds the single contained :class:`ObservablesRelease`.
+
+    See Also:
+        - :class:`ObservablesRelease`: The contained element.
+        - :class:`fedfred.Release`: The underlying release object.
+        - :class:`fedfred.Series`: The series objects bundled per release.
+
+    References:
+        - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/
+        - Federal Reserve Bank of St. Louis, FRED API documentation.
+          https://fred.stlouisfed.org/docs/api/fred/release_observations.html
+    """
+
+    # Class Methods
+    @classmethod
+    def _from_list(
+        cls, data: list[dict[str, Any]], client: _ClientModel | None = None
+    ) -> ObservablesReleases:
+        """Merge the paginated page responses into the aggregated sequence.
+
+        The ``release`` is identical across pages (one ``release_id`` per call) and taken
+        from the first page; each series' observations are concatenated across page
+        boundaries. The cursor sorts by ``(series_id, date)``, so a series split across
+        pages resumes in a later page at the next unfetched date — there is no overlap, and
+        page-order concatenation preserves observation order without deduplication. The
+        merged payload is then built through :meth:`_parse_item` (i.e.
+        :meth:`ObservablesRelease._from_dict`).
+
+        Args:
+            data (list[dict[str, Any]]): The raw page responses, in fetch order.
+            client (_ClientModel | None): The client threaded into the constructed models.
+
+        Returns:
+            ObservablesReleases: A one-element sequence wrapping the merged
+            :class:`ObservablesRelease`; empty if ``data`` is empty.
+
+        Raises:
+            ParsingError: If a page lacks the expected ``release`` / ``series`` shape.
+        """
+        if not data:
+            return cls((), client=client)
+
+        merged = cls._merge_pages(data)
+
+        return cls((cls._parse_item(merged, client=client),), client=client)
+
+    @staticmethod
+    def _merge_pages(pages: list[dict[str, Any]]) -> dict[str, Any]:
+        """Collapse paginated pages into a single release-observations payload.
+
+        Keeps the first page's ``release`` and accumulates each series' observation rows by
+        ``series_id`` in first-seen order, concatenating across pages.
+
+        Args:
+            pages (list[dict[str, Any]]): The non-empty list of raw page responses.
+
+        Returns:
+            dict[str, Any]: A synthetic single-page payload — ``{"release": ...,
+            "series": [...]}`` — with every series' full observation history, suitable for
+            :meth:`ObservablesRelease._from_dict`.
+        """
+        merged_series: dict[str, dict[str, Any]] = {}
+        order: list[str] = []
+
+        for page in pages:
+            for raw_series in page.get("series", ()):
+                sid = raw_series["series_id"]
+
+                if sid not in merged_series:
+                    merged_series[sid] = {
+                        k: v for k, v in raw_series.items() if k != "observations"
+                    }
+                    merged_series[sid]["observations"] = []
+                    order.append(sid)
+
+                merged_series[sid]["observations"].extend(raw_series.get("observations", ()))
+
+        return {
+            "release": pages[0]["release"],
+            "series": [merged_series[sid] for sid in order],
+        }
 
