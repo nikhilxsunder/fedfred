@@ -182,3 +182,4 @@ conda-dist/
 .coverage*
 
 .ruff_cache/
+.temp/

@@ -2038,6 +2038,7 @@ class ObservablesRelease(_ModelBase):
 
     release: Release
 
+
     seriess: Seriess
 
     _response_keys: ClassVar[tuple[str, ...]] = ()
@@ -2167,3 +2168,4 @@ class ObservablesReleases(_ModelSequence[ObservablesRelease]):
             "release": pages[0]["release"],
             "series": [merged_series[sid] for sid in order],
         }
+

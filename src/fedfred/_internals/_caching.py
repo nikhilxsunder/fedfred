@@ -50,12 +50,10 @@ from ..exceptions import (
     CacheBackendError,
     CacheDeleteError,
     CacheInitializationError,
-    CacheKeyError,
     CacheOperationError,
     CachePopError,
     CacheResizeError,
     CacheSetError,
-    CachingError,
 )
 
 
@@ -178,7 +176,6 @@ class AdjustableFIFOCache[K, V](MutableMapping[K, V]):
             CacheBackendError,
             error_message="Unexpected backend error occurred during cache retrieval.",
             key=key,
-            not_found_message="Cache key was not found.",
         ):
             return self._cache[key]
 
@@ -226,7 +223,6 @@ class AdjustableFIFOCache[K, V](MutableMapping[K, V]):
             CacheDeleteError,
             error_message="Failed to delete item from cache.",
             key=key,
-            not_found_message="Cache key was not found for deletion.",
         ):
             del self._cache[key]
 
@@ -275,7 +271,6 @@ class AdjustableFIFOCache[K, V](MutableMapping[K, V]):
         error_cls: type[CacheOperationError],
         error_message: str,
         key: object = None,
-        not_found_message: str | None = None,
     ) -> Iterator[None]:
         """Run a cache operation under the lock, translating backend exceptions.
 
@@ -300,12 +295,8 @@ class AdjustableFIFOCache[K, V](MutableMapping[K, V]):
         with self._lock:
             try:
                 yield
-            except CachingError:
+            except KeyError:
                 raise
-            except KeyError as exc:
-                if not_found_message is not None:
-                    raise CacheKeyError(message=not_found_message, key=key) from exc
-                raise error_cls(message=error_message, key=key) from exc
             except Exception as exc:
                 raise error_cls(message=error_message, key=key) from exc
 
@@ -375,7 +366,6 @@ class AdjustableFIFOCache[K, V](MutableMapping[K, V]):
                 CachePopError,
                 error_message="Failed to pop item from cache.",
                 key=key,
-                not_found_message="Cache key was not found.",
             ):
                 return self._cache.pop(key)
 
