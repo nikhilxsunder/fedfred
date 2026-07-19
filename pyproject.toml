@@ -147,6 +147,12 @@ pythonpath = "src"
 
 [tool.coverage.run]
 source = ["src"]
+omit = [
+    "tests/*",
+    "*/tests/*",
+    "*_test.py",
+]
+
 
 [tool.coverage.report]
 exclude_lines = [
