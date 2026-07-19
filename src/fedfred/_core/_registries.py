@@ -74,7 +74,7 @@ from ._converters import (
 from ._defaults import _FRASER_BASE_PARAMETERS, _GEOFRED_BASE_PARAMETERS
 from ._mappings import _FRASER_ENDPOINT_MAP, _GEOFRED_ENDPOINT_MAP
 from ._specs import EndpointSpec, ParameterSpec
-from ._types import Service
+from ._types import DataFrameBackend, GeoDataFrameBackend, Service
 from ._urls import _FRASER_PATH, _GEOFRED_PATH, _ST_LOUIS_FED_BASE_URL
 from ._validators import (
     _validate_bool,
@@ -242,8 +242,8 @@ _GLOBAL_KEYS: dict[Service, str | None] = {
 }
 """Global storage for API keys for each service."""
 
-_GLOBAL_DATAFRAME_BACKEND: str | None = None
+_GLOBAL_DATAFRAME_BACKEND: DataFrameBackend | None = None
 """Global storage for the selected dataframe backend."""
 
-_GLOBAL_GEODATAFRAME_BACKEND: str | None = None
+_GLOBAL_GEODATAFRAME_BACKEND: GeoDataFrameBackend | None = None
 """Global storage for the selected geodataframe backend."""

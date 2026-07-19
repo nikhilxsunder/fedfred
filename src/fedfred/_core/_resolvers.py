@@ -49,8 +49,7 @@ import os
 from collections.abc import Mapping
 from typing import Any
 
-from ..exceptions import UnknownServiceError, UnsupportedEndpointError
-from ._choices import _VALID_DATAFRAME_BACKENDS, _VALID_GEODATAFRAME_BACKENDS
+from ..exceptions import UnsupportedEndpointError
 from ._defaults import _DEFAULT_DATAFRAME_BACKEND, _DEFAULT_GEODATAFRAME_BACKEND
 from ._mappings import ENV_VARS
 from ._preparers import (
@@ -58,9 +57,19 @@ from ._preparers import (
     _prepare_fred_parameters,
     _prepare_geofred_parameters,
 )
-from ._registries import _ENDPOINT_REGISTRY, _GLOBAL_DATAFRAME_BACKEND, _GLOBAL_GEODATAFRAME_BACKEND, _GLOBAL_KEYS
+from ._registries import (
+    _ENDPOINT_REGISTRY,
+    _GLOBAL_DATAFRAME_BACKEND,
+    _GLOBAL_GEODATAFRAME_BACKEND,
+    _GLOBAL_KEYS,
+)
 from ._specs import EndpointSpec
-from ._types import Service
+from ._types import DataFrameBackend, GeoDataFrameBackend, Service
+from ._validators import (
+    _validate_dataframe_backend,
+    _validate_geodataframe_backend,
+    _validate_service,
+)
 
 
 def _resolve_endpoint(service: Service, endpoint_name: str) -> EndpointSpec:
@@ -101,15 +110,9 @@ def _resolve_endpoint(service: Service, endpoint_name: str) -> EndpointSpec:
         share endpoint names, differing only in vintage-parameter handling
         at the parameter-preparation layer).
     """
-    try:
-        service_registry = _ENDPOINT_REGISTRY[service]
-    except KeyError as exc:
-        raise UnknownServiceError(
-            message=f"Unknown service {service!r}.",
-            service=service,
-            known_services=tuple(sorted(_ENDPOINT_REGISTRY)),
-            original_exception=exc,
-        ) from exc
+    _validate_service(service)
+
+    service_registry = _ENDPOINT_REGISTRY[service]
 
     try:
         return service_registry[endpoint_name.strip().lower()]
@@ -155,34 +158,27 @@ def _resolve_preparation_function(
         >>> _resolve_preparation_function({"limit": 100}, service="fred")
         {'limit': 100}
     """
-    try:
-        return _PREPARATION_FUNCTIONS[service](parameters)
+    _validate_service(service)
 
-    except KeyError as exc:
-        raise UnknownServiceError(
-            message=f"Unknown service {service!r} for parameter preparation.",
-            service=service,
-            known_services=tuple(sorted(_PREPARATION_FUNCTIONS)),
-            original_exception=exc,
-        ) from exc
+    return _PREPARATION_FUNCTIONS[service](parameters)
 
 
-def _resolve_dataframe_backend(explicit: str | None = None) -> str:
-    """"""
+def _resolve_dataframe_backend(explicit: DataFrameBackend | None = None) -> str:
+    """
+    """
     backend = explicit or _GLOBAL_DATAFRAME_BACKEND or _DEFAULT_DATAFRAME_BACKEND
 
-    if backend not in _VALID_DATAFRAME_BACKENDS:
-        raise ValueError(f"backend must be one of {_VALID_DATAFRAME_BACKENDS}, got {backend!r}.")
+    _validate_dataframe_backend(backend)
 
     return backend
 
 
-def _resolve_geodataframe_backend(explicit: str | None = None) -> str:
-    """"""
+def _resolve_geodataframe_backend(explicit: GeoDataFrameBackend | None = None) -> str:
+    """
+    """
     backend = explicit or _GLOBAL_GEODATAFRAME_BACKEND or _DEFAULT_GEODATAFRAME_BACKEND
 
-    if backend not in _VALID_GEODATAFRAME_BACKENDS:
-        raise ValueError(f"backend must be one of {_VALID_GEODATAFRAME_BACKENDS}, got {backend!r}.")
+    _validate_geodataframe_backend(backend)
 
     return backend
 
@@ -191,10 +187,9 @@ def _resolve_api_key(
     service: Service = "fred",
     env_var: str | None = None,
 ) -> str:
-    """Resolve an API key from an explicit argument, the global setting, or the environment variable. Raises if nothing is available.
+    """Resolve an API key from an explicit argument, the global setting, or the environment variable.
 
     Args:
-        api_key (Optional[str]): API key explicitly passed by the user.
         service (Service): The service for which to resolve the API key. Defaults to "fred".
         env_var (Optional[str]): Optional environment variable name to override the default for the service.
 
@@ -205,10 +200,7 @@ def _resolve_api_key(
         RuntimeError: If no API key can be resolved.
         ValueError: If an unknown service is specified.
     """
-    if service not in _GLOBAL_KEYS:
-        raise ValueError(
-            f"Unknown service: {service!r}. Expected 'fred', 'geofred', 'fraser', or 'alfred'."
-        )
+    _validate_service(service)
 
     # 2) global
     global_key = _GLOBAL_KEYS.get(service)

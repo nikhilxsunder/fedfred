@@ -45,9 +45,10 @@ from ..exceptions import (
     TypeValidationError,
     ValueValidationError,
 )
+from ._choices import _VALID_DATAFRAME_BACKENDS, _VALID_GEODATAFRAME_BACKENDS
 from ._registries import _GLOBAL_KEYS
 from ._schemas import _EXPECTED_KIND
-from ._types import ParameterValidator, Service
+from ._types import DataFrameBackend, GeoDataFrameBackend, ParameterValidator, Service
 
 
 def _validate_observation_columns(**columns: np.ndarray) -> None:
@@ -535,6 +536,7 @@ def _validate_series_id(parameter: str, value: object) -> None:
             context={"value": value_str},
         )
 
+
 def _validate_service(service: Service) -> None:
     """
     """
@@ -553,4 +555,46 @@ def _validate_service(service: Service) -> None:
             reason=f"Expected: {list(_GLOBAL_KEYS.keys())}.",
             context={"value": service},
         )
+
+
+def _validate_dataframe_backend(backend: DataFrameBackend) -> None:
+    """
+    """
+    if not isinstance(backend, str):
+        raise TypeValidationError(
+            message="Invalid type for backend.",
+            parameter="backend",
+            reason="Backend must be a string.",
+            context={"value": backend},
+        )
+
+    if backend not in _VALID_DATAFRAME_BACKENDS:
+        raise ValueValidationError(
+            message=f"Unknown DataFrame backend: {backend!r}.",
+            parameter="backend",
+            reason=f"Expected one of: {list(_VALID_DATAFRAME_BACKENDS)}.",
+            context={"value": backend},
+        )
+
+
+def _validate_geodataframe_backend(backend: GeoDataFrameBackend) -> None:
+    """
+    """
+    if not isinstance(backend, str):
+        raise TypeValidationError(
+            message="Invalid type for backend.",
+            parameter="backend",
+            reason="Backend must be a string.",
+            context={"value": backend},
+        )
+
+    if backend not in _VALID_GEODATAFRAME_BACKENDS:
+        raise ValueValidationError(
+            message=f"Unknown GeoDataFrame backend: {backend!r}.",
+            parameter="backend",
+            reason=f"Expected one of: {list(_VALID_GEODATAFRAME_BACKENDS)}.",
+            context={"value": backend},
+        )
+
+
 

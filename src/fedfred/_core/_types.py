@@ -43,10 +43,6 @@ Aliases:
     CacheKey: The hashable, key-sorted form of CacheParameters, used as a cache key.
     T: Generic type variable for caller-supplied default values.
 
-Constants:
-    _VALID_AUTH_STYLES: Runtime form of :data:`AuthStyle`.
-    _VALID_SERVICES: Runtime form of :data:`fedfred.settings.Service`.
-
 See Also:
     - :mod:`fedfred._core._specs`: Uses these aliases as field types.
     - :mod:`fedfred.settings`: Defines :data:`Service`, mirrored by :data:`_VALID_SERVICES`.
@@ -70,37 +66,14 @@ type GeoDataFrameBackend = Literal["geopandas", "polars-st", "dask-geopandas"]
 """Type alias for supported GeoDataFrame backends in fedfred package."""
 
 type AuthStyle = Literal["api_key_param", "bearer_header", "api_key_header", "none"]
-"""How the transport layer injects the API key for an endpoint.
-
-One of:
-
-- ``"api_key_param"``: append ``api_key=<key>`` as a query parameter
-  (FRED, ALFRED, GeoFRED v1 endpoints).
-- ``"bearer_header"``: send ``Authorization: Bearer <key>`` (FRED v2
-  endpoints under ``/v2/``).
-- ``"api_key_header"``: send the key in a service-specific header (FRASER).
-- ``"none"``: no auth (public endpoints).
-
-The literal values double as the :class:`EndpointSpec.auth` field type.
-"""
+"""How the transport layer injects the API key for an endpoint."""
 
 type ParameterConverter = Callable[[str, object], object]
 """Type alias for a scalar parameter converter: takes a parameter name and a raw value, returns the
 API-ready value."""
 
 type _ResponseShape = Literal["list", "dict_or_list",]
-"""Shape of the object container in a FRED-family response payload.
-
-One of:
-
-- ``"list"``: the objects are returned as a plain JSON list under the response key.
-- ``"dict_or_list"``: the objects may come as a list *or* as a dict keyed by id
-  (FRED's ``related_tags`` / ``elements`` payloads); the parser normalizes both to
-  a list.
-
-Declared on each model class as ``_response_shape`` and consumed by
-:func:`fedfred._core._parsers._extract_objects` to choose the extraction strategy.
-"""
+"""Shape of the object container in a FRED-family response payload."""
 
 type ParameterValidator = Callable[[str, object], None]
 """Type alias for a parameter validator: takes a parameter name and a value, returns ``None``, and
