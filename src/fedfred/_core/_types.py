@@ -58,11 +58,18 @@ References:
 from __future__ import annotations
 
 from collections.abc import Callable, Mapping, Sequence
-from typing import Literal, TypeAlias, TypeVar, get_args
+from typing import Literal
 
-from ..settings import Service
+type Service = Literal["fred", "fraser", "geofred", "alfred"]
+"""Type alias for supported services in fedfred package."""
 
-AuthStyle = Literal["api_key_param", "bearer_header", "api_key_header", "none"]
+type DataFrameBackend = Literal["pandas", "polars", "dask", "cudf"]
+"""Type alias for supported DataFrame backends in fedfred package."""
+
+type GeoDataFrameBackend = Literal["geopandas", "polars-st", "dask-geopandas"]
+"""Type alias for supported GeoDataFrame backends in fedfred package."""
+
+type AuthStyle = Literal["api_key_param", "bearer_header", "api_key_header", "none"]
 """How the transport layer injects the API key for an endpoint.
 
 One of:
@@ -77,22 +84,11 @@ One of:
 The literal values double as the :class:`EndpointSpec.auth` field type.
 """
 
-_VALID_AUTH_STYLES: frozenset[str] = frozenset(get_args(AuthStyle))
-"""Runtime validation set for :attr:`EndpointSpec.auth`, derived from :data:`AuthStyle` so the two
-cannot drift."""
-
-_VALID_SERVICES: frozenset[str] = frozenset(get_args(Service))
-"""Runtime validation set for :attr:`EndpointSpec.service`, derived from
-:data:`fedfred.settings.Service` so the two cannot drift."""
-
-ParameterConverter = Callable[[str, object], object]
+type ParameterConverter = Callable[[str, object], object]
 """Type alias for a scalar parameter converter: takes a parameter name and a raw value, returns the
 API-ready value."""
 
-_ResponseShape = Literal[
-    "list",
-    "dict_or_list",
-]
+type _ResponseShape = Literal["list", "dict_or_list",]
 """Shape of the object container in a FRED-family response payload.
 
 One of:
@@ -106,23 +102,21 @@ Declared on each model class as ``_response_shape`` and consumed by
 :func:`fedfred._core._parsers._extract_objects` to choose the extraction strategy.
 """
 
-ParameterValidator = Callable[[str, object], None]
+type ParameterValidator = Callable[[str, object], None]
 """Type alias for a parameter validator: takes a parameter name and a value, returns ``None``, and
 raises on invalid input."""
 
-CacheValue = str | int | None
+type CacheValue = str | int | None
 """A single cache-keyable prepared parameter value: a string, an int, or ``None``."""
 
-CacheParameters = dict[str, CacheValue]
+type CacheParameters = dict[str, CacheValue]
 """A prepared request-parameter mapping (parameter name -> value) to be cache-keyed."""
 
-CacheKey = tuple[tuple[str, CacheValue], ...]
+type CacheKey = tuple[tuple[str, CacheValue], ...]
 """The hashable, key-sorted form of :data:`CacheParameters`, used as a cache key."""
 
-T = TypeVar("T")
-"""Generic type variable for caller-supplied default values."""
-
-RateLimitBucket = Literal["fred", "fraser"]
+type RateLimitBucket = Literal["fred", "fraser"]
 """The rate-limit bucket an endpoint belongs to, used to select the applicable limiter."""
 
-JSON: TypeAlias = str | int | float | bool | None | Mapping[str, "JSON"] | Sequence["JSON"]
+type JSON = str | int | float | bool | None | Mapping[str, "JSON"] | Sequence["JSON"]
+"""Type alias for a JSON-serializable value: a string, number, boolean, null, object, or array."""

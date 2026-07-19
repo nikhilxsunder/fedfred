@@ -49,6 +49,7 @@ from .._core import (
     CacheKey,
     CacheParameters,
     EndpointSpec,
+    Service,
     _dict_type_converter,
     _resolve_endpoint,
     _resolve_preparation_function,
@@ -89,7 +90,6 @@ from ..exceptions import (
     UnsupportedProtocolError,
     WriteTimeoutError,
 )
-from ..settings import Service
 from ._caching import _CACHE
 from ._rate_limit import _rate_limiter, _rate_limiter_async
 

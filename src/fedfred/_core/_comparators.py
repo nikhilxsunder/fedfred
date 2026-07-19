@@ -46,6 +46,7 @@ See Also:
 References:
     - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/
 """
+from __future__ import annotations
 
 from collections.abc import Mapping
 from datetime import date

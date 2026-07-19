@@ -62,8 +62,7 @@ from collections.abc import KeysView
 from types import NotImplementedType, TracebackType
 from typing import Any, cast
 
-from .._core import _hashable_type_converter
-from ..settings import Service, _resolve_api_key, set_api_key
+from .._core import Service, _hashable_type_converter, _resolve_api_key, _set_api_key
 from ._caching import _retrieve_cache_instance, get_cache_maxsize, set_cache_maxsize
 from ._transport import (
     _cached_get_request,
@@ -133,7 +132,7 @@ class _ClientModel:
 
         Derives ``_service_key`` from the concrete class name, registers
         the supplied ``api_key`` (if any) through
-        :func:`fedfred.settings.set_api_key` for the corresponding service,
+        :func:`fedfred.settings._set_api_key` for the corresponding service,
         and configures the module-global cache via
         :func:`fedfred._internals._caching.set_cache_maxsize` when
         ``caching_enabled`` is ``True``.
@@ -153,7 +152,7 @@ class _ClientModel:
                 or environment variable.
 
         Notes:
-            API keys can be set globally via :func:`fedfred.set_api_key`
+            API keys can be set globally via :func:`fedfred._set_api_key`
             or provided explicitly per-client. If neither is provided,
             the client falls back to the service's environment variable
             (``FRED_API_KEY`` for FRED/ALFRED/GeoFRED, ``FRASER_API_KEY``
@@ -161,14 +160,14 @@ class _ClientModel:
 
         Examples:
             >>> import fedfred as fd
-            >>> fd.set_api_key("your_api_key")  # optional global
+            >>> fd._set_api_key("your_api_key")  # optional global
             >>> fred = fd.Fred()                 # uses global/env key
             >>> fred_explicit = fd.Fred(api_key="your_api_key")
         """
         self._service_key = cast(Service, type(self).__name__.lower())
 
         if api_key:
-            set_api_key(api_key, service=self._service_key)
+            _set_api_key(api_key, service=self._service_key)
 
         if caching_enabled:
             set_cache_maxsize(cache_size)
@@ -286,10 +285,7 @@ class _ClientModel:
             >>> fred1 == fred2
             True
         """
-        try:
-            assert isinstance(other, type(self))
-
-        except AssertionError:
+        if not isinstance(other, type(self)):
             return NotImplemented
 
         return self.caching_enabled == other.caching_enabled and self.cache_size == other.cache_size

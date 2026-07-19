@@ -41,7 +41,6 @@ import numpy as np
 import pandas as pd
 
 from ..exceptions import (
-    ConversionError,
     TypeConversionError,
 )
 from ._loaders import _require_module

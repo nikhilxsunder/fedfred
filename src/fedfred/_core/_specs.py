@@ -57,13 +57,13 @@ from ..exceptions import (
     EndpointServiceError,
     EndpointURLError,
 )
-from ..settings import Service
 from ._types import (
     _VALID_AUTH_STYLES,
     _VALID_SERVICES,
     AuthStyle,
     ParameterConverter,
     ParameterValidator,
+    Service,
 )
 
 

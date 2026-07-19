@@ -79,7 +79,6 @@ from typing import (
     Never,
     Self,
     SupportsIndex,
-    TypeVar,
     cast,
     overload,
 )
@@ -97,6 +96,8 @@ from .._core import (
     _extract_objects,
     _first_date_index,
     _observation_columns,
+    _resolve_dataframe_backend,
+    _resolve_geodataframe_backend,
     _ResponseShape,
     _row_match_mask,
     _validate_observation_columns,
@@ -108,7 +109,6 @@ from ..exceptions import (
     MissingFieldError,
     StringLookupUnsupportedError,
 )
-from ..settings import _resolve_dataframe_backend
 from ._clients import _ClientModel
 
 if TYPE_CHECKING:
@@ -423,20 +423,7 @@ class _DateBase(date):
         )
 
 
-# Type Variables
-T = TypeVar("T")
-"""Unbounded element type variable for the generic :class:`_Sequence` base."""
-
-MT = TypeVar("MT", bound="_ModelBase")
-"""Element type variable for :class:`_ModelSequence`, constrained to :class:`_ModelBase`
-subclasses."""
-
-DT = TypeVar("DT", bound="_DateBase")
-"""Element type variable for :class:`_DateSequence`, constrained to :class:`_DateBase`
-subclasses."""
-
-
-class _Sequence(Sequence[T]):
+class _Sequence[T](Sequence[T]):
     """Generic immutable sequence base for FRED response collections.
 
     Provides shared mechanics common to every response container in
@@ -806,7 +793,7 @@ class _Sequence(Sequence[T]):
         raise KeyNotFoundError(f"No item with key {key!r} in {type(self).__name__}.")
 
 
-class _ModelSequence(_Sequence[MT]):
+class _ModelSequence[MT: _ModelBase](_Sequence[MT]):
     """Sequence specialization for :class:`_ModelBase` elements.
 
     Adds an optional ``client`` reference that is forwarded to elements at
@@ -911,7 +898,7 @@ class _ModelSequence(_Sequence[MT]):
         return type(self)(items, client=self.client)
 
 
-class _DateSequence(_Sequence[DT]):
+class _DateSequence[DT: _DateBase](_Sequence[DT]):
     """Sequence specialization for :class:`_DateBase` elements.
 
     Hashable (since :class:`datetime.date` instances are hashable),
@@ -1242,6 +1229,7 @@ class _ObservationSequence[OT: _ObservationBase](Sequence[OT]):
         """Positional element, ISO-date lookup, or sliced sub-sequence."""
         if isinstance(index, slice):
             sliced = {k: v[index] for k, v in self._columns().items()}
+
             return self._rebuild(sliced, self._metadata())
 
         if isinstance(index, str):
@@ -1258,7 +1246,9 @@ class _ObservationSequence[OT: _ObservationBase](Sequence[OT]):
     def __contains__(self, value: object) -> bool:
         if not isinstance(value, self._element_type):
             return False
+
         targets = {name: getattr(value, name) for name in self._columns()}
+
         return bool(_row_match_mask(self._columns(), targets).any())
 
     def __eq__(self, other: object) -> bool:
@@ -1323,6 +1313,7 @@ class _ObservationSequence[OT: _ObservationBase](Sequence[OT]):
     def _lookup_iso(self, key: str) -> OT:
         try:
             i = _first_date_index(self._dates, key)
+
         except ValueError as exc:
             raise InvalidDateKeyError(
                 f"Invalid ISO date key {key!r}.", original_exception=exc

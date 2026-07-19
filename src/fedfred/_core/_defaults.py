@@ -63,6 +63,7 @@ See Also:
 References:
     - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/
 """
+from __future__ import annotations
 
 _FRED_BASE_PARAMETERS: dict[str, str] = {
     "file_type": "json",
@@ -118,3 +119,9 @@ _WINDOW_SECONDS: float = 60.0
 
 _CONCURRENCY_DIVISOR: int = 10
 """Divisor mapping a bucket's per-minute ceiling to its baseline concurrency cap."""
+
+_DEFAULT_DATAFRAME_BACKEND = "pandas"
+"""Default backend for dataframes in the fedfred package."""
+
+_DEFAULT_GEODATAFRAME_BACKEND = "geopandas"
+"""Default backend for geodataframes in the fedfred package."""

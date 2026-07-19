@@ -45,8 +45,9 @@ from ..exceptions import (
     TypeValidationError,
     ValueValidationError,
 )
+from ._registries import _GLOBAL_KEYS
 from ._schemas import _EXPECTED_KIND
-from ._types import ParameterValidator
+from ._types import ParameterValidator, Service
 
 
 def _validate_observation_columns(**columns: np.ndarray) -> None:
@@ -533,3 +534,23 @@ def _validate_series_id(parameter: str, value: object) -> None:
             reason="Series ID cannot contain whitespace.",
             context={"value": value_str},
         )
+
+def _validate_service(service: Service) -> None:
+    """
+    """
+    if not isinstance(service, str):
+        raise TypeValidationError(
+            message="Invalid type for service.",
+            parameter="service",
+            reason="Service must be a string.",
+            context={"value": service},
+        )
+
+    if service not in _GLOBAL_KEYS:
+        raise ValueValidationError(
+            message=f"Unknown service: {service!r}.",
+            parameter="service",
+            reason=f"Expected: {list(_GLOBAL_KEYS.keys())}.",
+            context={"value": service},
+        )
+

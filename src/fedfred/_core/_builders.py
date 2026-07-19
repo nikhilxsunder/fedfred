@@ -49,10 +49,10 @@ References:
 from __future__ import annotations
 
 from ..exceptions import EndpointSpecBuildError
-from ..settings import Service
 from ._defaults import _FRED_BASE_PARAMETERS, _FRED_VERSION_TWO_BASE_PARAMETERS
 from ._mappings import _FRED_ENDPOINT_MAP
 from ._specs import EndpointSpec
+from ._types import Service
 from ._urls import _FRED_PATH, _ST_LOUIS_FED_BASE_URL
 
 

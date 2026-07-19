@@ -44,10 +44,15 @@ See Also:
 References:
     - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/
 """
+from __future__ import annotations
 
 from datetime import date
 
 import numpy as np
+
+from ._defaults import _DEFAULT_DATAFRAME_BACKEND, _DEFAULT_GEODATAFRAME_BACKEND
+from ._registries import _GLOBAL_DATAFRAME_BACKEND, _GLOBAL_GEODATAFRAME_BACKEND, _GLOBAL_KEYS
+from ._types import Service
 
 
 def _cell_date(dates: np.ndarray, i: int) -> date:
@@ -141,3 +146,35 @@ def _first_date_index(dates: np.ndarray, key: str) -> int | None:
     idx = np.flatnonzero(dates == target)
 
     return int(idx[0]) if idx.size else None
+
+
+def _get_api_key(service: Service = "fred") -> str | None:
+    """Get the currently configured global API key for a given service, if any.
+
+    Args:
+        service (Service): The service for which to get the API key. Defaults to "fred".
+
+    Returns:
+        Optional[str]: The resolved API key, or None if not configured.
+
+    Raises:
+        ValueError: If an unknown service is specified.
+    """
+    if service not in _GLOBAL_KEYS:
+        raise ValueError(
+            f"Unknown service: {service!r}. Expected 'fred', 'geofred', 'fraser', or 'alfred'."
+        )
+
+    return _GLOBAL_KEYS[service]
+
+
+def _get_dataframe_backend() -> str:
+    """"""
+
+    return _GLOBAL_DATAFRAME_BACKEND or _DEFAULT_DATAFRAME_BACKEND
+
+
+def _get_geodataframe_backend() -> str:
+    """"""
+
+    return _GLOBAL_GEODATAFRAME_BACKEND or _DEFAULT_GEODATAFRAME_BACKEND

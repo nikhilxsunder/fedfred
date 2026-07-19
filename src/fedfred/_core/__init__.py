@@ -34,11 +34,18 @@ from ._converters import (
 )
 from ._defaults import _CONCURRENCY_DIVISOR, _WINDOW_SECONDS
 from ._mappings import RATE_LIMIT_BUCKET, RATE_LIMIT_RPM
+from ._mutators import _set_api_key
 from ._parsers import (
     _extract_objects,
     _observation_columns,
 )
-from ._resolvers import _resolve_endpoint, _resolve_preparation_function
+from ._resolvers import (
+    _resolve_api_key,
+    _resolve_dataframe_backend,
+    _resolve_endpoint,
+    _resolve_geodataframe_backend,
+    _resolve_preparation_function,
+)
 from ._sentinels import MISSING, _Sentinel
 from ._specs import EndpointSpec
 from ._types import (
@@ -46,7 +53,7 @@ from ._types import (
     CacheKey,
     CacheParameters,
     RateLimitBucket,
-    T,
+    Service,
     _ResponseShape,
 )
 from ._validators import _validate_observation_columns
@@ -62,7 +69,7 @@ __all__ = [
     "CacheParameters",
     "EndpointSpec",
     "RateLimitBucket",
-    "T",
+    "Service",
     "_ResponseShape",
     "_Sentinel",
     "_columns_equal",
@@ -76,8 +83,12 @@ __all__ = [
     "_first_date_index",
     "_hashable_type_converter",
     "_observation_columns",
+    "_resolve_api_key",
+    "_resolve_dataframe_backend",
     "_resolve_endpoint",
+    "_resolve_geodataframe_backend",
     "_resolve_preparation_function",
     "_row_match_mask",
+    "_set_api_key",
     "_validate_observation_columns",
 ]

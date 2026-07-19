@@ -54,7 +54,10 @@ References:
 
 from __future__ import annotations
 
+from typing import get_args
+
 from ._mappings import _FRED_TO_PANDAS_FREQ
+from ._types import AuthStyle, Service
 
 FRED_FREQUENCIES: set[str] = set(_FRED_TO_PANDAS_FREQ.keys())
 """Valid ``frequency`` values for FRED API parameters."""
@@ -116,3 +119,17 @@ GEOFRED_REGION_TYPES: set[str] = {
     "censusdivision",
 }
 """Valid region-type values for GeoFRED API parameters."""
+
+_VALID_DATAFRAME_BACKENDS = ("pandas", "polars", "dask", "fedfred")
+"""Valid dataframe backend options for the fedfred package."""
+
+_VALID_GEODATAFRAME_BACKENDS = ("geopandas", "polars-st", "dask-geopandas", "fedfred")
+"""Valid geodataframe backend options for the fedfred package."""
+
+_VALID_AUTH_STYLES: frozenset[str] = frozenset(get_args(AuthStyle.__value__))
+"""Runtime validation set for :attr:`EndpointSpec.auth`, derived from :data:`AuthStyle` so the two
+cannot drift."""
+
+_VALID_SERVICES: frozenset[str] = frozenset(get_args(Service.__value__))
+"""Runtime validation set for :attr:`EndpointSpec.service`, derived from
+:data:`fedfred.settings.Service` so the two cannot drift."""

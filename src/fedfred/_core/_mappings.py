@@ -50,9 +50,8 @@ References:
 
 from __future__ import annotations
 
-from ..settings import Service
 from ._defaults import _FRASER_MAX_REQUESTS_PER_MINUTE, _FRED_MAX_REQUESTS_PER_MINUTE
-from ._types import RateLimitBucket
+from ._types import RateLimitBucket, Service
 from ._urls import (
     _AUTHOR_PATH,
     _CATEGORY_PATH,
@@ -206,8 +205,7 @@ Monthly, quarterly, and annual map to start-anchored aliases (``MS``/``QS``/``YS
 because FRED returns period-start dates; weekly "ending" codes map to anchored
 weekly aliases (``wef`` -> ``W-FRI``); daily maps to ``D`` (business-daily series
 are resolved by inference downstream). Unrecognized or ``None`` codes yield no
-alias.
-"""
+alias."""
 
 RATE_LIMIT_BUCKET: dict[Service, RateLimitBucket] = {
     "fred": "fred",
@@ -225,3 +223,11 @@ RATE_LIMIT_RPM: dict[RateLimitBucket, int] = {
 """Mapping of rate-limit bucket to its RPM, used to set the default rate for each limiter instance.
 The buckets are defined in :data:`RATE_LIMIT_BUCKET` and the limiter instances are in
 :mod:`fedfred._internals._rate_limit`."""
+
+ENV_VARS: dict[Service, str] = {
+    "fred": "FRED_API_KEY",
+    "fraser": "FRASER_API_KEY",
+    "geofred": "FRED_API_KEY",
+    "alfred": "FRED_API_KEY",
+}
+"""Mapping of services to their respective environment variable names for API keys."""

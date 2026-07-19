@@ -44,6 +44,7 @@ from .._core import (
     RATE_LIMIT_BUCKET,
     RATE_LIMIT_RPM,
     RateLimitBucket,
+    Service,
 )
 from ..exceptions import (
     LimiterLimitError,
@@ -54,7 +55,6 @@ from ..exceptions import (
     RateLimiterConfigurationError,
     RateLimiterStateError,
 )
-from ..settings import Service
 
 
 @dataclass(slots=True)
