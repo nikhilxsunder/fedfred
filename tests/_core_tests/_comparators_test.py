@@ -27,7 +27,7 @@ import numpy as np
 from fedfred._core._comparators import _columns_equal, _row_match_mask
 
 
-def test_row_match_mask():
+def test_row_match_mask() -> None:
     columns = {
         "date": np.array(
             ["2020-01-01", "2020-02-01", "2020-03-01"], dtype="datetime64[D]"
@@ -79,7 +79,7 @@ def test_row_match_mask():
     ).tolist() == [False, False, False]
 
 
-def test_columns_equal():
+def test_columns_equal() -> None:
     # --- equal keys + equal float arrays, aligned NaN treated as equal -------
     a = {"value": np.array([1.5, np.nan, 3.0])}
     assert _columns_equal(a, {"value": np.array([1.5, np.nan, 3.0])}) is True
@@ -95,8 +95,18 @@ def test_columns_equal():
 
     # --- datetime columns exercise the equal_nan=False branch of the ternary -
     d1 = {"date": np.array(["2020-01-01", "2020-02-01"], dtype="datetime64[D]")}
-    assert _columns_equal(d1, {"date": np.array(["2020-01-01", "2020-02-01"], dtype="datetime64[D]")}) is True
-    assert _columns_equal(d1, {"date": np.array(["2020-01-01", "2020-03-01"], dtype="datetime64[D]")}) is False
+    assert _columns_equal(
+        d1,
+        {
+            "date": np.array(["2020-01-01", "2020-02-01"], dtype="datetime64[D]")
+        }
+    ) is True
+    assert _columns_equal(
+        d1,
+        {
+            "date": np.array(["2020-01-01", "2020-03-01"], dtype="datetime64[D]")
+        }
+    ) is False
 
     # --- different-length arrays under the same key -> False -----------------
     assert _columns_equal({"value": np.array([1.0, 2.0])}, {"value": np.array([1.0])}) is False

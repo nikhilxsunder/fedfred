@@ -43,7 +43,6 @@ from cachetools import FIFOCache
 from .._core import (
     MISSING,
     CacheKey,
-    T,
     _Sentinel,
 )
 from ..exceptions import (
@@ -305,9 +304,9 @@ class AdjustableFIFOCache[K, V](MutableMapping[K, V]):
     def get(self, key: K, /) -> V | None: ...
 
     @overload
-    def get(self, key: K, /, default: V | T) -> V | T: ...
+    def get[T](self, key: K, /, default: V | T) -> V | T: ...
 
-    def get(self, key: K, /, default: V | T | None = None) -> V | T | None:
+    def get[T](self, key: K, /, default: V | T | None = None) -> V | T | None:
         """Return a cached value if present, otherwise a default.
 
         Args:
@@ -333,12 +332,12 @@ class AdjustableFIFOCache[K, V](MutableMapping[K, V]):
     def pop(self, key: K, /) -> V: ...
 
     @overload
-    def pop(self, key: K, /, default: V) -> V: ...
+    def pop[T](self, key: K, /, default: V) -> V: ...
 
     @overload
-    def pop(self, key: K, /, default: T) -> V | T: ...
+    def pop[T](self, key: K, /, default: T) -> V | T: ...
 
-    def pop(self, key: K, /, default: V | T | _Sentinel = MISSING) -> V | T:
+    def pop[T](self, key: K, /, default: V | T | _Sentinel = MISSING) -> V | T:
         """Remove a key and return its value, or a default if absent.
 
         Args:

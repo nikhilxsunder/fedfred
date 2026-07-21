@@ -45,8 +45,11 @@ from ..exceptions import (
     TypeValidationError,
     ValueValidationError,
 )
-from ._choices import _VALID_DATAFRAME_BACKENDS, _VALID_GEODATAFRAME_BACKENDS
-from ._registries import _GLOBAL_KEYS
+from ._choices import (
+    _VALID_DATAFRAME_BACKENDS,
+    _VALID_GEODATAFRAME_BACKENDS,
+    _VALID_SERVICES,
+)
 from ._schemas import _EXPECTED_KIND
 from ._types import DataFrameBackend, GeoDataFrameBackend, ParameterValidator, Service
 
@@ -538,7 +541,18 @@ def _validate_series_id(parameter: str, value: object) -> None:
 
 
 def _validate_service(service: Service) -> None:
-    """
+    """Validate that ``service`` is a recognized service identity.
+
+    Membership is checked against :data:`_VALID_SERVICES` (derived from the
+    :data:`Service` type), not the runtime API-key store, so the pure
+    validation layer stays independent of stateful registries.
+
+    Args:
+        service (Service): The service identity to validate.
+
+    Raises:
+        TypeValidationError: If ``service`` is not a string.
+        ValueValidationError: If ``service`` is not one of the known services.
     """
     if not isinstance(service, str):
         raise TypeValidationError(
@@ -548,11 +562,11 @@ def _validate_service(service: Service) -> None:
             context={"value": service},
         )
 
-    if service not in _GLOBAL_KEYS:
+    if service not in _VALID_SERVICES:
         raise ValueValidationError(
             message=f"Unknown service: {service!r}.",
             parameter="service",
-            reason=f"Expected: {list(_GLOBAL_KEYS.keys())}.",
+            reason=f"Expected: {sorted(_VALID_SERVICES)}.",
             context={"value": service},
         )
 
@@ -595,6 +609,3 @@ def _validate_geodataframe_backend(backend: GeoDataFrameBackend) -> None:
             reason=f"Expected one of: {list(_VALID_GEODATAFRAME_BACKENDS)}.",
             context={"value": backend},
         )
-
-
-

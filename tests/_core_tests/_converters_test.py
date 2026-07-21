@@ -55,7 +55,7 @@ _V3 = np.array([1.0, 2.0, 3.0])
 # --------------------------------------------------------------------------- #
 # Frequency / index                                                            #
 # --------------------------------------------------------------------------- #
-def test_pandas_frequency_converter():
+def test_pandas_frequency_converter() -> None:
     assert _pandas_frequency_converter("m") == "MS"
     assert _pandas_frequency_converter("wef") == "W-FRI"
     assert _pandas_frequency_converter(None) is None      # None -> "" -> miss
@@ -63,7 +63,7 @@ def test_pandas_frequency_converter():
     assert _pandas_frequency_converter("not_a_code") is None
 
 
-def test_freq_aware_index():
+def test_freq_aware_index() -> None:
     # mapped alias conforms -> freq attached
     assert _freq_aware_index(_M3, "m").freqstr == "MS"
     # mapped alias ("D") does NOT conform -> ValueError -> fall back to infer_freq
@@ -84,7 +84,7 @@ def test_freq_aware_index():
 # --------------------------------------------------------------------------- #
 # pandas frame / series builders                                               #
 # --------------------------------------------------------------------------- #
-def test_columns_to_pandas():
+def test_columns_to_pandas() -> None:
     cols = {"date": _M3, "value": _V3}
 
     # index="date": drops the date column, sets a freq-aware DatetimeIndex
@@ -104,7 +104,7 @@ def test_columns_to_pandas():
     assert list(v.columns) == ["date"]
 
 
-def test_columns_to_series():
+def test_columns_to_series() -> None:
     s = _columns_to_series(_V3, _M3, "m", "GDP")
     assert isinstance(s, pd.Series)
     assert s.name == "GDP"
@@ -112,7 +112,7 @@ def test_columns_to_series():
     assert s.tolist() == [1.0, 2.0, 3.0]
 
 
-def test_vintage_matrix():
+def test_vintage_matrix() -> None:
     # full matrix: 2 dates x 2 vintages, no missing cells
     dates = np.array(["2020-01-01", "2020-02-01", "2020-01-01", "2020-02-01"], dtype="datetime64[D]")
     rt = np.array(["2020-01-05", "2020-01-05", "2020-02-05", "2020-02-05"], dtype="datetime64[D]")
@@ -134,16 +134,16 @@ def test_vintage_matrix():
 # --------------------------------------------------------------------------- #
 # optional-backend builders (backend import mocked via _require_module)        #
 # --------------------------------------------------------------------------- #
-def test_columns_to_polars(monkeypatch):
+def test_columns_to_polars(monkeypatch: pytest.MonkeyPatch) -> None:
     captured = {}
 
     class _FakePolars:
         @staticmethod
-        def DataFrame(data):
+        def DataFrame(data: tuple) -> str:
             captured["data"] = data
             return "POLARS_FRAME"
 
-    def _fake_require(module, purpose, extra=None):
+    def _fake_require(module: str, purpose: str, extra: object = None) -> _FakePolars:
         captured["require"] = (module, purpose, extra)
         return _FakePolars
 
@@ -157,7 +157,7 @@ def test_columns_to_polars(monkeypatch):
     assert captured["data"]["value"] is _V3
 
 
-def test_columns_to_dask(monkeypatch):
+def test_columns_to_dask(monkeypatch: pytest.MonkeyPatch) -> None:
     captured = {}
 
     class _FakeDask:
@@ -183,7 +183,7 @@ def test_columns_to_dask(monkeypatch):
     assert captured["df"].index.freqstr == "MS"
 
 
-def test_columns_to_cudf(monkeypatch):
+def test_columns_to_cudf(monkeypatch) -> None:
     class _FakeIndex:
         def __init__(self, data):
             self.data = data
@@ -222,7 +222,7 @@ def test_columns_to_cudf(monkeypatch):
     assert dfv.set_key == "value"
 
 
-def test_columns_to_arrow(monkeypatch):
+def test_columns_to_arrow(monkeypatch) -> None:
     captured = {}
 
     class _FakeArrow:
@@ -246,12 +246,12 @@ def test_columns_to_arrow(monkeypatch):
 # --------------------------------------------------------------------------- #
 # scalar parameter converters                                                  #
 # --------------------------------------------------------------------------- #
-def test_identity_converter():
+def test_identity_converter() -> None:
     sentinel = object()
     assert _identity_converter("param", sentinel) is sentinel
 
 
-def test_date_parameter_converter():
+def test_date_parameter_converter() -> None:
     # datetime is checked before date (datetime subclasses date) -> time dropped
     assert _date_parameter_converter("p", datetime(2020, 1, 1, 14, 30)) == "2020-01-01"
     assert _date_parameter_converter("p", date(2020, 1, 1)) == "2020-01-01"
@@ -261,7 +261,7 @@ def test_date_parameter_converter():
     assert exc.value.received == "int"
 
 
-def test_time_parameter_converter():
+def test_time_parameter_converter() -> None:
     assert _time_parameter_converter("p", datetime(2020, 1, 1, 14, 30)) == "14:30"
     assert _time_parameter_converter("p", time(9, 5)) == "09:05"
     assert _time_parameter_converter("p", "14:30") == "14:30"           # passthrough
@@ -270,7 +270,7 @@ def test_time_parameter_converter():
     assert exc.value.received == "int"
 
 
-def test_semicolon_list_converter():
+def test_semicolon_list_converter() -> None:
     assert _semicolon_list_converter("p", "single") == "single"          # passthrough
     assert _semicolon_list_converter("p", ["a", "b", "c"]) == "a;b;c"
     # list with a non-str element -> raise, listing the offending types
@@ -283,7 +283,7 @@ def test_semicolon_list_converter():
     assert exc.value.received == "int"
 
 
-def test_comma_date_list_converter():
+def test_comma_date_list_converter() -> None:
     assert _comma_date_list_converter("p", "2020-01-01") == "2020-01-01"  # passthrough
     assert _comma_date_list_converter("p", date(2020, 2, 1)) == "2020-02-01"
     assert _comma_date_list_converter("p", datetime(2020, 2, 1, 9)) == "2020-02-01"
@@ -306,7 +306,7 @@ def test_comma_date_list_converter():
 # --------------------------------------------------------------------------- #
 # cache-key round-trip                                                          #
 # --------------------------------------------------------------------------- #
-def test_hashable_type_converter():
+def test_hashable_type_converter() -> None:
     # sorted by key so insertion order can't change the cache key
     assert _hashable_type_converter({"b": 2, "a": 1, "c": None}) == (
         ("a", 1),
@@ -316,7 +316,7 @@ def test_hashable_type_converter():
     assert _hashable_type_converter(None) is None
 
 
-def test_dict_type_converter():
+def test_dict_type_converter() -> None:
     assert _dict_type_converter((("a", 1), ("b", 2), ("c", None))) == {
         "a": 1,
         "b": 2,
@@ -325,7 +325,7 @@ def test_dict_type_converter():
     assert _dict_type_converter(None) is None
 
 
-def test_hashable_dict_round_trip():
+def test_hashable_dict_round_trip() -> None:
     # the two are documented inverses
     data = {"param1": "value1", "param2": 123, "param3": None}
     assert _dict_type_converter(_hashable_type_converter(data)) == data
@@ -334,7 +334,7 @@ def test_hashable_dict_round_trip():
 # --------------------------------------------------------------------------- #
 # model converters                                                             #
 # --------------------------------------------------------------------------- #
-def test_coerce_lower():
+def test_coerce_lower() -> None:
     assert _coerce_lower("ASC") == "asc"
     assert _coerce_lower(None) is None
     with pytest.raises(ConversionError) as exc:

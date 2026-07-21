@@ -34,7 +34,7 @@ from fedfred._core._urls import _FRED_PATH, _ST_LOUIS_FED_BASE_URL
 from fedfred.exceptions import EndpointSpecBuildError
 
 
-def test_build_fred_style_specs(monkeypatch):
+def test_build_fred_style_specs(monkeypatch: pytest.MonkeyPatch) -> None:
     # --- happy path: both FRED-style services build the full endpoint set ----
     for service in ("fred", "alfred"):
         specs = _build_fred_style_specs(service)
@@ -90,7 +90,7 @@ def test_build_fred_style_specs(monkeypatch):
     # replacing the constructor the builder looks up (module global).
     sentinel = RuntimeError("spec construction blew up")
 
-    def _raising_endpoint_spec(**kwargs):
+    def _raising_endpoint_spec(**kwargs: None) -> None:
         raise sentinel
 
     monkeypatch.setattr(builders, "EndpointSpec", _raising_endpoint_spec)

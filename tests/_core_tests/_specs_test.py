@@ -25,7 +25,7 @@ import dataclasses
 import pytest
 
 from fedfred._core._specs import EndpointSpec, ParameterSpec
-from fedfred._core._types import _VALID_AUTH_STYLES, _VALID_SERVICES
+from fedfred._core._choices import _VALID_AUTH_STYLES, _VALID_SERVICES
 from fedfred.exceptions import (
     EndpointAuthError,
     EndpointFieldTypeError,

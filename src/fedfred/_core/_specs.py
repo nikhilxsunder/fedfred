@@ -57,9 +57,8 @@ from ..exceptions import (
     EndpointServiceError,
     EndpointURLError,
 )
+from ._choices import _VALID_AUTH_STYLES, _VALID_SERVICES
 from ._types import (
-    _VALID_AUTH_STYLES,
-    _VALID_SERVICES,
     AuthStyle,
     ParameterConverter,
     ParameterValidator,

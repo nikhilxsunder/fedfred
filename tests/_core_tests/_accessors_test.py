@@ -28,7 +28,7 @@ import pytest
 from fedfred._core._accessors import _cell_date, _cell_value, _first_date_index
 
 
-def test_cell_date():
+def test_cell_date() -> None:
     dates = np.array(["2020-01-01", "2020-06-15", "2020-12-31"], dtype="datetime64[D]")
 
     # --- value + type contract at row 0 -------------------------------------
@@ -74,7 +74,7 @@ def test_cell_date():
         _cell_date(dates, 99)
 
 
-def test_cell_value():
+def test_cell_value() -> None:
     values = np.array([1.5, np.nan, -2.0, 0.0])
 
     # --- non-missing branch: exact value, materialized as a builtin float ---
@@ -111,7 +111,7 @@ def test_cell_value():
         _cell_value(values, 99)
 
 
-def test_first_date_index():
+def test_first_date_index() -> None:
     dates = np.array(
         ["2020-01-01", "2020-02-01", "2020-02-01", "2020-03-01"],
         dtype="datetime64[D]",

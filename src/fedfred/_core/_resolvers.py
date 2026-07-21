@@ -216,7 +216,7 @@ def _resolve_api_key(
     if isinstance(env_value, str) and env_value.strip():
         return env_value.strip()
 
-    raise RuntimeError(
+    raise RuntimeError( # TODO: Chnage this to an internal exception type.
         f"No API key could be resolved for service={service!r}. "
         f"Provide api_key=..., call set_api_key(..., service={service!r}), "
         f"or set the environment variable {env_name}."

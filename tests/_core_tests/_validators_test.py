@@ -41,7 +41,7 @@ from fedfred._core._validators import (
 from fedfred.exceptions import TypeValidationError, ValueValidationError
 
 
-def test_validate_observation_columns():
+def test_validate_observation_columns() -> None:
     date = np.array(["2020-01-01", "2020-02-01"], dtype="datetime64[D]")
     value = np.array([1.0, 2.0])
 
@@ -75,7 +75,7 @@ def test_validate_observation_columns():
     assert "equal length" in str(exc.value)
 
 
-def test_validate_type():
+def test_validate_type() -> None:
     assert _validate_type("p", 100, int) is None
     assert _validate_type("p", "x", (int, str)) is None      # tuple, matches
 
@@ -94,7 +94,7 @@ def test_validate_type():
     assert exc.value.received == "float"
 
 
-def test_validate_nonnegative_int():
+def test_validate_nonnegative_int() -> None:
     assert _validate_nonnegative_int("limit", 100) is None
     assert _validate_nonnegative_int("limit", 0) is None
 
@@ -116,7 +116,7 @@ def test_validate_nonnegative_int():
     assert exc.value.context["value"] == -5
 
 
-def test_validate_bool():
+def test_validate_bool() -> None:
     assert _validate_bool("flag", True) is None
     assert _validate_bool("flag", False) is None
 
@@ -127,7 +127,7 @@ def test_validate_bool():
     assert exc.value.received == "int"
 
 
-def test_validate_str():
+def test_validate_str() -> None:
     assert _validate_str("name", "GDP") is None
     assert _validate_str("name", "") is None          # empty string IS a valid str
 
@@ -136,7 +136,7 @@ def test_validate_str():
     assert exc.value.received == "int"
 
 
-def test_validate_nonempty_str():
+def test_validate_nonempty_str() -> None:
     assert _validate_nonempty_str("name", "GDP") is None
 
     # empty string -> ValueValidationError
@@ -149,7 +149,7 @@ def test_validate_nonempty_str():
         _validate_nonempty_str("name", 123)
 
 
-def test_validate_choice():
+def test_validate_choice() -> None:
     validate = _validate_choice({1, 2, 3})
     assert validate("sort", 1) is None
 
@@ -161,7 +161,7 @@ def test_validate_choice():
     assert exc.value.context["choices"] == (1, 2, 3)
 
 
-def test_validate_str_choice():
+def test_validate_str_choice() -> None:
     validate = _validate_str_choice({"asc", "desc"})
     assert validate("order", "asc") is None
 
@@ -176,7 +176,7 @@ def test_validate_str_choice():
     assert exc.value.received == "int"
 
 
-def test_validate_yyyy_mm_dd():
+def test_validate_yyyy_mm_dd() -> None:
     assert _validate_yyyy_mm_dd("realtime_start", "2020-01-01") is None
 
     # not a string -> TypeValidationError
@@ -195,7 +195,7 @@ def test_validate_yyyy_mm_dd():
         _validate_yyyy_mm_dd("realtime_start", "01-01-2020")
 
 
-def test_validate_hh_mm():
+def test_validate_hh_mm() -> None:
     assert _validate_hh_mm("start_time", "14:30") is None
 
     with pytest.raises(TypeValidationError):
@@ -206,7 +206,7 @@ def test_validate_hh_mm():
             _validate_hh_mm("start_time", bad)
 
 
-def test_validate_semicolon_list_string():
+def test_validate_semicolon_list_string() -> None:
     assert _validate_semicolon_list_string("tag_names", "tag1;tag2;tag3") is None
     assert _validate_semicolon_list_string("tag_names", "single") is None
 
@@ -225,7 +225,7 @@ def test_validate_semicolon_list_string():
         assert exc.value.reason == "Empty terms are not permitted."
 
 
-def test_validate_comma_date_list_string():
+def test_validate_comma_date_list_string() -> None:
     assert (
         _validate_comma_date_list_string("vintage_dates", "2020-01-01,2020-02-01,2020-03-01")
         is None
@@ -251,7 +251,7 @@ def test_validate_comma_date_list_string():
     assert exc.value.context["invalid_terms"] == ("2020-13-01",)
 
 
-def test_validate_series_id():
+def test_validate_series_id() -> None:
     assert _validate_series_id("series_id", "GDP") is None
     assert _validate_series_id("series_id", "GDP2020") is None
 

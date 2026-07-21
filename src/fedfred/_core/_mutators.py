@@ -25,7 +25,7 @@ from __future__ import annotations
 
 from . import _registries
 from ._choices import _VALID_DATAFRAME_BACKENDS, _VALID_GEODATAFRAME_BACKENDS
-from ._types import Service
+from ._types import DataFrameBackend, GeoDataFrameBackend, Service
 
 
 def _set_api_key(api_key: str, service: Service = "fred") -> None:
@@ -66,7 +66,7 @@ def _clear_api_key(service: Service = "fred") -> None:
     _registries._GLOBAL_KEYS[service] = None
 
 
-def _set_dataframe_backend(backend: str) -> None:
+def _set_dataframe_backend(backend: DataFrameBackend) -> None:
     """Set the global dataframe backend used for FRED observation conversions.
 
     Validates ``backend`` against :data:`_VALID_DATAFRAME_BACKENDS` and rebinds the
@@ -75,7 +75,7 @@ def _set_dataframe_backend(backend: str) -> None:
     request by :func:`_resolve_dataframe_backend`.
 
     Args:
-        backend (str): The dataframe backend to activate. One of ``"pandas"``,
+        backend (DataFrameBackend): The dataframe backend to activate. One of ``"pandas"``,
             ``"polars"``, ``"dask"``, or ``"fedfred"``.
 
     Raises:
@@ -102,7 +102,7 @@ def _set_dataframe_backend(backend: str) -> None:
     _registries._GLOBAL_DATAFRAME_BACKEND = backend
 
 
-def _set_geodataframe_backend(backend: str) -> None:
+def _set_geodataframe_backend(backend: GeoDataFrameBackend) -> None:
     """Set the global geodataframe backend used for GeoFRED observation conversions.
 
     Validates ``backend`` against :data:`_VALID_GEODATAFRAME_BACKENDS` and rebinds
@@ -112,7 +112,7 @@ def _set_geodataframe_backend(backend: str) -> None:
     :func:`_resolve_geodataframe_backend`.
 
     Args:
-        backend (str): The geodataframe backend to activate. One of
+        backend (GeoDataFrameBackend): The geodataframe backend to activate. One of
             ``"geopandas"``, ``"polars-st"``, ``"dask-geopandas"``, or ``"fedfred"``.
 
     Raises:
