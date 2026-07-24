@@ -145,3 +145,9 @@ def test_first_date_index() -> None:
     # --- a valid but non-ISO-shaped key that numpy rejects also raises -------
     with pytest.raises(ValueError):
         _first_date_index(dates, "2020-13-01")
+
+def test_get_api_key() -> None:
+
+def test_get_dataframe_backend() -> None:
+
+def test_get_geodataframe_backend() -> None:

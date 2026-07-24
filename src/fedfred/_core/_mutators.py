@@ -26,6 +26,7 @@ from __future__ import annotations
 from . import _registries
 from ._choices import _VALID_DATAFRAME_BACKENDS, _VALID_GEODATAFRAME_BACKENDS
 from ._types import DataFrameBackend, GeoDataFrameBackend, Service
+from ._validators import _validate_dataframe_backend, _validate_geodataframe_backend, _validate_service
 
 
 def _set_api_key(api_key: str, service: Service = "fred") -> None:
@@ -36,15 +37,13 @@ def _set_api_key(api_key: str, service: Service = "fred") -> None:
         service (Service): The service for which to set the API key. Defaults to "fred".
 
     Raises:
-        ValueError: If api_key is not a non-empty string or if an unknown service is specified.
+        TypeValidationError:
+        ValueValidationError:
     """
     if not isinstance(api_key, str) or not api_key.strip():
         raise ValueError("api_key must be a non-empty string.")
 
-    if service not in _registries._GLOBAL_KEYS:
-        raise ValueError(
-            f"Unknown service: {service!r}. Expected 'fred', 'geofred', 'fraser', or 'alfred'."
-        )
+    _validate_service(service)
 
     _registries._GLOBAL_KEYS[service] = api_key.strip()
 
@@ -56,12 +55,10 @@ def _clear_api_key(service: Service = "fred") -> None:
         service (Service): The service for which to clear the API key. Defaults to "fred".
 
     Raises:
-        ValueError: If an unknown service is specified.
+        TypeValidationError:
+        ValueValidationError:
     """
-    if service not in _registries._GLOBAL_KEYS:
-        raise ValueError(
-            f"Unknown service: {service!r}. Expected 'fred', 'geofred', 'fraser', or 'alfred'."
-        )
+    _validate_service(service)
 
     _registries._GLOBAL_KEYS[service] = None
 
@@ -96,8 +93,7 @@ def _set_dataframe_backend(backend: DataFrameBackend) -> None:
         state lives in :mod:`fedfred._core._registries`, so the assignment rebinds
         that module's attribute rather than using a ``global`` statement.
     """
-    if backend not in _VALID_DATAFRAME_BACKENDS:
-        raise ValueError(f"backend must be one of {_VALID_DATAFRAME_BACKENDS}, got {backend!r}.")
+    _validate_dataframe_backend(backend)
 
     _registries._GLOBAL_DATAFRAME_BACKEND = backend
 
@@ -134,7 +130,6 @@ def _set_geodataframe_backend(backend: GeoDataFrameBackend) -> None:
         state lives in :mod:`fedfred._core._registries`, so the assignment rebinds
         that module's attribute rather than using a ``global`` statement.
     """
-    if backend not in _VALID_GEODATAFRAME_BACKENDS:
-        raise ValueError(f"backend must be one of {_VALID_GEODATAFRAME_BACKENDS}, got {backend!r}.")
+    _validate_geodataframe_backend(backend)
 
     _registries._GLOBAL_GEODATAFRAME_BACKEND = backend

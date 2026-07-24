@@ -52,7 +52,7 @@ import numpy as np
 
 from ._defaults import _DEFAULT_DATAFRAME_BACKEND, _DEFAULT_GEODATAFRAME_BACKEND
 from ._registries import _GLOBAL_DATAFRAME_BACKEND, _GLOBAL_GEODATAFRAME_BACKEND, _GLOBAL_KEYS
-from ._types import Service
+from ._types import GeoDataFrameBackend, DataFrameBackend, Service
 
 
 def _cell_date(dates: np.ndarray, i: int) -> date:
@@ -161,20 +161,26 @@ def _get_api_key(service: Service = "fred") -> str | None:
         ValueError: If an unknown service is specified.
     """
     if service not in _GLOBAL_KEYS:
-        raise ValueError(
+        raise ValueError(           # TODO: might need validator and error raise needs internal classing.
             f"Unknown service: {service!r}. Expected 'fred', 'geofred', 'fraser', or 'alfred'."
         )
 
     return _GLOBAL_KEYS[service]
 
 
-def _get_dataframe_backend() -> str:
-    """"""
+def _get_dataframe_backend() -> DataFrameBackend:
+    """Get the currently configured global dataframe backend. e.g. "pandas".
 
+    Returns:
+        DataFrameBackend: The resolved dataframe backend service.
+    """
     return _GLOBAL_DATAFRAME_BACKEND or _DEFAULT_DATAFRAME_BACKEND
 
 
 def _get_geodataframe_backend() -> str:
-    """"""
+    """Get the currently configured global geodataframe backend e.g. "geopandas".
 
+    Returns:
+        GeoDataFrameBackend: The resolved geodataframe backend service.
+    """
     return _GLOBAL_GEODATAFRAME_BACKEND or _DEFAULT_GEODATAFRAME_BACKEND
