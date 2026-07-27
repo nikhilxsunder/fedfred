@@ -23,16 +23,24 @@
 import numpy as np
 import pytest
 
+from fedfred._core._choices import (
+    _VALID_DATAFRAME_BACKENDS,
+    _VALID_GEODATAFRAME_BACKENDS,
+    _VALID_SERVICES,
+)
 from fedfred._core._validators import (
     _validate_bool,
     _validate_choice,
     _validate_comma_date_list_string,
+    _validate_dataframe_backend,
+    _validate_geodataframe_backend,
     _validate_hh_mm,
     _validate_nonempty_str,
     _validate_nonnegative_int,
     _validate_observation_columns,
     _validate_semicolon_list_string,
     _validate_series_id,
+    _validate_service,
     _validate_str,
     _validate_str_choice,
     _validate_type,
@@ -77,7 +85,7 @@ def test_validate_observation_columns() -> None:
 
 def test_validate_type() -> None:
     assert _validate_type("p", 100, int) is None
-    assert _validate_type("p", "x", (int, str)) is None      # tuple, matches
+    assert _validate_type("p", "x", (int, str)) is None  # tuple, matches
 
     # single expected type mismatch
     with pytest.raises(TypeValidationError) as exc:
@@ -129,7 +137,7 @@ def test_validate_bool() -> None:
 
 def test_validate_str() -> None:
     assert _validate_str("name", "GDP") is None
-    assert _validate_str("name", "") is None          # empty string IS a valid str
+    assert _validate_str("name", "") is None  # empty string IS a valid str
 
     with pytest.raises(TypeValidationError) as exc:
         _validate_str("name", 123)
@@ -168,7 +176,7 @@ def test_validate_str_choice() -> None:
     # right type, disallowed value -> ValueValidationError
     with pytest.raises(ValueValidationError) as exc:
         validate("order", "ascending")
-    assert exc.value.context["choices"] == ("asc", "desc")   # sorted
+    assert exc.value.context["choices"] == ("asc", "desc")  # sorted
 
     # not a string -> TypeValidationError (str check runs first)
     with pytest.raises(TypeValidationError) as exc:
@@ -268,3 +276,74 @@ def test_validate_series_id() -> None:
     with pytest.raises(ValueValidationError) as exc:
         _validate_series_id("series_id", "GDP 2020")
     assert exc.value.reason == "Series ID cannot contain whitespace."
+
+
+def test_validate_service() -> None:
+    """Full-branch coverage for :func:`_validate_service`.
+
+    Accepts every member of :data:`_VALID_SERVICES`, rejects a non-string
+    (TypeValidationError) and an unrecognized string (ValueValidationError).
+    """
+    # Success: every known service returns None.
+    for service in _VALID_SERVICES:
+        assert _validate_service(service) is None  # type: ignore[arg-type]
+
+    # Non-string -> TypeValidationError, with structured payload.
+    with pytest.raises(TypeValidationError, match="Invalid type for service") as exc:
+        _validate_service(123)  # type: ignore[arg-type]
+    assert exc.value.parameter == "service"
+    assert exc.value.context["value"] == 123
+
+    # Unrecognized string -> ValueValidationError.
+    with pytest.raises(ValueValidationError, match="Unknown service: 'bogus'") as exc:
+        _validate_service("bogus")  # type: ignore[arg-type]
+    assert exc.value.parameter == "service"
+    assert exc.value.context["value"] == "bogus"
+
+
+def test_validate_dataframe_backend() -> None:
+    """Full-branch coverage for :func:`_validate_dataframe_backend`.
+
+    Accepts every member of :data:`_VALID_DATAFRAME_BACKENDS`, rejects a non-string
+    (TypeValidationError) and an unrecognized string (ValueValidationError).
+    """
+    # Success: every valid backend returns None.
+    for backend in _VALID_DATAFRAME_BACKENDS:
+        assert _validate_dataframe_backend(backend) is None  # type: ignore[arg-type]
+
+    # Non-string -> TypeValidationError.
+    with pytest.raises(TypeValidationError, match="Invalid type for backend") as exc:
+        _validate_dataframe_backend(123)  # type: ignore[arg-type]
+    assert exc.value.parameter == "backend"
+    assert exc.value.context["value"] == 123
+
+    # Unrecognized string -> ValueValidationError.
+    with pytest.raises(ValueValidationError, match="Unknown DataFrame backend: 'numpy'") as exc:
+        _validate_dataframe_backend("numpy")  # type: ignore[arg-type]
+    assert exc.value.parameter == "backend"
+    assert exc.value.context["value"] == "numpy"
+
+
+def test_validate_geodataframe_backend() -> None:
+    """Full-branch coverage for :func:`_validate_geodataframe_backend`.
+
+    Accepts every member of :data:`_VALID_GEODATAFRAME_BACKENDS`, rejects a non-string
+    (TypeValidationError) and an unrecognized string (ValueValidationError).
+    """
+    # Success: every valid backend returns None.
+    for backend in _VALID_GEODATAFRAME_BACKENDS:
+        assert _validate_geodataframe_backend(backend) is None  # type: ignore[arg-type]
+
+    # Non-string -> TypeValidationError.
+    with pytest.raises(TypeValidationError, match="Invalid type for backend") as exc:
+        _validate_geodataframe_backend(123)  # type: ignore[arg-type]
+    assert exc.value.parameter == "backend"
+    assert exc.value.context["value"] == 123
+
+    # Unrecognized string -> ValueValidationError.
+    with pytest.raises(
+        ValueValidationError, match="Unknown GeoDataFrame backend: 'shapely'"
+    ) as exc:
+        _validate_geodataframe_backend("shapely")  # type: ignore[arg-type]
+    assert exc.value.parameter == "backend"
+    assert exc.value.context["value"] == "shapely"
