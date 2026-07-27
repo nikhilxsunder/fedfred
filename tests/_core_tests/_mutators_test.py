@@ -29,15 +29,16 @@ from fedfred._core._mutators import (
     _set_dataframe_backend,
     _set_geodataframe_backend,
 )
+from fedfred.exceptions import TypeValidationError, ValueValidationError
 
 
 def test_set_api_key(monkeypatch: pytest.MonkeyPatch) -> None:
     """Full-branch coverage for :func:`_set_api_key`.
 
     Covers the success path (stripped key stored under the resolved service, default
-    and explicit), both arms of the non-empty-string guard (non-``str`` and
-    whitespace-only), and the invalid-service guard delegated to
-    :func:`_validate_service`.
+    and explicit), both arms of the key guard delegated to :func:`_validate_api_key`
+    (non-``str`` -> TypeValidationError, whitespace-only -> ValueValidationError), and
+    the invalid-service guard delegated to :func:`_validate_service`.
     """
     monkeypatch.setitem(_registries._GLOBAL_KEYS, "fred", None)
     monkeypatch.setitem(_registries._GLOBAL_KEYS, "fraser", None)
@@ -50,16 +51,16 @@ def test_set_api_key(monkeypatch: pytest.MonkeyPatch) -> None:
     _set_api_key("fraser_key", "fraser")
     assert _registries._GLOBAL_KEYS["fraser"] == "fraser_key"
 
-    # Guard arm 1: not a str.
-    with pytest.raises(ValueError, match="api_key must be a non-empty string"):
+    # Guard arm 1: not a str -> TypeValidationError.
+    with pytest.raises(TypeValidationError, match="Invalid type for api_key"):
         _set_api_key(123)  # type: ignore[arg-type]
 
-    # Guard arm 2: str but blank after strip.
-    with pytest.raises(ValueError, match="api_key must be a non-empty string"):
+    # Guard arm 2: str but blank after strip -> ValueValidationError.
+    with pytest.raises(ValueValidationError, match="non-empty string"):
         _set_api_key("   ")
 
-    # Invalid service -> propagated from _validate_service.
-    with pytest.raises(ValueError):
+    # Invalid service -> ValueValidationError from _validate_service.
+    with pytest.raises(ValueValidationError, match="Unknown service"):
         _set_api_key("k", "bogus")  # type: ignore[arg-type]
 
 
@@ -75,8 +76,8 @@ def test_clear_api_key(monkeypatch: pytest.MonkeyPatch) -> None:
     _clear_api_key("fred")
     assert _registries._GLOBAL_KEYS["fred"] is None
 
-    # Invalid service -> propagated from _validate_service.
-    with pytest.raises(ValueError):
+    # Invalid service -> ValueValidationError from _validate_service.
+    with pytest.raises(ValueValidationError, match="Unknown service"):
         _clear_api_key("bogus")  # type: ignore[arg-type]
 
 
@@ -95,7 +96,7 @@ def test_set_dataframe_backend(monkeypatch: pytest.MonkeyPatch) -> None:
 
     # Invalid backend -> raise, and the global is not mutated past the guard.
     monkeypatch.setattr(_registries, "_GLOBAL_DATAFRAME_BACKEND", None)
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueValidationError, match="Unknown DataFrame backend"):
         _set_dataframe_backend("numpy")  # type: ignore[arg-type]
     assert _registries._GLOBAL_DATAFRAME_BACKEND is None
 
@@ -115,6 +116,6 @@ def test_set_geodataframe_backend(monkeypatch: pytest.MonkeyPatch) -> None:
 
     # Invalid backend -> raise, and the global is not mutated past the guard.
     monkeypatch.setattr(_registries, "_GLOBAL_GEODATAFRAME_BACKEND", None)
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueValidationError, match="Unknown GeoDataFrame backend"):
         _set_geodataframe_backend("shapely")  # type: ignore[arg-type]
     assert _registries._GLOBAL_GEODATAFRAME_BACKEND is None

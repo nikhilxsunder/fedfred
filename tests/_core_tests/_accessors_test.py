@@ -38,7 +38,7 @@ from fedfred._core._defaults import (
     _DEFAULT_DATAFRAME_BACKEND,
     _DEFAULT_GEODATAFRAME_BACKEND,
 )
-
+from fedfred.exceptions import ValueValidationError
 
 def test_cell_date() -> None:
     dates = np.array(["2020-01-01", "2020-06-15", "2020-12-31"], dtype="datetime64[D]")
@@ -177,8 +177,8 @@ def test_get_api_key(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setitem(_registries._GLOBAL_KEYS, "fraser", None)
     assert _get_api_key("fraser") is None
 
-    # Unknown service -> ValueError with the enumerated-services message.
-    with pytest.raises(ValueError, match=r"Unknown service: 'bogus'\."):
+    # Unknown service -> ValueValidationError with the enumerated-services message.
+    with pytest.raises(ValueValidationError, match=r"Unknown service: 'bogus'\."):
         _get_api_key("bogus")  # type: ignore[arg-type]
 
 def test_get_dataframe_backend(monkeypatch: pytest.MonkeyPatch) -> None:
