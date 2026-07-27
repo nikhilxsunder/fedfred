@@ -21,27 +21,50 @@
 # SOFTWARE.
 """Static lookup tables for the fedfred core package.
 
-Raw ``key -> value`` mappings consumed as *input* by the builders and converters —
-distinct from the runtime catalogs in :mod:`._registries`, which are looked up to
-resolve a request. Two kinds live here: endpoint ``name -> URL path fragment``
-tables, composed from the path atoms in :mod:`._urls` and fed to the spec builders
-to construct :class:`EndpointSpec` instances; and the FRED frequency-code ->
-pandas offset-alias table consulted by the frequency converter.
+Raw ``key -> value`` mappings consumed as *input* by the builders, converters, limiter, and
+key resolver — distinct from the runtime catalogs in :mod:`._registries`, which are looked up
+to *resolve* a request. Four families live here:
 
-These are data, not behavior — read to build or convert other objects, never
-invoked on the request path themselves.
+Endpoint maps
+    ``name -> URL path fragment`` tables for FRED/ALFRED, GeoFRED, and FRASER, composed from
+    the path atoms in :mod:`._urls` and fed to the spec builders to construct
+    :class:`EndpointSpec` instances.
+
+Frequency map
+    The FRED frequency-code -> pandas offset-alias table
+    (:data:`_FRED_TO_PANDAS_FREQ`), consulted by the frequency converter and the source of
+    :data:`._choices.FRED_FREQUENCIES`.
+
+Rate-limit maps
+    :data:`RATE_LIMIT_BUCKET` (service -> bucket) and :data:`RATE_LIMIT_RPM` (bucket -> RPM
+    ceiling), which together route a service to the limiter instance that throttles it.
+
+Key-resolution map
+    :data:`ENV_VARS` (service -> API-key environment variable), the final fallback consulted
+    by :func:`_resolve_api_key`.
+
+These are data, not behavior — read to build, convert, throttle, or resolve other objects,
+never invoked on the request path themselves. The recurring structural fact across the tables:
+FRED, GeoFRED, and ALFRED are treated as one backend (shared endpoint surface, shared
+``"fred"`` rate-limit bucket, shared ``FRED_API_KEY``), while FRASER is separate throughout.
 
 Constants:
     _FRED_ENDPOINT_MAP: FRED/ALFRED endpoint name -> path fragment.
     _GEOFRED_ENDPOINT_MAP: GeoFRED endpoint name -> path fragment.
     _FRASER_ENDPOINT_MAP: FRASER endpoint name -> path fragment (``{}`` = path param).
     _FRED_TO_PANDAS_FREQ: FRED frequency code -> pandas period-start offset alias.
+    RATE_LIMIT_BUCKET: Service -> rate-limit bucket.
+    RATE_LIMIT_RPM: Rate-limit bucket -> requests-per-minute ceiling.
+    ENV_VARS: Service -> API-key environment variable name.
 
 See Also:
     - :mod:`fedfred._core._urls`: The path atoms the endpoint maps compose.
     - :mod:`fedfred._core._builders`: Consumes the endpoint maps to build specs.
     - :mod:`fedfred._core._converters`: Consumes :data:`_FRED_TO_PANDAS_FREQ` for
       frequency-aware index construction.
+    - :mod:`fedfred._internals._rate_limit`: Consumes the rate-limit maps to configure limiters.
+    - :mod:`fedfred._core._accessors`: Home of :func:`_resolve_api_key`, which consumes
+      :data:`ENV_VARS`.
 
 References:
     - FRED API documentation. https://fred.stlouisfed.org/docs/api/fred/
@@ -112,14 +135,15 @@ _FRED_ENDPOINT_MAP: dict[str, str] = {
     "get_related_tags": f"{_TAG_PATH}{_RELATED_PATH}",
     "get_tags_series": f"{_TAG_PATH}{_SERIES_PATH}",
 }
-"""Mapping of FRED endpoint names to their corresponding URL path fragments.
+"""FRED endpoint name to URL path fragment, relative to the FRED base path.
 
-Used by :func:`_build_fred_style_specs` to construct :class:`EndpointSpec`
-instances for both FRED and ALFRED (which share the FRED endpoint surface).
-Entries whose path begins with ``/v2/`` use bearer-header auth and the v2
-base parameters; all other entries use query-parameter auth and the v1
-base parameters.
-"""
+Consumed by :func:`_build_fred_style_specs` to construct one :class:`EndpointSpec` per entry
+for both FRED and ALFRED, which share the FRED endpoint surface. Entries whose fragment begins
+with ``/v2/`` (currently ``get_release_observations``) get bearer-header auth and the v2 base
+parameters; every other entry gets query-parameter (``api_key``) auth and the v1 base
+parameters. Fragments are composed from the shared path atoms in :mod:`._urls` (``_CATEGORY_PATH``,
+``_SERIES_PATH``, ``_TAG_PATH``, …); a few reuse string slicing to pluralize or re-stem an atom
+(e.g. ``_TAG_PATH[1:]`` for the ``related_tags`` suffix)."""
 
 _GEOFRED_ENDPOINT_MAP: dict[str, str] = {
     "get_shape_files": "/shapes/file",
@@ -127,15 +151,13 @@ _GEOFRED_ENDPOINT_MAP: dict[str, str] = {
     "get_series_data": f"{_SERIES_PATH}{_DATA_PATH}",
     "get_regional_data": f"/regional{_DATA_PATH}",
 }
-"""Mapping of GeoFRED endpoint names to their corresponding URL path fragments.
+"""GeoFRED endpoint name to URL path fragment, relative to the GeoFRED base URL.
 
-Consumed when building the GeoFRED :class:`EndpointSpec` registry: each fragment
-is appended to the GeoFRED base URL to form the endpoint URL. All GeoFRED
-endpoints use query-parameter (``api_key``) auth and
-:data:`_GEOFRED_BASE_PARAMETERS`. Fragments reuse the shared path atoms from
-:mod:`._urls` where applicable (``_SERIES_PATH``, ``_DATA_PATH``); endpoint-specific
-segments (``/shapes/file``, ``/group``, ``/regional``) are spelled inline.
-"""
+Consumed when building the GeoFRED :class:`EndpointSpec` registry: each fragment is appended to
+the GeoFRED base URL to form the endpoint URL. All GeoFRED endpoints use query-parameter
+(``api_key``) auth and :data:`_GEOFRED_BASE_PARAMETERS`. Fragments reuse the shared path atoms
+from :mod:`._urls` where applicable (``_SERIES_PATH``, ``_DATA_PATH``); endpoint-specific
+segments (``/shapes/file``, ``/group``, ``/regional``) are spelled inline."""
 
 _FRASER_ENDPOINT_MAP: dict[str, str] = {
     # API key endpoints
@@ -166,15 +188,15 @@ _FRASER_ENDPOINT_MAP: dict[str, str] = {
     "get_all_timelines": f"{_TIMELINE_PATH}",
     "get_all_timeline_events": f"{_TIMELINE_PATH}/{{}}/events",
 }
-"""Mapping of FRASER endpoint names to their corresponding URL path fragments.
+"""FRASER endpoint name to URL path fragment, relative to the FRASER base URL.
 
-Positional ``{}`` placeholders are filled with path parameters
-(``title_id``, ``item_id``, ``toc_id``, ``author_id``, ``subject_id``,
-``theme_id``, ``timeline_id``) by the transport layer at request time via
-:meth:`str.format`. Endpoints whose name begins with ``post_`` are POST
-requests and use :data:`_FRASER_BASE_PARAMETERS` as the payload rather
-than as query parameters.
-"""
+Positional ``{}`` placeholders are filled with path parameters (``title_id``, ``item_id``,
+``toc_id``, ``author_id``, ``subject_id``, ``theme_id``, ``timeline_id``) by the transport layer
+at request time via :meth:`str.format`. The single ``post_``-prefixed entry
+(``post_key_request``) is a POST whose :data:`_FRASER_BASE_PARAMETERS` become the request body
+rather than query parameters; the rest are GET. Fragments compose the shared path atoms from
+:mod:`._urls` (``_TITLE_PATH``, ``_ITEM_PATH``, ``_TOC_PATH``, ``_AUTHOR_PATH``, …)."""
+
 
 _FRED_TO_PANDAS_FREQ: dict[str, str] = {
     "d": "D",
@@ -194,18 +216,18 @@ _FRED_TO_PANDAS_FREQ: dict[str, str] = {
     "bwew": "2W-WED",
     "bwem": "2W-MON",
 }
-"""Mapping of FRED frequency codes to pandas period-start offset aliases.
+"""FRED frequency code to pandas period-start offset alias.
 
 Consulted by :func:`._converters._pandas_frequency_converter` (and through it
-:func:`._converters._freq_aware_index`) to attach a frequency to a date index, and
-by :data:`._choices.FRED_FREQUENCIES`, whose accepted-frequency set is derived from
-these keys so the two cannot drift.
+:func:`._converters._freq_aware_index`) to attach a frequency to a date index, and by
+:data:`._choices.FRED_FREQUENCIES`, whose accepted-frequency set is derived from these keys so
+the two cannot drift.
 
-Monthly, quarterly, and annual map to start-anchored aliases (``MS``/``QS``/``YS``)
-because FRED returns period-start dates; weekly "ending" codes map to anchored
-weekly aliases (``wef`` -> ``W-FRI``); daily maps to ``D`` (business-daily series
-are resolved by inference downstream). Unrecognized or ``None`` codes yield no
-alias."""
+Monthly, quarterly, and annual map to start-anchored aliases (``MS`` / ``QS`` / ``YS``) because
+FRED returns period-start dates; weekly "ending" codes map to anchored weekly aliases
+(``wef`` → ``W-FRI``); biweekly to ``2W`` variants; daily to ``D`` (business-daily series are
+resolved by inference downstream). A code absent from this map (or ``None``) yields no alias —
+see :func:`._converters._pandas_frequency_converter`."""
 
 RATE_LIMIT_BUCKET: dict[Service, RateLimitBucket] = {
     "fred": "fred",
@@ -213,15 +235,22 @@ RATE_LIMIT_BUCKET: dict[Service, RateLimitBucket] = {
     "alfred": "fred",
     "fraser": "fraser",
 }
-"""Mapping of service name to its rate-limit bucket, used to look up the applicable RPM in
-:data:`RATE_LIMIT_RPM` and thus to select the appropriate limiter instance for a request."""
+"""Service name to its rate-limit bucket.
+
+FRED, GeoFRED, and ALFRED share the ``"fred"`` bucket because they are one rate-limited backend
+under a single key; FRASER has its own. Used to look up the applicable RPM in
+:data:`RATE_LIMIT_RPM` and thus to select the limiter instance for a request — so throttling is
+per-bucket, not per-service."""
 
 RATE_LIMIT_RPM: dict[RateLimitBucket, int] = {
     "fred": _FRED_MAX_REQUESTS_PER_MINUTE,
     "fraser": _FRASER_MAX_REQUESTS_PER_MINUTE,
 }
-"""Mapping of rate-limit bucket to its RPM, used to set the default rate for each limiter instance.
-The buckets are defined in :data:`RATE_LIMIT_BUCKET` and the limiter instances are in
+"""Rate-limit bucket to its requests-per-minute ceiling.
+
+Sets the default rate for each limiter instance. Keyed by bucket (from
+:data:`RATE_LIMIT_BUCKET`), with ceilings from :data:`_FRED_MAX_REQUESTS_PER_MINUTE` and
+:data:`_FRASER_MAX_REQUESTS_PER_MINUTE`; the limiter instances live in
 :mod:`fedfred._internals._rate_limit`."""
 
 ENV_VARS: dict[Service, str] = {
@@ -230,4 +259,8 @@ ENV_VARS: dict[Service, str] = {
     "geofred": "FRED_API_KEY",
     "alfred": "FRED_API_KEY",
 }
-"""Mapping of services to their respective environment variable names for API keys."""
+"""Service name to the environment variable holding its API key.
+
+FRED, GeoFRED, and ALFRED all read ``FRED_API_KEY`` — they authenticate with the same FRED key
+— while FRASER uses its own ``FRASER_API_KEY``. Consulted by :func:`_resolve_api_key` as the
+final fallback when no key was set explicitly or via :func:`_set_api_key`."""

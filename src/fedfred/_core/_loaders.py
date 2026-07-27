@@ -21,20 +21,22 @@
 # SOFTWARE.
 """Optional-dependency loading for the fedfred core package.
 
-A single helper that imports an optional third-party backend (polars, dask,
-pyarrow, cudf, …) on demand and, when it is absent, raises a typed
-:class:`~fedfred.exceptions.OptionalDependencyError` carrying the package name and
-an install hint. Centralizing this keeps the conversion and model layers free of
-repeated ``try/except ImportError`` blocks — every optional backend is reached
-through one consistent failure path.
+A single helper that imports an optional third-party backend (polars, dask, pyarrow, cudf, …)
+on demand and, when it is absent, raises a typed
+:class:`~fedfred.exceptions.DependencyLoadingError` carrying the package name and a
+``pip install fedfred[...]`` install hint. Centralizing this keeps the conversion and model
+layers free of repeated ``try/except ImportError`` blocks — every optional backend is reached
+through one consistent failure path, so a missing backend produces the same actionable error
+regardless of which feature triggered it.
 
 Functions:
-    _require_module: Import an optional module or raise OptionalDependencyError.
+    _require_module: Import an optional module, or raise
+        :class:`~fedfred.exceptions.DependencyLoadingError` if it is absent.
 
 See Also:
-    - :mod:`fedfred._core._converters`: Loads the optional dataframe backends
-      behind ``to_polars`` / ``to_dask`` / ``to_cudf`` / ``to_arrow`` through this.
-    - :class:`fedfred.exceptions.OptionalDependencyError`: The raised error type.
+    - :mod:`fedfred._core._converters`: Loads the optional DataFrame backends behind
+      ``to_polars`` / ``to_dask`` / ``to_cudf`` / ``to_arrow`` through this helper.
+    - :class:`fedfred.exceptions.DependencyLoadingError`: The raised error type.
 
 References:
     - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/
@@ -52,28 +54,34 @@ def _require_module(module: str, feature: str, extra: str | None = None) -> Modu
     """Import an optional dependency, or raise a typed error if it is absent.
 
     Resolves ``module`` via :func:`importlib.import_module` and returns it. On
-    :class:`ImportError`, raises :class:`DependencyLoadingError` with the
-    top-level package name and a ``pip install fedfred[...]`` hint, so the caller
-    and the user get a consistent, actionable message rather than a bare
-    ``ImportError`` from deep in a conversion method.
+    :class:`ImportError`, raises :class:`DependencyLoadingError` carrying the top-level package
+    name and a ``pip install fedfred[...]`` hint, so the caller and the user get a consistent,
+    actionable message instead of a bare ``ImportError`` surfacing from deep in a conversion
+    method.
 
     Args:
-        module (str): The importable module name (e.g. ``"polars"``,
-            ``"dask.dataframe"``). The install package name is taken from the
-            first dotted segment.
-        feature (str): The fedfred feature requiring the module, surfaced in the
-            error message (e.g. ``"to_polars"``).
+        module (str): The importable module name (e.g. ``"polars"``, ``"dask.dataframe"``). The
+            reported package name is its first dotted segment.
+        feature (str): The fedfred feature requiring the module, surfaced in the error message
+            (e.g. ``"to_polars"``).
         extra (str | None): The extras-group name for the install hint
-            (``pip install fedfred[<extra>]``). Defaults to the top-level package
-            name when ``None`` — appropriate when the extra and package share a
-            name (``polars``), but not when they diverge (``dask.dataframe`` →
-            ``dask``), which is why it is overridable.
+            (``pip install fedfred[<extra>]``). Defaults to the reported package name when
+            ``None``. Override it when the extras-group name differs from the import package
+            name — e.g. importing ``"pyarrow"`` but installing ``fedfred[arrow]`` needs
+            ``extra="arrow"``. A dotted module whose first segment already equals the extra
+            (``"dask.dataframe"`` → ``dask``) does *not* need it.
 
     Returns:
         ModuleType: The imported module.
 
     Raises:
-        DependencyLoadingError: If ``module`` is not installed.
+        DependencyLoadingError: If ``module`` cannot be imported.
+
+    Notes:
+        Any :class:`ImportError` is reported as "not installed", including the case where the
+        module *is* installed but fails to import (a broken or incompatible transitive
+        dependency). That misattributes an environment problem as a missing package; if that
+        distinction matters, inspect the chained ``original_exception``.
 
     Examples:
         >>> from fedfred._core._loaders import _require_module

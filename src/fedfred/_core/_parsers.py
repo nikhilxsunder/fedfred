@@ -21,17 +21,45 @@
 # SOFTWARE.
 """Response parsers for FRED-family API payloads.
 
-Two families of internal parser. The list-shape helpers
-(:func:`_extract_objects` and its backends) extract and validate the list-shaped
-data inside FRED, GeoFRED, and FRASER responses, normalizing FRED's
-inconsistencies — singular vs. plural container keys, elements returned as an
-id-keyed dict instead of a list — before handing it to the model layer. The
-columnar helpers (:func:`_observation_columns`, :func:`_date_column`) bulk-parse a
-series-observations array into the numpy ``datetime64[D]`` / ``float64`` columns
-the observation model stores. :func:`_region_type_parser` reads the GeoFRED region
-type. All raise :class:`~fedfred.exceptions.parsing.MissingFieldError` on any unexpected
-structure, so malformed responses fail loudly at the boundary rather than deep in
-parsing.
+Internal parsers that turn a decoded JSON response into the structures the model layer
+consumes, absorbing FRED's shape inconsistencies at one boundary. Three groups live here:
+
+List-shape extractors
+    :func:`_extract_objects` and its backends (:func:`_require_first_list`,
+    :func:`_objects_iter_dict_or_list`) pull the list-shaped data out of FRED, GeoFRED, and
+    FRASER responses, normalizing FRED's irregularities — singular vs. plural container keys
+    (``series`` / ``seriess``), and elements returned as an id-keyed dict instead of a list —
+    to a single list form.
+
+Columnar observation parsers
+    :func:`_observation_columns` and :func:`_date_column` bulk-parse a series-observations
+    array into the numpy ``datetime64[D]`` / ``float64`` columns the observation model stores,
+    mapping FRED's ``"."`` missing sentinel to ``NaN`` in one O(n) pass.
+
+Field extractor
+    :func:`_region_type_parser` reads the GeoFRED region type out of the ``meta`` section.
+
+Every parser fails at the boundary rather than deep in the model layer, raising a
+:class:`~fedfred.exceptions.parsing.ParsingError` subclass on any unexpected structure:
+:class:`~fedfred.exceptions.parsing.MissingFieldError` when a required key is absent, and
+:class:`~fedfred.exceptions.parsing.ResponseShapeError` when a present value has the wrong type
+(a list where a dict was expected, and so on). Catch ``ParsingError`` to handle either.
+
+Functions:
+    _region_type_parser: GeoFRED region type from ``meta.region``.
+    _require_first_list: List under the first present candidate key.
+    _objects_iter_dict_or_list: Objects under a key, normalizing dict-or-list to a list.
+    _extract_objects: Shape-dispatched object extraction over candidate keys.
+    _date_column: One ISO-date field across rows to a ``datetime64[D]`` column.
+    _observation_columns: An observations array to parallel ``(dates, values)`` columns.
+
+See Also:
+    - :mod:`fedfred._core._converters`: Consumes the observation columns to build backend frames.
+    - :class:`fedfred._internals._models._ObservationSequence`: Stores the columns this produces.
+    - :mod:`fedfred.exceptions.parsing`: The ``ParsingError`` hierarchy raised here.
+
+References:
+    - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/
 """
 
 from __future__ import annotations
@@ -54,8 +82,8 @@ def _region_type_parser(response: dict[str, Any]) -> str:
         str: The region type (e.g. ``"state"``), read from ``response["meta"]["region"]``.
 
     Raises:
-        MissingFieldError: If the response has no ``meta`` section, or the ``meta`` section has no
-            ``region`` value.
+        MissingFieldError: If the response has no (truthy) ``meta`` section, or the ``meta``
+            section has no (truthy) ``region`` value.
 
     Examples:
         >>> from fedfred._core._parsers import _region_type_parser
@@ -63,9 +91,10 @@ def _region_type_parser(response: dict[str, Any]) -> str:
         'state'
 
     Notes:
-        GeoFRED reports the region type under the ``region`` key of the ``meta``
-        section; despite the function name, the underlying payload key is
-        ``region``, not ``region_type``.
+        GeoFRED reports the region type under the ``region`` key of the ``meta`` section;
+        despite the function name, the underlying payload key is ``region``, not
+        ``region_type``. Both checks are truthiness checks, so an empty ``meta`` (``{}``) or an
+        empty ``region`` (``""``) is treated as missing.
     """
     meta_data = response.get("meta", {})
 
@@ -91,14 +120,16 @@ def _require_first_list(response: dict[str, Any], keys: tuple[str, ...]) -> list
 
     Args:
         response (dict[str, Any]): The response to read from.
-        keys (tuple[str, ...]): Candidate keys, tried in order; the first present key wins.
+        keys (tuple[str, ...]): Candidate keys, tried in order; the first present key wins, even
+            if its list is empty.
 
     Returns:
-        list[Any]: The list found under the first matching key.
+        list[Any]: The list found under the first matching key (may be empty).
 
     Raises:
-        ParsingError: If ``response`` is not a dict, none of ``keys`` are present, or the value
-            under the first matching key is not a list.
+        ResponseShapeError: If ``response`` is not a dict, or the value under the first matching
+            key is not a list.
+        MissingFieldError: If none of ``keys`` are present in ``response``.
 
     Examples:
         >>> from fedfred._core._parsers import _require_first_list
@@ -106,10 +137,10 @@ def _require_first_list(response: dict[str, Any], keys: tuple[str, ...]) -> list
         [{'id': 'GDP'}]
 
     Notes:
-        FRED's ``series`` and ``release`` endpoints sometimes return data under
-        the plural key (``seriess`` / ``releases``) and sometimes the singular
-        (``series`` / ``release``); passing both lets a single parser handle
-        either shape.
+        FRED's ``series`` and ``release`` endpoints sometimes return data under the plural key
+        (``seriess`` / ``releases``) and sometimes the singular (``series`` / ``release``);
+        passing both lets one parser handle either shape. Both raised errors subclass
+        ``ParsingError``, so a caller may catch that base to handle either.
     """
     if not isinstance(response, dict):
         raise ResponseShapeError(
@@ -143,16 +174,16 @@ def _objects_iter_dict_or_list(response: dict[str, Any], key: str) -> list[dict[
 
     Args:
         response (dict[str, Any]): The response to read from.
-        key (str): The key expected to point to either a list of objects or a dict mapping ids to
-            objects.
+        key (str): The key expected to point to either a list of objects or a dict mapping ids
+            to objects.
 
     Returns:
         list[dict[str, Any]]: The objects as a list. If the value was a dict, its values are
-            returned (keys discarded).
+        returned in insertion order and the id keys are discarded.
 
     Raises:
-        ParsingError: If ``response`` is not a dict, ``key`` is missing, or the value under ``key``
-            is neither a dict nor a list.
+        MissingFieldError: If ``response`` is not a dict, or ``key`` is missing.
+        ResponseShapeError: If the value under ``key`` is neither a dict nor a list.
 
     Examples:
         >>> from fedfred._core._parsers import _objects_iter_dict_or_list
@@ -162,9 +193,10 @@ def _objects_iter_dict_or_list(response: dict[str, Any], key: str) -> list[dict[
         [{'id': 1}]
 
     Notes:
-        FRED's category ``related_tags``/``elements`` payloads return the objects
-        as a dict keyed by id rather than a list; this normalizes both shapes to
-        a list so the model layer sees one form.
+        FRED's category ``related_tags`` / ``elements`` payloads return the objects as a dict
+        keyed by id rather than a list; this normalizes both shapes to a list so the model layer
+        sees one form. When the id keys carry information the model needs, read them before
+        calling — they are dropped here.
     """
     if not isinstance(response, dict) or key not in response:
         raise MissingFieldError(
@@ -195,19 +227,29 @@ def _extract_objects(
 ) -> list[Any]:
     """Extract the raw object list from a response per the declared shape.
 
+    Dispatches on ``shape`` to the matching low-level parser: ``"dict_or_list"`` routes to
+    :func:`_objects_iter_dict_or_list` (consulting only ``keys[0]``), and ``"list"`` routes to
+    :func:`_require_first_list` (trying every key in order).
+
     Args:
         response (dict[str, Any]): The raw FRED API response payload.
-        keys (tuple[str, ...]): Candidate payload keys, tried in order.
-        shape (_ResponseShape): ``"list"`` for a plain list under the first
-            matching key, or ``"dict_or_list"`` for FRED's id-keyed-dict
-            element payloads.
+        keys (tuple[str, ...]): Candidate payload keys. All are tried in order for the ``"list"``
+            shape; only ``keys[0]`` is used for ``"dict_or_list"``.
+        shape (_ResponseShape): ``"list"`` for a plain list under the first matching key, or
+            ``"dict_or_list"`` for FRED's id-keyed-dict element payloads.
 
     Returns:
-        list[Any]: The extracted object list.
+        list[Any]: The extracted object list (may be empty).
 
     Raises:
-        ParsingError: If ``response`` is not a mapping, none of ``keys`` are
-            present, or the value has the wrong shape.
+        ResponseShapeError: If ``response`` is not a mapping, or the value has the wrong shape
+            (propagated from the dispatched parser).
+        MissingFieldError: If the required key(s) are absent (propagated from the dispatched
+            parser).
+
+    See Also:
+        - :func:`_require_first_list`: The ``"list"`` branch.
+        - :func:`_objects_iter_dict_or_list`: The ``"dict_or_list"`` branch.
     """
     if shape == "dict_or_list":
         return _objects_iter_dict_or_list(response, keys[0])
@@ -220,11 +262,12 @@ def _date_column(rows: list[dict], key: str) -> np.ndarray:
 
     Args:
         rows (list[dict]): The observation rows.
-        key (str): The date field to read from each row (e.g. ``"date"``,
-            ``"realtime_start"``, ``"realtime_end"``).
+        key (str): The date field to read from each row (e.g. ``"date"``, ``"realtime_start"``,
+            ``"realtime_end"``).
 
     Returns:
-        numpy.ndarray: A 1-D ``datetime64[D]`` array of the parsed dates, one per row.
+        numpy.ndarray: A 1-D ``datetime64[D]`` array of the parsed dates, one per row, in row
+        order.
 
     Raises:
         MissingFieldError: If any row is missing ``key``.
@@ -235,10 +278,10 @@ def _date_column(rows: list[dict], key: str) -> np.ndarray:
         [datetime.date(2020, 1, 1), datetime.date(2020, 2, 1)]
 
     Notes:
-        numpy parses the strings at day resolution; a missing key raises
-        :class:`ParsingError` rather than a bare ``KeyError`` so malformed payloads
-        fail at the parse boundary. Shared by the date, realtime-start, and
-        realtime-end column parses.
+        numpy parses the strings at day resolution. A missing key is caught and re-raised as
+        :class:`MissingFieldError` (a ``ParsingError`` subclass) rather than a bare ``KeyError``,
+        so malformed payloads fail at the parse boundary with structured context. Shared by the
+        date, realtime-start, and realtime-end column parses.
     """
     try:
         return np.array([r[key] for r in rows], dtype="datetime64[D]")
@@ -254,20 +297,17 @@ def _date_column(rows: list[dict], key: str) -> np.ndarray:
 def _observation_columns(observations: list[dict]) -> tuple[np.ndarray, np.ndarray]:
     """Bulk-parse the observations array into parallel (dates, values) columns.
 
-    Single O(n) pass that turns a FRED ``observations`` list into the two numpy
-    columns the observation model stores: dates as ``datetime64[D]`` (via
-    :func:`_date_column`) and values as ``float64`` with FRED's missing sentinel
-    ``"."`` mapped to ``NaN``.
+    Single O(n) pass that turns a FRED ``observations`` list into the two numpy columns the
+    observation model stores: dates as ``datetime64[D]`` (via :func:`_date_column`) and values as
+    ``float64`` with FRED's missing sentinel ``"."`` mapped to ``NaN``.
 
     Args:
-        observations (list[dict]): The ``observations`` array from a FRED
-            series-observations response; each row must carry ``"date"`` and
-            ``"value"`` keys.
+        observations (list[dict]): The ``observations`` array from a FRED series-observations
+            response; each row must carry ``"date"`` and ``"value"`` keys.
 
     Returns:
-        tuple[numpy.ndarray, numpy.ndarray]: ``(dates, values)`` — a
-        ``datetime64[D]`` date column and a ``float64`` value column of equal
-        length, aligned row-for-row.
+        tuple[numpy.ndarray, numpy.ndarray]: ``(dates, values)`` — a ``datetime64[D]`` date
+        column and a ``float64`` value column of equal length, aligned row-for-row.
 
     Raises:
         MissingFieldError: If any observation is missing ``"date"`` or ``"value"``.
@@ -284,8 +324,8 @@ def _observation_columns(observations: list[dict]) -> tuple[np.ndarray, np.ndarr
 
     Notes:
         The single parse boundary for observations: these columns feed the columnar
-        ``_ObservationSequence`` directly, and the ``"."`` -> ``NaN`` mapping here is
-        what the object layer later surfaces as ``None``.
+        ``_ObservationSequence`` directly, and the ``"."`` -> ``NaN`` mapping here is what the
+        object layer later surfaces as ``None`` (see :func:`._accessors._cell_value`).
     """
     dates = _date_column(observations, "date")
 

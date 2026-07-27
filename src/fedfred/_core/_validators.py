@@ -540,6 +540,25 @@ def _validate_series_id(parameter: str, value: object) -> None:
         )
 
 
+def _validate_api_key(api_key: str) -> None:
+    """ """
+    if not isinstance(api_key, str):
+        raise TypeValidationError(
+            message="Invalid type for api_key.",
+            parameter="api_key",
+            reason="API key must be a string.",
+            context={"value": api_key},
+        )
+
+    if not api_key.strip():
+        raise ValueValidationError(
+            message="Invalid api_key.",
+            parameter="api_key",
+            reason="API key must be a non-empty string.",
+            context={"value": api_key},
+        )
+
+
 def _validate_service(service: Service) -> None:
     """Validate that ``service`` is a recognized service identity.
 
@@ -572,8 +591,7 @@ def _validate_service(service: Service) -> None:
 
 
 def _validate_dataframe_backend(backend: DataFrameBackend) -> None:
-    """
-    """
+    """ """
     if not isinstance(backend, str):
         raise TypeValidationError(
             message="Invalid type for backend.",
@@ -592,8 +610,7 @@ def _validate_dataframe_backend(backend: DataFrameBackend) -> None:
 
 
 def _validate_geodataframe_backend(backend: GeoDataFrameBackend) -> None:
-    """
-    """
+    """ """
     if not isinstance(backend, str):
         raise TypeValidationError(
             message="Invalid type for backend.",

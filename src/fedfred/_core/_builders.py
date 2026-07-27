@@ -22,20 +22,19 @@
 """Endpoint-spec builders for the fedfred core package.
 
 Import-time factory functions that assemble :class:`~fedfred._core._specs.EndpointSpec`
-instances from the lower-level request vocabulary — URL atoms (:mod:`._urls`),
-default params/headers (:mod:`._defaults`), and the endpoint ``name -> path``
-tables (:mod:`._mappings`) — and return them as per-service registries.
+instances from the lower-level request vocabulary — URL atoms (:mod:`._urls`), base
+parameter sets (:mod:`._defaults`), and the endpoint ``name -> path`` tables
+(:mod:`._mappings`) — and return them as per-service registries.
 
-Builders *construct*; they do not resolve. Each runs once at import time to
-populate the endpoint registry in :mod:`._registries`, so request-time
-resolution is a pure lookup and never a fresh build. The dependency arrow is
-one-way: a builder imports the vocabulary and the spec type, and its output is
-consumed by the registry that the resolvers read — nothing here is invoked on
-the request path.
+Builders *construct*; they do not resolve. Each runs once at import time to populate the
+endpoint registry in :mod:`._registries`, so request-time resolution is a pure lookup and
+never a fresh build. The dependency arrow is strictly one-way: a builder imports the
+vocabulary and the spec type, its output is consumed by the registry the resolvers read,
+and nothing here is called on the request path.
 
 Functions:
-    _build_fred_style_specs: Build the endpoint-spec registry shared by the FRED
-        and ALFRED services (identical specs, stamped with the service identity).
+    _build_fred_style_specs: Build the endpoint-spec registry shared by the FRED and ALFRED
+        services (identical specs, stamped with the service identity).
 
 See Also:
     - :mod:`fedfred._core._specs`: The :class:`EndpointSpec` type assembled here.
@@ -59,33 +58,38 @@ from ._urls import _FRED_PATH, _ST_LOUIS_FED_BASE_URL
 def _build_fred_style_specs(service: Service) -> dict[str, EndpointSpec]:
     """Build the per-endpoint :class:`EndpointSpec` registry for a FRED-style service.
 
-    FRED and ALFRED share host, paths, and auth style; they differ only in
-    vintage-parameter handling, which lives in the parameter-preparation
-    layer rather than at the endpoint level. This helper produces the same
-    set of specs for both, stamped with the appropriate ``service`` value
-    so resolution returns the calling client's service identity.
+    FRED and ALFRED share host, paths, and auth style, differing only in vintage-parameter
+    handling — and that difference lives in the parameter-preparation layer, not at the
+    endpoint level. So this helper produces the identical spec set for either, stamped with
+    the given ``service`` so endpoint resolution reports the calling client's identity.
 
-    Endpoints whose path begins with ``/v2/`` use bearer-header auth and
-    :data:`_FRED_VERSION_TWO_BASE_PARAMETERS`; all other endpoints use
-    query-parameter auth and :data:`_FRED_BASE_PARAMETERS`.
+    Auth and base parameters are selected per endpoint by path: endpoints under ``/v2/`` use
+    bearer-header auth with :data:`_FRED_VERSION_TWO_BASE_PARAMETERS`; all others use
+    query-parameter auth with :data:`_FRED_BASE_PARAMETERS`.
 
     Args:
-        service (Service): The service identity to stamp onto each spec — either ``"fred"`` or
+        service (Service): The service identity stamped onto each spec — ``"fred"`` or
             ``"alfred"``.
 
     Returns:
-        dict[str, EndpointSpec]: Mapping of endpoint names to fully
-        constructed, validated :class:`EndpointSpec` instances ready for
-        registration into :data:`_ENDPOINT_REGISTRY`.
+        dict[str, EndpointSpec]: Endpoint name to a fully constructed, validated
+        :class:`EndpointSpec`, ready for registration into :data:`_ENDPOINT_REGISTRY`.
 
     Raises:
-        EndpointSpecBuildError: If any endpoint's :class:`EndpointSpec` fails to
-            construct or validate; the offending ``service`` and ``endpoint_name``
-            are attached, and the underlying error is chained.
+        EndpointSpecBuildError: If any endpoint's :class:`EndpointSpec` fails to construct or
+            validate. The offending ``service`` and ``endpoint_name`` are attached and the
+            underlying error is chained via ``raise ... from``.
 
     Notes:
-        Called once per FRED-style service at module import time. Not
-        intended to be invoked at request time.
+        Called once per FRED-style service at module import time to populate the endpoint
+        registry; it is not part of the request path.
+
+    See Also:
+        - :class:`fedfred._core._specs.EndpointSpec`: The spec object constructed here.
+        - :data:`fedfred._core._registries._ENDPOINT_REGISTRY`: Where the returned specs are
+          registered.
+        - :func:`fedfred._core._resolvers._resolve_endpoint`: Reads the registry these specs
+          populate.
     """
     specs: dict[str, EndpointSpec] = {}
 

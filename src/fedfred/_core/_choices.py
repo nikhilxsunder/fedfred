@@ -19,36 +19,60 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""Allowed-value sets for FRED, ALFRED, and GeoFRED request parameters.
+"""Controlled vocabularies for request-parameter and configuration validation.
 
-Each constant is the set of permitted values for one API parameter — the
-controlled vocabulary that the choice validators (``_ChoiceValidator`` /
-``_StrChoiceValidator``) check membership against. Naming the data ``_choices``
-keeps it paired with the validators that enforce it: a value is valid iff it is
-a member of the corresponding set.
+Each constant is the set of permitted values for one field — the vocabulary a validator
+checks membership against. Naming the module ``_choices`` keeps the data paired with the
+validators that enforce it: a value is valid iff it is a member of the corresponding set.
+Three families live here:
 
-The sets are plain :class:`set` instances, chosen for O(1) membership rather than
-:class:`enum.Enum`; they are reference data and are never mutated at runtime.
-:data:`FRED_FREQUENCIES` is derived from the keys of
-:data:`fedfred._core._mappings._FRED_TO_PANDAS_FREQ`, so the accepted frequency
-codes and their pandas-alias mapping cannot drift apart; the remaining sets are
-authored directly from the FRED and GeoFRED API documentation.
+API-parameter choices
+    The permitted values for FRED, ALFRED, and GeoFRED request parameters
+    (``frequency``, ``units``, ``sort_order``, ``aggregation_method``, ``output_type``,
+    ``order_by``, ``region_type``). Consulted by the choice validators
+    (``_ChoiceValidator`` / ``_StrChoiceValidator``). :data:`FRED_FREQUENCIES` is derived
+    from the keys of :data:`fedfred._core._mappings._FRED_TO_PANDAS_FREQ` so the accepted
+    codes and their pandas-alias mapping cannot drift; the rest are authored from the FRED
+    and GeoFRED API documentation.
+
+Backend choices
+    The permitted DataFrame/GeoDataFrame backend names
+    (:data:`_VALID_DATAFRAME_BACKENDS`, :data:`_VALID_GEODATAFRAME_BACKENDS`), consulted by
+    the backend validators. Ordered tuples rather than sets: registration order is
+    meaningful and the membership sets are tiny.
+
+Type-derived validation sets
+    :data:`_VALID_SERVICES` and :data:`_VALID_AUTH_STYLES`, computed from the
+    :data:`Service` and :data:`AuthStyle` PEP 695 ``type`` aliases via
+    ``get_args(alias.__value__)`` so the runtime check and the static type cannot drift.
+    The ``.__value__`` unwrap is required — :func:`typing.get_args` returns ``()`` on a
+    ``type`` alias itself.
+
+The public API-parameter sets are plain :class:`set` instances, chosen for O(1) membership
+over :class:`enum.Enum`; all constants here are reference data and are never mutated at
+runtime.
 
 Constants:
-    FRED_FREQUENCIES: Valid ``frequency`` codes (derived from the freq-alias map).
-    FRED_UNITS: Valid ``units`` transforms.
-    SORT_ORDERS: Valid ``sort_order`` values.
-    AGGREGATION_METHODS: Valid ``aggregation_method`` values.
-    OUTPUT_TYPES: Valid ``output_type`` values.
-    FRED_ORDER_BY: Valid ``order_by`` fields.
-    GEOFRED_REGION_TYPES: Valid GeoFRED region-type values.2
+    FRED_FREQUENCIES: Permitted ``frequency`` codes (derived from the freq-alias map).
+    FRED_UNITS: Permitted ``units`` transforms.
+    SORT_ORDERS: Permitted ``sort_order`` values.
+    AGGREGATION_METHODS: Permitted ``aggregation_method`` values.
+    OUTPUT_TYPES: Permitted ``output_type`` values.
+    FRED_ORDER_BY: Permitted ``order_by`` fields.
+    GEOFRED_REGION_TYPES: Permitted GeoFRED ``region_type`` values.
+    _VALID_DATAFRAME_BACKENDS: Permitted DataFrame backend names.
+    _VALID_GEODATAFRAME_BACKENDS: Permitted GeoDataFrame backend names.
+    _VALID_SERVICES: Service identities, derived from :data:`Service`.
+    _VALID_AUTH_STYLES: Auth styles, derived from :data:`AuthStyle`.
 
 See Also:
-    - :mod:`fedfred._core._validators`: The choice validators that consult these sets.
-    - :mod:`fedfred._core._registries`: The parameter specs that bind each set to a parameter.
+    - :mod:`fedfred._core._validators`: The validators that consult these sets.
+    - :mod:`fedfred._core._types`: The :data:`Service` / :data:`AuthStyle` aliases the
+      type-derived sets are computed from.
+    - :mod:`fedfred._core._registries`: The parameter specs that bind each choice set to a
+      parameter.
 
 References:
-    - FRED API documentation. https://fred.stlouisfed.org/docs/api/fred/
     - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/
 """
 
@@ -60,7 +84,10 @@ from ._mappings import _FRED_TO_PANDAS_FREQ
 from ._types import AuthStyle, Service
 
 FRED_FREQUENCIES: set[str] = set(_FRED_TO_PANDAS_FREQ.keys())
-"""Valid ``frequency`` values for FRED API parameters."""
+"""Permitted ``frequency`` codes for FRED requests (e.g. ``"d"``, ``"w"``, ``"m"``, ``"q"``).
+
+Derived from the keys of :data:`fedfred._core._mappings._FRED_TO_PANDAS_FREQ` so the accepted
+codes and their pandas-alias mapping cannot drift apart."""
 
 FRED_UNITS: set[str] = {
     "lin",
@@ -73,16 +100,24 @@ FRED_UNITS: set[str] = {
     "cca",
     "log",
 }
-"""Valid ``units`` values for FRED API parameters."""
+"""Permitted ``units`` transforms for FRED requests.
+
+The FRED data-value transformations: levels (``lin``), change (``chg``, ``ch1``), percent
+change (``pch``, ``pc1``, ``pca``), compounded change (``cch``, ``cca``), and natural log
+(``log``)."""
 
 SORT_ORDERS: set[str] = {"asc", "desc"}
-"""Valid ``sort_order`` values for FRED API parameters."""
+"""Permitted ``sort_order`` values for FRED requests: ascending or descending."""
 
 AGGREGATION_METHODS: set[str] = {"sum", "avg", "eop"}
-"""Valid ``aggregation_method`` values for FRED API parameters."""
+"""Permitted ``aggregation_method`` values for FRED requests: sum, average, or end-of-period,
+applied when a series is frequency-aggregated."""
 
 OUTPUT_TYPES: set[int] = {1, 2, 3, 4}
-"""Valid ``output_type`` values for FRED API parameters."""
+"""Permitted ``output_type`` values for FRED observation requests.
+
+Selects the vintage layout: observations by realtime period (``1``), initial release plus
+current (``2``), all vintages (``3``), or initial release only (``4``)."""
 
 FRED_ORDER_BY: set[str] = {
     "series_id",
@@ -105,7 +140,10 @@ FRED_ORDER_BY: set[str] = {
     "group_id",
     "search_rank",
 }
-"""Valid ``order_by`` values for FRED API parameters."""
+"""Permitted ``order_by`` fields for FRED requests.
+
+The union of orderable fields across FRED endpoints; not every field is valid for every
+endpoint, so the per-endpoint spec narrows this set further."""
 
 GEOFRED_REGION_TYPES: set[str] = {
     "bea",
@@ -118,18 +156,35 @@ GEOFRED_REGION_TYPES: set[str] = {
     "censusregion",
     "censusdivision",
 }
-"""Valid region-type values for GeoFRED API parameters."""
+"""Permitted ``region_type`` values for GeoFRED requests.
+
+The geographic aggregation levels GeoFRED supports, from national (``country``) down to
+``county``, plus statistical regions (``bea``, ``msa``, ``frb``, ``necta``,
+``censusregion``, ``censusdivision``)."""
 
 _VALID_DATAFRAME_BACKENDS = ("pandas", "polars", "dask", "fedfred")
-"""Valid dataframe backend options for the fedfred package."""
+"""Permitted DataFrame backend names, validated against by :func:`_validate_dataframe_backend`.
+
+Kept in registration order; ``"fedfred"`` selects the package's native columnar return type."""
 
 _VALID_GEODATAFRAME_BACKENDS = ("geopandas", "polars-st", "dask-geopandas", "fedfred")
-"""Valid geodataframe backend options for the fedfred package."""
+"""Permitted GeoDataFrame backend names, validated against by
+:func:`_validate_geodataframe_backend`.
+
+Kept in registration order; ``"fedfred"`` selects the package's native columnar return type."""
 
 _VALID_AUTH_STYLES: frozenset[str] = frozenset(get_args(AuthStyle.__value__))
-"""Runtime validation set for :attr:`EndpointSpec.auth`, derived from :data:`AuthStyle` so the two
-cannot drift."""
+"""Runtime validation set for :attr:`EndpointSpec.auth`.
+
+Derived from :data:`AuthStyle` via ``get_args(AuthStyle.__value__)`` so the accepted auth
+styles and the type alias cannot drift. Note the ``.__value__``: :data:`AuthStyle` is a PEP 695
+``type`` alias, and :func:`typing.get_args` returns ``()`` on the alias itself — it must be
+unwrapped first."""
 
 _VALID_SERVICES: frozenset[str] = frozenset(get_args(Service.__value__))
-"""Runtime validation set for :attr:`EndpointSpec.service`, derived from
-:data:`fedfred.settings.Service` so the two cannot drift."""
+"""Runtime validation set for :attr:`EndpointSpec.service`.
+
+Derived from :data:`Service` via ``get_args(Service.__value__)`` so the accepted service
+identities and the type alias cannot drift. As with :data:`_VALID_AUTH_STYLES`, the
+``.__value__`` unwrap is required because :func:`typing.get_args` returns ``()`` on a PEP 695
+``type`` alias."""

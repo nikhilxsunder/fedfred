@@ -63,6 +63,7 @@ See Also:
 References:
     - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/
 """
+
 from __future__ import annotations
 
 from ._types import DataFrameBackend, GeoDataFrameBackend
@@ -72,58 +73,75 @@ _FRED_BASE_PARAMETERS: dict[str, str] = {
 }
 """Default query parameters for FRED v1 and ALFRED requests.
 
-Shared across every :class:`EndpointSpec` built for those services. The
-``api_key`` parameter is deliberately absent and is injected by the
-transport layer at request time per :attr:`EndpointSpec.auth`. Must never
-be mutated through the spec — see the module-level design notes.
-"""
+Shared across every :class:`EndpointSpec` built for those services. ``api_key`` is deliberately
+absent — the transport layer injects it at request time per :attr:`EndpointSpec.auth`. This is
+a distinct dict object per service (see :data:`_GEOFRED_BASE_PARAMETERS`) and must never be
+mutated through a spec; specs are expected to copy before adding request-specific parameters."""
 
 _FRED_VERSION_TWO_BASE_PARAMETERS: dict[str, str] = {
     "format": "json",
 }
 """Default query parameters for FRED v2 requests (endpoints under ``/v2/``).
 
-Distinct from :data:`_FRED_BASE_PARAMETERS` because v2 uses ``format``
-rather than ``file_type``. Bearer authorization is injected at request
-time per :attr:`EndpointSpec.auth`.
-"""
+Distinct from :data:`_FRED_BASE_PARAMETERS` because v2 names the response-format parameter
+``format`` rather than ``file_type``. v2 authenticates with a bearer token, injected at request
+time per :attr:`EndpointSpec.auth`; ``api_key`` is not a query parameter here."""
 
 _GEOFRED_BASE_PARAMETERS: dict[str, str] = {
     "file_type": "json",
 }
 """Default query parameters for GeoFRED requests.
 
-Distinct object from :data:`_FRED_BASE_PARAMETERS` by design — sharing
-parameter dicts across services would invite cross-service corruption if
-the transport layer ever wrote through the spec. The ``api_key``
-parameter is injected at request time per :attr:`EndpointSpec.auth`.
-"""
+A distinct dict object from :data:`_FRED_BASE_PARAMETERS` by design, even though the contents
+are identical: sharing one dict across services would invite cross-service corruption if the
+transport layer ever wrote through a spec. ``api_key`` is injected at request time per
+:attr:`EndpointSpec.auth`."""
 
 _FRASER_BASE_PARAMETERS: dict[str, str] = {
     "format": "json",
 }
 """Default parameters for FRASER requests.
 
-Used as query parameters for GET endpoints and as the POST body for the
-``post_key_request`` endpoint. Distinct object from
-:data:`_FRED_VERSION_TWO_BASE_PARAMETERS` by design — shared dicts across
-services invite cross-service corruption.
-"""
+Used as query parameters for GET endpoints and as the POST body for the ``post_key_request``
+endpoint. A distinct dict object from :data:`_FRED_VERSION_TWO_BASE_PARAMETERS` by design —
+identical contents, but a shared dict would risk cross-service corruption. Authentication is
+injected at request time per :attr:`EndpointSpec.auth`."""
 
 _FRED_MAX_REQUESTS_PER_MINUTE: int = 120
-"""Maximum requests per minute for the FRED API, shared by GeoFRED and ALFRED."""
+"""FRED's documented per-minute request ceiling, in requests per minute.
+
+Shared by GeoFRED and ALFRED because all three are served by the same St. Louis Fed backend
+under one API key and count against a single limit. Seeds the FRED/GeoFRED/ALFRED rate-limit
+bucket."""
 
 _FRASER_MAX_REQUESTS_PER_MINUTE: int = 30
-"""Maximum requests per minute for the FRASER API."""
+"""FRASER's per-minute request ceiling, in requests per minute.
+
+Lower than FRED's; FRASER is a separate service with its own limit and its own rate-limit
+bucket."""
 
 _WINDOW_SECONDS: float = 60.0
-"""Length of the rolling rate-limit window, in seconds."""
+"""Length of the rolling rate-limit window, in seconds.
+
+The denominator the per-minute ceilings are measured against; a bucket admits at most its
+``max_requests_per_minute`` within any trailing :data:`_WINDOW_SECONDS` span."""
 
 _CONCURRENCY_DIVISOR: int = 10
-"""Divisor mapping a bucket's per-minute ceiling to its baseline concurrency cap."""
+"""Divisor mapping a bucket's per-minute ceiling to its baseline concurrency cap.
+
+``max_requests_per_minute // _CONCURRENCY_DIVISOR`` gives the default number of in-flight
+requests a bucket permits — e.g. 120/10 = 12 for FRED, 30/10 = 3 for FRASER. Caps concurrency
+proportionally to the rate limit so a burst cannot immediately exhaust the window."""
 
 _DEFAULT_DATAFRAME_BACKEND: DataFrameBackend = "pandas"
-"""Default backend for dataframes in the fedfred package."""
+"""Default DataFrame backend when none is set via :func:`_set_dataframe_backend`.
+
+The fallback returned by :func:`_get_dataframe_backend` / :func:`_resolve_dataframe_backend`
+when no global backend and no explicit override is supplied. ``"pandas"`` is the only
+non-optional frame backend, so it is always importable."""
 
 _DEFAULT_GEODATAFRAME_BACKEND: GeoDataFrameBackend = "geopandas"
-"""Default backend for geodataframes in the fedfred package."""
+"""Default GeoDataFrame backend when none is set via :func:`_set_geodataframe_backend`.
+
+The fallback returned by :func:`_get_geodataframe_backend` / :func:`_resolve_geodataframe_backend`
+when no global backend and no explicit override is supplied."""
