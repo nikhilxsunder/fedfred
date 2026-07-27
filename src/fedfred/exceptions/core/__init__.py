@@ -81,7 +81,12 @@ from .conversion import (
 from .loading import DependencyLoadingError
 from .parsing import EmptyResponseError, MissingFieldError, ParsingError, ResponseShapeError
 from .preparation import MissingParameterError, PreparationError, UnknownParameterError
-from .resolution import ResolutionError, UnknownServiceError, UnsupportedEndpointError
+from .resolution import (
+    MissingAPIKeyError,
+    ResolutionError,
+    UnknownServiceError,
+    UnsupportedEndpointError,
+)
 from .specification import (
     EndpointAuthError,
     EndpointFieldTypeError,
@@ -111,6 +116,7 @@ __all__ = [
     "EndpointSpecError",
     "EndpointURLError",
     "GeoDataFrameConversionError",
+    "MissingAPIKeyError",
     "MissingFieldError",
     "MissingParameterError",
     "ParameterConversionError",

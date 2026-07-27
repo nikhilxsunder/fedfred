@@ -21,23 +21,24 @@
 # SOFTWARE.
 """Singleton sentinels for the fedfred core package.
 
-Distinct marker objects for the places where ``None`` is itself a valid value and a
-function must tell "no argument supplied" from "argument supplied as ``None``" — most
-notably default-bearing accessors like ``AdjustableFIFOCache.pop``. Implemented as a
-single-member :class:`enum.Enum` so each sentinel is a unique, identity-comparable
-singleton with a real member type that static checkers can narrow on, unlike a bare
-``object()``.
+Distinct marker objects for the places where ``None`` is itself a valid value and a function
+must distinguish "no argument supplied" from "argument supplied as ``None``" — most notably
+default-bearing accessors like :meth:`AdjustableFIFOCache.pop`. Implemented as a single-member
+:class:`enum.Enum` so each sentinel is a unique, identity-comparable singleton with a real
+member type that static checkers can narrow on (``value is MISSING`` refines the non-sentinel
+branch) — the property a bare ``object()`` sentinel cannot give.
 
 Constants:
-    MISSING: The "no value supplied" sentinel.
+    MISSING: The "no value supplied" sentinel, distinct from an explicit ``None``.
 
 See Also:
-    - :class:`fedfred._internals._caching.AdjustableFIFOCache`: Uses :data:`MISSING`
-      to distinguish an omitted ``pop`` default from an explicit ``None``.
+    - :class:`fedfred._internals._caching.AdjustableFIFOCache`: Uses :data:`MISSING` to
+      distinguish an omitted ``pop`` default from an explicit ``None``.
 
 References:
     - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/
 """
+
 from __future__ import annotations
 
 from enum import Enum
@@ -46,11 +47,12 @@ from enum import Enum
 class _Sentinel(Enum):
     """Enumeration of the package's singleton sentinel values.
 
-    Each member is a unique singleton whose **identity** (``is``) is the comparison
-    contract, and whose member type — :class:`_Sentinel` — lets a caller annotate a
-    parameter as ``T | _Sentinel`` and narrow with ``value is MISSING``. The string
-    member values are arbitrary labels used only for ``repr``; only object identity is
-    significant, never the value.
+    Each member is a unique singleton whose **identity** (``is``) is the comparison contract.
+    Deriving the sentinels from an :class:`enum.Enum` gives three things for free: guaranteed
+    singleton identity, a distinct member type (:class:`_Sentinel`) that a caller can use to
+    annotate a parameter as ``T | _Sentinel`` and narrow with ``value is MISSING``, and a clean
+    ``repr``. The string member values are arbitrary labels used only for that ``repr``; only
+    object identity is ever significant, never the value.
 
     Members:
         MISSING: Marks the absence of a supplied value, distinct from ``None``.
@@ -64,6 +66,21 @@ MISSING = _Sentinel.MISSING
 """Sentinel distinguishing "no value supplied" from an explicit ``None`` default.
 
 Re-exported at module level for ergonomic import (``from ..._sentinels import MISSING``).
-Compare by identity (``value is MISSING``); annotate the surrounding parameter as
-``T | _Sentinel`` so the checker can narrow it.
+Enables the "``None`` is a valid value" pattern: a parameter defaults to :data:`MISSING`, so the
+callee can tell "argument omitted" from "argument explicitly ``None``". Compare by identity
+(``value is MISSING``), and annotate the parameter as ``T | _Sentinel`` so a type checker
+narrows the non-sentinel branch.
+
+Examples:
+    >>> from fedfred._core._sentinels import MISSING, _Sentinel
+    >>> def f(x: int | None | _Sentinel = MISSING) -> str:
+    ...     if x is MISSING:
+    ...         return "omitted"
+    ...     return f"got {x!r}"
+    >>> f()
+    'omitted'
+    >>> f(None)
+    'got None'
+    >>> f(5)
+    'got 5'
 """

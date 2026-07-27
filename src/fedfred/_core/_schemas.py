@@ -1,4 +1,4 @@
-# filepath: /src/fedfred/_core/_resolvers.py
+# filepath: /src/fedfred/_core/_schemas.py
 #
 # Copyright (c) 2026 Nikhil Sunder
 #
@@ -21,21 +21,26 @@
 # SOFTWARE.
 """Column dtype schemas for the fedfred observation model.
 
-The declared ``column name -> numpy dtype kind`` contract for the columnar
-observation core — the single source of truth for which observation columns are
-datetime (``"M"``) and which are float (``"f"``). Centralizing it here keeps that
-dtype knowledge from being duplicated across the validator, comparator, and accessor
-layers that all reason about column types.
+The declared ``column name -> numpy dtype kind`` contract for the columnar observation core —
+the single source of truth for which observation columns are datetime (``"M"``) and which are
+float (``"f"``). Centralizing it here keeps that dtype knowledge from being duplicated across
+the validator, comparator, and accessor layers that all reason about column types, so the
+check at construction and the branches at read time cannot disagree.
 
-Pure data, no logic — consumed by :mod:`._validators` (to check column dtypes at
-construction) and the authority the columnar operations (:mod:`._comparators`,
-:mod:`._accessors`) follow when they branch on ``arr.dtype.kind``.
+Pure data, no logic: consumed by :mod:`._validators` to check column dtypes at construction,
+and treated as authoritative by the columnar operations in :mod:`._comparators` and
+:mod:`._accessors` when they branch on ``arr.dtype.kind``. A column that passes validation is
+therefore guaranteed to satisfy the kind those branches assume.
 
 Constants:
     _EXPECTED_KIND: Observation column name -> expected numpy dtype kind.
 
 See Also:
     - :mod:`fedfred._core._validators`: Validates observation columns against this schema.
+    - :mod:`fedfred._core._comparators`: Branches on ``dtype.kind`` for the columns keyed here.
+    - :mod:`fedfred._core._accessors`: Reads cells from the columns keyed here.
+    - :class:`fedfred._internals._models._ObservationSequence`: Stores the columns this schema
+      governs.
 
 References:
     - fedfred package documentation. https://nikhilxsunder.github.io/fedfred/
@@ -49,11 +54,12 @@ _EXPECTED_KIND: dict[str, str] = {
     "realtime_end": "M",
     "value": "f",
 }
-"""Expected ``numpy.dtype.kind`` for each observation column.
+"""Expected :attr:`numpy.dtype.kind` for each observation column.
 
-Maps an observation column name to the dtype kind it must have: ``"M"`` (datetime64)
-for ``date`` and the ALFRED realtime brackets, ``"f"`` (float64) for ``value``.
-Consulted by :func:`_validate_observation_columns` to reject mistyped columns at
-construction, and the authority the columnar comparators and accessors follow when
-they branch on ``arr.dtype.kind``.
-"""
+Maps an observation column name to the single-character dtype kind it must carry:
+``"M"`` (datetime64) for ``date`` and the ALFRED realtime brackets
+(``realtime_start`` / ``realtime_end``), ``"f"`` (float64) for ``value``. Consulted by
+:func:`_validate_observation_columns` to reject a mistyped column at construction, and the
+authoritative source the columnar comparators and accessors rely on when they branch on
+``arr.dtype.kind`` — so a column that passed validation is guaranteed to satisfy the kind
+those branches assume."""

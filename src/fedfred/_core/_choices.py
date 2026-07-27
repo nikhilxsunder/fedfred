@@ -81,7 +81,7 @@ from __future__ import annotations
 from typing import get_args
 
 from ._mappings import _FRED_TO_PANDAS_FREQ
-from ._types import AuthStyle, Service
+from ._types import AuthStyle, DataFrameBackend, GeoDataFrameBackend, Service
 
 FRED_FREQUENCIES: set[str] = set(_FRED_TO_PANDAS_FREQ.keys())
 """Permitted ``frequency`` codes for FRED requests (e.g. ``"d"``, ``"w"``, ``"m"``, ``"q"``).
@@ -162,12 +162,12 @@ The geographic aggregation levels GeoFRED supports, from national (``country``) 
 ``county``, plus statistical regions (``bea``, ``msa``, ``frb``, ``necta``,
 ``censusregion``, ``censusdivision``)."""
 
-_VALID_DATAFRAME_BACKENDS = ("pandas", "polars", "dask", "fedfred")
+_VALID_DATAFRAME_BACKENDS: frozenset[str] = frozenset(get_args(DataFrameBackend.__value__))
 """Permitted DataFrame backend names, validated against by :func:`_validate_dataframe_backend`.
 
 Kept in registration order; ``"fedfred"`` selects the package's native columnar return type."""
 
-_VALID_GEODATAFRAME_BACKENDS = ("geopandas", "polars-st", "dask-geopandas", "fedfred")
+_VALID_GEODATAFRAME_BACKENDS: frozenset[str] = frozenset(get_args(GeoDataFrameBackend.__value__))
 """Permitted GeoDataFrame backend names, validated against by
 :func:`_validate_geodataframe_backend`.
 

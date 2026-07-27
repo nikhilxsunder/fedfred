@@ -51,11 +51,11 @@ def test_set_api_key(monkeypatch: pytest.MonkeyPatch) -> None:
     assert _registries._GLOBAL_KEYS["fraser"] == "fraser_key"
 
     # Guard arm 1: not a str.
-    with pytest.raises(ValueError, match="api_key must be a non-empty string."):
+    with pytest.raises(ValueError, match="api_key must be a non-empty string"):
         _set_api_key(123)  # type: ignore[arg-type]
 
     # Guard arm 2: str but blank after strip.
-    with pytest.raises(ValueError, match="api_key must be a non-empty string."):
+    with pytest.raises(ValueError, match="api_key must be a non-empty string"):
         _set_api_key("   ")
 
     # Invalid service -> propagated from _validate_service.

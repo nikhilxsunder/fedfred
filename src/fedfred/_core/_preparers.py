@@ -22,16 +22,22 @@
 """Parameter preparation for FRED, ALFRED, GeoFRED, and FRASER requests.
 
 The top of the parameter subsystem: the orchestrators that turn raw, caller-supplied
-parameters into validated, request-ready ones. :func:`_prepare_parameters` is the
-engine — for each parameter it skips ``None``, runs the spec's converter then its
-validator, handles unknown parameters per ``allow_unknown``, and enforces required
-parameters — and the per-service wrappers bind that engine to each service's
-parameter-spec registry.
+parameters into validated, request-ready ones. :func:`_prepare_parameters` is the engine —
+for each parameter it skips ``None``, runs the spec's converter then its validator, admits or
+rejects unknowns per ``allow_unknown``, and finally enforces that every required parameter is
+present. The three per-service wrappers bind that engine to each service's parameter-spec
+registry, all with ``allow_unknown=True``, so an unspecced parameter passes through untouched
+rather than raising (forward-compatible with FRED parameters this package hasn't modeled yet).
 
-"Prepare" is the orchestration of the lower operation layers: it *composes* the
-converters and validators rather than performing either itself, which is why it sits
-above them and is consumed directly by the clients (the request-side sibling of
-:mod:`._resolvers`, which resolves the endpoint while this prepares the params).
+"Prepare" is orchestration, not operation: this layer *composes* the converters and validators
+rather than performing either itself, which is why it sits above them and is consumed directly
+by the clients. It is the request-side sibling of :mod:`._resolvers` — one prepares the
+parameters, the other resolves the endpoint, and a request needs both.
+
+Failures surface as the typed errors the composed layers raise (:class:`TypeConversionError`,
+:class:`TypeValidationError`, :class:`ValueValidationError`) plus the two this layer raises
+itself: :class:`UnknownParameterError` (an unspecced parameter when ``allow_unknown=False``)
+and :class:`MissingParameterError` (a required parameter absent after processing).
 
 Functions:
     _prepare_parameters: Convert + validate a parameter mapping against a spec map.
@@ -42,8 +48,9 @@ Functions:
 See Also:
     - :mod:`fedfred._core._registries`: Provides the per-service ``*_PARAMETER_SPECS``.
     - :class:`fedfred._core._specs.ParameterSpec`: The per-parameter converter/validator spec.
-    - :mod:`fedfred._core._validators`, :mod:`fedfred._core._converters`: The
-      operations this layer composes.
+    - :mod:`fedfred._core._converters`: The converters this layer composes.
+    - :mod:`fedfred._core._validators`: The validators this layer composes.
+    - :mod:`fedfred._core._resolvers`: The endpoint-side sibling; a request needs both.
 
 References:
     - FRED API documentation. https://fred.stlouisfed.org/docs/api/fred/
@@ -72,30 +79,41 @@ def _prepare_parameters(
 ) -> dict[str, Any]:
     """Convert and validate a parameter mapping against a spec map.
 
-    Skips ``None`` values, applies each parameter's converter then validator,
-    handles unknown parameters per ``allow_unknown``, and enforces required
-    parameters after processing.
+    Processes each supplied parameter in turn: a ``None`` value is skipped entirely (treated as
+    absent), a known parameter is run through its converter and then its validator, and an
+    unknown parameter is either passed through verbatim or rejected per ``allow_unknown``. After
+    all inputs are processed, every spec marked required must be present in the result or the
+    call raises.
+
+    Two edges worth noting: an unknown parameter admitted under ``allow_unknown=True`` is
+    **not** converted or validated — it is trusted as-is — and a required parameter supplied
+    explicitly as ``None`` is skipped by the ``None`` filter and therefore fails the
+    required-check as if it had been omitted.
 
     Args:
-        parameters (Mapping[str, Any] | None): The raw parameters, or ``None`` (treated as empty).
+        parameters (Mapping[str, Any] | None): The raw parameters, or ``None`` (treated as
+            empty).
         specs (Mapping[str, ParameterSpec]): The per-parameter specifications.
         service (str): The service name, used only for error context.
-        allow_unknown (bool): If ``True``, parameters with no spec are passed through unchanged; if
-            ``False``, they raise. Defaults to ``False``.
+        allow_unknown (bool): If ``True``, parameters with no spec pass through unchanged
+            (unconverted, unvalidated); if ``False``, an unknown parameter raises. Defaults to
+            ``False``.
 
     Returns:
-        dict[str, Any]: The prepared parameters, ready to send.
+        dict[str, Any]: The prepared parameters — converter outputs for known values, verbatim
+        values for admitted unknowns — ready to send.
 
     Raises:
-        TypeConversionError: If a converter fails to normalize a value.
+        UnknownParameterError: If an unrecognized parameter is seen with ``allow_unknown=False``.
+        TypeConversionError: If a parameter's converter fails to normalize its value.
         TypeValidationError: If a validator rejects a value's type.
         ValueValidationError: If a validator rejects a value.
-        UnknownParameterError: If an unrecognized parameter is seen with
-            ``allow_unknown=False``.
-        MissingParameterError: If a required parameter is missing after processing.
+        MissingParameterError: If a required parameter is absent after processing (including when
+            it was supplied as ``None``).
 
     Examples:
-        >>> from fedfred._core._parameters import _prepare_parameters, ParameterSpec
+        >>> from fedfred._core._specs import ParameterSpec
+        >>> from fedfred._core._preparers import _prepare_parameters
         >>> from fedfred._core._validators import _validate_nonnegative_int
         >>> specs = {"limit": ParameterSpec(validator=_validate_nonnegative_int)}
         >>> _prepare_parameters({"limit": 100}, specs, service="Test")
@@ -144,7 +162,10 @@ def _prepare_parameters(
 
 
 def _prepare_fred_parameters(parameters: Mapping[str, Any] | None) -> dict[str, Any]:
-    """Prepare FRED API request parameters against :data:`FRED_PARAMETER_SPECS`.
+    """Prepare FRED request parameters against :data:`FRED_PARAMETER_SPECS`.
+
+    Thin wrapper over :func:`_prepare_parameters` with ``allow_unknown=True``, so any parameter
+    without a spec is passed through unconverted and unvalidated rather than rejected.
 
     Args:
         parameters (Mapping[str, Any] | None): The raw parameters to prepare.
@@ -155,15 +176,17 @@ def _prepare_fred_parameters(parameters: Mapping[str, Any] | None) -> dict[str, 
     Raises:
         TypeConversionError: If a converter fails to normalize a value.
         TypeValidationError: If a validator rejects a value's type.
-        ValueValidationError: If a value is invalid or a required parameter is missing.
+        ValueValidationError: If a validator rejects a value.
+        MissingParameterError: If a required parameter is missing after processing.
 
     Examples:
-        >>> from fedfred._core._parameters import _prepare_fred_parameters
+        >>> from fedfred._core._preparers import _prepare_fred_parameters
         >>> _prepare_fred_parameters({"limit": 100, "sort_order": "asc"})
         {'limit': 100, 'sort_order': 'asc'}
 
     Notes:
-        Unknown parameters are passed through unchanged (``allow_unknown=True``).
+        Unknown parameters pass through unchanged (``allow_unknown=True``); they are neither
+        converted nor validated, so a caller-supplied typo reaches the API rather than raising.
     """
     return _prepare_parameters(
         parameters,
@@ -174,7 +197,10 @@ def _prepare_fred_parameters(parameters: Mapping[str, Any] | None) -> dict[str, 
 
 
 def _prepare_geofred_parameters(parameters: Mapping[str, Any] | None) -> dict[str, Any]:
-    """Prepare GeoFRED API request parameters against :data:`GEOFRED_PARAMETER_SPECS`.
+    """Prepare GeoFRED request parameters against :data:`GEOFRED_PARAMETER_SPECS`.
+
+    Thin wrapper over :func:`_prepare_parameters` with ``allow_unknown=True``, so any parameter
+    without a spec is passed through unconverted and unvalidated rather than rejected.
 
     Args:
         parameters (Mapping[str, Any] | None): The raw parameters to prepare.
@@ -185,15 +211,17 @@ def _prepare_geofred_parameters(parameters: Mapping[str, Any] | None) -> dict[st
     Raises:
         TypeConversionError: If a converter fails to normalize a value.
         TypeValidationError: If a validator rejects a value's type.
-        ValueValidationError: If a value is invalid or a required parameter is missing.
+        ValueValidationError: If a validator rejects a value.
+        MissingParameterError: If a required parameter is missing after processing.
 
     Examples:
-        >>> from fedfred._core._parameters import _prepare_geofred_parameters
+        >>> from fedfred._core._preparers import _prepare_geofred_parameters
         >>> _prepare_geofred_parameters({"shape": "state", "file_type": "geojson"})
         {'shape': 'state', 'file_type': 'geojson'}
 
     Notes:
-        Unknown parameters are passed through unchanged (``allow_unknown=True``).
+        Unknown parameters pass through unchanged (``allow_unknown=True``); they are neither
+        converted nor validated.
     """
     return _prepare_parameters(
         parameters,
@@ -204,7 +232,10 @@ def _prepare_geofred_parameters(parameters: Mapping[str, Any] | None) -> dict[st
 
 
 def _prepare_fraser_parameters(parameters: Mapping[str, Any] | None) -> dict[str, Any]:
-    """Prepare FRASER API request parameters against :data:`FRASER_PARAMETER_SPECS`.
+    """Prepare FRASER request parameters against :data:`FRASER_PARAMETER_SPECS`.
+
+    Thin wrapper over :func:`_prepare_parameters` with ``allow_unknown=True``, so any parameter
+    without a spec is passed through unconverted and unvalidated rather than rejected.
 
     Args:
         parameters (Mapping[str, Any] | None): The raw parameters to prepare.
@@ -215,15 +246,17 @@ def _prepare_fraser_parameters(parameters: Mapping[str, Any] | None) -> dict[str
     Raises:
         TypeConversionError: If a converter fails to normalize a value.
         TypeValidationError: If a validator rejects a value's type.
-        ValueValidationError: If a value is invalid or a required parameter is missing.
+        ValueValidationError: If a validator rejects a value.
+        MissingParameterError: If a required parameter is missing after processing.
 
     Examples:
-        >>> from fedfred._core._parameters import _prepare_fraser_parameters
+        >>> from fedfred._core._preparers import _prepare_fraser_parameters
         >>> _prepare_fraser_parameters({"limit": 100, "page": 1})
         {'limit': 100, 'page': 1}
 
     Notes:
-        Unknown parameters are passed through unchanged (``allow_unknown=True``).
+        Unknown parameters pass through unchanged (``allow_unknown=True``); they are neither
+        converted nor validated.
     """
     return _prepare_parameters(
         parameters,

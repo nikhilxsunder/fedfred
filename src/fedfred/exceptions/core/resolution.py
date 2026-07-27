@@ -138,3 +138,35 @@ class UnsupportedEndpointError(ResolutionError):
         if self.endpoint_name:
             return f"{self.message} (endpoint={self.endpoint_name!r}, service={self.service!r})"
         return self.message
+
+
+@dataclass(frozen=True, slots=True)
+class MissingAPIKeyError(ResolutionError):
+    """Raised when no API key can be resolved for a service.
+
+    The service identity was recognized, but no key was found through any of the
+    resolution sources: an explicit ``api_key=`` argument, the process-global
+    setting registered via ``set_api_key``, or the service's environment variable.
+
+    Attributes:
+        env_var (str): The environment variable name that was checked as the final
+            fallback (the service default, or an explicit override).
+        service (str): The service whose key could not be resolved (inherited).
+        message (str): Human-readable message (inherited).
+        context (Mapping[str, Any]): Optional structured context (inherited).
+        original_exception (BaseException | None): The underlying error (inherited).
+    """
+
+    env_var: str = ""
+    """The environment variable name that was checked as the final fallback."""
+
+    def __str__(self) -> str:
+        """Return the message, suffixed with the service and the checked env var.
+
+        Returns:
+            str: :attr:`message` with ``(service=…, env_var=…)`` appended when
+            :attr:`service` is set; the bare :attr:`message` otherwise.
+        """
+        if self.service:
+            return f"{self.message} (service={self.service!r}, env_var={self.env_var!r})"
+        return self.message
