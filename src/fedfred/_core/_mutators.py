@@ -24,9 +24,12 @@
 from __future__ import annotations
 
 from . import _registries
-from ._choices import _VALID_DATAFRAME_BACKENDS, _VALID_GEODATAFRAME_BACKENDS
 from ._types import DataFrameBackend, GeoDataFrameBackend, Service
-from ._validators import _validate_dataframe_backend, _validate_geodataframe_backend, _validate_service
+from ._validators import (
+    _validate_dataframe_backend,
+    _validate_geodataframe_backend,
+    _validate_service,
+)
 
 
 def _set_api_key(api_key: str, service: Service = "fred") -> None:

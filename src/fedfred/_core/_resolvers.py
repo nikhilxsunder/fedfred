@@ -163,7 +163,7 @@ def _resolve_preparation_function(
     return _PREPARATION_FUNCTIONS[service](parameters)
 
 
-def _resolve_dataframe_backend(explicit: DataFrameBackend | None = None) -> str:
+def _resolve_dataframe_backend(explicit: DataFrameBackend | None = None) -> DataFrameBackend:
     """
     """
     backend = explicit or _GLOBAL_DATAFRAME_BACKEND or _DEFAULT_DATAFRAME_BACKEND
@@ -173,7 +173,7 @@ def _resolve_dataframe_backend(explicit: DataFrameBackend | None = None) -> str:
     return backend
 
 
-def _resolve_geodataframe_backend(explicit: GeoDataFrameBackend | None = None) -> str:
+def _resolve_geodataframe_backend(explicit: GeoDataFrameBackend | None = None) -> GeoDataFrameBackend:
     """
     """
     backend = explicit or _GLOBAL_GEODATAFRAME_BACKEND or _DEFAULT_GEODATAFRAME_BACKEND

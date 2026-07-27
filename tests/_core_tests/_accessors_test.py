@@ -25,7 +25,19 @@ from datetime import date, datetime
 import numpy as np
 import pytest
 
-from fedfred._core._accessors import _cell_date, _cell_value, _first_date_index
+from fedfred._core import _accessors, _registries
+from fedfred._core._accessors import (
+    _cell_date,
+    _cell_value,
+    _first_date_index,
+    _get_api_key,
+    _get_dataframe_backend,
+    _get_geodataframe_backend,
+)
+from fedfred._core._defaults import (
+    _DEFAULT_DATAFRAME_BACKEND,
+    _DEFAULT_GEODATAFRAME_BACKEND,
+)
 
 
 def test_cell_date() -> None:
@@ -146,8 +158,57 @@ def test_first_date_index() -> None:
     with pytest.raises(ValueError):
         _first_date_index(dates, "2020-13-01")
 
-def test_get_api_key() -> None:
+def test_get_api_key(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Full-branch coverage for :func:`_get_api_key`.
 
-def test_get_dataframe_backend() -> None:
+    Exercises every path: the unknown-service guard (raise), a service with a
+    configured key (return the string), and a known service with no key set
+    (return ``None``). State is mutated through ``monkeypatch.setitem`` on the
+    registry dict so no global key leaks into other tests.
+    """
+    # Known service, key configured -> returns the stored value.
+    monkeypatch.setitem(_registries._GLOBAL_KEYS, "fred", "test_fred_key")
+    assert _get_api_key("fred") == "test_fred_key"
 
-def test_get_geodataframe_backend() -> None:
+    # Default argument resolves to "fred".
+    assert _get_api_key() == "test_fred_key"
+
+    # Known service, no key configured -> returns None (not a raise).
+    monkeypatch.setitem(_registries._GLOBAL_KEYS, "fraser", None)
+    assert _get_api_key("fraser") is None
+
+    # Unknown service -> ValueError with the enumerated-services message.
+    with pytest.raises(ValueError, match=r"Unknown service: 'bogus'\."):
+        _get_api_key("bogus")  # type: ignore[arg-type]
+
+def test_get_dataframe_backend(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Full-branch coverage for :func:`_get_dataframe_backend`.
+
+    Covers both arms of the ``_GLOBAL_DATAFRAME_BACKEND or _DEFAULT_DATAFRAME_BACKEND``
+    expression: a set global (returned as-is) and an unset global (falls through to
+    the package default).
+    """
+    # Global set -> returned in preference to the default.
+    monkeypatch.setattr(_accessors, "_GLOBAL_DATAFRAME_BACKEND", "polars")
+    assert _get_dataframe_backend() == "polars"
+
+    # Global unset (None) -> falls through to _DEFAULT_DATAFRAME_BACKEND.
+    monkeypatch.setattr(_accessors, "_GLOBAL_DATAFRAME_BACKEND", None)
+    assert _get_dataframe_backend() == _DEFAULT_DATAFRAME_BACKEND
+
+
+def test_get_geodataframe_backend(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Full-branch coverage for :func:`_get_geodataframe_backend`.
+
+    Covers both arms of the
+    ``_GLOBAL_GEODATAFRAME_BACKEND or _DEFAULT_GEODATAFRAME_BACKEND`` expression: a
+    set global (returned as-is) and an unset global (falls through to the package
+    default).
+    """
+    # Global set -> returned in preference to the default.
+    monkeypatch.setattr(_accessors, "_GLOBAL_GEODATAFRAME_BACKEND", "polars-st")
+    assert _get_geodataframe_backend() == "polars-st"
+
+    # Global unset (None) -> falls through to _DEFAULT_GEODATAFRAME_BACKEND.
+    monkeypatch.setattr(_accessors, "_GLOBAL_GEODATAFRAME_BACKEND", None)
+    assert _get_geodataframe_backend() == _DEFAULT_GEODATAFRAME_BACKEND
