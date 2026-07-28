@@ -87,6 +87,7 @@ import numpy as np
 
 from .._core import (
     JSON,
+    DataFrameBackend,
     _columns_equal,
     _columns_to_arrow,
     _columns_to_cudf,
@@ -97,7 +98,6 @@ from .._core import (
     _first_date_index,
     _observation_columns,
     _resolve_dataframe_backend,
-    _resolve_geodataframe_backend,
     _ResponseShape,
     _row_match_mask,
     _validate_observation_columns,
@@ -119,13 +119,6 @@ if TYPE_CHECKING:
     import pyarrow as pa
 
 # TODO: Fix all docstrings post error design.
-
-__all__ = [
-    "_DateBase",
-    "_DateSequence",
-    "_ModelBase",
-    "_ModelSequence",
-]
 
 
 @dataclass(slots=True, kw_only=True)
@@ -1349,7 +1342,7 @@ class _ObservationSequence[OT: _ObservationBase](Sequence[OT]):
 
     def to_dataframe(
         self,
-        backend: str | None = None,
+        backend: DataFrameBackend | None = None,
         index: str | None = None,
         npartitions: int = 1,
     ) -> pl.DataFrame | pd.DataFrame | dd.DataFrame | cudf.DataFrame | pa.Table | Self:

@@ -95,11 +95,13 @@ from typing import (
 import numpy as np
 import pandas as pd
 
+from .._core import (
+    _cell_date,
+    _cell_value,
+    _coerce_lower,
+)
 from .._internals import (
-    _cell_date,  # TODO: this is a re-export from _core._accessors, needs a refactor fix.
-    _cell_value,  # TODO: this is a re-export from _core._accessors, needs a refactor fix.
     _ClientModel,
-    _coerce_lower,  # TODO: this is a re-export from _core._converters needs a refactor fix.
     _DateBase,
     _DateSequence,
     _ModelBase,
@@ -119,7 +121,7 @@ if TYPE_CHECKING:
 
 # TODO: Fix all docstrings post error design.
 
-
+# TODO: core should not supply public mechanisms directly and should be relegated to internal model logic
 @dataclass(slots=True)
 class Category(_ModelBase):
     """A FRED Category.
