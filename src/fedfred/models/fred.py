@@ -95,11 +95,6 @@ from typing import (
 import numpy as np
 import pandas as pd
 
-from .._core import (
-    _cell_date,
-    _cell_value,
-    _coerce_lower,
-)
 from .._internals import (
     _ClientModel,
     _DateBase,
@@ -120,6 +115,7 @@ if TYPE_CHECKING:
     from ..clients import Fred
 
 # TODO: Fix all docstrings post error design.
+
 
 # TODO: core should not supply public mechanisms directly and should be relegated to internal model logic
 @dataclass(slots=True)
@@ -495,6 +491,12 @@ class Series(_ModelBase):
     _response_keys: ClassVar[tuple[str, ...]] = ("seriess", "series")
     """Payload key(s) under which FRED returns the series list. Both singular and plural keys are accepted to accommodate different endpoint shapes."""
 
+    _lower_fields: ClassVar[tuple[str, ...]] = (
+        "frequency_short",
+        "units_short",
+        "seasonal_adjustment_short",
+    )
+
     # Class Methods
     @classmethod
     def _from_dict(cls, data: dict[str, Any], client: _ClientModel | None = None) -> Series:
@@ -532,6 +534,8 @@ class Series(_ModelBase):
             if required not in data:
                 raise ModelError(f"Invalid series payload: missing {required!r}")
 
+        data = cls._normalize(data)
+
         return cls(
             id=sid,
             title=data["title"],
@@ -542,9 +546,9 @@ class Series(_ModelBase):
             observation_start=data.get("observation_start"),
             observation_end=data.get("observation_end"),
             copyright_id=data.get("copyright_id"),
-            frequency_short=_coerce_lower(data.get("frequency_short")),
-            units_short=_coerce_lower(data.get("units_short")),
-            seasonal_adjustment_short=_coerce_lower(data.get("seasonal_adjustment_short")),
+            frequency_short=data.get("frequency_short"),
+            units_short=data.get("units_short"),
+            seasonal_adjustment_short=data.get("seasonal_adjustment_short"),
             popularity=data.get("popularity"),
             realtime_start=data.get("realtime_start"),
             realtime_end=data.get("realtime_end"),
@@ -1949,11 +1953,6 @@ class PointSeries(_ObservationSequence[PointObservation]):
         self.realtime_end = realtime_end
 
     # Protected Methods
-    def _make(self, i: int) -> PointObservation:
-        """ """
-        # TODO: Empty docstring
-        return PointObservation(_cell_date(self._dates, i), _cell_value(self._values, i))
-
     def _metadata(self) -> dict[str, Any]:
         """ """
         # TODO: Empty docstring
@@ -2039,7 +2038,6 @@ class ObservablesRelease(_ModelBase):
     """
 
     release: Release
-
 
     seriess: Seriess
 
@@ -2170,4 +2168,3 @@ class ObservablesReleases(_ModelSequence[ObservablesRelease]):
             "release": pages[0]["release"],
             "series": [merged_series[sid] for sid in order],
         }
-

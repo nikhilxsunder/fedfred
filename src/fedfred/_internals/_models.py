@@ -88,6 +88,9 @@ import numpy as np
 from .._core import (
     JSON,
     DataFrameBackend,
+    _cell_date,
+    _cell_value,
+    _coerce_lower,
     _columns_equal,
     _columns_to_arrow,
     _columns_to_cudf,
@@ -160,7 +163,24 @@ class _ModelBase:
     """Response container shape: ``"list"`` for a plain list, ``"dict_or_list"`` for id-keyed-dict
     element payloads."""
 
+    _lower_fields: ClassVar[tuple[str, ...]] = ()
+    """Payload field names whose values are short codes, lowercased before construction."""
+
     # Class Methods
+    @classmethod
+    def _normalize(cls, data: dict[str, Any]) -> dict[str, Any]:
+        """Return ``data`` with the declared short-code fields lowercased.
+
+        Applies the core short-code converter to each field in :attr:`_lower_fields`,
+        so subclass ``_from_dict`` parsers never import :mod:`fedfred._core`.
+        """
+        if not cls._lower_fields:
+            return data
+        normalized = dict(data)
+        for name in cls._lower_fields:
+            normalized[name] = _coerce_lower(normalized.get(name))
+        return normalized
+
     @classmethod
     @abstractmethod
     def _from_dict(cls, data: dict[str, Any], client: _ClientModel | None = None) -> Self:
@@ -1287,9 +1307,19 @@ class _ObservationSequence[OT: _ObservationBase](Sequence[OT]):
         return [np.datetime_as_string(d, unit="D").item() for d in np.unique(self._dates)]
 
     # Protected Methods
-    @abstractmethod
     def _make(self, i: int) -> OT:
-        """Synthesize the element at row ``i`` from the columns."""
+        """Synthesize the element at row ``i`` from the columnar store.
+
+        Materializes each column's cell to a native scalar — datetime columns via the
+        core date accessor, float columns via the core value accessor — and constructs
+        the concrete :attr:`_element_type`. Written once; concrete subclasses supply only
+        :attr:`_element_type` and :meth:`_columns`, never a ``_make`` override.
+        """
+        fields = {
+            name: (_cell_date(column, i) if column.dtype.kind == "M" else _cell_value(column, i))
+            for name, column in self._columns().items()
+        }
+        return cast("OT", self._element_type(**fields))
 
     @abstractmethod
     def _rebuild(self, columns: dict[str, np.ndarray], metadata: dict[str, Any]) -> Self:

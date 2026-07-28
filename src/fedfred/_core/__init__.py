@@ -21,9 +21,14 @@
 # SOFTWARE.
 """"""
 
-from ._accessors import _first_date_index
+from ._accessors import (
+    _cell_date,
+    _cell_value,
+    _first_date_index,
+)
 from ._comparators import _columns_equal, _row_match_mask
 from ._converters import (
+    _coerce_lower,
     _columns_to_arrow,
     _columns_to_cudf,
     _columns_to_dask,
@@ -76,6 +81,9 @@ __all__ = [
     "Service",
     "_ResponseShape",
     "_Sentinel",
+    "_cell_date",
+    "_cell_value",
+    "_coerce_lower",
     "_columns_equal",
     "_columns_to_arrow",
     "_columns_to_cudf",
