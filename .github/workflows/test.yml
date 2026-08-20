@@ -30,7 +30,7 @@ jobs:
           virtualenvs-in-project: true
 
       - name: Cache Poetry dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v6
         with:
           path: ~/.cache/pypoetry
           key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
