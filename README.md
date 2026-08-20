@@ -2,8 +2,6 @@
     <img src="https://github.com/nikhilxsunder/fedfred/blob/8dcdaa56a423580aa26df03789480b869b90fcc9/assets/exported/fedfred_banner_transparent.png"  alt="FedFred Logo">
 </div>
 
-<<<<<<< HEAD
-
 <div align="center">
     <a href="https://github.com/nikhilxsunder/fedfred/actions/workflows/main.yml"><img src="https://github.com/nikhilxsunder/fedfred/actions/workflows/main.yml/badge.svg" alt="Build and test GitHub"></a>
     <a href="https://github.com/nikhilxsunder/fedfred/actions/workflows/analyze.yml"><img src="https://github.com/nikhilxsunder/fedfred/actions/workflows/analyze.yml/badge.svg" alt="Analyze Status"></a>
@@ -20,7 +18,7 @@
     <a href="https://doi.org/10.5281/zenodo.17635942"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.17635942.svg" alt="DOI"></a>
     <a href="https://github.com/wilsonfreitas/awesome-quant"><img src="https://awesome.re/badge.svg" alt="Awesome"></a>
 </div>
-=======
+
 ## A modern python package for interacting with the Federal Reserve Bank of St. Louis FRED, GeoFRED, ALFRED, and FRASER APIs.
 
 |                      |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
@@ -32,10 +30,7 @@
 | **Distribution**     | [![PyPI](https://img.shields.io/pypi/v/fedfred.svg)](https://pypi.org/project/fedfred/) [![Conda](https://anaconda.org/conda-forge/fedfred/badges/version.svg)](https://anaconda.org/conda-forge/fedfred) [![Python Versions](https://img.shields.io/pypi/pyversions/fedfred.svg)](https://pypi.org/project/fedfred/)                                                                                                                                                                                                                                                                                                                                             |
 | **License**          | [![License](https://img.shields.io/pypi/l/fedfred.svg)](https://github.com/nikhilxsunder/fedfred/blob/main/LICENSE)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | **Usage**            | [![PyPI Downloads](https://static.pepy.tech/badge/fedfred)](https://pepy.tech/projects/fedfred) [![Conda Downloads](https://anaconda.org/conda-forge/fedfred/badges/downloads.svg)](https://anaconda.org/conda-forge/fedfred)                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| **Research / Index** | [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17635942.svg)](https://doi.org/10.5281/zenodo.17635942) [![Awesome](https://awesome.re/badge.svg)](https://github.com/wilsonfreitas/awesome-quant)                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-
-> > > > > > > 3d2d58b52d39f26ab633ea5ef3d20f442f64f942
-
+| **Research / Index** | [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17635942.svg)](https://doi.org/10.5281/zenodo.17635942) [![Awesome](https://awesome.re/badge.svg)](https://github.com/wilsonfreitas/awesome-quant)                                                                                                                                                                                                  
 ### Features
 
 - Now available on Conda-Forge!
@@ -56,11 +51,6 @@
          alt="University of Miami Herbert Business School"
          height="75">
 </a>
-
-<!--
-#### Companies
-_Add yours here_
--->
 
 #### Open-source projects / Repositories
 
@@ -264,7 +254,6 @@ Version 3.0.0. Available at: https://github.com/nikhilxsunder/fedfred
   doi = {10.5281/zenodo.17635942},
   url = {https://github.com/nikhilxsunder/fedfred},
   orcid = {https://orcid.org/0009-0007-3323-1760}
->>>>>>> 3d2d58b52d39f26ab633ea5ef3d20f442f64f942
 }
 ```
 
