@@ -1,10 +1,8 @@
-# fedfred
-
-## A feature-rich python package for interacting with the Federal Reserve Bank of St. Louis Economic Database: FRED
-
 <div align="center">
-    <img src="https://raw.githubusercontent.com/nikhilxsunder/fedfred/main/docs/source/_static/fedfred-logo.png" width="30%" alt="FedFred Logo">
+    <img src="https://github.com/nikhilxsunder/fedfred/blob/8dcdaa56a423580aa26df03789480b869b90fcc9/assets/exported/fedfred_banner_transparent.png"  alt="FedFred Logo">
 </div>
+
+<<<<<<< HEAD
 
 <div align="center">
     <a href="https://github.com/nikhilxsunder/fedfred/actions/workflows/main.yml"><img src="https://github.com/nikhilxsunder/fedfred/actions/workflows/main.yml/badge.svg" alt="Build and test GitHub"></a>
@@ -22,6 +20,21 @@
     <a href="https://doi.org/10.5281/zenodo.17635942"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.17635942.svg" alt="DOI"></a>
     <a href="https://github.com/wilsonfreitas/awesome-quant"><img src="https://awesome.re/badge.svg" alt="Awesome"></a>
 </div>
+=======
+## A modern python package for interacting with the Federal Reserve Bank of St. Louis FRED, GeoFRED, ALFRED, and FRASER APIs.
+
+|                      |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **CI / Quality**     | [![Build](https://github.com/nikhilxsunder/fedfred/actions/workflows/main.yml/badge.svg)](https://github.com/nikhilxsunder/fedfred/actions/workflows/main.yml) [![Analyze](https://github.com/nikhilxsunder/fedfred/actions/workflows/analyze.yml/badge.svg)](https://github.com/nikhilxsunder/fedfred/actions/workflows/analyze.yml) [![Tests](https://github.com/nikhilxsunder/fedfred/actions/workflows/test.yml/badge.svg)](https://github.com/nikhilxsunder/fedfred/actions/workflows/test.yml) [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff) |
+| **Security**         | [![CodeQL](https://github.com/nikhilxsunder/fedfred/actions/workflows/codeql.yml/badge.svg)](https://github.com/nikhilxsunder/fedfred/actions/workflows/codeql.yml) [![Best Practices](https://www.bestpractices.dev/projects/10158/badge)](https://www.bestpractices.dev/projects/10158) [![Socket](https://socket.dev/api/badge/pypi/package/fedfred/3.0.0?artifact_id=tar-gz)](https://socket.dev/pypi/package/fedfred/overview/3.0.0/tar-gz)                                                                                                                                                                                                                  |
+| **Coverage**         | [![Coverage](https://codecov.io/gh/nikhilxsunder/fedfred/graph/badge.svg?token=VVEK415DF6)](https://codecov.io/gh/nikhilxsunder/fedfred)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| **Packaging**        | [![Repology](https://repology.org/badge/tiny-repos/python%3Afedfred.svg)](https://repology.org/project/python%3Afedfred/versions) [![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv) [![Hatch project](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/pypa/hatch/master/docs/assets/badge/v0.json)](https://github.com/pypa/hatch)                                                                                                                                                                                                     |
+| **Distribution**     | [![PyPI](https://img.shields.io/pypi/v/fedfred.svg)](https://pypi.org/project/fedfred/) [![Conda](https://anaconda.org/conda-forge/fedfred/badges/version.svg)](https://anaconda.org/conda-forge/fedfred) [![Python Versions](https://img.shields.io/pypi/pyversions/fedfred.svg)](https://pypi.org/project/fedfred/)                                                                                                                                                                                                                                                                                                                                             |
+| **License**          | [![License](https://img.shields.io/pypi/l/fedfred.svg)](https://github.com/nikhilxsunder/fedfred/blob/main/LICENSE)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| **Usage**            | [![PyPI Downloads](https://static.pepy.tech/badge/fedfred)](https://pepy.tech/projects/fedfred) [![Conda Downloads](https://anaconda.org/conda-forge/fedfred/badges/downloads.svg)](https://anaconda.org/conda-forge/fedfred)                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| **Research / Index** | [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17635942.svg)](https://doi.org/10.5281/zenodo.17635942) [![Awesome](https://awesome.re/badge.svg)](https://github.com/wilsonfreitas/awesome-quant)                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+
+> > > > > > > 3d2d58b52d39f26ab633ea5ef3d20f442f64f942
 
 ### Features
 
@@ -37,6 +50,7 @@
 > Note: Listing does not imply endorsement or affiliation.
 
 #### Institutions / Organizations
+
 <a href="https://herbert.miami.edu/" title="University of Miami Herbert Business School">
     <img src="https://ft-bschool-rankings.s3.eu-west-2.amazonaws.com/production/images/5c4bdeb1-1c63-4db1-a083-17788dc9e936-695b4305f38b114a94513f7f0a44085c"
          alt="University of Miami Herbert Business School"
@@ -49,6 +63,7 @@ _Add yours here_
 -->
 
 #### Open-source projects / Repositories
+
 <div align="left">
   <a href="https://github.com/wilsonfreitas/awesome-quant" title="Awesome Quant">
     <img src="https://raw.githubusercontent.com/sindresorhus/awesome/main/media/logo.svg"
@@ -231,6 +246,7 @@ Version 3.0.0. Available at: https://github.com/nikhilxsunder/fedfred
 
 ```bibtex
 @software{fedfred,
+<<<<<<< HEAD
   author       = {Nikhil Sunder},
   title        = {fedfred: A Python client for the Federal Reserve Economic Database (FRED) API},
   year         = {2026},
@@ -239,6 +255,16 @@ Version 3.0.0. Available at: https://github.com/nikhilxsunder/fedfred
   doi          = {10.5281/zenodo.17635942},
   url          = {https://github.com/nikhilxsunder/fedfred},
   orcid        = {https://orcid.org/0009-0007-3323-1760}
+=======
+  author = {Nikhil Sunder},
+  title = {fedfred: A Python client for the Federal Reserve Economic Database (FRED) API},
+  year = {2025},
+  publisher = {GitHub},
+  version = {3.0.0},
+  doi = {10.5281/zenodo.17635942},
+  url = {https://github.com/nikhilxsunder/fedfred},
+  orcid = {https://orcid.org/0009-0007-3323-1760}
+>>>>>>> 3d2d58b52d39f26ab633ea5ef3d20f442f64f942
 }
 ```
 
