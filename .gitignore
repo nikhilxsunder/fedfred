@@ -183,3 +183,5 @@ conda-dist/
 
 .ruff_cache/
 .temp/
+
+.idea/

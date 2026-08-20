@@ -19,6 +19,19 @@
   padding-right: 2.5rem;
 }
 
+/* Cap the banner logo: the theme default (height: 100% of the 4rem header)
+   renders the 4:1 banner ~190px wide and starves the center nav of space. */
+.bd-header .navbar-brand img {
+  height: auto;
+  max-height: 2.5rem;
+  width: auto;
+}
+
+/* Never let nav labels break onto a second line. */
+.bd-header ul.navbar-nav .nav-link {
+  white-space: nowrap;
+}
+
 #cc-float-btn {
   position: fixed;
   bottom: 1.25rem;
