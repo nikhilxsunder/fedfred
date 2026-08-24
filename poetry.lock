@@ -1006,14 +1006,14 @@ tqdm = ["tqdm"]
 
 [[package]]
 name = "geopandas"
-version = "1.1.2"
+version = "1.1.4"
 description = "Geographic pandas extensions"
 optional = false
 python-versions = ">=3.10"
 groups = ["main", "dev"]
 files = [
-    {file = "geopandas-1.1.2-py3-none-any.whl", hash = "sha256:2bb0b1052cb47378addb4ba54c47f8d4642dcbda9b61375638274f49d9f0bb0d"},
-    {file = "geopandas-1.1.2.tar.gz", hash = "sha256:33f7b33565c46a45b8459a2ab699ec943fdbb5716e58e251b3c413cf7783106c"},
+    {file = "geopandas-1.1.4-py3-none-any.whl", hash = "sha256:1a0c459cbdb1537cd154dafe6174be20d1760844b7f1c967dc8520b180f2e773"},
+    {file = "geopandas-1.1.4.tar.gz", hash = "sha256:06f2890a07e1a239047daa14b486a7c6ae5ce82dcf7405e13c46bf31f5d0dd66"},
 ]
 
 [package.dependencies]
@@ -1025,7 +1025,7 @@ pyproj = ">=3.5.0"
 shapely = ">=2.0.0"
 
 [package.extras]
-all = ["GeoAlchemy2", "SQLAlchemy (>=2.0)", "folium", "geopy", "mapclassify (>=2.5)", "matplotlib (>=3.7)", "psycopg[binary] (>=3.1.0)", "pyarrow (>=10.0.0)", "scipy", "xyzservices"]
+all = ["GeoAlchemy2", "SQLAlchemy (>=2.0)", "folium", "geopy", "mapclassify (>=2.5)", "matplotlib (>=3.7)", "pointpats (>=2.5.3)", "psycopg[binary] (>=3.1.0)", "pyarrow (>=10.0.0)", "scipy", "xyzservices"]
 dev = ["codecov", "pre-commit", "pytest (>=3.1.0)", "pytest-cov", "pytest-xdist", "ruff"]
 
 [[package]]
