@@ -1544,14 +1544,14 @@ dev = ["Sphinx (>=5.0.2)", "doc8 (>=0.11.2)", "pytest (>=7.0.1)", "pytest-xdist 
 
 [[package]]
 name = "linkify-it-py"
-version = "2.1.0"
+version = "2.1.1"
 description = "Links recognition library with FULL unicode support."
 optional = false
 python-versions = ">=3.10"
 groups = ["dev"]
 files = [
-    {file = "linkify_it_py-2.1.0-py3-none-any.whl", hash = "sha256:0d252c1594ecba2ecedc444053db5d3a9b7ec1b0dd929c8f1d74dce89f86c05e"},
-    {file = "linkify_it_py-2.1.0.tar.gz", hash = "sha256:43360231720999c10e9328dc3691160e27a718e280673d444c38d7d3aaa3b98b"},
+    {file = "linkify_it_py-2.1.1-py3-none-any.whl", hash = "sha256:8539a6b470efce90ba9b69e39b848e5b15b7ad89f7f98ca17d3532c243f987dc"},
+    {file = "linkify_it_py-2.1.1.tar.gz", hash = "sha256:a78f40fee177eb912e9d2375074108378523c38d3fde5d3ee804f465b6cfbfee"},
 ]
 
 [package.dependencies]
@@ -1561,7 +1561,7 @@ uc-micro-py = "*"
 benchmark = ["pytest", "pytest-benchmark"]
 dev = ["black", "flake8", "isort", "pre-commit", "pyproject-flake8"]
 doc = ["myst-parser", "sphinx", "sphinx_book_theme"]
-test = ["coverage", "pytest", "pytest-cov"]
+test = ["coverage", "pytest", "pytest-cov", "pytest-timeout"]
 
 [[package]]
 name = "locket"
