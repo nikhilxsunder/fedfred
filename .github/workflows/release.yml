@@ -259,7 +259,7 @@ jobs:
           ref: main
 
       - name: Create a Pull Request
-        uses: peter-evans/create-pull-request@v5
+        uses: peter-evans/create-pull-request@v8
         with:
           token: ${{ secrets.FEEDSTOCK_TOKEN }}
           commit-message: "Update to version ${{ github.event.inputs.release_version || github.ref_name }}"
