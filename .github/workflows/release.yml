@@ -131,7 +131,7 @@ jobs:
           path: conda-recipe/
 
       - name: Set up Miniconda
-        uses: conda-incubator/setup-miniconda@v3
+        uses: conda-incubator/setup-miniconda@v4
         with:
           auto-update-conda: true
           python-version: "3.10"
@@ -195,7 +195,7 @@ jobs:
           path: conda-recipe/
 
       - name: Set up Miniconda
-        uses: conda-incubator/setup-miniconda@v3
+        uses: conda-incubator/setup-miniconda@v4
         with:
           auto-update-conda: true
           python-version: "3.10"
