@@ -48,7 +48,7 @@ jobs:
           poetry run pytest tests --disable-warnings --cov=src --cov-report=xml --cov-report=term > coverage_output.txt
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v7
         with:
           file: ./coverage.xml
           token: ${{ secrets.CODECOV_TOKEN }}
