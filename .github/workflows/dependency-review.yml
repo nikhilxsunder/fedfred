@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       # Blocks PRs that introduce known-vulnerable dependencies or risky license changes.
       - name: Dependency Review
