@@ -2820,19 +2820,19 @@ files = [
 
 [[package]]
 name = "polars-st"
-version = "0.7.1"
+version = "0.7.2"
 description = "Spatial extension for Polars DataFrames"
 optional = false
 python-versions = ">=3.10"
 groups = ["dev"]
 files = [
-    {file = "polars_st-0.7.1-cp310-abi3-macosx_10_12_x86_64.whl", hash = "sha256:06b818e810d79317913366b0d7cc6838ee91541954528bce44ccad9257a19860"},
-    {file = "polars_st-0.7.1-cp310-abi3-macosx_11_0_arm64.whl", hash = "sha256:78ce521326d11eb6669968a2587138c3171bd0b03c8a772d4ab686407c68cc6c"},
-    {file = "polars_st-0.7.1-cp310-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:759834396f74582cbe68707845e93928cf5baf843469655a1818eaf36cd53d08"},
-    {file = "polars_st-0.7.1-cp310-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:3d3bc6a0e5e14181f0fc333d2595a5fbafec996dc002e92760fa2b22e2a5559a"},
-    {file = "polars_st-0.7.1-cp310-abi3-win_amd64.whl", hash = "sha256:18df9351131fc2750c5c43f5aa73ab7dc28fa4293dfd22ff98ce39c8f7017df5"},
-    {file = "polars_st-0.7.1-cp310-abi3-win_arm64.whl", hash = "sha256:74e545dfd34f3febdb3e377f214836c9782e673f174659d841a81c14e4e2ceb8"},
-    {file = "polars_st-0.7.1.tar.gz", hash = "sha256:6a322ddfedfa54da56608bad1c3619163619ffd89a6a2053c811b1b3659897cb"},
+    {file = "polars_st-0.7.2-cp310-abi3-macosx_10_12_x86_64.whl", hash = "sha256:b5b0debbaf9e4038cf1f75a5edf9743da9e004a2f68dc1cb40d067e1c4445551"},
+    {file = "polars_st-0.7.2-cp310-abi3-macosx_11_0_arm64.whl", hash = "sha256:ab3e32e28b272d54f23588dd626285648feb0d80793adc08c69dd52e0c964d63"},
+    {file = "polars_st-0.7.2-cp310-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:9d969b8fa6a9eea462b300bdef9cb5cd7104c80f2607eff760c4e5663218e652"},
+    {file = "polars_st-0.7.2-cp310-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:2230a049b3000d2b163664207f282785ae9e358827af627d74607e123aa9bade"},
+    {file = "polars_st-0.7.2-cp310-abi3-win_amd64.whl", hash = "sha256:a43cc953f53ad9da03bf390d47b0ba85b326074cf653a21dba1bcbb3ac62d3a1"},
+    {file = "polars_st-0.7.2-cp310-abi3-win_arm64.whl", hash = "sha256:1e6a5a812fa0b2df51e72990e20d97abef4d94a77b5ee5d738324122ec38f5f2"},
+    {file = "polars_st-0.7.2.tar.gz", hash = "sha256:7dfdb3b98987015d50494a12c7e729dc4234345ab4bbd3fc36cae62a3e92e94b"},
 ]
 
 [package.dependencies]
