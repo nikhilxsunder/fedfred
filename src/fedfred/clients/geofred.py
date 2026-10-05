@@ -19,7 +19,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-""" """
+"""GeoFred client for interacting with the FRED Maps API."""
 
 from __future__ import annotations
 
@@ -59,7 +59,7 @@ class GeoFred(_BaseClient):
         ValueError: If the parent instance is not an instance of Fred.
 
     Notes:
-        The GeoFred class is designed to work in conjunction with the Fred class, providing a more specialized interface for
+        The GeoFred class is designed to work in conjunction with the Fred class, providing a morespecialized interface for
         accessing geospatial data and maps from the FRED API. It leverages the caching and rate-limiting mechanisms of the
         parent Fred instance to ensure efficient and reliable access to geospatial data and maps.
 
