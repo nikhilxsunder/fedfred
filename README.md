@@ -46,7 +46,7 @@
 ### Institutions / Organizations
 
 <a href="https://herbert.miami.edu/" title="University of Miami Herbert Business School">
-    <img src="https://ft-bschool-rankings.s3.eu-west-2.amazonaws.com/production/images/5c4bdeb1-1c63-4db1-a083-17788dc9e936-695b4305f38b114a94513f7f0a44085c"
+    <img src="https://mbaworldsummit.com/wp-content/uploads/2019/06/Miami-BU-Logo.png"
          alt="University of Miami Herbert Business School"
          height="75">
 </a>
