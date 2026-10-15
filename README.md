@@ -32,7 +32,7 @@
 <a href="https://herbert.miami.edu/" title="University of Miami Herbert Business School">
     <img src="https://mbaworldsummit.com/wp-content/uploads/2019/06/Miami-BU-Logo.png"
          alt="University of Miami Herbert Business School"
-         height="75">
+         height="150">
 </a>
 
 #### Open-source projects / Repositories
